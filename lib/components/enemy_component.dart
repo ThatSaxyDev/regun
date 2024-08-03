@@ -45,7 +45,7 @@ class EnemyComponent extends PositionComponent
     super.update(dt);
 
     //! CENTER OF THE SCREEN
-    final center = Vector2.zero();
+    final center = game.myPlayer.position;
 
     //! DIRECTION VECTOR FROM THE ENEMY TO THE CENTER
     final direction = (center - position).normalized();
