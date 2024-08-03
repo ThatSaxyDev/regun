@@ -11,20 +11,24 @@ class BulletComponent extends PositionComponent
   BulletComponent({
     super.position,
     this.bulletRadius = 5,
+    required this.direction,
+    this.speed = 500,
   }) : super(
-          size: Vector2.all(20),
+          size: Vector2.all(bulletRadius * 2),
           anchor: Anchor.center,
         );
 
   final double bulletRadius;
-  static final _paint = Paint()..color = Colors.white;
+  final Vector2 direction;
+  final double speed;
+  static final _paint = Paint()..color = Colors.red;
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
     add(
       RectangleHitbox(
-        collisionType: CollisionType.passive,
+        collisionType: CollisionType.active,
       ),
     );
   }
@@ -41,12 +45,12 @@ class BulletComponent extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
-    position.y += dt * -500;
-
-    if (position.y > game.size.y) {
-      debugPrint('removed');
+    if (!direction.isZero()) {
+      position += direction * speed * dt;
+    } else {
       removeFromParent();
     }
+    // position += direction * speed * dt;
   }
 
   @override

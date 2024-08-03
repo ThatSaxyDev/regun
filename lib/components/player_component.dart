@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
+import 'package:regun/components/bullet_component.dart';
 import 'package:regun/my_game.dart';
 
 class PlayerComponent extends PositionComponent
@@ -18,7 +19,7 @@ class PlayerComponent extends PositionComponent
 
   final double playerRadius;
   static final _paint = Paint()..color = Colors.red;
-  late final SpawnComponent _bulletSpawner;
+  // late final SpawnComponent _bulletSpawner;
   double maxSpeed = 300.0;
   late final Vector2 _lastSize = size.clone();
   late final Transform2D _lastTransform = transform.clone();
@@ -38,7 +39,8 @@ class PlayerComponent extends PositionComponent
     //   selfPositioning: true,
     //   factory: (amount) {
     //     return BulletComponent(
-    //       position: position + Vector2(0, -height / 2),
+    //       position: position,
+    //       direction: game.weaponJoystick.relativeDelta.normalized(),
     //     );
     //   },
     //   autoStart: false,
@@ -74,16 +76,13 @@ class PlayerComponent extends PositionComponent
     );
   }
 
-  void move(Vector2 delta) {
-    position.add(delta);
-  }
-
   void startShooting() {
-    _bulletSpawner.timer.start();
+    // print('shooting');
+    // _bulletSpawner.timer.start();
   }
 
   void stopShooting() {
-    _bulletSpawner.timer.stop();
+    // _bulletSpawner.timer.stop();
   }
 
   @override

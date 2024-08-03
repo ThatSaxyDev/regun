@@ -4,6 +4,7 @@ import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
+import 'package:regun/components/bullet_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/components/game_joystick.dart';
 import 'package:regun/components/player_component.dart';
@@ -11,6 +12,7 @@ import 'package:regun/components/player_component.dart';
 class RegunGame extends FlameGame with HasCollisionDetection {
   late PlayerComponent myPlayer;
   late final MovementJoystick movementJoystick;
+  late final WeaponJoystick weaponJoystick;
   // final Random _random = Random();
   RegunGame()
       : super(
@@ -26,7 +28,8 @@ class RegunGame extends FlameGame with HasCollisionDetection {
   @override
   FutureOr<void> onLoad() async {
     movementJoystick = MovementJoystick();
-    camera.viewport.add(movementJoystick);
+    weaponJoystick = WeaponJoystick();
+    camera.viewport.addAll([movementJoystick, weaponJoystick]);
     return super.onLoad();
   }
 
@@ -36,6 +39,17 @@ class RegunGame extends FlameGame with HasCollisionDetection {
 
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
+    ));
+    world.add(SpawnComponent(
+      period: 0.3,
+      selfPositioning: true,
+      factory: (amount) {
+        return BulletComponent(
+          position: myPlayer.position,
+          direction: weaponJoystick.delta.normalized(),
+        );
+      },
+      autoStart: true,
     ));
     world.add(
       SpawnComponent(
