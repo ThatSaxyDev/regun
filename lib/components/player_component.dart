@@ -9,8 +9,10 @@ class PlayerComponent extends PositionComponent
     with HasGameReference<RegunGame> {
   PlayerComponent({
     super.position,
-    this.playerRadius = 18,
-  });
+    this.playerRadius = 20,
+  }) : super(
+          priority: 20,
+        );
 
   final double playerRadius;
   static final _paint = Paint()..color = Colors.red;
@@ -30,7 +32,7 @@ class PlayerComponent extends PositionComponent
       autoStart: false,
     );
 
-    game.add(_bulletSpawner);
+    game.world.add(_bulletSpawner);
   }
 
   @override

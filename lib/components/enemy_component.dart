@@ -14,7 +14,7 @@ class EnemyComponent extends PositionComponent
           anchor: Anchor.center,
         );
   static final _paint = Paint()..color = Colors.white;
-  static const enemySize = 50.0;
+  static const enemySize = 30.0;
 
   @override
   Future<void> onLoad() async {
@@ -29,13 +29,33 @@ class EnemyComponent extends PositionComponent
     canvas.drawRect(size.toRect(), _paint);
   }
 
+  // @override
+  // void update(double dt) {
+  //   super.update(dt);
+
+  //   position.y += dt * 250;
+
+  //   if (position.y > game.size.y) {
+  //     removeFromParent();
+  //   }
+  // }
+
   @override
   void update(double dt) {
     super.update(dt);
 
-    position.y += dt * 250;
+    //! CENTER OF THE SCREEN
+    final center = Vector2.zero();
 
-    if (position.y > game.size.y) {
+    //! DIRECTION VECTOR FROM THE ENEMY TO THE CENTER
+    final direction = (center - position).normalized();
+
+    //! MOVE ENEMY TOWARDS CENTER
+    const speed = 100; // Adjust the speed as needed
+    position += direction * (speed * dt);
+
+    //! DELETE ENEMY WHEN IT TOUCHES THE CENTER
+    if ((position - center).length < 1) {
       removeFromParent();
     }
   }

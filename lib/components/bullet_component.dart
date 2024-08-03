@@ -43,7 +43,8 @@ class BulletComponent extends PositionComponent
     super.update(dt);
     position.y += dt * -500;
 
-    if (position.y < -height) {
+    if (position.y > game.size.y) {
+      debugPrint('removed');
       removeFromParent();
     }
   }

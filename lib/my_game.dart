@@ -8,6 +8,13 @@ import 'package:regun/components/player_component.dart';
 
 class RegunGame extends FlameGame with PanDetector, HasCollisionDetection {
   late PlayerComponent myPlayer;
+  RegunGame()
+      : super(
+          camera: CameraComponent.withFixedResolution(
+            width: 1500,
+            height: 700,
+          ),
+        );
 
   @override
   Color backgroundColor() => const Color(0xff222222);
@@ -15,23 +22,24 @@ class RegunGame extends FlameGame with PanDetector, HasCollisionDetection {
   @override
   void onMount() {
     // debugMode = true;
-    add(myPlayer = PlayerComponent(position: Vector2(200, 750)));
-    add(
+    world.add(myPlayer = PlayerComponent(position: Vector2.zero()));
+    world.add(
       SpawnComponent(
         factory: (index) {
           return EnemyComponent();
         },
-        period: 0.5,
-        area: Rectangle.fromLTWH(
-          0,
-          0,
-          size.x,
-          -EnemyComponent.enemySize,
-        ),
+        period: 0.2,
+        area: Rectangle.fromCenter(center: Vector2.zero(), size: size),
       ),
     );
     super.onMount();
   }
+
+  // @override
+  // void update(double dt) {
+  //   camera.viewfinder.zoom = 0.3;
+  //   super.update(dt);
+  // }
 
   @override
   void onPanUpdate(DragUpdateInfo info) {
