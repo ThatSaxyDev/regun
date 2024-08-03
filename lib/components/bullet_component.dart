@@ -1,12 +1,16 @@
+import 'dart:async';
+
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/enemy_component.dart';
 import 'package:regun/my_game.dart';
 
 class BulletComponent extends PositionComponent
-    with HasGameReference<RegunGame> {
+    with HasGameReference<RegunGame>, CollisionCallbacks {
   BulletComponent({
     super.position,
-    this.bulletRadius = 10,
+    this.bulletRadius = 5,
   }) : super(
           size: Vector2.all(20),
           anchor: Anchor.center,
@@ -14,6 +18,16 @@ class BulletComponent extends PositionComponent
 
   final double bulletRadius;
   static final _paint = Paint()..color = Colors.white;
+
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
+    add(
+      RectangleHitbox(
+        collisionType: CollisionType.passive,
+      ),
+    );
+  }
 
   @override
   void render(Canvas canvas) {
@@ -31,6 +45,18 @@ class BulletComponent extends PositionComponent
 
     if (position.y < -height) {
       removeFromParent();
+    }
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+
+    if (other is EnemyComponent) {
+      debugPrint('EnemyComponentCollision');
+      other.showCollectEffect();
+      removeFromParent();
+      other.removeFromParent();
     }
   }
 }

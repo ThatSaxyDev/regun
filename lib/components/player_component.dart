@@ -1,16 +1,37 @@
+import 'dart:async';
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/bullet_component.dart';
 import 'package:regun/my_game.dart';
 
 class PlayerComponent extends PositionComponent
     with HasGameReference<RegunGame> {
   PlayerComponent({
-    required super.position,
+    super.position,
     this.playerRadius = 18,
   });
 
   final double playerRadius;
   static final _paint = Paint()..color = Colors.red;
+  late final SpawnComponent _bulletSpawner;
+
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
+    _bulletSpawner = SpawnComponent(
+      period: 0.2,
+      selfPositioning: true,
+      factory: (amount) {
+        return BulletComponent(
+          position: position + Vector2(0, -height / 2),
+        );
+      },
+      autoStart: false,
+    );
+
+    game.add(_bulletSpawner);
+  }
 
   @override
   void onMount() {
@@ -32,7 +53,11 @@ class PlayerComponent extends PositionComponent
     position.add(delta);
   }
 
-  void startShooting() {}
+  void startShooting() {
+    _bulletSpawner.timer.start();
+  }
 
-  void stopShooting() {}
+  void stopShooting() {
+    _bulletSpawner.timer.stop();
+  }
 }
