@@ -10,9 +10,9 @@ class BulletComponent extends PositionComponent
     with HasGameReference<RegunGame>, CollisionCallbacks {
   BulletComponent({
     super.position,
-    this.bulletRadius = 5,
+    this.bulletRadius = 10,
     required this.direction,
-    this.speed = 500,
+    this.speed = 700,
   }) : super(
           size: Vector2.all(bulletRadius * 2),
           anchor: Anchor.center,

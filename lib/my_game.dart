@@ -41,7 +41,7 @@ class RegunGame extends FlameGame with HasCollisionDetection {
       position: Vector2.zero(),
     ));
     world.add(SpawnComponent(
-      period: 0.3,
+      period: 0.2,
       selfPositioning: true,
       factory: (amount) {
         return BulletComponent(
