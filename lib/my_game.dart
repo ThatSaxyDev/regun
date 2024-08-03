@@ -10,7 +10,7 @@ import 'package:regun/components/player_component.dart';
 
 class RegunGame extends FlameGame with HasCollisionDetection {
   late PlayerComponent myPlayer;
-  late final GameJoystick gameJoystick;
+  late final MovementJoystick movementJoystick;
   RegunGame()
       : super(
           camera: CameraComponent.withFixedResolution(
@@ -24,8 +24,8 @@ class RegunGame extends FlameGame with HasCollisionDetection {
 
   @override
   FutureOr<void> onLoad() async {
-    gameJoystick = GameJoystick();
-    camera.viewport.add(gameJoystick);
+    movementJoystick = MovementJoystick();
+    camera.viewport.add(movementJoystick);
     return super.onLoad();
   }
 

@@ -42,11 +42,11 @@ class PlayerComponent extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
-    if (!game.gameJoystick.delta.isZero()) {
+    if (!game.movementJoystick.delta.isZero()) {
       _lastSize.setFrom(size);
       _lastTransform.setFrom(transform);
-      position.add(game.gameJoystick.relativeDelta * maxSpeed * dt);
-      angle = game.gameJoystick.delta.screenAngle();
+      position.add(game.movementJoystick.relativeDelta * maxSpeed * dt);
+      angle = game.movementJoystick.delta.screenAngle();
     }
   }
 
