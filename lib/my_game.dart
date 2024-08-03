@@ -48,9 +48,9 @@ class RegunGame extends FlameGame with HasCollisionDetection {
     super.onMount();
   }
 
-  // @override
-  // void update(double dt) {
-  //   camera.viewfinder.zoom = 0.3;
-  //   super.update(dt);
-  // }
+  @override
+  void update(double dt) {
+    camera.viewfinder.position = myPlayer.position;
+    super.update(dt);
+  }
 }
