@@ -20,7 +20,7 @@ class EnemyComponent extends PositionComponent
   Future<void> onLoad() async {
     super.onLoad();
     add(
-      RectangleHitbox(),
+      RectangleHitbox(collisionType: CollisionType.passive),
     );
   }
 
@@ -28,17 +28,6 @@ class EnemyComponent extends PositionComponent
   void render(Canvas canvas) {
     canvas.drawRect(size.toRect(), _paint);
   }
-
-  // @override
-  // void update(double dt) {
-  //   super.update(dt);
-
-  //   position.y += dt * 250;
-
-  //   if (position.y > game.size.y) {
-  //     removeFromParent();
-  //   }
-  // }
 
   @override
   void update(double dt) {
@@ -51,7 +40,7 @@ class EnemyComponent extends PositionComponent
     final direction = (center - position).normalized();
 
     //! MOVE ENEMY TOWARDS CENTER
-    const speed = 100; // Adjust the speed as needed
+    const speed = 100;
     position += direction * (speed * dt);
 
     //! DELETE ENEMY WHEN IT TOUCHES THE CENTER

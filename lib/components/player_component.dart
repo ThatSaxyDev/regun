@@ -1,13 +1,14 @@
 import 'dart:async';
 
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/components/bullet_component.dart';
+import 'package:regun/components/border_component.dart';
 import 'package:regun/my_game.dart';
 
 class PlayerComponent extends PositionComponent
-    with HasGameReference<RegunGame> {
+    with HasGameReference<RegunGame>, CollisionCallbacks {
   PlayerComponent({
     super.position,
     this.playerRadius = 20,
@@ -25,6 +26,13 @@ class PlayerComponent extends PositionComponent
   @override
   Future<void> onLoad() async {
     super.onLoad();
+    add(
+      CircleHitbox(
+        radius: playerRadius,
+        anchor: anchor,
+        collisionType: CollisionType.active,
+      ),
+    );
     // _bulletSpawner = SpawnComponent(
     //   period: 0.2,
     //   selfPositioning: true,
@@ -42,7 +50,7 @@ class PlayerComponent extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
-    if (!game.movementJoystick.delta.isZero()) {
+    if (!game.movementJoystick.delta.isZero() && activeCollisions.isEmpty) {
       _lastSize.setFrom(size);
       _lastTransform.setFrom(transform);
       position.add(game.movementJoystick.relativeDelta * maxSpeed * dt);
@@ -76,5 +84,15 @@ class PlayerComponent extends PositionComponent
 
   void stopShooting() {
     _bulletSpawner.timer.stop();
+  }
+
+  @override
+  void onCollisionStart(
+      Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollisionStart(intersectionPoints, other);
+    if (other is BorderComponent) {
+      transform.setFrom(_lastTransform);
+      size.setFrom(_lastSize);
+    }
   }
 }
