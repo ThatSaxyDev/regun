@@ -6,6 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/bullet_component.dart';
+import 'package:regun/components/enemy_component.dart';
 import 'package:regun/my_game.dart';
 
 class PlayerComponent extends PositionComponent
@@ -92,6 +93,8 @@ class PlayerComponent extends PositionComponent
     if (other is BorderComponent) {
       transform.setFrom(_lastTransform);
       size.setFrom(_lastSize);
+    } else if (other is EnemyComponent) {
+      game.gameOver();
     }
   }
 }

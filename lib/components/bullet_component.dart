@@ -59,6 +59,7 @@ class BulletComponent extends PositionComponent
 
     if (other is EnemyComponent) {
       debugPrint('EnemyComponentCollision');
+      game.increaseScore();
       other.showCollectEffect();
       removeFromParent();
       other.removeFromParent();

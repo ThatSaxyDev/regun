@@ -8,8 +8,10 @@ import 'package:regun/components/bullet_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/components/game_joystick.dart';
 import 'package:regun/components/player_component.dart';
+import 'package:flame/rendering.dart';
 
-class RegunGame extends FlameGame with HasCollisionDetection {
+class RegunGame extends FlameGame
+    with HasCollisionDetection, HasDecorator, HasTimeScale {
   late PlayerComponent myPlayer;
   late final MovementJoystick movementJoystick;
   late final WeaponJoystick weaponJoystick;
@@ -25,6 +27,8 @@ class RegunGame extends FlameGame with HasCollisionDetection {
   @override
   Color backgroundColor() => const Color(0xff222222);
 
+  ValueNotifier<int> currentScore = ValueNotifier(0);
+
   @override
   FutureOr<void> onLoad() async {
     movementJoystick = MovementJoystick();
@@ -33,10 +37,8 @@ class RegunGame extends FlameGame with HasCollisionDetection {
     return super.onLoad();
   }
 
-  @override
-  void onMount() {
-    // debugMode = true;
-
+  void _initializeGame() {
+    currentScore.value = 0;
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
     ));
@@ -65,6 +67,12 @@ class RegunGame extends FlameGame with HasCollisionDetection {
       ),
     );
     world.add(BorderComponent(size: size * 3));
+  }
+
+  @override
+  void onMount() {
+    // debugMode = true;
+    _initializeGame();
     super.onMount();
   }
 
@@ -73,5 +81,30 @@ class RegunGame extends FlameGame with HasCollisionDetection {
     // camera.viewfinder.zoom = 0.2;
     camera.viewfinder.position = myPlayer.position;
     super.update(dt);
+  }
+
+  void gameOver() {
+    for (var element in world.children) {
+      element.removeFromParent();
+    }
+    _initializeGame();
+  }
+
+  bool get isGamePaused => timeScale == 0.0;
+
+  bool get isGamePlaying => !isGamePaused;
+
+  void pauseGame() {
+    // (decorator as PaintDecorator).addBlur(8);
+    timeScale = 0.0;
+  }
+
+  void resumeGame() {
+    // (decorator as PaintDecorator).addBlur(0);
+    timeScale = 1;
+  }
+
+  void increaseScore() {
+    currentScore.value++;
   }
 }
