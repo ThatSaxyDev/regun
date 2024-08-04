@@ -14,7 +14,7 @@ class EnemyComponent extends PositionComponent
           anchor: Anchor.center,
         );
   static final _paint = Paint()..color = Colors.white;
-  static const enemySize = 30.0;
+  static const enemySize = 35.0;
 
   @override
   Future<void> onLoad() async {
@@ -40,7 +40,7 @@ class EnemyComponent extends PositionComponent
     final direction = (center - position).normalized();
 
     //! MOVE ENEMY TOWARDS CENTER
-    const speed = 100;
+    const speed = 80;
     position += direction * (speed * dt);
 
     //! DELETE ENEMY WHEN IT TOUCHES THE CENTER

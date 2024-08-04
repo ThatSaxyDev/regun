@@ -13,7 +13,7 @@ class PlayerComponent extends PositionComponent
     with HasGameReference<RegunGame>, CollisionCallbacks {
   PlayerComponent({
     super.position,
-    this.playerRadius = 20,
+    this.playerRadius = 25,
   }) : super(
           priority: 20,
         );
@@ -27,7 +27,16 @@ class PlayerComponent extends PositionComponent
 
   @override
   Future<void> onLoad() async {
-    super.onLoad();
+    await super.onLoad();
+    // animation = await game.loadSpriteAnimation(
+    //   'king.png',
+    //   SpriteAnimationData.sequenced(
+    //     amount: 5,
+    //     stepTime: 1,
+    //     textureSize: Vector2(32, 48),
+    //   ),
+    // );
+
     add(
       CircleHitbox(
         radius: playerRadius,
@@ -35,19 +44,6 @@ class PlayerComponent extends PositionComponent
         collisionType: CollisionType.active,
       ),
     );
-    // _bulletSpawner = SpawnComponent(
-    //   period: 0.2,
-    //   selfPositioning: true,
-    //   factory: (amount) {
-    //     return BulletComponent(
-    //       position: position,
-    //       direction: game.weaponJoystick.relativeDelta.normalized(),
-    //     );
-    //   },
-    //   autoStart: false,
-    // );
-
-    // game.world.add(_bulletSpawner);
   }
 
   @override
@@ -75,15 +71,6 @@ class PlayerComponent extends PositionComponent
       playerRadius,
       _paint,
     );
-  }
-
-  void startShooting() {
-    // print('shooting');
-    // _bulletSpawner.timer.start();
-  }
-
-  void stopShooting() {
-    // _bulletSpawner.timer.stop();
   }
 
   @override

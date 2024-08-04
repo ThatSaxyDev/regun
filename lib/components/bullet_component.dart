@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/border_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/my_game.dart';
 
@@ -10,9 +11,9 @@ class BulletComponent extends PositionComponent
     with HasGameReference<RegunGame>, CollisionCallbacks {
   BulletComponent({
     super.position,
-    this.bulletRadius = 10,
+    this.bulletRadius = 25,
     required this.direction,
-    this.speed = 700,
+    this.speed = 1200,
   }) : super(
           size: Vector2.all(bulletRadius * 2),
           anchor: Anchor.center,
@@ -63,6 +64,8 @@ class BulletComponent extends PositionComponent
       other.showCollectEffect();
       removeFromParent();
       other.removeFromParent();
+    } else if (other is BorderComponent) {
+      removeFromParent();
     }
   }
 }
