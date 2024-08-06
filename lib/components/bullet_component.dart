@@ -11,17 +11,23 @@ class BulletComponent extends PositionComponent
     with HasGameReference<RegunGame>, CollisionCallbacks {
   BulletComponent({
     super.position,
-    this.bulletRadius = 25,
+    this.bulletRadius = 15,
+    this.maxTravelDistance = 500,
     required this.direction,
-    this.speed = 1200,
+    this.speed = 400,
+    this.startPosition,
   }) : super(
           size: Vector2.all(bulletRadius * 2),
           anchor: Anchor.center,
-        );
+        ) {
+    startPosition = position.clone();
+  }
 
   final double bulletRadius;
   final Vector2 direction;
   final double speed;
+  final double maxTravelDistance;
+  Vector2? startPosition;
   static final _paint = Paint()..color = Colors.red;
 
   @override
@@ -51,7 +57,9 @@ class BulletComponent extends PositionComponent
     } else {
       removeFromParent();
     }
-    // position += direction * speed * dt;
+    if ((position - startPosition!).length > maxTravelDistance) {
+      removeFromParent();
+    }
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
@@ -44,18 +45,11 @@ class RegunGame extends FlameGame
       position: Vector2.zero(),
     ));
     world.add(SpawnComponent(
-      period: 0.2,
+      period: 0.3,
       selfPositioning: true,
       factory: (amount) {
-        final baseDirection = weaponJoystick.relativeDelta.normalized();
-
-        if (baseDirection.isZero()) {
-          return EmptyComponent(); // No bullet if joystick is not moved
-        }
-        return BulletComponent(
-          position: myPlayer.position,
-          direction: baseDirection,
-        );
+        spawnShotgunBullets();
+        return EmptyComponent();
       },
       autoStart: true,
     ));
@@ -73,6 +67,24 @@ class RegunGame extends FlameGame
       ),
     );
     world.add(BorderComponent(size: size * 3));
+  }
+
+  void spawnShotgunBullets() {
+    final baseDirection = weaponJoystick.relativeDelta.normalized();
+    if (baseDirection.isZero()) {
+      return;
+    }
+
+    const spreadAngle = pi / 16;
+    for (int i = -2; i <= 2; i++) {
+      final angle = i * spreadAngle;
+      final direction = baseDirection.clone()..rotate(angle);
+      final bullet = BulletComponent(
+        position: myPlayer.position.clone(),
+        direction: direction,
+      );
+      world.add(bullet);
+    }
   }
 
   @override
