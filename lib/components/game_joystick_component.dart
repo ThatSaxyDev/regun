@@ -2,8 +2,8 @@ import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 
-class MovementJoystick extends JoystickComponent {
-  MovementJoystick()
+class MovementJoystickComponent extends JoystickComponent {
+  MovementJoystickComponent()
       : super(
           knob: CircleComponent(
             radius: 40,

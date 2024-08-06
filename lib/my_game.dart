@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/bullet_component.dart';
 import 'package:regun/components/enemy_component.dart';
-import 'package:regun/components/game_joystick.dart';
+import 'package:regun/components/game_joystick_component.dart';
 import 'package:regun/components/player_component.dart';
 import 'package:flame/rendering.dart';
 
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale {
   late PlayerComponent myPlayer;
-  late final MovementJoystick movementJoystick;
+  late final MovementJoystickComponent movementJoystick;
   late final WeaponJoystick weaponJoystick;
   // final Random _random = Random();
   RegunGame()
@@ -31,7 +31,7 @@ class RegunGame extends FlameGame
 
   @override
   FutureOr<void> onLoad() async {
-    movementJoystick = MovementJoystick();
+    movementJoystick = MovementJoystickComponent();
     weaponJoystick = WeaponJoystick();
     camera.viewport.addAll([movementJoystick, weaponJoystick]);
     return super.onLoad();
