@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/bullet_component.dart';
+import 'package:regun/components/empty_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/components/game_joystick_component.dart';
 import 'package:regun/components/player_component.dart';
@@ -46,26 +47,31 @@ class RegunGame extends FlameGame
       period: 0.2,
       selfPositioning: true,
       factory: (amount) {
+        final baseDirection = weaponJoystick.relativeDelta.normalized();
+
+        if (baseDirection.isZero()) {
+          return EmptyComponent(); // No bullet if joystick is not moved
+        }
         return BulletComponent(
           position: myPlayer.position,
-          direction: weaponJoystick.delta.normalized(),
+          direction: baseDirection,
         );
       },
       autoStart: true,
     ));
-    // world.add(
-    //   SpawnComponent(
-    //     factory: (index) {
-    //       return EnemyComponent();
-    //     },
-    //     period: 0.2,
-    //     within: false,
-    //     area: Rectangle.fromCenter(
-    //       center: myPlayer.position,
-    //       size: Vector2(size.x * 3, size.x * 3),
-    //     ),
-    //   ),
-    // );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return EnemyComponent();
+        },
+        period: 0.2,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 3, size.x * 3),
+        ),
+      ),
+    );
     world.add(BorderComponent(size: size * 3));
   }
 
