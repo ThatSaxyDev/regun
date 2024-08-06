@@ -20,6 +20,10 @@ class PlayerComponent extends PositionComponent
 
   final double playerRadius;
   static final _paint = Paint()..color = Colors.red;
+  static final _trailPaint = Paint()
+    ..color = Colors.red.withOpacity(0.5)
+    ..strokeWidth = 2.0
+    ..style = PaintingStyle.stroke;
   // late final SpawnComponent _bulletSpawner;
   double maxSpeed = 300.0;
   late final Vector2 _lastSize = size.clone();
@@ -28,15 +32,6 @@ class PlayerComponent extends PositionComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    // animation = await game.loadSpriteAnimation(
-    //   'king.png',
-    //   SpriteAnimationData.sequenced(
-    //     amount: 5,
-    //     stepTime: 1,
-    //     textureSize: Vector2(32, 48),
-    //   ),
-    // );
-
     add(
       CircleHitbox(
         radius: playerRadius,
@@ -53,7 +48,7 @@ class PlayerComponent extends PositionComponent
       _lastSize.setFrom(size);
       _lastTransform.setFrom(transform);
       position.add(game.movementJoystick.relativeDelta * maxSpeed * dt);
-      angle = game.movementJoystick.delta.screenAngle();
+      // angle = game.movementJoystick.delta.screenAngle();
     }
   }
 
