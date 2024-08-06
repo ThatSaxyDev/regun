@@ -81,6 +81,7 @@ class RegunGame extends FlameGame
     if (baseDirection.isZero()) {
       return;
     }
+    FlameAudio.play('shoot.wav');
 
     const spreadAngle = pi / 16;
     for (int i = -2; i <= 2; i++) {
@@ -90,7 +91,7 @@ class RegunGame extends FlameGame
         position: myPlayer.position.clone(),
         direction: direction,
       );
-      FlameAudio.play('shoot.wav');
+
       world.add(bullet);
     }
   }
