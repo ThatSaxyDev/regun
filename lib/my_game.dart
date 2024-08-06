@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/bullet_component.dart';
@@ -35,6 +36,12 @@ class RegunGame extends FlameGame
     movementJoystick = MovementJoystickComponent();
     weaponJoystick = WeaponJoystickComponent();
     camera.viewport.addAll([movementJoystick, weaponJoystick]);
+    await FlameAudio.audioCache.loadAll([
+      'gameov.wav',
+      'hit.wav',
+      'move.wav',
+      'shoot.wav',
+    ]);
 
     return super.onLoad();
   }
@@ -83,6 +90,7 @@ class RegunGame extends FlameGame
         position: myPlayer.position.clone(),
         direction: direction,
       );
+      FlameAudio.play('shoot.wav');
       world.add(bullet);
     }
   }

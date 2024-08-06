@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/enemy_component.dart';
@@ -68,6 +69,7 @@ class BulletComponent extends PositionComponent
 
     if (other is EnemyComponent) {
       debugPrint('EnemyComponentCollision');
+      FlameAudio.play('hit.wav');
       game.increaseScore();
       other.showCollectEffect();
       removeFromParent();
