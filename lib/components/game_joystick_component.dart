@@ -12,7 +12,7 @@ class MovementJoystickComponent extends JoystickComponent {
           margin: const EdgeInsets.only(left: 140, bottom: 80),
           background: CircleComponent(
             radius: 120,
-            paint: BasicPalette.black.withAlpha(100).paint(),
+            paint: BasicPalette.darkGray.withAlpha(30).paint(),
           ),
         );
 }
@@ -27,7 +27,7 @@ class WeaponJoystickComponent extends JoystickComponent {
           margin: const EdgeInsets.only(right: 140, bottom: 80),
           background: CircleComponent(
             radius: 120,
-            paint: BasicPalette.black.withAlpha(100).paint(),
+            paint: BasicPalette.darkGray.withAlpha(30).paint(),
           ),
         );
 }

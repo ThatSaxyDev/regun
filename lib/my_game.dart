@@ -26,7 +26,7 @@ class RegunGame extends FlameGame
         );
 
   @override
-  Color backgroundColor() => const Color(0xff222222);
+  Color backgroundColor() => const Color(0xff000000);
 
   ValueNotifier<int> currentScore = ValueNotifier(0);
 
