@@ -37,7 +37,7 @@ class RegunGame extends FlameGame
     return super.onLoad();
   }
 
-  void _initializeGame() {
+  void _initializeGamee() {
     currentScore.value = 0;
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
@@ -72,7 +72,7 @@ class RegunGame extends FlameGame
   @override
   void onMount() {
     // debugMode = true;
-    _initializeGame();
+    _initializeGamee();
     super.onMount();
   }
 
@@ -87,7 +87,7 @@ class RegunGame extends FlameGame
     for (var element in world.children) {
       element.removeFromParent();
     }
-    _initializeGame();
+    _initializeGamee();
   }
 
   bool get isGamePaused => timeScale == 0.0;
