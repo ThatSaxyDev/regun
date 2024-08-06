@@ -19,7 +19,11 @@ class PlayerComponent extends PositionComponent
         );
 
   final double playerRadius;
-  static final _paint = Paint()..color = Colors.red;
+  static final _paint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round
+    ..strokeWidth = 10;
   static final _trailPaint = Paint()
     ..color = Colors.red.withOpacity(0.5)
     ..strokeWidth = 2.0
@@ -48,7 +52,7 @@ class PlayerComponent extends PositionComponent
       _lastSize.setFrom(size);
       _lastTransform.setFrom(transform);
       position.add(game.movementJoystick.relativeDelta * maxSpeed * dt);
-      // angle = game.movementJoystick.delta.screenAngle();
+      angle = game.movementJoystick.delta.screenAngle();
     }
   }
 
@@ -61,11 +65,33 @@ class PlayerComponent extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    canvas.drawCircle(
-      (size / 2).toOffset(),
-      playerRadius,
+    // canvas.drawCircle(
+    //   (size / 2).toOffset(),
+    //   playerRadius,
+    //   _paint,
+    // );
+    final halfSize = playerRadius;
+
+    // define the path for a centered triangle
+    final path = Path()
+      ..moveTo(0, -halfSize) // top vertex
+      ..lineTo(-halfSize, halfSize) // Bottom-left vertex
+      ..lineTo(0, halfSize - 12) // center vertex
+      ..lineTo(halfSize, halfSize) // Bottom-right vertex
+      ..close();
+
+    // translate canvas to center the triangle
+    canvas.save();
+    canvas.translate(size.x / 2, size.y / 2);
+
+    // Draw the triangle
+    canvas.drawPath(
+      path,
       _paint,
     );
+
+    // Restore the canvas to its original state
+    canvas.restore();
   }
 
   @override

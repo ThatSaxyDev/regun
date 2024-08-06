@@ -45,7 +45,7 @@ class RegunGame extends FlameGame
       position: Vector2.zero(),
     ));
     world.add(SpawnComponent(
-      period: 0.3,
+      period: 0.4,
       selfPositioning: true,
       factory: (amount) {
         spawnShotgunBullets();

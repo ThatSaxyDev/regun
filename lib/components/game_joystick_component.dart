@@ -7,7 +7,7 @@ class MovementJoystickComponent extends JoystickComponent {
       : super(
           knob: CircleComponent(
             radius: 40,
-            paint: BasicPalette.red.withAlpha(150).paint(),
+            paint: BasicPalette.blue.withAlpha(150).paint(),
           ),
           margin: const EdgeInsets.only(left: 140, bottom: 80),
           background: CircleComponent(
@@ -22,7 +22,7 @@ class WeaponJoystickComponent extends JoystickComponent {
       : super(
           knob: CircleComponent(
             radius: 40,
-            paint: BasicPalette.blue.withAlpha(100).paint(),
+            paint: BasicPalette.red.withAlpha(100).paint(),
           ),
           margin: const EdgeInsets.only(right: 140, bottom: 80),
           background: CircleComponent(

@@ -12,7 +12,7 @@ class BulletComponent extends PositionComponent
   BulletComponent({
     super.position,
     this.bulletRadius = 15,
-    this.maxTravelDistance = 500,
+    this.maxTravelDistance = 450,
     required this.direction,
     this.speed = 400,
     this.startPosition,
