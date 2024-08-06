@@ -17,8 +17,8 @@ class MovementJoystickComponent extends JoystickComponent {
         );
 }
 
-class WeaponJoystick extends JoystickComponent {
-  WeaponJoystick()
+class WeaponJoystickComponent extends JoystickComponent {
+  WeaponJoystickComponent()
       : super(
           knob: CircleComponent(
             radius: 40,

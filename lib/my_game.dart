@@ -14,7 +14,7 @@ class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale {
   late PlayerComponent myPlayer;
   late final MovementJoystickComponent movementJoystick;
-  late final WeaponJoystick weaponJoystick;
+  late final WeaponJoystickComponent weaponJoystick;
   // final Random _random = Random();
   RegunGame()
       : super(
@@ -32,7 +32,7 @@ class RegunGame extends FlameGame
   @override
   FutureOr<void> onLoad() async {
     movementJoystick = MovementJoystickComponent();
-    weaponJoystick = WeaponJoystick();
+    weaponJoystick = WeaponJoystickComponent();
     camera.viewport.addAll([movementJoystick, weaponJoystick]);
     return super.onLoad();
   }
