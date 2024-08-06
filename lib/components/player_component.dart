@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -6,7 +7,6 @@ import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
-import 'package:regun/components/bullet_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/my_game.dart';
 
@@ -34,6 +34,11 @@ class PlayerComponent extends PositionComponent
   late final Vector2 _lastSize = size.clone();
   late final Transform2D _lastTransform = transform.clone();
 
+  //!
+  Random random = Random();
+  Tween<double> noise = Tween(begin: -1, end: 1);
+  ColorTween colorTween = ColorTween(begin: Colors.red, end: Colors.blue);
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
@@ -54,6 +59,31 @@ class PlayerComponent extends PositionComponent
       _lastTransform.setFrom(transform);
       position.add(game.movementJoystick.relativeDelta * maxSpeed * dt);
       angle = game.movementJoystick.delta.screenAngle();
+
+      //
+      // add(
+      //   ParticleSystemComponent(
+      //     position: position.clone(),
+      //     particle: Particle.generate(
+      //       count: 40,
+      //       generator: (i) {
+      //         return AcceleratedParticle(
+      //           lifespan: 2,
+      //           speed: Vector2(
+      //                 noise.transform(random.nextDouble()),
+      //                 noise.transform(random.nextDouble()),
+      //               ) *
+      //               i.toDouble(),
+      //           child: CircleParticle(
+      //             radius: 2,
+      //             paint: Paint()
+      //               ..color = colorTween.transform(random.nextDouble())!,
+      //           ),
+      //         );
+      //       },
+      //     ),
+      //   ),
+      // );
     }
   }
 

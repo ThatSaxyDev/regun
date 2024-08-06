@@ -15,6 +15,12 @@ class MovementJoystickComponent extends JoystickComponent {
             paint: BasicPalette.darkGray.withAlpha(30).paint(),
           ),
         );
+
+  // @override
+  // bool onDragUpdate(DragUpdateEvent event) {
+  //   FlameAudio.play('move.wav', volume: 0.4);
+  //   return super.onDragUpdate(event);
+  // }
 }
 
 class WeaponJoystickComponent extends JoystickComponent {
