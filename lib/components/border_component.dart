@@ -1,7 +1,6 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/components/grid_component.dart';
 
 class BorderComponent extends PositionComponent {
   BorderComponent({super.size}) : super();
@@ -12,7 +11,7 @@ class BorderComponent extends PositionComponent {
     ..strokeWidth = 10;
 
   static final gridPaint = Paint()
-    ..color = Colors.grey
+    ..color = Colors.grey.withOpacity(0.2)
     ..style = PaintingStyle.stroke;
 
   double gridSize = 50;
@@ -25,11 +24,6 @@ class BorderComponent extends PositionComponent {
       anchor: Anchor.center,
       collisionType: CollisionType.passive,
     ));
-
-    // add(GridComponent(
-    //   gridSize: 50, // Adjust the grid size as needed
-    //   size: size,
-    // ));
   }
 
   @override
@@ -43,11 +37,21 @@ class BorderComponent extends PositionComponent {
       _paint,
     );
 
-    //! for grids
-    for (double x = 0; x < size.x; x += gridSize) {
+    //! grid lines
+    //! vertical
+    for (double x = -size.x / 2; x <= size.x / 2; x += gridSize) {
       canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, size.y),
+        Offset(x, -size.x / 2),
+        Offset(x, size.x / 2),
+        gridPaint,
+      );
+    }
+
+    //! Horizontal
+    for (double y = -size.x / 2; y <= size.x / 2; y += gridSize) {
+      canvas.drawLine(
+        Offset(-size.x / 2, y),
+        Offset(size.x / 2, y),
         gridPaint,
       );
     }

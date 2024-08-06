@@ -9,9 +9,7 @@ import 'package:regun/components/bullet_component.dart';
 import 'package:regun/components/empty_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/components/game_joystick_component.dart';
-import 'package:regun/components/grid_component.dart';
 import 'package:regun/components/player_component.dart';
-import 'package:flame/rendering.dart';
 
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale {
@@ -98,7 +96,7 @@ class RegunGame extends FlameGame
 
   @override
   void update(double dt) {
-    camera.viewfinder.zoom = 0.2;
+    // camera.viewfinder.zoom = 0.2;
     camera.viewfinder.position = myPlayer.position;
     super.update(dt);
   }
