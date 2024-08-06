@@ -16,9 +16,24 @@ dependencies:
   flame_riverpod: ^5.4.2
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.1
+
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "app_icon/launcher.png"
+
+flutter_native_splash:
+  android: true
+  ios: true
+  color: "#000000"
+  image: "app_icon/logo.png"
 
 flutter:
   uses-material-design: true
