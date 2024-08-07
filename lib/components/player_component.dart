@@ -37,7 +37,7 @@ class PlayerComponent extends PositionComponent
   //!
   Random random = Random();
   Tween<double> noise = Tween(begin: -1, end: 1);
-  ColorTween colorTween = ColorTween(begin: Colors.red, end: Colors.blue);
+  ColorTween colorTweenn = ColorTween(begin: Colors.red, end: Colors.blue);
 
   @override
   Future<void> onLoad() async {
@@ -89,6 +89,7 @@ class PlayerComponent extends PositionComponent
 
   @override
   void onMount() {
+    debugMode = true;
     size = Vector2.all(playerRadius * 2);
     anchor = Anchor.center;
     super.onMount();

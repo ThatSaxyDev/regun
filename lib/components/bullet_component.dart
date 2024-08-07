@@ -68,7 +68,7 @@ class BulletComponent extends PositionComponent
     super.onCollision(intersectionPoints, other);
 
     if (other is EnemyComponent) {
-      debugPrint('EnemyComponentCollision');
+      // debugPrint('EnemyComponentCollision');
       FlameAudio.play('hit.wav');
       game.increaseScore();
       other.showCollectEffect();
