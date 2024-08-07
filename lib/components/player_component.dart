@@ -8,6 +8,7 @@ import 'package:flame/sprite.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
+import 'package:regun/components/bullet_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/my_game.dart';
 
@@ -29,36 +30,59 @@ class PlayerComponent extends SpriteAnimationComponent
   double maxSpeed = 300.0;
   late final Vector2 _lastSize = size.clone();
   late final Transform2D _lastTransform = transform.clone();
-  late SpriteAnimation idleAnimation;
-  late SpriteAnimation runAnimation;
+  late SpriteAnimation idleRightAnimation;
+  late SpriteAnimation idleLeftAnimation;
+  late SpriteAnimation runRightAnimation;
+  late SpriteAnimation runLeftAnimation;
 
   //!
   Random random = Random();
   Tween<double> noise = Tween(begin: -1, end: 1);
   ColorTween colorTweenn = ColorTween(begin: Colors.red, end: Colors.blue);
 
+  //!
+  LastDirection lastDirection = LastDirection.right;
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    final idleSpriteSheet = SpriteSheet(
+    final idleRightSpriteSheet = SpriteSheet(
       image: await game.images.load('player_idle.png'),
       srcSize: Vector2(48, 48),
     );
-    final runSpriteSheet = SpriteSheet(
+    final idleLeftSpriteSheet = SpriteSheet(
+      image: await game.images.load('player_idle_left.png'),
+      srcSize: Vector2(48, 48),
+    );
+    final runRightSpriteSheet = SpriteSheet(
       image: await game.images.load('player_run.png'),
       srcSize: Vector2(48, 48),
     );
-    idleAnimation = idleSpriteSheet.createAnimation(
+    final runLeftSpriteSheet = SpriteSheet(
+      image: await game.images.load('player_run_left.png'),
+      srcSize: Vector2(48, 48),
+    );
+    idleRightAnimation = idleRightSpriteSheet.createAnimation(
       row: 0,
-      stepTime: 0.5,
+      stepTime: 0.1,
       to: 5,
     );
-    runAnimation = runSpriteSheet.createAnimation(
+    idleLeftAnimation = idleLeftSpriteSheet.createAnimation(
       row: 0,
-      stepTime: 0.5,
+      stepTime: 0.1,
+      to: 5,
+    );
+    runRightAnimation = runRightSpriteSheet.createAnimation(
+      row: 0,
+      stepTime: 0.1,
       to: 6,
     );
-    animation = runAnimation;
+    runLeftAnimation = runLeftSpriteSheet.createAnimation(
+      row: 0,
+      stepTime: 0.1,
+      to: 6,
+    );
+    animation = idleRightAnimation;
     add(
       CircleHitbox(
         radius: playerRadius,
@@ -71,12 +95,83 @@ class PlayerComponent extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
-    if (!game.movementJoystick.delta.isZero() && activeCollisions.isEmpty) {
+    Set<PositionComponent> filteredComponents =
+        getFilteredComponents(activeCollisions);
+    if (!game.weaponJoystick.delta.isZero() &&
+        game.movementJoystick.delta.isZero()) {
+      switch (game.weaponJoystick.direction) {
+        case JoystickDirection.left ||
+              JoystickDirection.upLeft ||
+              JoystickDirection.downLeft ||
+              JoystickDirection.down:
+          animation = idleLeftAnimation;
+          lastDirection = LastDirection.left;
+
+        case JoystickDirection.right ||
+              JoystickDirection.upRight ||
+              JoystickDirection.downRight ||
+              JoystickDirection.up:
+          animation = idleRightAnimation;
+          lastDirection = LastDirection.right;
+        default:
+          animation = switch (lastDirection) {
+            LastDirection.left => idleLeftAnimation,
+            LastDirection.right => idleRightAnimation
+          };
+      }
+    }
+    if (!game.movementJoystick.delta.isZero() && filteredComponents.isEmpty) {
+      switch (game.movementJoystick.direction) {
+        case JoystickDirection.left ||
+              JoystickDirection.upLeft ||
+              JoystickDirection.downLeft ||
+              JoystickDirection.down:
+          if (game.weaponJoystick.direction == JoystickDirection.right ||
+              game.weaponJoystick.direction == JoystickDirection.downRight ||
+              game.weaponJoystick.direction == JoystickDirection.upRight) {
+            animation = runRightAnimation;
+            lastDirection = LastDirection.right;
+          } else {
+            animation = runLeftAnimation;
+            lastDirection = LastDirection.left;
+          }
+
+        case JoystickDirection.right ||
+              JoystickDirection.upRight ||
+              JoystickDirection.downRight ||
+              JoystickDirection.up:
+          if (game.weaponJoystick.direction == JoystickDirection.left ||
+              game.weaponJoystick.direction == JoystickDirection.downLeft ||
+              game.weaponJoystick.direction == JoystickDirection.upLeft) {
+            animation = runLeftAnimation;
+            lastDirection = LastDirection.left;
+          } else {
+            animation = runRightAnimation;
+            lastDirection = LastDirection.right;
+          }
+        default:
+          animation = switch (lastDirection) {
+            LastDirection.left => idleLeftAnimation,
+            LastDirection.right => idleRightAnimation
+          };
+      }
       _lastSize.setFrom(size);
       _lastTransform.setFrom(transform);
       position.add(game.movementJoystick.relativeDelta * maxSpeed * dt);
       // angle = game.movementJoystick.delta.screenAngle();
+    } else {
+      animation = switch (lastDirection) {
+        LastDirection.left => idleLeftAnimation,
+        LastDirection.right => idleRightAnimation
+      };
     }
+  }
+
+  Set<PositionComponent> getFilteredComponents(
+      Set<PositionComponent> components) {
+    return components
+        .where((component) => component is! BulletComponent)
+        .toSet();
   }
 
   @override
@@ -130,4 +225,9 @@ class PlayerComponent extends SpriteAnimationComponent
       game.gameOver();
     }
   }
+}
+
+enum LastDirection {
+  left,
+  right,
 }
