@@ -85,7 +85,7 @@ class PlayerComponent extends SpriteAnimationComponent
     animation = idleRightAnimation;
     add(
       CircleHitbox(
-        radius: playerRadius,
+        radius: 50,
         anchor: anchor,
         collisionType: CollisionType.active,
       ),
@@ -176,7 +176,7 @@ class PlayerComponent extends SpriteAnimationComponent
 
   @override
   void onMount() {
-    // debugMode = true;
+    debugMode = true;
     size = Vector2.all(playerRadius * 4);
     anchor = Anchor.center;
     super.onMount();
