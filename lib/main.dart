@@ -4,6 +4,7 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:regun/router.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/my_game.dart';
 import 'package:regun/notifiers/score_notifier.dart';
@@ -24,10 +25,11 @@ class GameApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    final router = goRouter();
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),
-      home: const BaseView(),
+      routerConfig: router,
     );
   }
 }
