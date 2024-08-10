@@ -2,10 +2,13 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:regun/constants.dart';
+import 'package:regun/utils/app_extensions.dart';
+import 'package:regun/utils/constants.dart';
 import 'package:regun/my_game.dart';
 import 'package:regun/notifiers/score_notifier.dart';
+import 'package:regun/theme/palette.dart';
 import 'package:regun/widgets/click_button.dart';
+import "package:flutter_animate/flutter_animate.dart";
 
 class BaseView extends StatefulWidget {
   const BaseView({super.key});
@@ -52,7 +55,7 @@ class _BaseViewState extends State<BaseView> {
                                 PhosphorIconsFill.pause,
                                 size: 37,
                               ),
-                            ),
+                            ).fadeInFromTop(delay: 0.ms),
 
                             //! score
                             Padding(
@@ -66,7 +69,7 @@ class _BaseViewState extends State<BaseView> {
                                         fontSize: 25,
                                         fontWeight: FontWeight.bold,
                                       ),
-                                    );
+                                    ).fadeInFromTop(delay: 0.ms);
                                   },
                                 )
                                 //  ValueListenableBuilder(
@@ -105,35 +108,35 @@ class _BaseViewState extends State<BaseView> {
                                   fontSize: 40,
                                   fontWeight: FontWeight.bold,
                                 ),
-                              ),
+                              ).fadeInFromTop(delay: 0.ms),
                               const SizedBox(
                                 height: 20,
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  IconButton(
-                                    onPressed: () {
+                                  ClickButton(
+                                    onTap: () {
                                       _myGame.resumeGame();
                                     },
-                                    icon: const Icon(
-                                      Icons.play_arrow,
-                                      size: 60,
-                                    ),
-                                  ),
+                                    text: 'Resume',
+                                    width: 100,
+                                    height: 50,
+                                  ).fadeInFromBottom(delay: 100.ms),
                                   const SizedBox(
-                                    width: 10,
+                                    width: 30,
                                   ),
-                                  IconButton(
-                                    onPressed: () {
+                                  ClickButton(
+                                    onTap: () {
                                       _myGame.resumeGame();
                                       _myGame.restartGame();
                                     },
-                                    icon: const Icon(
-                                      PhosphorIconsBold.repeat,
-                                      size: 60,
-                                    ),
-                                  ),
+                                    buttonColor: Palette.buttonRed,
+                                    buttonShadow: Palette.buttonShadowRed,
+                                    text: 'Restart',
+                                    width: 100,
+                                    height: 50,
+                                  ).fadeInFromBottom(delay: 100.ms),
                                 ],
                               ),
                             ],
@@ -160,10 +163,14 @@ class _BaseViewState extends State<BaseView> {
                               const Text(
                                 'GAME OVER',
                                 style: TextStyle(
-                                  fontFamily: FontFam.pressStart,
-                                  fontSize: 40,
-                                  // fontWeight: FontWeight.bold,
-                                ),
+                                    fontFamily: FontFam.pressStart,
+                                    fontSize: 40,
+                                    color: Palette.redColor
+                                    // fontWeight: FontWeight.bold,
+                                    ),
+                              ).fadeInFromTop(delay: 0.ms),
+                              const SizedBox(
+                                height: 5,
                               ),
                               Text(
                                 'Score: ${ref.watch(gameNotifierProvider).score}',
@@ -172,7 +179,7 @@ class _BaseViewState extends State<BaseView> {
                                   fontSize: 25,
                                   fontWeight: FontWeight.bold,
                                 ),
-                              ),
+                              ).fadeIn(delay: 0.ms),
                               const SizedBox(
                                 height: 15,
                               ),
@@ -187,7 +194,7 @@ class _BaseViewState extends State<BaseView> {
                                     text: 'Restart',
                                     width: 100,
                                     height: 50,
-                                  ),
+                                  ).fadeInFromBottom(delay: 100.ms),
                                   // IconButton(
                                   //   onPressed: () {
                                   //     _myGame.resumeGame();

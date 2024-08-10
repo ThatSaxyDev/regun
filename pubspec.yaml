@@ -16,6 +16,8 @@ dependencies:
   flame_riverpod: ^5.4.2
   flutter_riverpod: ^2.5.1
   phosphor_flutter: ^2.1.0
+  flutter_animate: ^4.5.0
+  go_router: ^14.2.3
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1

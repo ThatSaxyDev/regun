@@ -2,7 +2,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:regun/constants.dart';
+import 'package:regun/utils/constants.dart';
 import 'package:regun/theme/palette.dart';
 
 class ClickButton extends StatefulWidget {
@@ -10,6 +10,8 @@ class ClickButton extends StatefulWidget {
   final double? width;
   final double? height;
   final double? fontSize;
+  final Color? buttonColor;
+  final Color? buttonShadow;
   final String text;
   final bool? isActive;
   const ClickButton({
@@ -18,6 +20,8 @@ class ClickButton extends StatefulWidget {
     this.width,
     this.height,
     this.fontSize,
+    this.buttonColor,
+    this.buttonShadow,
     required this.text,
     this.isActive = true,
   });
@@ -61,13 +65,13 @@ class _ClickButtonState extends State<ClickButton> {
                     width: widget.width ?? double.infinity,
                     decoration: BoxDecoration(
                       color: widget.isActive == true
-                          ? Palette.buttonBlue
+                          ? widget.buttonColor ?? Palette.buttonBlue
                           : Palette.inactiveButtonBlue,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
                           color: widget.isActive == true
-                              ? Palette.buttonShadow
+                              ? widget.buttonShadow ?? Palette.buttonShadow
                               : Palette.inactiveButtonShadow,
                           offset: clicked.value == true
                               ? const Offset(0, 0)
@@ -83,7 +87,7 @@ class _ClickButtonState extends State<ClickButton> {
                           color: widget.isActive == true
                               ? Palette.textWhite
                               : Palette.textGrey,
-                          fontSize: widget.fontSize ?? 14,
+                          fontSize: widget.fontSize ?? 15,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
