@@ -12,9 +12,10 @@ class BorderComponent extends PositionComponent {
 
   static final gridPaint = Paint()
     ..color = Colors.grey.withOpacity(0.2)
-    ..style = PaintingStyle.stroke;
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 5;
 
-  double gridSize = 50;
+  double gridSize = 100;
 
   @override
   void onLoad() {
