@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/bullet_component.dart';
@@ -11,13 +12,16 @@ import 'package:regun/components/empty_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/components/game_joystick_component.dart';
 import 'package:regun/components/player_component.dart';
+import 'package:regun/notifiers/score_notifier.dart';
 
 class RegunGame extends FlameGame
-    with HasCollisionDetection, HasDecorator, HasTimeScale {
+    with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
   late PlayerComponent myPlayer;
   late final MovementJoystickComponent movementJoystick;
   late final WeaponJoystickComponent weaponJoystick;
-  // final Random _random = Random();
+  late GameState gameState;
+  late GameNotifier gameNotifier;
+
   RegunGame()
       : super(
           camera: CameraComponent.withFixedResolution(
@@ -28,8 +32,6 @@ class RegunGame extends FlameGame
 
   @override
   Color backgroundColor() => const Color(0xff000000);
-
-  ValueNotifier<int> currentScore = ValueNotifier(0);
 
   @override
   FutureOr<void> onLoad() async {
@@ -47,7 +49,8 @@ class RegunGame extends FlameGame
   }
 
   void _initializeGamee() {
-    currentScore.value = 0;
+    gameNotifier.resetScore();
+    gameNotifier.playGame();
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
     ));
@@ -98,6 +101,8 @@ class RegunGame extends FlameGame
 
   @override
   void onMount() {
+    gameState = ref.watch(gameNotifierProvider);
+    gameNotifier = ref.read(gameNotifierProvider.notifier);
     // debugMode = true;
     _initializeGamee();
     super.onMount();
@@ -111,27 +116,27 @@ class RegunGame extends FlameGame
   }
 
   void gameOver() {
+    pauseEngine();
+    gameNotifier.gameOver();
+    // _initializeGamee();
+  }
+
+  void restartGame() {
     for (var element in world.children) {
       element.removeFromParent();
     }
     _initializeGamee();
   }
 
-  bool get isGamePaused => timeScale == 0.0;
-
-  bool get isGamePlaying => !isGamePaused;
-
   void pauseGame() {
     // (decorator as PaintDecorator).addBlur(8);
-    timeScale = 0.0;
+    pauseEngine();
+    gameNotifier.pauseGame();
   }
 
   void resumeGame() {
     // (decorator as PaintDecorator).addBlur(0);
-    timeScale = 1;
-  }
-
-  void increaseScore() {
-    currentScore.value++;
+    resumeEngine();
+    gameNotifier.playGame();
   }
 }

@@ -176,42 +176,11 @@ class PlayerComponent extends SpriteAnimationComponent
 
   @override
   void onMount() {
-    debugMode = true;
+    // debugMode = true;
     size = Vector2.all(playerRadius * 4);
     anchor = Anchor.center;
     super.onMount();
   }
-
-  // @override
-  // void render(Canvas canvas) {
-  //   // canvas.drawCircle(
-  //   //   (size / 2).toOffset(),
-  //   //   playerRadius,
-  //   //   _paint,
-  //   // );
-  //   final halfSize = playerRadius;
-
-  //   // define the path for a centered triangle
-  //   final path = Path()
-  //     ..moveTo(0, -halfSize) // top vertex
-  //     ..lineTo(-halfSize, halfSize) // Bottom-left vertex
-  //     ..lineTo(0, halfSize - 12) // center vertex
-  //     ..lineTo(halfSize, halfSize) // Bottom-right vertex
-  //     ..close();
-
-  //   // translate canvas to center the triangle
-  //   canvas.save();
-  //   canvas.translate(size.x / 2, size.y / 2);
-
-  //   // Draw the triangle
-  //   canvas.drawPath(
-  //     path,
-  //     _paint,
-  //   );
-
-  //   // Restore the canvas to its original state
-  //   canvas.restore();
-  // }
 
   @override
   void onCollisionStart(

@@ -6,7 +6,7 @@ class BorderComponent extends PositionComponent {
   BorderComponent({super.size}) : super();
 
   static final _paint = Paint()
-    ..color = Colors.black
+    ..color = Colors.white
     ..style = PaintingStyle.stroke
     ..strokeWidth = 10;
 
