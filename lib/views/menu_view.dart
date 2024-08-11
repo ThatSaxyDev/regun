@@ -39,7 +39,7 @@ class MenuView extends ConsumerWidget {
                 ),
                 ClickButton(
                   onTap: () {
-                    context.goNamed('game');
+                    context.goNamed(Routes.game.name);
                   },
                   text: 'Start',
                   fontSize: 20,

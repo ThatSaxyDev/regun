@@ -22,11 +22,11 @@ class PlayerComponent extends SpriteAnimationComponent
         );
 
   final double playerRadius;
-  static final _paint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeCap = StrokeCap.round
-    ..strokeWidth = 10;
+  // static final _paint = Paint()
+  //   ..color = Colors.white
+  //   ..style = PaintingStyle.stroke
+  //   ..strokeCap = StrokeCap.round
+  //   ..strokeWidth = 10;
   double maxSpeed = 300.0;
   late final Vector2 _lastSize = size.clone();
   late final Transform2D _lastTransform = transform.clone();
@@ -95,6 +95,9 @@ class PlayerComponent extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
+    if (game.boostButtonComponent.tapped) {
+      position.add(game.movementJoystick.relativeDelta * 1000 * dt);
+    }
     Set<PositionComponent> filteredComponents =
         getFilteredComponents(activeCollisions);
     if (!game.weaponJoystick.delta.isZero() &&

@@ -6,6 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/boost_component.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/bullet_component.dart';
 import 'package:regun/components/empty_component.dart';
@@ -19,6 +20,7 @@ class RegunGame extends FlameGame
   late PlayerComponent myPlayer;
   late final MovementJoystickComponent movementJoystick;
   late final WeaponJoystickComponent weaponJoystick;
+  late final BoostButtonComponent boostButtonComponent;
   late GameState gameState;
   late GameNotifier gameNotifier;
 
@@ -37,6 +39,7 @@ class RegunGame extends FlameGame
   FutureOr<void> onLoad() async {
     movementJoystick = MovementJoystickComponent();
     weaponJoystick = WeaponJoystickComponent();
+    boostButtonComponent = BoostButtonComponent();
     camera.viewport.addAll([movementJoystick, weaponJoystick]);
     await FlameAudio.audioCache.loadAll([
       'gameov.wav',
@@ -51,6 +54,7 @@ class RegunGame extends FlameGame
   void _initializeGamee() {
     gameNotifier.resetScore();
     gameNotifier.playGame();
+    add(boostButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
     ));
@@ -112,6 +116,7 @@ class RegunGame extends FlameGame
   void update(double dt) {
     // camera.viewfinder.zoom = 0.2;
     camera.viewfinder.position = myPlayer.position;
+    // boostButtonComponent.onPressed;
     super.update(dt);
   }
 

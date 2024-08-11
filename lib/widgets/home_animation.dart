@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:regun/components/menu_anim.dart';
-import 'package:regun/components/player_component.dart';
 
 class MenuAnimation extends StatefulWidget {
   const MenuAnimation({super.key});

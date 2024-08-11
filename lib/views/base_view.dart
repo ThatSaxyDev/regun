@@ -2,6 +2,7 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:regun/router.dart';
 import 'package:regun/utils/app_extensions.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/my_game.dart';
@@ -9,6 +10,7 @@ import 'package:regun/notifiers/score_notifier.dart';
 import 'package:regun/theme/palette.dart';
 import 'package:regun/widgets/click_button.dart';
 import "package:flutter_animate/flutter_animate.dart";
+import 'package:go_router/go_router.dart';
 
 class BaseView extends StatefulWidget {
   const BaseView({super.key});
@@ -139,6 +141,17 @@ class _BaseViewState extends State<BaseView> {
                                   ).fadeInFromBottom(delay: 100.ms),
                                 ],
                               ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              ClickButtonM(
+                                onTap: () {
+                                  context.goNamed(Routes.menu.name);
+                                },
+                                text: 'Menu',
+                                width: 100,
+                                height: 50,
+                              ).fadeInFromBottom(delay: 100.ms),
                             ],
                           ),
                         ),
@@ -192,6 +205,19 @@ class _BaseViewState extends State<BaseView> {
                                       _myGame.restartGame();
                                     },
                                     text: 'Restart',
+                                    width: 100,
+                                    height: 50,
+                                  ).fadeInFromBottom(delay: 100.ms),
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  ClickButtonM(
+                                    onTap: () {
+                                      context.goNamed(Routes.menu.name);
+                                    },
+                                    buttonColor: Palette.buttonRed,
+                                    buttonShadow: Palette.buttonShadowRed,
+                                    text: 'Menu',
                                     width: 100,
                                     height: 50,
                                   ).fadeInFromBottom(delay: 100.ms),
