@@ -54,6 +54,7 @@ class RegunGame extends FlameGame
   void _initializeGamee() {
     gameNotifier.resetScore();
     gameNotifier.playGame();
+    gameNotifier.addBullets();
     add(boostButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
@@ -85,6 +86,13 @@ class RegunGame extends FlameGame
 
   void spawnShotgunBullets() {
     final baseDirection = weaponJoystick.relativeDelta.normalized();
+    if (ref.read(gameNotifierProvider).reloading == true) {
+      return;
+    }
+
+    if (ref.read(gameNotifierProvider).noOfBullets == 0) {
+      gameNotifier.reloadBullets();
+    }
     if (baseDirection.isZero()) {
       return;
     }
@@ -101,6 +109,7 @@ class RegunGame extends FlameGame
 
       world.add(bullet);
     }
+    ref.read(gameNotifierProvider.notifier).decreaseBullets();
   }
 
   @override
@@ -116,6 +125,7 @@ class RegunGame extends FlameGame
   void update(double dt) {
     // camera.viewfinder.zoom = 0.2;
     camera.viewfinder.position = myPlayer.position;
+
     // boostButtonComponent.onPressed;
     super.update(dt);
   }

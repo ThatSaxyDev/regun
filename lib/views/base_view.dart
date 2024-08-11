@@ -1,4 +1,5 @@
 import 'package:flame_riverpod/flame_riverpod.dart';
+import 'package:flextras/flextras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -41,52 +42,98 @@ class _BaseViewState extends State<BaseView> {
           ),
           Consumer(
             builder: (context, ref, child) {
-              return ref.watch(gameNotifierProvider).gameplayState ==
-                      GameplayState.playing
+              GameState gameState = ref.watch(gameNotifierProvider);
+              return gameState.gameplayState == GameplayState.playing
                   ? SafeArea(
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                _myGame.pauseGame();
-                              },
-                              icon: const Icon(
-                                PhosphorIconsFill.pause,
-                                size: 37,
-                              ),
-                            ).fadeInFromTop(delay: 0.ms),
-
-                            //! score
-                            Padding(
-                                padding: const EdgeInsets.only(right: 12.0),
-                                child: Consumer(
-                                  builder: (context, ref, child) {
-                                    return Text(
-                                      'Score: ${ref.watch(gameNotifierProvider).score}',
-                                      style: const TextStyle(
-                                        fontFamily: FontFam.orbitron,
-                                        fontSize: 25,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ).fadeInFromTop(delay: 0.ms);
-                                  },
-                                )
-                                //  ValueListenableBuilder(
-                                //   valueListenable: _myGame.currentScore,
-                                //   builder: (context, value, child) => Text(
-                                //     'Score: $value',
-                                //     style: const TextStyle(
-                                //       fontSize: 25,
-                                //       fontWeight: FontWeight.bold,
-                                //     ),
-                                //   ),
-                                // ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  _myGame.pauseGame();
+                                },
+                                icon: const Icon(
+                                  PhosphorIconsFill.pause,
+                                  size: 37,
                                 ),
-                          ],
-                        ),
+                              ).fadeInFromTop(delay: 0.ms),
+
+                              //! score
+                              Padding(
+                                  padding: const EdgeInsets.only(right: 12.0),
+                                  child: Consumer(
+                                    builder: (context, ref, child) {
+                                      return Text(
+                                        'Score: ${ref.watch(gameNotifierProvider).score}',
+                                        style: const TextStyle(
+                                          fontFamily: FontFam.orbitron,
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ).fadeInFromTop(delay: 0.ms);
+                                    },
+                                  )
+                                  //  ValueListenableBuilder(
+                                  //   valueListenable: _myGame.currentScore,
+                                  //   builder: (context, value, child) => Text(
+                                  //     'Score: $value',
+                                  //     style: const TextStyle(
+                                  //       fontSize: 25,
+                                  //       fontWeight: FontWeight.bold,
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                  ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const SizedBox(
+                                width: 30,
+                              ),
+                              gameState.reloading == true
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.red,
+                                    )
+                                  : SeparatedRow(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      separatorBuilder: () => const SizedBox(
+                                        width: 10,
+                                      ),
+                                      children: List.generate(
+                                          gameState.noOfBullets, (index) {
+                                        return Container(
+                                          height: 20,
+                                          width: 20,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            color: Colors.red,
+                                          ),
+                                        );
+                                      }),
+                                    ),
+
+                              //! reload
+                              IconButton(
+                                onPressed: () {
+                                  ref
+                                      .read(gameNotifierProvider.notifier)
+                                      .reloadBullets();
+                                },
+                                icon: const Icon(
+                                  PhosphorIconsBold.repeat,
+                                  size: 40,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     )
                   : const SizedBox.shrink();
