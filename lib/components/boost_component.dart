@@ -23,14 +23,17 @@ class BoostButtonComponent extends HudButtonComponent {
   }
 
   @override
-  void onTapDown(TapDownEvent event) {
+  void onTapDown(TapDownEvent event) async {
     tapped = true;
+    await Future.delayed(const Duration(milliseconds: 150)).whenComplete(() {
+      tapped = false;
+    });
     super.onTapDown(event);
   }
 
   @override
   void onTapUp(TapUpEvent event) {
-    tapped = false;
+    // tapped = false;
     super.onTapUp(event);
   }
 }
