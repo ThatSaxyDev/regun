@@ -2,26 +2,38 @@ import 'dart:async';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame_audio/flame_audio.dart';
+import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/my_game.dart';
+import 'package:regun/notifiers/score_notifier.dart';
 
 class BulletComponent extends PositionComponent
-    with HasGameReference<RegunGame>, CollisionCallbacks {
+    with
+        HasGameReference<RegunGame>,
+        CollisionCallbacks,
+        RiverpodComponentMixin {
   BulletComponent({
     super.position,
-    this.bulletRadius = 25,
+    this.bulletRadius = 15,
+    this.maxTravelDistance = 450,
     required this.direction,
-    this.speed = 1200,
+    this.speed = 700,
+    this.startPosition,
   }) : super(
           size: Vector2.all(bulletRadius * 2),
           anchor: Anchor.center,
-        );
+        ) {
+    startPosition = position.clone();
+  }
 
   final double bulletRadius;
   final Vector2 direction;
   final double speed;
+  final double maxTravelDistance;
+  Vector2? startPosition;
   static final _paint = Paint()..color = Colors.red;
 
   @override
@@ -51,7 +63,9 @@ class BulletComponent extends PositionComponent
     } else {
       removeFromParent();
     }
-    // position += direction * speed * dt;
+    if ((position - startPosition!).length > maxTravelDistance) {
+      removeFromParent();
+    }
   }
 
   @override
@@ -59,8 +73,10 @@ class BulletComponent extends PositionComponent
     super.onCollision(intersectionPoints, other);
 
     if (other is EnemyComponent) {
-      debugPrint('EnemyComponentCollision');
-      game.increaseScore();
+      // debugPrint('EnemyComponentCollision');
+      FlameAudio.play('hit.wav');
+      ref.read(gameNotifierProvider.notifier).updateScore();
+      // game.increaseScore();
       other.showCollectEffect();
       removeFromParent();
       other.removeFromParent();

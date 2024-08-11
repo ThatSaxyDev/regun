@@ -13,7 +13,8 @@ class EnemyComponent extends PositionComponent
           size: Vector2.all(enemySize),
           anchor: Anchor.center,
         );
-  static final _paint = Paint()..color = Colors.white;
+  static final _paint = Paint()..color = Colors.green;
+  static final _splashpaint = Paint()..color = Colors.red;
   static const enemySize = 35.0;
 
   @override
@@ -65,7 +66,7 @@ class EnemyComponent extends PositionComponent
                 child: CircleParticle(
                   radius: 2,
                   lifespan: 0.5,
-                  paint: _paint,
+                  paint: _splashpaint,
                 ),
               );
             }),
