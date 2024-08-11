@@ -1,29 +1,21 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
-import 'package:flame_audio/flame_audio.dart';
-import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/components/boost_component.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/bullet_component.dart';
-import 'package:regun/components/empty_component.dart';
 import 'package:regun/components/enemy_component.dart';
-import 'package:regun/components/game_joystick_component.dart';
+import 'package:regun/components/game_joystick.dart';
 import 'package:regun/components/player_component.dart';
-import 'package:regun/notifiers/score_notifier.dart';
+import 'package:flame/rendering.dart';
 
 class RegunGame extends FlameGame
-    with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
+    with HasCollisionDetection, HasDecorator, HasTimeScale {
   late PlayerComponent myPlayer;
-  late final MovementJoystickComponent movementJoystick;
-  late final WeaponJoystickComponent weaponJoystick;
-  late final BoostButtonComponent boostButtonComponent;
-  late GameState gameState;
-  late GameNotifier gameNotifier;
-
+  late final MovementJoystick movementJoystick;
+  late final WeaponJoystick weaponJoystick;
+  // final Random _random = Random();
   RegunGame()
       : super(
           camera: CameraComponent.withFixedResolution(
@@ -33,38 +25,31 @@ class RegunGame extends FlameGame
         );
 
   @override
-  Color backgroundColor() => const Color(0xff000000);
+  Color backgroundColor() => const Color(0xff222222);
+
+  ValueNotifier<int> currentScore = ValueNotifier(0);
 
   @override
   FutureOr<void> onLoad() async {
-    movementJoystick = MovementJoystickComponent();
-    weaponJoystick = WeaponJoystickComponent();
-    boostButtonComponent = BoostButtonComponent();
+    movementJoystick = MovementJoystick();
+    weaponJoystick = WeaponJoystick();
     camera.viewport.addAll([movementJoystick, weaponJoystick]);
-    await FlameAudio.audioCache.loadAll([
-      'gameov.wav',
-      'hit.wav',
-      'move.wav',
-      'shoot.wav',
-    ]);
-
     return super.onLoad();
   }
 
-  void _initializeGamee() {
-    gameNotifier.resetScore();
-    gameNotifier.playGame();
-    gameNotifier.addBullets();
-    add(boostButtonComponent);
+  void _initializeGame() {
+    currentScore.value = 0;
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
     ));
     world.add(SpawnComponent(
-      period: 0.4,
+      period: 0.2,
       selfPositioning: true,
       factory: (amount) {
-        spawnShotgunBullets();
-        return EmptyComponent();
+        return BulletComponent(
+          position: myPlayer.position,
+          direction: weaponJoystick.delta.normalized(),
+        );
       },
       autoStart: true,
     ));
@@ -84,40 +69,10 @@ class RegunGame extends FlameGame
     world.add(BorderComponent(size: size * 3));
   }
 
-  void spawnShotgunBullets() {
-    final baseDirection = weaponJoystick.relativeDelta.normalized();
-    if (ref.read(gameNotifierProvider).reloading == true) {
-      return;
-    }
-
-    if (ref.read(gameNotifierProvider).noOfBullets == 0) {
-      gameNotifier.reloadBullets();
-    }
-    if (baseDirection.isZero()) {
-      return;
-    }
-    FlameAudio.play('shoot.wav');
-
-    const spreadAngle = pi / 16;
-    for (int i = -2; i <= 2; i++) {
-      final angle = i * spreadAngle;
-      final direction = baseDirection.clone()..rotate(angle);
-      final bullet = BulletComponent(
-        position: myPlayer.position.clone(),
-        direction: direction,
-      );
-
-      world.add(bullet);
-    }
-    ref.read(gameNotifierProvider.notifier).decreaseBullets();
-  }
-
   @override
   void onMount() {
-    gameState = ref.watch(gameNotifierProvider);
-    gameNotifier = ref.read(gameNotifierProvider.notifier);
     // debugMode = true;
-    _initializeGamee();
+    _initializeGame();
     super.onMount();
   }
 
@@ -125,33 +80,31 @@ class RegunGame extends FlameGame
   void update(double dt) {
     // camera.viewfinder.zoom = 0.2;
     camera.viewfinder.position = myPlayer.position;
-
-    // boostButtonComponent.onPressed;
     super.update(dt);
   }
 
   void gameOver() {
-    pauseEngine();
-    gameNotifier.gameOver();
-    // _initializeGamee();
-  }
-
-  void restartGame() {
     for (var element in world.children) {
       element.removeFromParent();
     }
-    _initializeGamee();
+    _initializeGame();
   }
+
+  bool get isGamePaused => timeScale == 0.0;
+
+  bool get isGamePlaying => !isGamePaused;
 
   void pauseGame() {
     // (decorator as PaintDecorator).addBlur(8);
-    pauseEngine();
-    gameNotifier.pauseGame();
+    timeScale = 0.0;
   }
 
   void resumeGame() {
     // (decorator as PaintDecorator).addBlur(0);
-    resumeEngine();
-    gameNotifier.playGame();
+    timeScale = 1;
+  }
+
+  void increaseScore() {
+    currentScore.value++;
   }
 }

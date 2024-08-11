@@ -6,16 +6,9 @@ class BorderComponent extends PositionComponent {
   BorderComponent({super.size}) : super();
 
   static final _paint = Paint()
-    ..color = Colors.white
+    ..color = Colors.black
     ..style = PaintingStyle.stroke
     ..strokeWidth = 10;
-
-  static final gridPaint = Paint()
-    ..color = Colors.grey.withOpacity(0.2)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 5;
-
-  double gridSize = 100;
 
   @override
   void onLoad() {
@@ -37,24 +30,5 @@ class BorderComponent extends PositionComponent {
       ),
       _paint,
     );
-
-    //! grid lines
-    //! vertical
-    for (double x = -size.x / 2; x <= size.x / 2; x += gridSize) {
-      canvas.drawLine(
-        Offset(x, -size.x / 2),
-        Offset(x, size.x / 2),
-        gridPaint,
-      );
-    }
-
-    //! Horizontal
-    for (double y = -size.x / 2; y <= size.x / 2; y += gridSize) {
-      canvas.drawLine(
-        Offset(-size.x / 2, y),
-        Offset(size.x / 2, y),
-        gridPaint,
-      );
-    }
   }
 }
