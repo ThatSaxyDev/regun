@@ -1,5 +1,4 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(() {
@@ -32,7 +31,6 @@ class GameNotifier extends Notifier<GameState> {
 
   void decreaseBullets() {
     state = state.copyWith(noOfBullets: state.noOfBullets - 1);
-    debugPrint(state.noOfBullets.toString());
   }
 
   void reloadBullets() async {
