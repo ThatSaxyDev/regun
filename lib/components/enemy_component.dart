@@ -3,51 +3,83 @@ import 'dart:math';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
+import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/my_game.dart';
 
-class EnemyComponent extends PositionComponent
+class EnemyComponent extends SpriteAnimationComponent
     with HasGameReference<RegunGame> {
   EnemyComponent({super.position})
       : super(
           size: Vector2.all(enemySize),
           anchor: Anchor.center,
         );
-  static final _paint = Paint()..color = Colors.green;
   static final _splashpaint = Paint()..color = Colors.red;
-  static const enemySize = 35.0;
+  static const enemySize = 85.0;
+  late SpriteAnimation moveLeftAnimation;
+  late SpriteAnimation moveRightAnimation;
 
   @override
   Future<void> onLoad() async {
-    super.onLoad();
+    await super.onLoad();
+    // debugMode = true;
+    final moveLeftSpriteSheet = SpriteSheet(
+      image: await game.images.load('Scorpio_walk.png'),
+      srcSize: Vector2(48, 48),
+    );
+    final moveRightSpriteSheet = SpriteSheet(
+      image: await game.images.load('Scorpio_walk_right.png'),
+      srcSize: Vector2(48, 48),
+    );
+    moveLeftAnimation = moveLeftSpriteSheet.createAnimation(
+      row: 0,
+      stepTime: 0.1,
+      to: 4,
+    );
+    moveRightAnimation = moveRightSpriteSheet.createAnimation(
+      row: 0,
+      stepTime: 0.1,
+      to: 4,
+    );
+    animation = moveLeftAnimation;
     add(
-      RectangleHitbox(collisionType: CollisionType.passive),
+      RectangleHitbox(
+        size: Vector2(65, 35),
+        anchor: const Anchor(-0.3, -1.4),
+        collisionType: CollisionType.passive,
+      ),
     );
   }
 
-  @override
-  void render(Canvas canvas) {
-    canvas.drawRect(size.toRect(), _paint);
-  }
+  // @override
+  // void render(Canvas canvas) {
+  //   canvas.drawRect(size.toRect(), _paint);
+  // }
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    //! CENTER OF THE SCREEN
-    final center = game.myPlayer.position;
+    //! PLAYER POSITION
+    final playerPosition = game.myPlayer.position;
 
-    //! DIRECTION VECTOR FROM THE ENEMY TO THE CENTER
-    final direction = (center - position).normalized();
+    //! DIRECTION VECTOR FROM THE ENEMY TO THE PLAYER
+    final direction = (playerPosition - position).normalized();
 
-    //! MOVE ENEMY TOWARDS CENTER
+    //! MOVE ENEMY TOWARDS PLAYER
     const speed = 80;
     position += direction * (speed * dt);
 
-    //! DELETE ENEMY WHEN IT TOUCHES THE CENTER
-    if ((position - center).length < 1) {
-      removeFromParent();
+    if (playerPosition.x > position.x) {
+      animation = moveRightAnimation;
+    } else {
+      animation = moveLeftAnimation;
     }
+
+    //! DELETE ENEMY WHEN IT TOUCHES THE PLAYER
+    // if ((position - center).length < 1) {
+    //   removeFromParent();
+    // }
   }
 
   void showCollectEffect() {
