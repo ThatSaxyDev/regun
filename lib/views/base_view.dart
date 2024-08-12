@@ -102,10 +102,10 @@ class _BaseViewState extends State<BaseView> {
                               ),
                               gameState.reloading == true
                                   ? SizedBox(
-                                      // color: Colors.red,
                                       height: 100,
                                       width: 200,
-                                      child: lottieWidget)
+                                      child: lottieWidget,
+                                    )
                                   : Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 20),
