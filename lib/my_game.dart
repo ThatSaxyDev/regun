@@ -10,7 +10,8 @@ import 'package:regun/components/boost_component.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/bullet_component.dart';
 import 'package:regun/components/empty_component.dart';
-import 'package:regun/components/enemy_component.dart';
+import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/game_joystick_component.dart';
 import 'package:regun/components/player_component.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -55,6 +56,7 @@ class RegunGame extends FlameGame
     gameNotifier.resetScore();
     gameNotifier.playGame();
     gameNotifier.addBullets();
+    gameNotifier.resetHealth();
     add(boostButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
@@ -74,6 +76,19 @@ class RegunGame extends FlameGame
           return EnemyComponent();
         },
         period: 0.2,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 3, size.x * 3),
+        ),
+      ),
+    );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return Enemy2Component();
+        },
+        period: 5,
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,

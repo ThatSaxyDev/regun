@@ -66,6 +66,15 @@ class GameNotifier extends Notifier<GameState> {
       noOfBullets: 5,
     );
   }
+
+  void reduceHealth() {
+    state = state.copyWith(health: state.health - 1);
+    // print(state.health.toString());
+  }
+
+  void resetHealth() {
+    state = state.copyWith(health: 3);
+  }
 }
 
 class GameState {
@@ -73,12 +82,14 @@ class GameState {
   GameplayState gameplayState;
   int noOfBullets;
   bool reloading;
+  int health;
 
   GameState({
     this.score = 0,
     this.gameplayState = GameplayState.playing,
     this.noOfBullets = 5,
     this.reloading = false,
+    this.health = 3,
   });
 
   GameState copyWith({
@@ -86,12 +97,14 @@ class GameState {
     GameplayState? gameplayState,
     int? noOfBullets,
     bool? reloading,
+    int? health,
   }) {
     return GameState(
       score: score ?? this.score,
       gameplayState: gameplayState ?? this.gameplayState,
       noOfBullets: noOfBullets ?? this.noOfBullets,
       reloading: reloading ?? this.reloading,
+      health: health ?? this.health,
     );
   }
 }

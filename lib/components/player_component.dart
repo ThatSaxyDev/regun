@@ -6,14 +6,20 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/bullet_component.dart';
-import 'package:regun/components/enemy_component.dart';
+import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/my_game.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 
 class PlayerComponent extends SpriteAnimationComponent
-    with HasGameReference<RegunGame>, CollisionCallbacks {
+    with
+        HasGameReference<RegunGame>,
+        CollisionCallbacks,
+        RiverpodComponentMixin {
   PlayerComponent({
     super.position,
     this.playerRadius = 25,
@@ -173,7 +179,8 @@ class PlayerComponent extends SpriteAnimationComponent
   Set<PositionComponent> getFilteredComponents(
       Set<PositionComponent> components) {
     return components
-        .where((component) => component is! BulletComponent)
+        .where((component) =>
+            component is! BulletComponent && component is! Enemy2Component)
         .toSet();
   }
 
@@ -193,8 +200,13 @@ class PlayerComponent extends SpriteAnimationComponent
       transform.setFrom(_lastTransform);
       size.setFrom(_lastSize);
     } else if (other is EnemyComponent) {
+      ref.read(gameNotifierProvider.notifier).reduceHealth();
+      other.showCollectEffect();
+      other.removeFromParent();
       FlameAudio.play('gameov.wav');
-      game.gameOver();
+      if (ref.read(gameNotifierProvider).health == 0) {
+        game.gameOver();
+      }
     }
   }
 }
