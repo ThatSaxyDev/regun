@@ -179,7 +179,7 @@ class PlayerComponent extends SpriteAnimationComponent
 
   @override
   void onMount() {
-    debugMode = true;
+    // debugMode = true;
     size = Vector2.all(playerRadius * 4);
     anchor = Anchor.center;
     super.onMount();

@@ -22,6 +22,7 @@ class BulletComponent extends PositionComponent
     required this.direction,
     this.speed = 700,
     this.startPosition,
+    super.angle,
   }) : super(
           size: Vector2.all(bulletRadius * 2),
           anchor: Anchor.center,
@@ -34,11 +35,14 @@ class BulletComponent extends PositionComponent
   final double speed;
   final double maxTravelDistance;
   Vector2? startPosition;
-  static final _paint = Paint()..color = Colors.red;
+  // static final _paint = Paint()..color = Colors.red;
+  late Sprite _bulletSprite;
 
   @override
   Future<void> onLoad() async {
-    super.onLoad();
+    // debugMode = true;
+    await super.onLoad();
+    _bulletSprite = await Sprite.load('bulletR.png');
     add(
       RectangleHitbox(
         collisionType: CollisionType.active,
@@ -48,11 +52,17 @@ class BulletComponent extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    canvas.drawCircle(
-      (size / 2).toOffset(),
-      bulletRadius,
-      _paint,
+    _bulletSprite.render(
+      canvas,
+      position: size / 2,
+      size: size,
+      anchor: Anchor.center,
     );
+    // canvas.drawCircle(
+    //   (size / 2).toOffset(),
+    //   bulletRadius,
+    //   _paint,
+    // );
   }
 
   @override

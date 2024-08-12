@@ -102,9 +102,11 @@ class RegunGame extends FlameGame
     for (int i = -2; i <= 2; i++) {
       final angle = i * spreadAngle;
       final direction = baseDirection.clone()..rotate(angle);
+      final bulletAngle = -direction.angleToSigned(Vector2(1, 0));
       final bullet = BulletComponent(
         position: myPlayer.position.clone(),
         direction: direction,
+        angle: bulletAngle,
       );
 
       world.add(bullet);
