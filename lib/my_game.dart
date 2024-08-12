@@ -75,7 +75,7 @@ class RegunGame extends FlameGame
         factory: (index) {
           return EnemyComponent();
         },
-        period: 0.2,
+        period: 0.3,
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
@@ -88,7 +88,7 @@ class RegunGame extends FlameGame
         factory: (index) {
           return Enemy2Component();
         },
-        period: 5,
+        period: 0.7,
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,

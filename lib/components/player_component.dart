@@ -24,7 +24,7 @@ class PlayerComponent extends SpriteAnimationComponent
     super.position,
     this.playerRadius = 25,
   }) : super(
-          priority: 20,
+        // priority: 20,
         );
 
   final double playerRadius;
@@ -91,8 +91,8 @@ class PlayerComponent extends SpriteAnimationComponent
     animation = idleRightAnimation;
     add(
       RectangleHitbox(
-        size: Vector2(50, 70),
-        anchor: const Anchor(-0.5, -0.18),
+        size: Vector2(40, 70),
+        anchor: const Anchor(-0.75, -0.18),
         collisionType: CollisionType.active,
       ),
     );
@@ -186,7 +186,7 @@ class PlayerComponent extends SpriteAnimationComponent
 
   @override
   void onMount() {
-    // debugMode = true;
+    debugMode = true;
     size = Vector2.all(playerRadius * 4);
     anchor = Anchor.center;
     super.onMount();

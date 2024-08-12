@@ -14,7 +14,7 @@ class EnemyComponent extends SpriteAnimationComponent
           size: Vector2.all(enemySize),
           anchor: Anchor.center,
         );
-  static final _splashpaint = Paint()..color = Colors.red;
+  static final _splashpaint = Paint()..color = Colors.green.shade800;
   static const enemySize = 85.0;
   late SpriteAnimation moveLeftAnimation;
   late SpriteAnimation moveRightAnimation;
@@ -22,7 +22,7 @@ class EnemyComponent extends SpriteAnimationComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    // debugMode = true;
+    debugMode = true;
     final moveLeftSpriteSheet = SpriteSheet(
       image: await game.images.load('Scorpio_walk.png'),
       srcSize: Vector2(48, 48),
@@ -44,8 +44,8 @@ class EnemyComponent extends SpriteAnimationComponent
     animation = moveLeftAnimation;
     add(
       RectangleHitbox(
-        size: Vector2(65, 35),
-        anchor: const Anchor(-0.3, -1.4),
+        size: Vector2(61, 35),
+        anchor: const Anchor(-0.05, -1.4),
         collisionType: CollisionType.passive,
       ),
     );

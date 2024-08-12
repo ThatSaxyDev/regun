@@ -69,14 +69,43 @@ class _BaseViewState extends State<BaseView> {
                                   padding: const EdgeInsets.only(right: 12.0),
                                   child: Consumer(
                                     builder: (context, ref, child) {
-                                      return Text(
-                                        'Score: ${ref.watch(gameNotifierProvider).score}',
-                                        style: const TextStyle(
-                                          fontFamily: FontFam.orbitron,
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ).fadeInFromTop(delay: 0.ms);
+                                      return Row(
+                                        children: [
+                                          SeparatedRow(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            separatorBuilder: () =>
+                                                const SizedBox(
+                                              width: 10,
+                                            ),
+                                            children: List.generate(
+                                                gameState.health, (index) {
+                                              return Container(
+                                                height: 20,
+                                                width: 20,
+                                                decoration: BoxDecoration(
+                                                  image: const DecorationImage(
+                                                      image: AssetImage(
+                                                          'assets/images/heart.png')),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                              );
+                                            }),
+                                          ).fadeInFromTop(delay: 0.ms),
+                                          const SizedBox(
+                                            width: 20,
+                                          ),
+                                          Text(
+                                            'Score: ${ref.watch(gameNotifierProvider).score}',
+                                            style: const TextStyle(
+                                              fontFamily: FontFam.orbitron,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ).fadeInFromTop(delay: 0.ms),
+                                        ],
+                                      );
                                     },
                                   )
                                   //  ValueListenableBuilder(

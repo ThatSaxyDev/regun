@@ -4,11 +4,18 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
 import 'package:flame/sprite.dart';
+import 'package:flame_audio/flame_audio.dart';
+import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/player_component.dart';
 import 'package:regun/my_game.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 
 class Enemy2Component extends SpriteAnimationComponent
-    with HasGameReference<RegunGame>, CollisionCallbacks {
+    with
+        HasGameReference<RegunGame>,
+        CollisionCallbacks,
+        RiverpodComponentMixin {
   Enemy2Component({super.position})
       : super(
           size: Vector2.all(enemySize),
@@ -20,6 +27,10 @@ class Enemy2Component extends SpriteAnimationComponent
   late SpriteAnimation moveRightAnimation;
   late SpriteAnimation attackLeftAnimation;
   late SpriteAnimation attackRightAnimation;
+  late SpriteAnimation deathLeftAnimation;
+  bool isAttacking = false;
+  double attackInterval = 0.6; // Time between health reductions in seconds
+  double timeSinceLastAttack = 0.0; // Timer to track the interval
 
   @override
   Future<void> onLoad() async {
@@ -41,6 +52,10 @@ class Enemy2Component extends SpriteAnimationComponent
       image: await game.images.load('Mummy_attack_right.png'),
       srcSize: Vector2(48, 48),
     );
+    final deathLeftSpriteSheet = SpriteSheet(
+      image: await game.images.load('Mummy_death.png'),
+      srcSize: Vector2(48, 48),
+    );
     moveLeftAnimation = moveLeftSpriteSheet.createAnimation(
       row: 0,
       stepTime: 0.1,
@@ -57,6 +72,11 @@ class Enemy2Component extends SpriteAnimationComponent
       to: 6,
     );
     attackRightAnimation = attackRightSpriteSheet.createAnimation(
+      row: 0,
+      stepTime: 0.1,
+      to: 6,
+    );
+    deathLeftAnimation = deathLeftSpriteSheet.createAnimation(
       row: 0,
       stepTime: 0.1,
       to: 6,
@@ -86,20 +106,46 @@ class Enemy2Component extends SpriteAnimationComponent
     //! DIRECTION VECTOR FROM THE ENEMY TO THE PLAYER
     final direction = (playerPosition - position).normalized();
 
-    //! MOVE ENEMY TOWARDS PLAYER
-    const speed = 80;
-    position += direction * (speed * dt);
+    //! CALCULATE DISTANCE BETWEEN ENEMY AND PLAYER
+    final distanceToPlayer = (playerPosition - position).length;
 
-    if (playerPosition.x > position.x) {
-      animation = moveRightAnimation;
+    //! DEFINE A MINIMUM DISTANCE TO STOP BEFORE TOUCHING THE PLAYER
+    const minimumDistance = 40.0; // Adjust this value as needed
+
+    //! MOVE ENEMY TOWARDS PLAYER IF IT'S FARTHER THAN THE MINIMUM DISTANCE
+    if (distanceToPlayer > minimumDistance) {
+      isAttacking = false;
+      timeSinceLastAttack = 0.0; // Reset the attack timer
+      const speed = 50;
+      position += direction * (speed * dt);
+
+      // Set move animation if not attacking
+      if (playerPosition.x > position.x) {
+        animation = moveRightAnimation;
+      } else {
+        animation = moveLeftAnimation;
+      }
     } else {
-      animation = moveLeftAnimation;
-    }
+      isAttacking = true;
 
-    //! DELETE ENEMY WHEN IT TOUCHES THE PLAYER
-    // if ((position - center).length < 1) {
-    //   removeFromParent();
-    // }
+      // Reduce health at regular intervals
+      timeSinceLastAttack += dt;
+      if (timeSinceLastAttack >= attackInterval) {
+        timeSinceLastAttack = 0.0;
+        ref.read(gameNotifierProvider.notifier).reduceHealth();
+        FlameAudio.play('gameov.wav');
+        if (ref.read(gameNotifierProvider).health == 0) {
+          game.gameOver();
+        }
+      }
+
+      // Set attack animation
+      if (playerPosition.x > position.x) {
+        animation = attackRightAnimation;
+      } else {
+        animation = attackLeftAnimation;
+      }
+    }
   }
 
   void showCollectEffect() {

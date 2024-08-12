@@ -6,6 +6,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
+import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/my_game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -90,6 +91,12 @@ class BulletComponent extends PositionComponent
       other.removeFromParent();
     } else if (other is BorderComponent) {
       removeFromParent();
+    } else if (other is Enemy2Component) {
+      FlameAudio.play('hit.wav');
+      ref.read(gameNotifierProvider.notifier).updateScore();
+      other.showCollectEffect();
+      removeFromParent();
+      other.removeFromParent();
     }
   }
 }
