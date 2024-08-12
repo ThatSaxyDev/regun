@@ -84,9 +84,9 @@ class PlayerComponent extends SpriteAnimationComponent
     );
     animation = idleRightAnimation;
     add(
-      CircleHitbox(
-        radius: 35,
-        anchor: const Anchor(-0.2, -0.2),
+      RectangleHitbox(
+        size: Vector2(50, 70),
+        anchor: const Anchor(-0.5, -0.18),
         collisionType: CollisionType.active,
       ),
     );
