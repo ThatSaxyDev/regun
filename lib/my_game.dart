@@ -13,7 +13,7 @@ import 'package:regun/components/empty_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/components/game_joystick_component.dart';
 import 'package:regun/components/player_component.dart';
-import 'package:regun/notifiers/score_notifier.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {

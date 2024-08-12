@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(() {
@@ -34,12 +35,30 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void reloadBullets() async {
+    if (state.noOfBullets == 5 || state.reloading == true) return;
     state = state.copyWith(reloading: true);
-    await Future.delayed(const Duration(seconds: 2));
+    playReloadSound();
+    await Future.delayed(Duration(
+        milliseconds: switch (state.noOfBullets) {
+      4 => 900,
+      3 => 1600,
+      2 => 2300,
+      1 => 3000,
+      _ => 3700,
+    }));
     state = state.copyWith(
       noOfBullets: 5,
       reloading: false,
     );
+  }
+
+  void playReloadSound() async {
+    int missingBullets = 5 - state.noOfBullets;
+
+    for (int i = 0; i < missingBullets; i++) {
+      FlameAudio.play('reloadSound.mp3');
+      await Future.delayed(const Duration(milliseconds: 700));
+    }
   }
 
   void addBullets() async {

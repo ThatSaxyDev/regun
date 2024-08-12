@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:regun/components/border_component.dart';
 import 'package:regun/components/enemy_component.dart';
 import 'package:regun/my_game.dart';
-import 'package:regun/notifiers/score_notifier.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 
 class BulletComponent extends PositionComponent
     with

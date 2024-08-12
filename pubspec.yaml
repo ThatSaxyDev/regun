@@ -19,6 +19,7 @@ dependencies:
   flutter_animate: ^4.5.0
   go_router: ^14.2.3
   flextras: ^1.0.0
+  lottie: ^3.1.2
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1
@@ -46,6 +47,7 @@ flutter:
   assets:
     - assets/images/
     - assets/audio/
+    - assets/lottie/
 
   fonts:
     - family: PressStart2P

@@ -2,12 +2,13 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flextras/flextras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:regun/router.dart';
 import 'package:regun/utils/app_extensions.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/my_game.dart';
-import 'package:regun/notifiers/score_notifier.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/theme/palette.dart';
 import 'package:regun/widgets/click_button.dart';
 import "package:flutter_animate/flutter_animate.dart";
@@ -24,11 +25,13 @@ class _BaseViewState extends State<BaseView> {
   late RegunGame _myGame;
   final GlobalKey<RiverpodAwareGameWidgetState> gameWidgetKey =
       GlobalKey<RiverpodAwareGameWidgetState>();
+  late final Widget lottieWidget;
 
   @override
   void initState() {
     super.initState();
     _myGame = RegunGame();
+    lottieWidget = Lottie.asset('assets/lottie/reload.json');
   }
 
   @override
@@ -45,6 +48,7 @@ class _BaseViewState extends State<BaseView> {
               GameState gameState = ref.watch(gameNotifierProvider);
               return gameState.gameplayState == GameplayState.playing
                   ? SafeArea(
+                      bottom: false,
                       child: Column(
                         children: [
                           Row(
@@ -91,45 +95,61 @@ class _BaseViewState extends State<BaseView> {
                           const Spacer(),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               const SizedBox(
                                 width: 30,
                               ),
                               gameState.reloading == true
-                                  ? const CircularProgressIndicator(
-                                      color: Colors.red,
-                                    )
-                                  : SeparatedRow(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      separatorBuilder: () => const SizedBox(
-                                        width: 10,
+                                  ? SizedBox(
+                                      // color: Colors.red,
+                                      height: 100,
+                                      width: 200,
+                                      child: lottieWidget)
+                                  : Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 20),
+                                      child: SeparatedRow(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        separatorBuilder: () => const SizedBox(
+                                          width: 10,
+                                        ),
+                                        children: List.generate(
+                                            gameState.noOfBullets, (index) {
+                                          return Container(
+                                            height: 20,
+                                            width: 20,
+                                            decoration: BoxDecoration(
+                                              image: const DecorationImage(
+                                                  image: AssetImage(
+                                                      'assets/images/bullet.png')),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                          );
+                                        }),
                                       ),
-                                      children: List.generate(
-                                          gameState.noOfBullets, (index) {
-                                        return Container(
-                                          height: 20,
-                                          width: 20,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            color: Colors.red,
-                                          ),
-                                        );
-                                      }),
                                     ),
 
                               //! reload
-                              IconButton(
-                                onPressed: () {
-                                  ref
-                                      .read(gameNotifierProvider.notifier)
-                                      .reloadBullets();
-                                },
-                                icon: const Icon(
-                                  PhosphorIconsBold.repeat,
-                                  size: 40,
-                                ),
+                              Column(
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      ref
+                                          .read(gameNotifierProvider.notifier)
+                                          .reloadBullets();
+                                    },
+                                    icon: const Icon(
+                                      PhosphorIconsBold.repeat,
+                                      size: 40,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 10,
+                                  )
+                                ],
                               ),
                             ],
                           ),
