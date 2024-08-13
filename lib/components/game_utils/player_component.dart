@@ -8,6 +8,7 @@ import 'package:flame/sprite.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/game_utils/bullet_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
@@ -180,7 +181,9 @@ class PlayerComponent extends SpriteAnimationComponent
       Set<PositionComponent> components) {
     return components
         .where((component) =>
-            component is! BulletComponent && component is! Enemy2Component)
+            component is! BulletComponent &&
+            component is! Enemy2Component &&
+            component is! CoinComponent)
         .toSet();
   }
 
@@ -207,6 +210,10 @@ class PlayerComponent extends SpriteAnimationComponent
       if (ref.read(gameNotifierProvider).health == 0) {
         game.gameOver();
       }
+    } else if (other is CoinComponent) {
+      FlameAudio.play('coinSound2.wav');
+      ref.read(gameNotifierProvider.notifier).updateScore();
+      other.removeFromParent();
     }
   }
 }

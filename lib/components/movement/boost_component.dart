@@ -47,6 +47,7 @@ class Buttonn extends PositionComponent {
         _paint = paint ?? Paint()
           ..color = const Color(0xFF80C080),
         super(
+          priority: 30,
           size: Vector2.all(2 * radius),
           // anchor: Anchor.center,
         );

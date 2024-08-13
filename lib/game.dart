@@ -6,6 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/movement/boost_component.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/game_utils/bullet_component.dart';
@@ -47,12 +48,16 @@ class RegunGame extends FlameGame
       'hit.wav',
       'move.wav',
       'shoot.wav',
+      'coinSound1.mp3',
+      'coinSound2.wav',
     ]);
 
     return super.onLoad();
   }
 
   void _initializeGamee() {
+    final rnd = Random();
+    Vector2 randomVector2() => (Vector2.random(rnd) - Vector2.random(rnd)) * 80;
     gameNotifier.resetScore();
     gameNotifier.playGame();
     gameNotifier.addBullets();
@@ -97,6 +102,19 @@ class RegunGame extends FlameGame
       ),
     );
     world.add(BorderComponent(size: size * 3));
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return CoinComponent(position: randomVector2());
+        },
+        period: 1,
+        within: true,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 3, size.x * 3),
+        ),
+      ),
+    );
   }
 
   void spawnShotgunBullets() {
