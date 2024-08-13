@@ -1,6 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flame_audio/flame_audio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:regun/components/ui/power_up_dialog.dart';
+import 'package:regun/main.dart';
+import 'package:regun/theme/palette.dart';
 
 final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(() {
   return GameNotifier();
@@ -15,7 +19,12 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void resetScore() {
-    state = state.copyWith(score: 0);
+    state = state.copyWith(
+      score: 0,
+      xP: 0,
+      currentLevel: 1,
+      noOfCoinsToUpgrade: 7,
+    );
   }
 
   void pauseGame() {
@@ -40,9 +49,10 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(reloading: true);
     playReloadSound();
 
-    const int baseReloadTime = 700;
+    const int baseReloadTime = 900;
+    const int buffer = 700;
     final int bulletsToReload = state.maxBullets - state.noOfBullets;
-    final int totalDelay = bulletsToReload * baseReloadTime;
+    final int totalDelay = (buffer * (bulletsToReload - 1)) + baseReloadTime;
 
     await Future.delayed(Duration(milliseconds: totalDelay));
 
@@ -74,7 +84,7 @@ class GameNotifier extends Notifier<GameState> {
   // }
 
   void playReloadSound() async {
-    int missingBullets = 8 - state.noOfBullets;
+    int missingBullets = state.maxBullets - state.noOfBullets;
 
     for (int i = 0; i < missingBullets; i++) {
       FlameAudio.play('reloadSound.mp3');
@@ -84,7 +94,7 @@ class GameNotifier extends Notifier<GameState> {
 
   void addBullets() async {
     state = state.copyWith(
-      noOfBullets: 8,
+      noOfBullets: state.maxBullets,
     );
   }
 
@@ -96,6 +106,30 @@ class GameNotifier extends Notifier<GameState> {
   void resetHealth() {
     state = state.copyWith(health: 3);
   }
+
+  void increaseXP() {
+    if (state.xP == state.noOfCoinsToUpgrade.floor()) {
+      upgradeLevel();
+      debugPrint(
+          'XP:${state.xP}, Coins2Up:${state.noOfCoinsToUpgrade}, Level:${state.currentLevel}');
+      return;
+    }
+    state = state.copyWith(xP: state.xP + 1);
+    debugPrint(
+        'XP:${state.xP}, Coins2Up:${state.noOfCoinsToUpgrade}, Level:${state.currentLevel}');
+  }
+
+  void resetXP() {
+    state = state.copyWith(xP: 0);
+  }
+
+  void upgradeLevel() {
+    state = state.copyWith(
+      xP: 0,
+      currentLevel: state.currentLevel + 1,
+      noOfCoinsToUpgrade: state.noOfCoinsToUpgrade * 1.5,
+    );
+  }
 }
 
 class GameState {
@@ -105,14 +139,20 @@ class GameState {
   int noOfBullets;
   bool reloading;
   int health;
+  int xP;
+  int currentLevel;
+  double noOfCoinsToUpgrade;
 
   GameState({
     this.score = 0,
     this.gameplayState = GameplayState.playing,
-    this.maxBullets = 8,
-    this.noOfBullets = 8,
+    this.maxBullets = 5,
+    this.noOfBullets = 5,
     this.reloading = false,
     this.health = 3,
+    this.xP = 0,
+    this.currentLevel = 1,
+    this.noOfCoinsToUpgrade = 7,
   });
 
   GameState copyWith({
@@ -122,6 +162,9 @@ class GameState {
     int? noOfBullets,
     bool? reloading,
     int? health,
+    int? xP,
+    int? currentLevel,
+    double? noOfCoinsToUpgrade,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -130,6 +173,9 @@ class GameState {
       noOfBullets: noOfBullets ?? this.noOfBullets,
       reloading: reloading ?? this.reloading,
       health: health ?? this.health,
+      xP: xP ?? this.xP,
+      currentLevel: currentLevel ?? this.currentLevel,
+      noOfCoinsToUpgrade: noOfCoinsToUpgrade ?? this.noOfCoinsToUpgrade,
     );
   }
 }

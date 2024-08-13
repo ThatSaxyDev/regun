@@ -34,6 +34,18 @@ class _BaseViewState extends State<BaseView> {
     lottieWidget = Lottie.asset('assets/lottie/reload.json');
   }
 
+  Color getPowerUpColor(double length) {
+    if (length < width(context) * 0.25) {
+      return Colors.red;
+    } else if (length < width(context) * 0.5) {
+      return Colors.orange;
+    } else if (length < width(context) * 0.75) {
+      return Colors.yellow;
+    } else {
+      return Colors.green;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,11 +58,23 @@ class _BaseViewState extends State<BaseView> {
           Consumer(
             builder: (context, ref, child) {
               GameState gameState = ref.watch(gameNotifierProvider);
+              final powerUpLength = width(context) *
+                  (gameState.xP / gameState.noOfCoinsToUpgrade.floor());
               return gameState.gameplayState == GameplayState.playing
                   ? SafeArea(
                       bottom: false,
+                      top: false,
                       child: Column(
                         children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 500),
+                              height: 5,
+                              width: powerUpLength,
+                              color: getPowerUpColor(powerUpLength),
+                            ),
+                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

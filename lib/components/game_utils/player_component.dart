@@ -213,6 +213,7 @@ class PlayerComponent extends SpriteAnimationComponent
     } else if (other is CoinComponent) {
       FlameAudio.play('coinSound2.wav');
       ref.read(gameNotifierProvider.notifier).updateScore();
+      ref.read(gameNotifierProvider.notifier).increaseXP();
       other.removeFromParent();
     }
   }
