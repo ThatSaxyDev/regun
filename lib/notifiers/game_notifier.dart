@@ -14,6 +14,8 @@ class GameNotifier extends Notifier<GameState> {
   @override
   build() => GameState();
 
+  // late RegunGame _myGame;
+
   void updateScore() {
     state = state.copyWith(score: state.score + 1);
   }
@@ -108,15 +110,37 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void increaseXP() {
+    // _myGame = RegunGame();
     if (state.xP == state.noOfCoinsToUpgrade.floor()) {
       upgradeLevel();
-      debugPrint(
-          'XP:${state.xP}, Coins2Up:${state.noOfCoinsToUpgrade}, Level:${state.currentLevel}');
+      // debugPrint(
+      //     'XP:${state.xP}, Coins2Up:${state.noOfCoinsToUpgrade}, Level:${state.currentLevel}');
+      // _myGame.removeCoinsAndEnemies();
+      navigatorKey.currentState!.push(
+        PageRouteBuilder(
+          barrierDismissible: true,
+          barrierLabel: "Go Home",
+          barrierColor: Palette.blackColor.withOpacity(0.2),
+          opaque: false,
+          transitionDuration: const Duration(milliseconds: 200),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return PowerUpDialog(
+              cntxt: navigatorKey.currentContext!,
+            );
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+        ),
+      );
       return;
     }
     state = state.copyWith(xP: state.xP + 1);
-    debugPrint(
-        'XP:${state.xP}, Coins2Up:${state.noOfCoinsToUpgrade}, Level:${state.currentLevel}');
+    // debugPrint(
+    //     'XP:${state.xP}, Coins2Up:${state.noOfCoinsToUpgrade}, Level:${state.currentLevel}');
   }
 
   void resetXP() {

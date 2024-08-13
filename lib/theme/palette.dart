@@ -45,4 +45,8 @@ class Palette {
       Color(0xffE57373); // A red variant similar in shade to buttonBlue
   static const buttonShadowRed =
       Color(0xff993D3D); // A darker red variant for the shadow
+  static const buttonBlueVariant =
+      Color(0xff5A5AD1); // A slightly darker blue variant
+  static const buttonShadowBlueVariant =
+      Color(0xff2C2C82); // A darker blue variant for the shadow
 }

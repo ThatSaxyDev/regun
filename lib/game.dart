@@ -11,8 +11,6 @@ import 'package:regun/components/movement/boost_component.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/game_utils/bullet_component.dart';
 import 'package:regun/components/game_utils/empty_component.dart';
-import 'package:regun/components/enemies/enemy_2_component.dart';
-import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/movement/game_joystick_component.dart';
 import 'package:regun/components/game_utils/player_component.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -20,6 +18,7 @@ import 'package:regun/notifiers/game_notifier.dart';
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
   late PlayerComponent myPlayer;
+  // late SpawnComponent coinSpawn;
   late final MovementJoystickComponent movementJoystick;
   late final WeaponJoystickComponent weaponJoystick;
   late final BoostButtonComponent boostButtonComponent;
@@ -177,6 +176,15 @@ class RegunGame extends FlameGame
     }
     _initializeGamee();
   }
+
+  // void removeCoinsAndEnemies() {
+  //   print('triggered');
+  //   for (var element in world.children) {
+  //     // if (element is SpawnComponent) {
+  //     element.removeFromParent();
+  //     // }
+  //   }
+  // }
 
   void pauseGame() {
     // (decorator as PaintDecorator).addBlur(8);

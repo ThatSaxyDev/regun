@@ -1,10 +1,10 @@
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:regun/navigation/router.dart';
 import 'package:regun/utils/app_extensions.dart';
 import 'package:regun/utils/constants.dart';
+import 'package:regun/utils/nav.dart';
+import 'package:regun/views/base_view.dart';
 import 'package:regun/widgets/click_button.dart';
 import 'package:regun/widgets/home_animation.dart';
 
@@ -39,7 +39,8 @@ class MenuView extends ConsumerWidget {
                 ),
                 ClickButton(
                   onTap: () {
-                    context.goNamed(Routes.game.name);
+                    fadeTo(context: context, view: const BaseView());
+                    // context.goNamed(Routes.game.name);
                   },
                   text: 'Start',
                   fontSize: 20,

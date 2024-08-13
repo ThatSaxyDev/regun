@@ -4,15 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:regun/navigation/router.dart';
 import 'package:regun/utils/app_extensions.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/theme/palette.dart';
+import 'package:regun/utils/nav.dart';
 import 'package:regun/widgets/click_button.dart';
 import "package:flutter_animate/flutter_animate.dart";
-import 'package:go_router/go_router.dart';
 
 class BaseView extends StatefulWidget {
   const BaseView({super.key});
@@ -95,33 +94,29 @@ class _BaseViewState extends State<BaseView> {
                                     builder: (context, ref, child) {
                                       return Row(
                                         children: [
-                                          SeparatedRow(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            separatorBuilder: () =>
-                                                const SizedBox(
-                                              width: 10,
+                                          Image.asset(
+                                            'assets/images/heart.png',
+                                            height: 30,
+                                            width: 30,
+                                          ).fadeInFromTop(delay: 0.ms),
+                                          Text(
+                                            ' ${gameState.health}',
+                                            style: const TextStyle(
+                                              fontFamily: FontFam.orbitron,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold,
                                             ),
-                                            children: List.generate(
-                                                gameState.health, (index) {
-                                              return Container(
-                                                height: 20,
-                                                width: 20,
-                                                decoration: BoxDecoration(
-                                                  image: const DecorationImage(
-                                                      image: AssetImage(
-                                                          'assets/images/heart.png')),
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                ),
-                                              );
-                                            }),
                                           ).fadeInFromTop(delay: 0.ms),
                                           const SizedBox(
                                             width: 20,
                                           ),
+                                          Image.asset(
+                                            'assets/images/coinui.png',
+                                            height: 30,
+                                            width: 30,
+                                          ).fadeInFromTop(delay: 0.ms),
                                           Text(
-                                            'Score: ${ref.watch(gameNotifierProvider).score}',
+                                            ' ${ref.watch(gameNotifierProvider).score}',
                                             style: const TextStyle(
                                               fontFamily: FontFam.orbitron,
                                               fontSize: 25,
@@ -266,7 +261,10 @@ class _BaseViewState extends State<BaseView> {
                               ),
                               ClickButtonM(
                                 onTap: () {
-                                  context.goNamed(Routes.menu.name);
+                                  goBack(context);
+                                  // goTo(
+                                  //     context: context, view: const MenuView());
+                                  // context.goNamed(Routes.menu.name);
                                 },
                                 text: 'Menu',
                                 width: 100,
@@ -333,7 +331,11 @@ class _BaseViewState extends State<BaseView> {
                                   ),
                                   ClickButtonM(
                                     onTap: () {
-                                      context.goNamed(Routes.menu.name);
+                                      goBack(context);
+                                      // goTo(
+                                      //     context: context,
+                                      //     view: const MenuView());
+                                      // context.goNamed(Routes.menu.name);
                                     },
                                     buttonColor: Palette.buttonRed,
                                     buttonShadow: Palette.buttonShadowRed,

@@ -1,7 +1,7 @@
 import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:regun/navigation/router.dart';
+import 'package:regun/views/menu_view.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -19,11 +19,12 @@ class GameApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final router = goRouter();
-    return MaterialApp.router(
+    // final router = goRouter();
+    return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),
-      routerConfig: router,
+      home: const MenuView(),
     );
   }
 }
