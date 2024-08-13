@@ -6,14 +6,14 @@ import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/components/boost_component.dart';
-import 'package:regun/components/border_component.dart';
-import 'package:regun/components/bullet_component.dart';
-import 'package:regun/components/empty_component.dart';
+import 'package:regun/components/movement/boost_component.dart';
+import 'package:regun/components/ui/border_component.dart';
+import 'package:regun/components/game_utils/bullet_component.dart';
+import 'package:regun/components/game_utils/empty_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
-import 'package:regun/components/game_joystick_component.dart';
-import 'package:regun/components/player_component.dart';
+import 'package:regun/components/movement/game_joystick_component.dart';
+import 'package:regun/components/game_utils/player_component.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
 class RegunGame extends FlameGame
@@ -75,7 +75,7 @@ class RegunGame extends FlameGame
         factory: (index) {
           return EnemyComponent();
         },
-        period: 0.3,
+        period: 0.7,
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
@@ -88,7 +88,7 @@ class RegunGame extends FlameGame
         factory: (index) {
           return Enemy2Component();
         },
-        period: 0.7,
+        period: 1.5,
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,

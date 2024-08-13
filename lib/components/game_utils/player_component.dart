@@ -8,11 +8,11 @@ import 'package:flame/sprite.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/components/border_component.dart';
-import 'package:regun/components/bullet_component.dart';
+import 'package:regun/components/ui/border_component.dart';
+import 'package:regun/components/game_utils/bullet_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
-import 'package:regun/my_game.dart';
+import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
 class PlayerComponent extends SpriteAnimationComponent

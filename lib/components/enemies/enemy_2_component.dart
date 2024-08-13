@@ -7,8 +7,7 @@ import 'package:flame/sprite.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/components/player_component.dart';
-import 'package:regun/my_game.dart';
+import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
 class Enemy2Component extends SpriteAnimationComponent
@@ -28,7 +27,12 @@ class Enemy2Component extends SpriteAnimationComponent
   late SpriteAnimation attackLeftAnimation;
   late SpriteAnimation attackRightAnimation;
   late SpriteAnimation deathLeftAnimation;
+  late SpriteAnimation deathRightAnimation;
+  late SpriteAnimation hurtLeftAnimation;
+  late SpriteAnimation hurtRightAnimation;
   bool isAttacking = false;
+  bool isDying = false;
+  int health = 2;
   double attackInterval = 0.6; // Time between health reductions in seconds
   double timeSinceLastAttack = 0.0; // Timer to track the interval
 
@@ -56,6 +60,18 @@ class Enemy2Component extends SpriteAnimationComponent
       image: await game.images.load('Mummy_death.png'),
       srcSize: Vector2(48, 48),
     );
+    final deathRightSpriteSheet = SpriteSheet(
+      image: await game.images.load('Mummy_death_right.png'),
+      srcSize: Vector2(48, 48),
+    );
+    final hurtLeftSpriteSheet = SpriteSheet(
+      image: await game.images.load('Mummy_hurt.png'),
+      srcSize: Vector2(48, 48),
+    );
+    final hurtRightSpriteSheet = SpriteSheet(
+      image: await game.images.load('Mummy_hurt_right.png'),
+      srcSize: Vector2(48, 48),
+    );
     moveLeftAnimation = moveLeftSpriteSheet.createAnimation(
       row: 0,
       stepTime: 0.1,
@@ -81,6 +97,22 @@ class Enemy2Component extends SpriteAnimationComponent
       stepTime: 0.1,
       to: 6,
     );
+    deathRightAnimation = deathRightSpriteSheet.createAnimation(
+      row: 0,
+      stepTime: 0.1,
+      to: 6,
+    );
+    hurtLeftAnimation = hurtLeftSpriteSheet.createAnimation(
+      row: 0,
+      stepTime: 0.1,
+      to: 6,
+    );
+    hurtRightAnimation = hurtRightSpriteSheet.createAnimation(
+      row: 0,
+      stepTime: 0.1,
+      to: 6,
+    );
+
     animation = moveLeftAnimation;
     add(
       RectangleHitbox(
@@ -100,6 +132,11 @@ class Enemy2Component extends SpriteAnimationComponent
   void update(double dt) {
     super.update(dt);
 
+    if (isDying) {
+      // Stop all actions if the enemy is dead
+      return;
+    }
+
     //! PLAYER POSITION
     final playerPosition = game.myPlayer.position;
 
@@ -116,7 +153,7 @@ class Enemy2Component extends SpriteAnimationComponent
     if (distanceToPlayer > minimumDistance) {
       isAttacking = false;
       timeSinceLastAttack = 0.0; // Reset the attack timer
-      const speed = 50;
+      const speed = 40;
       position += direction * (speed * dt);
 
       // Set move animation if not attacking

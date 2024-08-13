@@ -69,7 +69,7 @@ class GameNotifier extends Notifier<GameState> {
 
   void reduceHealth() {
     state = state.copyWith(health: state.health - 1);
-    print(state.health.toString());
+    // debugPrint(state.health.toString());
   }
 
   void resetHealth() {

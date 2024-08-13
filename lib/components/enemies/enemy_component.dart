@@ -5,7 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/my_game.dart';
+import 'package:regun/game.dart';
 
 class EnemyComponent extends SpriteAnimationComponent
     with HasGameReference<RegunGame> {
@@ -14,7 +14,7 @@ class EnemyComponent extends SpriteAnimationComponent
           size: Vector2.all(enemySize),
           anchor: Anchor.center,
         );
-  static final _splashpaint = Paint()..color = Colors.green.shade800;
+  static final _splashpaint = Paint()..color = Colors.green.shade300;
   static const enemySize = 85.0;
   late SpriteAnimation moveLeftAnimation;
   late SpriteAnimation moveRightAnimation;
@@ -67,7 +67,7 @@ class EnemyComponent extends SpriteAnimationComponent
     final direction = (playerPosition - position).normalized();
 
     //! MOVE ENEMY TOWARDS PLAYER
-    const speed = 80;
+    const speed = 60;
     position += direction * (speed * dt);
 
     if (playerPosition.x > position.x) {

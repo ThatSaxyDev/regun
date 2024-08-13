@@ -1,7 +1,7 @@
 import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:regun/router.dart';
+import 'package:regun/navigation/router.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

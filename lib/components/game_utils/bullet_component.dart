@@ -5,10 +5,10 @@ import 'package:flame/components.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/components/border_component.dart';
+import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
-import 'package:regun/my_game.dart';
+import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
 class BulletComponent extends PositionComponent
@@ -94,9 +94,21 @@ class BulletComponent extends PositionComponent
     } else if (other is Enemy2Component) {
       FlameAudio.play('hit.wav');
       ref.read(gameNotifierProvider.notifier).updateScore();
-      other.showCollectEffect();
+
+      // stop enemy movement
+      other.isDying = true;
+      other.isAttacking = false;
+      other.animation = switch (game.myPlayer.position.x > other.position.x) {
+        true => other.deathRightAnimation,
+        false => other.deathLeftAnimation,
+      };
+
+      // delay the removal to allow the death animation to play
+      Future.delayed(const Duration(milliseconds: 500), () {
+        other.removeFromParent();
+      });
+
       removeFromParent();
-      other.removeFromParent();
     }
   }
 }
