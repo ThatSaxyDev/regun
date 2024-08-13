@@ -363,6 +363,64 @@ class _BaseViewState extends State<BaseView> {
                   : const SizedBox.shrink();
             },
           ),
+
+          //! power up
+          Consumer(
+            builder: (context, ref, child) {
+              if (ref.watch(gameNotifierProvider).gameplayState ==
+                  GameplayState.powerup) {
+                _myGame.slow();
+                return Container(
+                  color: Colors.black45,
+                  child: Center(
+                    child: Container(
+                      height: 240.0,
+                      width: 327.0,
+                      decoration: BoxDecoration(
+                          color: const Color.fromRGBO(20, 19, 23, 0.5),
+                          borderRadius: BorderRadius.circular(8.0)),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ClickButton(
+                              onTap: () {
+                                _myGame.normalizeGameSpeed();
+                                ref
+                                    .read(gameNotifierProvider.notifier)
+                                    .playGame();
+                              },
+                              text: 'Select power-up 1',
+                              width: 200,
+                              height: 50,
+                            ).fadeInFromBottom(delay: 100.ms),
+                            const SizedBox(
+                              height: 30,
+                            ),
+                            ClickButton(
+                              onTap: () {
+                                _myGame.normalizeGameSpeed();
+                                ref
+                                    .read(gameNotifierProvider.notifier)
+                                    .playGame();
+                              },
+                              buttonColor: Palette.buttonBlueVariant,
+                              buttonShadow: Palette.buttonShadowBlueVariant,
+                              text: 'Select power-up 2',
+                              width: 200,
+                              height: 50,
+                            ).fadeInFromBottom(delay: 100.ms),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
         ],
       ),
     );

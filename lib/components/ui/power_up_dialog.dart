@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/game.dart';
-import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/theme/palette.dart';
 import 'package:regun/utils/app_extensions.dart';
 import 'package:regun/utils/nav.dart';
@@ -50,7 +49,7 @@ class _PowerUpDialogState extends ConsumerState<PowerUpDialog> {
               children: [
                 ClickButton(
                   onTap: () {
-                    _myGame.fast();
+                    _myGame.normalizeGameSpeed();
 
                     goBack(widget.cntxt);
                   },
@@ -63,7 +62,7 @@ class _PowerUpDialogState extends ConsumerState<PowerUpDialog> {
                 ),
                 ClickButton(
                   onTap: () {
-                    _myGame.fast();
+                    _myGame.normalizeGameSpeed();
 
                     goBack(widget.cntxt);
                   },

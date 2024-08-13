@@ -189,10 +189,10 @@ class RegunGame extends FlameGame
   // }
 
   void slow() {
-    timeScale = 0.0;
+    timeScale = 0.2;
   }
 
-  void fast() {
+  void normalizeGameSpeed() {
     timeScale = 1.0;
   }
 

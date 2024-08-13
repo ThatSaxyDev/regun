@@ -1,11 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flame_audio/flame_audio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:regun/components/ui/power_up_dialog.dart';
-import 'package:regun/game.dart';
-import 'package:regun/main.dart';
-import 'package:regun/theme/palette.dart';
 
 final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(() {
   return GameNotifier();
@@ -14,8 +9,6 @@ final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(() {
 class GameNotifier extends Notifier<GameState> {
   @override
   build() => GameState();
-
-  late RegunGame _myGame;
 
   void updateScore() {
     state = state.copyWith(score: state.score + 1);
@@ -32,6 +25,10 @@ class GameNotifier extends Notifier<GameState> {
 
   void pauseGame() {
     state = state.copyWith(gameplayState: GameplayState.paused);
+  }
+
+  void powerupState() {
+    state = state.copyWith(gameplayState: GameplayState.powerup);
   }
 
   void playGame() {
@@ -111,32 +108,10 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void increaseXP() {
-    _myGame = RegunGame();
     if (state.xP == state.noOfCoinsToUpgrade.floor()) {
       upgradeLevel();
-      // debugPrint(
-      //     'XP:${state.xP}, Coins2Up:${state.noOfCoinsToUpgrade}, Level:${state.currentLevel}');
-      // _myGame.removeCoinsAndEnemies();
-      navigatorKey.currentState!.push(
-        PageRouteBuilder(
-          barrierDismissible: true,
-          barrierLabel: "Go Home",
-          barrierColor: Palette.blackColor.withOpacity(0.2),
-          opaque: false,
-          transitionDuration: const Duration(milliseconds: 200),
-          pageBuilder: (context, animation, secondaryAnimation) {
-            return PowerUpDialog(
-              cntxt: navigatorKey.currentContext!,
-            );
-          },
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-        ),
-      );
+
+      powerupState();
       return;
     }
     state = state.copyWith(xP: state.xP + 1);
@@ -209,4 +184,5 @@ enum GameplayState {
   playing,
   paused,
   gameOver,
+  powerup,
 }
