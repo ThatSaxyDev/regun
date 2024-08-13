@@ -35,25 +35,46 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void reloadBullets() async {
-    if (state.noOfBullets == 5 || state.reloading == true) return;
+    if (state.noOfBullets == state.maxBullets || state.reloading) return;
+
     state = state.copyWith(reloading: true);
     playReloadSound();
-    await Future.delayed(Duration(
-        milliseconds: switch (state.noOfBullets) {
-      4 => 900,
-      3 => 1600,
-      2 => 2300,
-      1 => 3000,
-      _ => 3700,
-    }));
+
+    const int baseReloadTime = 700;
+    final int bulletsToReload = state.maxBullets - state.noOfBullets;
+    final int totalDelay = bulletsToReload * baseReloadTime;
+
+    await Future.delayed(Duration(milliseconds: totalDelay));
+
     state = state.copyWith(
-      noOfBullets: 5,
+      noOfBullets: state.maxBullets,
       reloading: false,
     );
   }
 
+  // void reloadBullets() async {
+  //   if (state.noOfBullets == 8 || state.reloading == true) return;
+  //   state = state.copyWith(reloading: true);
+  //   playReloadSound();
+  //   await Future.delayed(Duration(
+  //       milliseconds: switch (state.noOfBullets) {
+  //     7 => 900,
+  //     6 => 1600,
+  //     5 => 2300,
+  //     4 => 3000,
+  //     3 => 3700,
+  //     2 => 4400,
+  //     1 => 5100,
+  //     _ => 5800,
+  //   }));
+  //   state = state.copyWith(
+  //     noOfBullets: 8,
+  //     reloading: false,
+  //   );
+  // }
+
   void playReloadSound() async {
-    int missingBullets = 5 - state.noOfBullets;
+    int missingBullets = 8 - state.noOfBullets;
 
     for (int i = 0; i < missingBullets; i++) {
       FlameAudio.play('reloadSound.mp3');
@@ -63,7 +84,7 @@ class GameNotifier extends Notifier<GameState> {
 
   void addBullets() async {
     state = state.copyWith(
-      noOfBullets: 5,
+      noOfBullets: 8,
     );
   }
 
@@ -80,6 +101,7 @@ class GameNotifier extends Notifier<GameState> {
 class GameState {
   int score;
   GameplayState gameplayState;
+  int maxBullets;
   int noOfBullets;
   bool reloading;
   int health;
@@ -87,7 +109,8 @@ class GameState {
   GameState({
     this.score = 0,
     this.gameplayState = GameplayState.playing,
-    this.noOfBullets = 5,
+    this.maxBullets = 8,
+    this.noOfBullets = 8,
     this.reloading = false,
     this.health = 3,
   });
@@ -95,6 +118,7 @@ class GameState {
   GameState copyWith({
     int? score,
     GameplayState? gameplayState,
+    int? maxBullets,
     int? noOfBullets,
     bool? reloading,
     int? health,
@@ -102,6 +126,7 @@ class GameState {
     return GameState(
       score: score ?? this.score,
       gameplayState: gameplayState ?? this.gameplayState,
+      maxBullets: maxBullets ?? this.maxBullets,
       noOfBullets: noOfBullets ?? this.noOfBullets,
       reloading: reloading ?? this.reloading,
       health: health ?? this.health,
