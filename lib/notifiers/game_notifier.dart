@@ -3,6 +3,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/components/ui/power_up_dialog.dart';
+import 'package:regun/game.dart';
 import 'package:regun/main.dart';
 import 'package:regun/theme/palette.dart';
 
@@ -14,7 +15,7 @@ class GameNotifier extends Notifier<GameState> {
   @override
   build() => GameState();
 
-  // late RegunGame _myGame;
+  late RegunGame _myGame;
 
   void updateScore() {
     state = state.copyWith(score: state.score + 1);
@@ -110,7 +111,7 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void increaseXP() {
-    // _myGame = RegunGame();
+    _myGame = RegunGame();
     if (state.xP == state.noOfCoinsToUpgrade.floor()) {
       upgradeLevel();
       // debugPrint(

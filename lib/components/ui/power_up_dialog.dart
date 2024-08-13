@@ -4,6 +4,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:regun/game.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/theme/palette.dart';
 import 'package:regun/utils/app_extensions.dart';
 import 'package:regun/utils/nav.dart';
@@ -21,6 +23,16 @@ class PowerUpDialog extends ConsumerStatefulWidget {
 }
 
 class _PowerUpDialogState extends ConsumerState<PowerUpDialog> {
+  late RegunGame _myGame;
+  @override
+  void initState() {
+    super.initState();
+    _myGame = RegunGame();
+    Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
+      _myGame.slow();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,6 +50,8 @@ class _PowerUpDialogState extends ConsumerState<PowerUpDialog> {
               children: [
                 ClickButton(
                   onTap: () {
+                    _myGame.fast();
+
                     goBack(widget.cntxt);
                   },
                   text: 'Select power-up 1',
@@ -49,6 +63,8 @@ class _PowerUpDialogState extends ConsumerState<PowerUpDialog> {
                 ),
                 ClickButton(
                   onTap: () {
+                    _myGame.fast();
+
                     goBack(widget.cntxt);
                   },
                   buttonColor: Palette.buttonBlueVariant,

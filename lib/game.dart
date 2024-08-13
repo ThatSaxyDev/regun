@@ -6,6 +6,8 @@ import 'package:flame/game.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/movement/boost_component.dart';
 import 'package:regun/components/ui/border_component.dart';
@@ -74,32 +76,32 @@ class RegunGame extends FlameGame
       },
       autoStart: true,
     ));
-    // world.add(
-    //   SpawnComponent(
-    //     factory: (index) {
-    //       return EnemyComponent();
-    //     },
-    //     period: 0.7,
-    //     within: false,
-    //     area: Rectangle.fromCenter(
-    //       center: myPlayer.position,
-    //       size: Vector2(size.x * 3, size.x * 3),
-    //     ),
-    //   ),
-    // );
-    // world.add(
-    //   SpawnComponent(
-    //     factory: (index) {
-    //       return Enemy2Component();
-    //     },
-    //     period: 1.5,
-    //     within: false,
-    //     area: Rectangle.fromCenter(
-    //       center: myPlayer.position,
-    //       size: Vector2(size.x * 3, size.x * 3),
-    //     ),
-    //   ),
-    // );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return EnemyComponent();
+        },
+        period: 0.7,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 3, size.x * 3),
+        ),
+      ),
+    );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return Enemy2Component();
+        },
+        period: 1.5,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 3, size.x * 3),
+        ),
+      ),
+    );
     world.add(BorderComponent(size: size * 3));
     world.add(
       SpawnComponent(
@@ -186,15 +188,23 @@ class RegunGame extends FlameGame
   //   }
   // }
 
+  void slow() {
+    timeScale = 0.0;
+  }
+
+  void fast() {
+    timeScale = 1.0;
+  }
+
   void pauseGame() {
     // (decorator as PaintDecorator).addBlur(8);
     pauseEngine();
-    gameNotifier.pauseGame();
+    ref.read(gameNotifierProvider.notifier).pauseGame();
   }
 
   void resumeGame() {
     // (decorator as PaintDecorator).addBlur(0);
     resumeEngine();
-    gameNotifier.playGame();
+    ref.read(gameNotifierProvider.notifier).playGame();
   }
 }
