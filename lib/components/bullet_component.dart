@@ -86,7 +86,7 @@ class BulletComponent extends PositionComponent
     if (other is EnemyComponent) {
       FlameAudio.play('hit.wav');
       ref.read(gameNotifierProvider.notifier).updateScore();
-      other.showCollectEffect();
+      other.showDeathSplashEffect();
       removeFromParent();
       other.removeFromParent();
     } else if (other is BorderComponent) {

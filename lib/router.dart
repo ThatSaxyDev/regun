@@ -10,7 +10,7 @@ enum Routes {
 
 GoRouter goRouter() {
   return GoRouter(
-    initialLocation: '/menu',
+    initialLocation: '/game',
     routes: <RouteBase>[
       GoRoute(
         path: '/menu',

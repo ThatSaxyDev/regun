@@ -82,7 +82,7 @@ class EnemyComponent extends SpriteAnimationComponent
     // }
   }
 
-  void showCollectEffect() {
+  void showDeathSplashEffect() {
     final rnd = Random();
     Vector2 randomVector2() => (Vector2.random(rnd) - Vector2.random(rnd)) * 80;
     parent!.add(

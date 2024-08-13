@@ -201,7 +201,7 @@ class PlayerComponent extends SpriteAnimationComponent
       size.setFrom(_lastSize);
     } else if (other is EnemyComponent) {
       ref.read(gameNotifierProvider.notifier).reduceHealth();
-      other.showCollectEffect();
+      other.showDeathSplashEffect();
       other.removeFromParent();
       FlameAudio.play('gameov.wav');
       if (ref.read(gameNotifierProvider).health == 0) {
