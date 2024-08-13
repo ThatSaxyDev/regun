@@ -22,7 +22,7 @@ class EnemyComponent extends SpriteAnimationComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    debugMode = true;
+    // debugMode = true;
     final moveLeftSpriteSheet = SpriteSheet(
       image: await game.images.load('Scorpio_walk.png'),
       srcSize: Vector2(48, 48),
