@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flextras/flextras.dart';
 import 'package:flutter/material.dart';
@@ -416,7 +418,11 @@ class _BaseViewState extends State<BaseView> {
                       children: List.generate(
                         2,
                         (index) {
-                          PowerUp powerUp = powerUps[index];
+                          powerUps.shuffle(Random());
+
+                          List<PowerUp> selectedPowerUps =
+                              powerUps.take(2).toList();
+                          PowerUp powerUp = selectedPowerUps[index];
                           return ClickButton(
                             onTap: () {
                               switch (powerUp) {
@@ -446,6 +452,10 @@ class _BaseViewState extends State<BaseView> {
 
                                 case PowerUp.fastReload:
                                   gameNotifier.fastReload();
+                                  break;
+
+                                case PowerUp.sprintInvincibility:
+                                  gameNotifier.sprintInvincibility();
                                   break;
                                 default:
                                   {}

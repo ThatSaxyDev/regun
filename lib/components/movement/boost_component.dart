@@ -28,6 +28,9 @@ class BoostButtonComponent extends HudButtonComponent
   @override
   void onTapDown(TapDownEvent event) async {
     tapped = true;
+    if (ref.read(gameNotifierProvider).sprintInvincibility == true) {
+      ref.read(gameNotifierProvider.notifier).triggerSprintInvincibility();
+    }
     await Future.delayed(Duration(
             milliseconds: ref.read(gameNotifierProvider).sprintTimeDistance))
         .whenComplete(() {

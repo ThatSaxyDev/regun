@@ -192,6 +192,7 @@ class PlayerComponent extends SpriteAnimationComponent
         .where((component) =>
             component is! BulletComponent &&
             component is! Enemy2Component &&
+            component is! EnemyComponent &&
             component is! CoinComponent)
         .toSet();
   }
@@ -213,12 +214,14 @@ class PlayerComponent extends SpriteAnimationComponent
       transform.setFrom(_lastTransform);
       size.setFrom(_lastSize);
     } else if (other is EnemyComponent) {
-      ref.read(gameNotifierProvider.notifier).reduceHealth();
-      other.showDeathSplashEffect();
-      other.removeFromParent();
-      FlameAudio.play('gameov.wav');
-      if (ref.read(gameNotifierProvider).health == 0) {
-        game.gameOver();
+      if (ref.read(gameNotifierProvider).triggerSprintInvincibility == false) {
+        ref.read(gameNotifierProvider.notifier).reduceHealth();
+        other.showDeathSplashEffect();
+        other.removeFromParent();
+        FlameAudio.play('gameov.wav');
+        if (ref.read(gameNotifierProvider).health == 0) {
+          game.gameOver();
+        }
       }
     } else if (other is CoinComponent) {
       FlameAudio.play('coinSound2.wav');

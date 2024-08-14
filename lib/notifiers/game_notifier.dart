@@ -220,6 +220,27 @@ class GameNotifier extends Notifier<GameState> {
       fastReloadTime: 2500,
     );
   }
+
+  //! sprint invincibility
+  void sprintInvincibility() {
+    state = state.copyWith(sprintInvincibility: true);
+  }
+
+  void resetSprintInvincibility() {
+    state = state.copyWith(sprintInvincibility: false);
+  }
+
+  void triggerSprintInvincibility() async {
+    state = state.copyWith(triggerSprintInvincibility: true);
+    await Future.delayed(Duration(milliseconds: state.sprintTimeDistance))
+        .whenComplete(() {
+      state = state.copyWith(triggerSprintInvincibility: false);
+    });
+  }
+
+  void removeSprintInvincibilityTrigger() {
+    state = state.copyWith(triggerSprintInvincibility: false);
+  }
 }
 
 class GameState {
@@ -238,6 +259,8 @@ class GameState {
   int bulletNumberRange;
   bool fastReload;
   int fastReloadTime;
+  bool sprintInvincibility;
+  bool triggerSprintInvincibility;
 
   GameState({
     this.score = 0,
@@ -255,6 +278,8 @@ class GameState {
     this.bulletNumberRange = 1,
     this.fastReload = false,
     this.fastReloadTime = 2500,
+    this.sprintInvincibility = false,
+    this.triggerSprintInvincibility = false,
   });
 
   GameState copyWith({
@@ -273,6 +298,8 @@ class GameState {
     int? bulletNumberRange,
     bool? fastReload,
     int? fastReloadTime,
+    bool? sprintInvincibility,
+    bool? triggerSprintInvincibility,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -290,6 +317,9 @@ class GameState {
       bulletNumberRange: bulletNumberRange ?? this.bulletNumberRange,
       fastReload: fastReload ?? this.fastReload,
       fastReloadTime: fastReloadTime ?? this.fastReloadTime,
+      sprintInvincibility: sprintInvincibility ?? this.sprintInvincibility,
+      triggerSprintInvincibility:
+          triggerSprintInvincibility ?? this.triggerSprintInvincibility,
     );
   }
 }
@@ -303,7 +333,8 @@ enum GameplayState {
 
 enum PowerUp {
   maxBulletsIncrease('Increase max bullets'),
-  sprintGrenade('Sprint leaves grenade behind'),
+  // sprintGrenade('Sprint leaves grenade behind'),
+  sprintInvincibility('Invincible while sprinting'),
   walkingSpeedIncrease('Increase movement speed '),
   sprintDistanceIncrease('Increase sprint distance'),
   fastReload('Fast reload'),
@@ -316,7 +347,8 @@ enum PowerUp {
 }
 
 List<PowerUp> powerUps = [
-  PowerUp.sprintGrenade,
+  // PowerUp.sprintGrenade,
+  PowerUp.sprintInvincibility,
   PowerUp.fastReload,
   PowerUp.numberOfBulletsPerShotIncrease,
   PowerUp.bulletRangeIncrease,
