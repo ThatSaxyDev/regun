@@ -44,6 +44,10 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void reloadBullets() async {
+    if (state.fastReload == true) {
+      fastReloadBullets();
+      return;
+    }
     if (state.noOfBullets == state.maxBullets || state.reloading) return;
 
     state = state.copyWith(reloading: true);
@@ -55,6 +59,21 @@ class GameNotifier extends Notifier<GameState> {
     final int totalDelay = (buffer * (bulletsToReload - 1)) + baseReloadTime;
 
     await Future.delayed(Duration(milliseconds: totalDelay));
+
+    state = state.copyWith(
+      noOfBullets: state.maxBullets,
+      reloading: false,
+    );
+  }
+
+  void fastReloadBullets() async {
+    if (state.noOfBullets == state.maxBullets || state.reloading) return;
+
+    state = state.copyWith(reloading: true);
+
+    FlameAudio.play('reloadSound.mp3');
+
+    await Future.delayed(Duration(milliseconds: state.fastReloadTime));
 
     state = state.copyWith(
       noOfBullets: state.maxBullets,
@@ -171,6 +190,36 @@ class GameNotifier extends Notifier<GameState> {
   void resetBulletRange() {
     state = state.copyWith(bulletRange: 420);
   }
+
+  //! increase bullet number range
+  void numberOfBulletsPerShotIncrease() {
+    state = state.copyWith(
+        bulletNumberRange: switch (state.bulletNumberRange) {
+      >= 4 => 4,
+      _ => state.bulletNumberRange + 1,
+    });
+  }
+
+  void resetBulletNumberRange() {
+    state = state.copyWith(bulletNumberRange: 1);
+  }
+
+  //! switch on fast reload
+  void fastReload() {
+    state = state.copyWith(
+        fastReload: true,
+        fastReloadTime: switch (state.fastReloadTime) {
+          <= 1000 => state.fastReloadTime,
+          _ => state.fastReloadTime - 500,
+        });
+  }
+
+  void resetFastReload() {
+    state = state.copyWith(
+      fastReload: false,
+      fastReloadTime: 2500,
+    );
+  }
 }
 
 class GameState {
@@ -186,6 +235,9 @@ class GameState {
   double movementSpeed;
   int sprintTimeDistance;
   int bulletRange;
+  int bulletNumberRange;
+  bool fastReload;
+  int fastReloadTime;
 
   GameState({
     this.score = 0,
@@ -200,6 +252,9 @@ class GameState {
     this.movementSpeed = 300.0,
     this.sprintTimeDistance = 150,
     this.bulletRange = 420,
+    this.bulletNumberRange = 1,
+    this.fastReload = false,
+    this.fastReloadTime = 2500,
   });
 
   GameState copyWith({
@@ -215,6 +270,9 @@ class GameState {
     double? movementSpeed,
     int? sprintTimeDistance,
     int? bulletRange,
+    int? bulletNumberRange,
+    bool? fastReload,
+    int? fastReloadTime,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -229,6 +287,9 @@ class GameState {
       movementSpeed: movementSpeed ?? this.movementSpeed,
       sprintTimeDistance: sprintTimeDistance ?? this.sprintTimeDistance,
       bulletRange: bulletRange ?? this.bulletRange,
+      bulletNumberRange: bulletNumberRange ?? this.bulletNumberRange,
+      fastReload: fastReload ?? this.fastReload,
+      fastReloadTime: fastReloadTime ?? this.fastReloadTime,
     );
   }
 }
@@ -245,7 +306,7 @@ enum PowerUp {
   sprintGrenade('Sprint leaves grenade behind'),
   walkingSpeedIncrease('Increase movement speed '),
   sprintDistanceIncrease('Increase sprint distance'),
-  bulletPerReloadIncrease('Increase bullets reloaded'),
+  fastReload('Fast reload'),
   numberOfBulletsPerShotIncrease('Increase bullets per shot'),
   bulletRangeIncrease('Increase range of bullets'),
   healthIncrease('Increase health');
@@ -255,14 +316,12 @@ enum PowerUp {
 }
 
 List<PowerUp> powerUps = [
+  PowerUp.sprintGrenade,
+  PowerUp.fastReload,
   PowerUp.numberOfBulletsPerShotIncrease,
   PowerUp.bulletRangeIncrease,
   PowerUp.walkingSpeedIncrease,
   PowerUp.sprintDistanceIncrease,
   PowerUp.maxBulletsIncrease,
   PowerUp.healthIncrease,
-  PowerUp.sprintGrenade,
-  PowerUp.walkingSpeedIncrease,
-  PowerUp.sprintDistanceIncrease,
-  PowerUp.bulletPerReloadIncrease,
 ];

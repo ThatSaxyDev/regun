@@ -2,6 +2,7 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flextras/flextras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:regun/utils/app_extensions.dart';
@@ -149,11 +150,18 @@ class _BaseViewState extends State<BaseView> {
                                 width: 30,
                               ),
                               gameState.reloading == true
-                                  ? SizedBox(
-                                      height: 100,
-                                      width: 200,
-                                      child: lottieWidget,
-                                    )
+                                  ? switch (gameState.fastReload) {
+                                      true =>
+                                        LoadingAnimationWidget.prograssiveDots(
+                                          color: Colors.red,
+                                          size: 70,
+                                        ),
+                                      false => SizedBox(
+                                          height: 100,
+                                          width: 200,
+                                          child: lottieWidget,
+                                        )
+                                    }
                                   : Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 20),
@@ -430,6 +438,14 @@ class _BaseViewState extends State<BaseView> {
 
                                 case PowerUp.bulletRangeIncrease:
                                   gameNotifier.bulletRangeIncrease();
+                                  break;
+
+                                case PowerUp.numberOfBulletsPerShotIncrease:
+                                  gameNotifier.numberOfBulletsPerShotIncrease();
+                                  break;
+
+                                case PowerUp.fastReload:
+                                  gameNotifier.fastReload();
                                   break;
                                 default:
                                   {}

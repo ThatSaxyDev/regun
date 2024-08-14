@@ -66,6 +66,8 @@ class RegunGame extends FlameGame
     gameNotifier.resetWalkingSpeed();
     gameNotifier.resetSprintTimeDistance();
     gameNotifier.resetBulletRange();
+    gameNotifier.resetBulletNumberRange();
+    gameNotifier.resetFastReload();
     add(boostButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
@@ -135,8 +137,10 @@ class RegunGame extends FlameGame
     }
     FlameAudio.play('shoot.wav');
 
-    const spreadAngle = pi / 16;
-    for (int i = -2; i <= 2; i++) {
+    const spreadAngle = pi / 20;
+    for (int i = -(ref.read(gameNotifierProvider).bulletNumberRange);
+        i <= ref.read(gameNotifierProvider).bulletNumberRange;
+        i++) {
       final angle = i * spreadAngle;
       final direction = baseDirection.clone()..rotate(angle);
       final bulletAngle = -direction.angleToSigned(Vector2(1, 0));
