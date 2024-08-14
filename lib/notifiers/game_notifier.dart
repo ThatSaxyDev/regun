@@ -144,6 +144,15 @@ class GameNotifier extends Notifier<GameState> {
   void healthIncrease() {
     state = state.copyWith(health: state.health + 1);
   }
+
+  //! increase movement speed
+  void walkingSpeedIncrease() {
+    state = state.copyWith(movementSpeed: state.movementSpeed + 50);
+  }
+
+  void resetWalkingSpeed() {
+    state = state.copyWith(movementSpeed: 300);
+  }
 }
 
 class GameState {
@@ -156,6 +165,7 @@ class GameState {
   int xP;
   int currentLevel;
   double noOfCoinsToUpgrade;
+  double movementSpeed;
 
   GameState({
     this.score = 0,
@@ -167,6 +177,7 @@ class GameState {
     this.xP = 0,
     this.currentLevel = 1,
     this.noOfCoinsToUpgrade = 7,
+    this.movementSpeed = 300.0,
   });
 
   GameState copyWith({
@@ -179,6 +190,7 @@ class GameState {
     int? xP,
     int? currentLevel,
     double? noOfCoinsToUpgrade,
+    double? movementSpeed,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -190,6 +202,7 @@ class GameState {
       xP: xP ?? this.xP,
       currentLevel: currentLevel ?? this.currentLevel,
       noOfCoinsToUpgrade: noOfCoinsToUpgrade ?? this.noOfCoinsToUpgrade,
+      movementSpeed: movementSpeed ?? this.movementSpeed,
     );
   }
 }
@@ -216,6 +229,8 @@ enum PowerUp {
 }
 
 List<PowerUp> powerUps = [
+  PowerUp.walkingSpeedIncrease,
+  PowerUp.sprintDistanceIncrease,
   PowerUp.maxBulletsIncrease,
   PowerUp.healthIncrease,
   PowerUp.sprintGrenade,

@@ -34,7 +34,8 @@ class PlayerComponent extends SpriteAnimationComponent
   //   ..style = PaintingStyle.stroke
   //   ..strokeCap = StrokeCap.round
   //   ..strokeWidth = 10;
-  double maxSpeed = 300.0;
+
+  // double maxSpeed = 300.0;
   late final Vector2 _lastSize = size.clone();
   late final Transform2D _lastTransform = transform.clone();
   late SpriteAnimation idleRightAnimation;
@@ -50,9 +51,15 @@ class PlayerComponent extends SpriteAnimationComponent
   //!
   LastDirection lastDirection = LastDirection.right;
 
+  double getMaxSpeed() {
+    final speed = ref.read(gameNotifierProvider).movementSpeed;
+    return speed;
+  }
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    // maxSpeed = ref.read(gameNotifierProvider).movementSpeed;
     final idleRightSpriteSheet = SpriteSheet(
       image: await game.images.load('player_idle.png'),
       srcSize: Vector2(48, 48),
@@ -167,7 +174,9 @@ class PlayerComponent extends SpriteAnimationComponent
       }
       _lastSize.setFrom(size);
       _lastTransform.setFrom(transform);
-      position.add(game.movementJoystick.relativeDelta * maxSpeed * dt);
+      position.add(game.movementJoystick.relativeDelta *
+          (ref.read(gameNotifierProvider).movementSpeed) *
+          dt);
       // angle = game.movementJoystick.delta.screenAngle();
     } else {
       animation = switch (lastDirection) {
@@ -192,6 +201,7 @@ class PlayerComponent extends SpriteAnimationComponent
     // debugMode = true;
     size = Vector2.all(playerRadius * 4);
     anchor = Anchor.center;
+    // maxSpeed = ref.read(gameNotifierProvider).movementSpeed;
     super.onMount();
   }
 

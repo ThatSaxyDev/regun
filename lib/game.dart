@@ -63,6 +63,7 @@ class RegunGame extends FlameGame
     gameNotifier.playGame();
     gameNotifier.addBullets();
     gameNotifier.resetHealth();
+    gameNotifier.resetWalkingSpeed();
     add(boostButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
@@ -76,32 +77,32 @@ class RegunGame extends FlameGame
       },
       autoStart: true,
     ));
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return EnemyComponent();
-        },
-        period: 0.7,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
-        ),
-      ),
-    );
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return Enemy2Component();
-        },
-        period: 1.5,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
-        ),
-      ),
-    );
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return EnemyComponent();
+    //     },
+    //     period: 0.7,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 3, size.x * 3),
+    //     ),
+    //   ),
+    // );
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return Enemy2Component();
+    //     },
+    //     period: 1.5,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 3, size.x * 3),
+    //     ),
+    //   ),
+    // );
     world.add(BorderComponent(size: size * 3));
     world.add(
       SpawnComponent(

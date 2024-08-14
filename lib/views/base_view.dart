@@ -419,6 +419,10 @@ class _BaseViewState extends State<BaseView> {
                                 case PowerUp.healthIncrease:
                                   gameNotifier.healthIncrease();
                                   break;
+
+                                case PowerUp.walkingSpeedIncrease:
+                                  gameNotifier.walkingSpeedIncrease();
+                                  break;
                                 default:
                                   {}
                               }
@@ -438,35 +442,6 @@ class _BaseViewState extends State<BaseView> {
                           ).fadeInFromBottom(delay: 100.ms);
                         },
                       ),
-                      //  [
-                      //   ClickButton(
-                      //     onTap: () {
-                      //       _myGame.normalizeGameSpeed();
-                      //       ref
-                      //           .read(gameNotifierProvider.notifier)
-                      //           .playGame();
-                      //     },
-                      //     text: 'Select power-up 1',
-                      //     width: 200,
-                      //     height: 50,
-                      //   ).fadeInFromBottom(delay: 100.ms),
-                      //   const SizedBox(
-                      //     height: 30,
-                      //   ),
-                      //   ClickButton(
-                      //     onTap: () {
-                      //       _myGame.normalizeGameSpeed();
-                      //       ref
-                      //           .read(gameNotifierProvider.notifier)
-                      //           .playGame();
-                      //     },
-                      //     buttonColor: Palette.buttonBlueVariant,
-                      //     buttonShadow: Palette.buttonShadowBlueVariant,
-                      //     text: 'Select power-up 2',
-                      //     width: 200,
-                      //     height: 50,
-                      //   ).fadeInFromBottom(delay: 100.ms),
-                      // ],
                     ),
                   ),
                 );
