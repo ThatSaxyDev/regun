@@ -103,10 +103,6 @@ class GameNotifier extends Notifier<GameState> {
     // debugPrint(state.health.toString());
   }
 
-  void resetHealth() {
-    state = state.copyWith(health: 3);
-  }
-
   void increaseXP() {
     if (state.xP == state.noOfCoinsToUpgrade.floor()) {
       upgradeLevel();
@@ -127,7 +123,7 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(
       xP: 0,
       currentLevel: state.currentLevel + 1,
-      noOfCoinsToUpgrade: state.noOfCoinsToUpgrade * 1.5,
+      noOfCoinsToUpgrade: state.noOfCoinsToUpgrade * 1.2,
     );
   }
 
@@ -145,6 +141,10 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(health: state.health + 1);
   }
 
+  void resetHealth() {
+    state = state.copyWith(health: 3);
+  }
+
   //! increase movement speed
   void walkingSpeedIncrease() {
     state = state.copyWith(movementSpeed: state.movementSpeed + 50);
@@ -152,6 +152,15 @@ class GameNotifier extends Notifier<GameState> {
 
   void resetWalkingSpeed() {
     state = state.copyWith(movementSpeed: 300);
+  }
+
+  //! increase sprint distance
+  void sprintDistanceIncrease() {
+    state = state.copyWith(sprintTimeDistance: state.sprintTimeDistance + 15);
+  }
+
+  void resetSprintTimeDistance() {
+    state = state.copyWith(sprintTimeDistance: 150);
   }
 }
 
@@ -166,6 +175,7 @@ class GameState {
   int currentLevel;
   double noOfCoinsToUpgrade;
   double movementSpeed;
+  int sprintTimeDistance;
 
   GameState({
     this.score = 0,
@@ -178,6 +188,7 @@ class GameState {
     this.currentLevel = 1,
     this.noOfCoinsToUpgrade = 7,
     this.movementSpeed = 300.0,
+    this.sprintTimeDistance = 150,
   });
 
   GameState copyWith({
@@ -191,6 +202,7 @@ class GameState {
     int? currentLevel,
     double? noOfCoinsToUpgrade,
     double? movementSpeed,
+    int? sprintTimeDistance,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -203,6 +215,7 @@ class GameState {
       currentLevel: currentLevel ?? this.currentLevel,
       noOfCoinsToUpgrade: noOfCoinsToUpgrade ?? this.noOfCoinsToUpgrade,
       movementSpeed: movementSpeed ?? this.movementSpeed,
+      sprintTimeDistance: sprintTimeDistance ?? this.sprintTimeDistance,
     );
   }
 }

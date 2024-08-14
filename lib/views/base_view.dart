@@ -423,6 +423,10 @@ class _BaseViewState extends State<BaseView> {
                                 case PowerUp.walkingSpeedIncrease:
                                   gameNotifier.walkingSpeedIncrease();
                                   break;
+
+                                case PowerUp.sprintDistanceIncrease:
+                                  gameNotifier.sprintDistanceIncrease();
+                                  break;
                                 default:
                                   {}
                               }

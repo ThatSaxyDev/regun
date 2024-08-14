@@ -64,6 +64,7 @@ class RegunGame extends FlameGame
     gameNotifier.addBullets();
     gameNotifier.resetHealth();
     gameNotifier.resetWalkingSpeed();
+    gameNotifier.resetSprintTimeDistance();
     add(boostButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),

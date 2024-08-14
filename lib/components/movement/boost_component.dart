@@ -1,10 +1,13 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/input.dart';
+import 'package:flame_riverpod/flame_riverpod.dart';
 
 import 'package:flutter/material.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 
-class BoostButtonComponent extends HudButtonComponent {
+class BoostButtonComponent extends HudButtonComponent
+    with RiverpodComponentMixin {
   bool tapped;
   BoostButtonComponent({
     super.onPressed,
@@ -25,7 +28,9 @@ class BoostButtonComponent extends HudButtonComponent {
   @override
   void onTapDown(TapDownEvent event) async {
     tapped = true;
-    await Future.delayed(const Duration(milliseconds: 150)).whenComplete(() {
+    await Future.delayed(Duration(
+            milliseconds: ref.read(gameNotifierProvider).sprintTimeDistance))
+        .whenComplete(() {
       tapped = false;
     });
     super.onTapDown(event);
