@@ -179,17 +179,22 @@ class RegunGame extends FlameGame
     _initializeGamee();
   }
 
-  // void removeCoinsAndEnemies() {
-  //   print('triggered');
-  //   for (var element in world.children) {
-  //     // if (element is SpawnComponent) {
-  //     element.removeFromParent();
-  //     // }
-  //   }
-  // }
+  void removeCoinsAndEnemies() {
+    print('triggered');
+    for (var element in world.children) {
+      if (
+          // element is EnemyComponent ||
+          element is CoinComponent
+          // ||
+          // element is Enemy2Component
+          ) {
+        element.removeFromParent();
+      }
+    }
+  }
 
   void slow() {
-    timeScale = 0.2;
+    timeScale = 0.1;
   }
 
   void normalizeGameSpeed() {

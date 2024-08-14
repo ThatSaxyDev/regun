@@ -370,6 +370,7 @@ class _BaseViewState extends State<BaseView> {
               if (ref.watch(gameNotifierProvider).gameplayState ==
                   GameplayState.powerup) {
                 _myGame.slow();
+                _myGame.removeCoinsAndEnemies();
                 return Container(
                   color: Colors.black45,
                   child: Center(
