@@ -1,4 +1,3 @@
-import 'package:flame/game.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flextras/flextras.dart';
 import 'package:flutter/material.dart';
@@ -418,6 +417,7 @@ class _BaseViewState extends State<BaseView> {
                                   break;
 
                                 case PowerUp.healthIncrease:
+                                  gameNotifier.healthIncrease();
                                   break;
                                 default:
                                   {}

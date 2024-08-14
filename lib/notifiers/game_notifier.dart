@@ -94,7 +94,7 @@ class GameNotifier extends Notifier<GameState> {
 
   void addBullets() async {
     state = state.copyWith(
-      noOfBullets: state.maxBullets,
+      noOfBullets: 5,
     );
   }
 
@@ -138,6 +138,11 @@ class GameNotifier extends Notifier<GameState> {
     await Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
       state = state.copyWith(noOfBullets: state.maxBullets);
     });
+  }
+
+  //! increase health
+  void healthIncrease() {
+    state = state.copyWith(health: state.health + 1);
   }
 }
 
