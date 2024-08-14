@@ -76,39 +76,39 @@ class RegunGame extends FlameGame
       },
       autoStart: true,
     ));
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return EnemyComponent();
-        },
-        period: 0.7,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
-        ),
-      ),
-    );
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return Enemy2Component();
-        },
-        period: 1.5,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
-        ),
-      ),
-    );
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return EnemyComponent();
+    //     },
+    //     period: 0.7,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 3, size.x * 3),
+    //     ),
+    //   ),
+    // );
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return Enemy2Component();
+    //     },
+    //     period: 1.5,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 3, size.x * 3),
+    //     ),
+    //   ),
+    // );
     world.add(BorderComponent(size: size * 3));
     world.add(
       SpawnComponent(
         factory: (index) {
           return CoinComponent(position: randomVector2());
         },
-        period: 1,
+        period: 0.5,
         within: true,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
@@ -180,7 +180,6 @@ class RegunGame extends FlameGame
   }
 
   void removeCoinsAndEnemies() {
-    print('triggered');
     for (var element in world.children) {
       if (
           // element is EnemyComponent ||

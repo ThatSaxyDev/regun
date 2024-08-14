@@ -1,3 +1,4 @@
+import 'package:flame/game.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flextras/flextras.dart';
 import 'package:flutter/material.dart';
@@ -157,27 +158,53 @@ class _BaseViewState extends State<BaseView> {
                                   : Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 20),
-                                      child: SeparatedRow(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        separatorBuilder: () => const SizedBox(
-                                          width: 10,
-                                        ),
-                                        children: List.generate(
-                                            gameState.noOfBullets, (index) {
-                                          return Container(
-                                            height: 20,
-                                            width: 20,
-                                            decoration: BoxDecoration(
-                                              image: const DecorationImage(
-                                                  image: AssetImage(
-                                                      'assets/images/bullet.png')),
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
+                                      child: switch (gameState.maxBullets > 7) {
+                                        true => Row(
+                                            children: [
+                                              Container(
+                                                height: 20,
+                                                width: 20,
+                                                decoration: BoxDecoration(
+                                                  image: const DecorationImage(
+                                                      image: AssetImage(
+                                                          'assets/images/bullet.png')),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                              ),
+                                              Text(
+                                                ' ${ref.watch(gameNotifierProvider).noOfBullets}',
+                                                style: const TextStyle(
+                                                  fontFamily: FontFam.orbitron,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        false => SeparatedRow(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            separatorBuilder: () =>
+                                                const SizedBox(
+                                              width: 10,
                                             ),
-                                          );
-                                        }),
-                                      ),
+                                            children: List.generate(
+                                                gameState.noOfBullets, (index) {
+                                              return Container(
+                                                height: 20,
+                                                width: 20,
+                                                decoration: BoxDecoration(
+                                                  image: const DecorationImage(
+                                                      image: AssetImage(
+                                                          'assets/images/bullet.png')),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                              );
+                                            }),
+                                          ),
+                                      },
                                     ),
 
                               //! reload
@@ -367,6 +394,8 @@ class _BaseViewState extends State<BaseView> {
           //! power up
           Consumer(
             builder: (context, ref, child) {
+              GameNotifier gameNotifier =
+                  ref.read(gameNotifierProvider.notifier);
               if (ref.watch(gameNotifierProvider).gameplayState ==
                   GameplayState.powerup) {
                 _myGame.slow();
@@ -374,46 +403,70 @@ class _BaseViewState extends State<BaseView> {
                 return Container(
                   color: Colors.black45,
                   child: Center(
-                    child: Container(
-                      height: 240.0,
-                      width: 327.0,
-                      decoration: BoxDecoration(
-                          color: const Color.fromRGBO(20, 19, 23, 0.5),
-                          borderRadius: BorderRadius.circular(8.0)),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ClickButton(
-                              onTap: () {
-                                _myGame.normalizeGameSpeed();
-                                ref
-                                    .read(gameNotifierProvider.notifier)
-                                    .playGame();
-                              },
-                              text: 'Select power-up 1',
-                              width: 200,
-                              height: 50,
-                            ).fadeInFromBottom(delay: 100.ms),
-                            const SizedBox(
-                              height: 30,
-                            ),
-                            ClickButton(
-                              onTap: () {
-                                _myGame.normalizeGameSpeed();
-                                ref
-                                    .read(gameNotifierProvider.notifier)
-                                    .playGame();
-                              },
-                              buttonColor: Palette.buttonBlueVariant,
-                              buttonShadow: Palette.buttonShadowBlueVariant,
-                              text: 'Select power-up 2',
-                              width: 200,
-                              height: 50,
-                            ).fadeInFromBottom(delay: 100.ms),
-                          ],
-                        ),
+                    child: SeparatedColumn(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      separatorBuilder: () => const SizedBox(height: 20),
+                      children: List.generate(
+                        2,
+                        (index) {
+                          PowerUp powerUp = powerUps[index];
+                          return ClickButton(
+                            onTap: () {
+                              switch (powerUp) {
+                                case PowerUp.maxBulletsIncrease:
+                                  gameNotifier.maxBulletsIncrease();
+                                  break;
+
+                                case PowerUp.healthIncrease:
+                                  break;
+                                default:
+                                  {}
+                              }
+                              _myGame.normalizeGameSpeed();
+                              ref
+                                  .read(gameNotifierProvider.notifier)
+                                  .playGame();
+                            },
+                            text: powerUp.title,
+                            buttonColor:
+                                index == 1 ? Palette.buttonBlueVariant : null,
+                            buttonShadow: index == 1
+                                ? Palette.buttonShadowBlueVariant
+                                : null,
+                            width: 300,
+                            height: 60,
+                          ).fadeInFromBottom(delay: 100.ms);
+                        },
                       ),
+                      //  [
+                      //   ClickButton(
+                      //     onTap: () {
+                      //       _myGame.normalizeGameSpeed();
+                      //       ref
+                      //           .read(gameNotifierProvider.notifier)
+                      //           .playGame();
+                      //     },
+                      //     text: 'Select power-up 1',
+                      //     width: 200,
+                      //     height: 50,
+                      //   ).fadeInFromBottom(delay: 100.ms),
+                      //   const SizedBox(
+                      //     height: 30,
+                      //   ),
+                      //   ClickButton(
+                      //     onTap: () {
+                      //       _myGame.normalizeGameSpeed();
+                      //       ref
+                      //           .read(gameNotifierProvider.notifier)
+                      //           .playGame();
+                      //     },
+                      //     buttonColor: Palette.buttonBlueVariant,
+                      //     buttonShadow: Palette.buttonShadowBlueVariant,
+                      //     text: 'Select power-up 2',
+                      //     width: 200,
+                      //     height: 50,
+                      //   ).fadeInFromBottom(delay: 100.ms),
+                      // ],
                     ),
                   ),
                 );

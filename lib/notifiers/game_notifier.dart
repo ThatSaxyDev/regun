@@ -130,6 +130,15 @@ class GameNotifier extends Notifier<GameState> {
       noOfCoinsToUpgrade: state.noOfCoinsToUpgrade * 1.5,
     );
   }
+
+  //! POWER UPS
+  //! increase max bullet
+  void maxBulletsIncrease() async {
+    state = state.copyWith(maxBullets: state.maxBullets + 2);
+    await Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
+      state = state.copyWith(noOfBullets: state.maxBullets);
+    });
+  }
 }
 
 class GameState {
@@ -186,3 +195,28 @@ enum GameplayState {
   gameOver,
   powerup,
 }
+
+enum PowerUp {
+  maxBulletsIncrease('Increase max bullets'),
+  sprintGrenade('Sprint leaves grenade behind'),
+  walkingSpeedIncrease('Increase movement speed '),
+  sprintDistanceIncrease('Increase sprint distance'),
+  bulletPerReloadIncrease('Increase bullets reloaded'),
+  numberOfBulletsPerShotIncrease('Increase bullets per shot'),
+  bulletRangeIncrease('Increase range of bullets'),
+  healthIncrease('Increase health');
+
+  const PowerUp(this.title);
+  final String title;
+}
+
+List<PowerUp> powerUps = [
+  PowerUp.maxBulletsIncrease,
+  PowerUp.healthIncrease,
+  PowerUp.sprintGrenade,
+  PowerUp.walkingSpeedIncrease,
+  PowerUp.sprintDistanceIncrease,
+  PowerUp.bulletPerReloadIncrease,
+  PowerUp.numberOfBulletsPerShotIncrease,
+  PowerUp.bulletRangeIncrease,
+];
