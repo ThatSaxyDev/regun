@@ -71,7 +71,7 @@ class GameNotifier extends Notifier<GameState> {
 
     state = state.copyWith(reloading: true);
 
-    FlameAudio.play('reloadSound.mp3');
+    // FlameAudio.play('reloadSound.mp3');
 
     await Future.delayed(Duration(milliseconds: state.fastReloadTime));
 
@@ -106,7 +106,7 @@ class GameNotifier extends Notifier<GameState> {
     int missingBullets = state.maxBullets - state.noOfBullets;
 
     for (int i = 0; i < missingBullets; i++) {
-      FlameAudio.play('reloadSound.mp3');
+      // FlameAudio.play('reloadSound.mp3');
       await Future.delayed(const Duration(milliseconds: 700));
     }
   }

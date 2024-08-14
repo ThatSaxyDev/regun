@@ -218,13 +218,13 @@ class PlayerComponent extends SpriteAnimationComponent
         ref.read(gameNotifierProvider.notifier).reduceHealth();
         other.showDeathSplashEffect();
         other.removeFromParent();
-        FlameAudio.play('gameov.wav');
+        // FlameAudio.play('gameov.wav');
         if (ref.read(gameNotifierProvider).health == 0) {
           game.gameOver();
         }
       }
     } else if (other is CoinComponent) {
-      FlameAudio.play('coinSound2.wav');
+      // FlameAudio.play('coinSound2.wav');
       ref.read(gameNotifierProvider.notifier).updateScore();
       ref.read(gameNotifierProvider.notifier).increaseXP();
       other.removeFromParent();

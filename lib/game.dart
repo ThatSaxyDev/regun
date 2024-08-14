@@ -44,14 +44,14 @@ class RegunGame extends FlameGame
     weaponJoystick = WeaponJoystickComponent();
     boostButtonComponent = BoostButtonComponent();
     camera.viewport.addAll([movementJoystick, weaponJoystick]);
-    await FlameAudio.audioCache.loadAll([
-      'gameov.wav',
-      'hit.wav',
-      'move.wav',
-      'shoot.wav',
-      'coinSound1.mp3',
-      'coinSound2.wav',
-    ]);
+    // await FlameAudio.audioCache.loadAll([
+    //   'gameov.wav',
+    //   'hit.wav',
+    //   'move.wav',
+    //   'shoot.wav',
+    //   'coinSound1.mp3',
+    //   'coinSound2.wav',
+    // ]);
 
     return super.onLoad();
   }
@@ -137,7 +137,7 @@ class RegunGame extends FlameGame
     if (baseDirection.isZero()) {
       return;
     }
-    FlameAudio.play('shoot.wav');
+    // FlameAudio.play('shoot.wav');
 
     const spreadAngle = pi / 20;
     for (int i = -(ref.read(gameNotifierProvider).bulletNumberRange);

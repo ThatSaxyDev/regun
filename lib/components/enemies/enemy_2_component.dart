@@ -170,7 +170,7 @@ class Enemy2Component extends SpriteAnimationComponent
       if (timeSinceLastAttack >= attackInterval) {
         timeSinceLastAttack = 0.0;
         ref.read(gameNotifierProvider.notifier).reduceHealth();
-        FlameAudio.play('gameov.wav');
+        // FlameAudio.play('gameov.wav');
         if (ref.read(gameNotifierProvider).health == 0) {
           game.gameOver();
         }

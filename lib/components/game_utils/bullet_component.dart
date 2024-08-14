@@ -85,7 +85,7 @@ class BulletComponent extends PositionComponent
     super.onCollision(intersectionPoints, other);
 
     if (other is EnemyComponent) {
-      FlameAudio.play('hit.wav');
+      // FlameAudio.play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
       other.showDeathSplashEffect();
       removeFromParent();
@@ -93,7 +93,7 @@ class BulletComponent extends PositionComponent
     } else if (other is BorderComponent) {
       removeFromParent();
     } else if (other is Enemy2Component) {
-      FlameAudio.play('hit.wav');
+      // FlameAudio.play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
 
       // stop enemy movement
