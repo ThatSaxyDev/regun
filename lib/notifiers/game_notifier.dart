@@ -162,6 +162,15 @@ class GameNotifier extends Notifier<GameState> {
   void resetSprintTimeDistance() {
     state = state.copyWith(sprintTimeDistance: 150);
   }
+
+  //! increase bullet range
+  void bulletRangeIncrease() {
+    state = state.copyWith(bulletRange: state.bulletRange + 15);
+  }
+
+  void resetBulletRange() {
+    state = state.copyWith(bulletRange: 420);
+  }
 }
 
 class GameState {
@@ -176,6 +185,7 @@ class GameState {
   double noOfCoinsToUpgrade;
   double movementSpeed;
   int sprintTimeDistance;
+  int bulletRange;
 
   GameState({
     this.score = 0,
@@ -189,6 +199,7 @@ class GameState {
     this.noOfCoinsToUpgrade = 7,
     this.movementSpeed = 300.0,
     this.sprintTimeDistance = 150,
+    this.bulletRange = 420,
   });
 
   GameState copyWith({
@@ -203,6 +214,7 @@ class GameState {
     double? noOfCoinsToUpgrade,
     double? movementSpeed,
     int? sprintTimeDistance,
+    int? bulletRange,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -216,6 +228,7 @@ class GameState {
       noOfCoinsToUpgrade: noOfCoinsToUpgrade ?? this.noOfCoinsToUpgrade,
       movementSpeed: movementSpeed ?? this.movementSpeed,
       sprintTimeDistance: sprintTimeDistance ?? this.sprintTimeDistance,
+      bulletRange: bulletRange ?? this.bulletRange,
     );
   }
 }
@@ -242,6 +255,8 @@ enum PowerUp {
 }
 
 List<PowerUp> powerUps = [
+  PowerUp.numberOfBulletsPerShotIncrease,
+  PowerUp.bulletRangeIncrease,
   PowerUp.walkingSpeedIncrease,
   PowerUp.sprintDistanceIncrease,
   PowerUp.maxBulletsIncrease,
@@ -250,6 +265,4 @@ List<PowerUp> powerUps = [
   PowerUp.walkingSpeedIncrease,
   PowerUp.sprintDistanceIncrease,
   PowerUp.bulletPerReloadIncrease,
-  PowerUp.numberOfBulletsPerShotIncrease,
-  PowerUp.bulletRangeIncrease,
 ];

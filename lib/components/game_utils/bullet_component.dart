@@ -9,6 +9,7 @@ import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/game.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 
 class BulletComponent extends PositionComponent
     with
@@ -73,7 +74,8 @@ class BulletComponent extends PositionComponent
     } else {
       removeFromParent();
     }
-    if ((position - startPosition!).length > maxTravelDistance) {
+    if ((position - startPosition!).length >
+        (ref.read(gameNotifierProvider).bulletRange)) {
       removeFromParent();
     }
   }
