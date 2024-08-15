@@ -253,6 +253,19 @@ class GameNotifier extends Notifier<GameState> {
   void resetBulletsPhaseThrough() {
     state = state.copyWith(bulletsPhaseThrough: false);
   }
+
+  //! bullet fire rate
+  void rapidFire() {
+    state = state.copyWith(
+        bulletSpeed: switch (state.bulletSpeed) {
+      >= 1300 => state.bulletSpeed,
+      _ => state.bulletSpeed + 200,
+    });
+  }
+
+  void resetFireRate() {
+    state = state.copyWith(bulletSpeed: 700);
+  }
 }
 
 class GameState {
@@ -274,6 +287,7 @@ class GameState {
   bool sprintInvincibility;
   bool triggerSprintInvincibility;
   bool bulletsPhaseThrough;
+  double bulletSpeed;
 
   GameState({
     this.score = 0,
@@ -294,6 +308,7 @@ class GameState {
     this.sprintInvincibility = false,
     this.triggerSprintInvincibility = false,
     this.bulletsPhaseThrough = false,
+    this.bulletSpeed = 700,
   });
 
   GameState copyWith({
@@ -315,6 +330,7 @@ class GameState {
     bool? sprintInvincibility,
     bool? triggerSprintInvincibility,
     bool? bulletsPhaseThrough,
+    double? bulletSpeed,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -336,6 +352,7 @@ class GameState {
       triggerSprintInvincibility:
           triggerSprintInvincibility ?? this.triggerSprintInvincibility,
       bulletsPhaseThrough: bulletsPhaseThrough ?? this.bulletsPhaseThrough,
+      bulletSpeed: bulletSpeed ?? this.bulletSpeed,
     );
   }
 }
@@ -357,6 +374,7 @@ enum PowerUp {
   numberOfBulletsPerShotIncrease('Increase bullets per shot'),
   bulletRangeIncrease('Increase range of bullets'),
   bulletsPhaseThrough('Bullets phase through enemies'),
+  rapidFire('Increase bullet speed'),
   healthIncrease('Increase health');
 
   const PowerUp(this.title);
@@ -374,10 +392,12 @@ List<PowerUp> powerUps = [
   PowerUp.maxBulletsIncrease,
   PowerUp.healthIncrease,
   PowerUp.bulletsPhaseThrough,
+  PowerUp.rapidFire,
 ];
 
 Future<List<PowerUp>> pickTwoRandomPowerUps() async {
   // await Future.delayed(const Duration(seconds: 2)); // Simulate some delay
+  powerUps.shuffle();
   if (powerUps.length < 2) {
     throw ArgumentError('The list must contain at least 2 items.');
   }

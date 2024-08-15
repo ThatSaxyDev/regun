@@ -10,7 +10,7 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/ui/border_component.dart';
-import 'package:regun/components/game_utils/bullet_component.dart';
+import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/game.dart';

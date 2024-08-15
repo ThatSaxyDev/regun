@@ -11,7 +11,7 @@ import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/movement/boost_component.dart';
 import 'package:regun/components/ui/border_component.dart';
-import 'package:regun/components/game_utils/bullet_component.dart';
+import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/game_utils/empty_component.dart';
 import 'package:regun/components/movement/game_joystick_component.dart';
 import 'package:regun/components/game_utils/player_component.dart';
@@ -26,6 +26,7 @@ class RegunGame extends FlameGame
   late final BoostButtonComponent boostButtonComponent;
   late GameState gameState;
   late GameNotifier gameNotifier;
+  double bulletFireRate = 0.35;
 
   RegunGame()
       : super(
@@ -71,12 +72,13 @@ class RegunGame extends FlameGame
     gameNotifier.resetSprintInvincibility();
     gameNotifier.removeSprintInvincibilityTrigger();
     gameNotifier.resetBulletsPhaseThrough();
+    gameNotifier.resetFireRate();
     add(boostButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
     ));
     world.add(SpawnComponent(
-      period: 0.4,
+      period: bulletFireRate,
       selfPositioning: true,
       factory: (amount) {
         spawnShotgunBullets();
@@ -84,32 +86,32 @@ class RegunGame extends FlameGame
       },
       autoStart: true,
     ));
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return EnemyComponent();
-        },
-        period: 0.7,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
-        ),
-      ),
-    );
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return Enemy2Component();
-        },
-        period: 1.5,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
-        ),
-      ),
-    );
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return EnemyComponent();
+    //     },
+    //     period: 0.7,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 3, size.x * 3),
+    //     ),
+    //   ),
+    // );
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return Enemy2Component();
+    //     },
+    //     period: 1.5,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 3, size.x * 3),
+    //     ),
+    //   ),
+    // );
     world.add(BorderComponent(size: size * 3));
     world.add(
       SpawnComponent(

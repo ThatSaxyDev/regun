@@ -11,12 +11,12 @@ import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
-class BulletComponent extends PositionComponent
+class BombComponent extends PositionComponent
     with
         HasGameReference<RegunGame>,
         CollisionCallbacks,
         RiverpodComponentMixin {
-  BulletComponent({
+  BombComponent({
     super.position,
     this.bulletRadius = 15,
     this.maxTravelDistance = 450,
@@ -36,14 +36,14 @@ class BulletComponent extends PositionComponent
   final double speed;
   final double maxTravelDistance;
   Vector2? startPosition;
-  // static final _paint = Paint()..color = Colors.red;
-  late Sprite _bulletSprite;
+  static final _paint = Paint()..color = Colors.red;
+  // late Sprite _bulletSprite;
 
   @override
   Future<void> onLoad() async {
     // debugMode = true;
     await super.onLoad();
-    _bulletSprite = await Sprite.load('bulletR.png');
+    // _bulletSprite = await Sprite.load('bulletR.png');
     add(
       RectangleHitbox(
         collisionType: CollisionType.active,
@@ -53,17 +53,17 @@ class BulletComponent extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    _bulletSprite.render(
-      canvas,
-      position: size / 2,
-      size: size,
-      anchor: Anchor.center,
-    );
-    // canvas.drawCircle(
-    //   (size / 2).toOffset(),
-    //   bulletRadius,
-    //   _paint,
+    // _bulletSprite.render(
+    //   canvas,
+    //   position: size / 2,
+    //   size: size,
+    //   anchor: Anchor.center,
     // );
+    canvas.drawCircle(
+      (size / 2).toOffset(),
+      bulletRadius,
+      _paint,
+    );
   }
 
   @override
@@ -74,10 +74,10 @@ class BulletComponent extends PositionComponent
     } else {
       removeFromParent();
     }
-    if ((position - startPosition!).length >
-        (ref.read(gameNotifierProvider).bulletRange)) {
-      removeFromParent();
-    }
+    // if ((position - startPosition!).length >
+    //     (ref.read(gameNotifierProvider).bulletRange)) {
+    //   removeFromParent();
+    // }
   }
 
   @override

@@ -466,6 +466,10 @@ class _BaseViewState extends State<BaseView> {
                                     case PowerUp.bulletsPhaseThrough:
                                       gameNotifier.triggerBulletsPhaseThrough();
                                       break;
+
+                                    case PowerUp.rapidFire:
+                                      gameNotifier.rapidFire();
+                                      break;
                                     default:
                                       {}
                                   }
