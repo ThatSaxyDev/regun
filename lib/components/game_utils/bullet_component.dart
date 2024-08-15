@@ -88,7 +88,10 @@ class BulletComponent extends PositionComponent
       // FlameAudio.play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
       other.showDeathSplashEffect();
-      removeFromParent();
+      if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
+        removeFromParent();
+      }
+
       other.removeFromParent();
     } else if (other is BorderComponent) {
       removeFromParent();
@@ -109,7 +112,9 @@ class BulletComponent extends PositionComponent
         other.removeFromParent();
       });
 
-      removeFromParent();
+      if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
+        removeFromParent();
+      }
     }
   }
 }

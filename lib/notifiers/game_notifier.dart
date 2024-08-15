@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:math';
+
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -242,6 +244,15 @@ class GameNotifier extends Notifier<GameState> {
   void removeSprintInvincibilityTrigger() {
     state = state.copyWith(triggerSprintInvincibility: false);
   }
+
+  //! bullets phase through
+  void triggerBulletsPhaseThrough() {
+    state = state.copyWith(bulletsPhaseThrough: true);
+  }
+
+  void resetBulletsPhaseThrough() {
+    state = state.copyWith(bulletsPhaseThrough: false);
+  }
 }
 
 class GameState {
@@ -262,6 +273,7 @@ class GameState {
   int fastReloadTime;
   bool sprintInvincibility;
   bool triggerSprintInvincibility;
+  bool bulletsPhaseThrough;
 
   GameState({
     this.score = 0,
@@ -281,6 +293,7 @@ class GameState {
     this.fastReloadTime = 2500,
     this.sprintInvincibility = false,
     this.triggerSprintInvincibility = false,
+    this.bulletsPhaseThrough = false,
   });
 
   GameState copyWith({
@@ -301,6 +314,7 @@ class GameState {
     int? fastReloadTime,
     bool? sprintInvincibility,
     bool? triggerSprintInvincibility,
+    bool? bulletsPhaseThrough,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -321,6 +335,7 @@ class GameState {
       sprintInvincibility: sprintInvincibility ?? this.sprintInvincibility,
       triggerSprintInvincibility:
           triggerSprintInvincibility ?? this.triggerSprintInvincibility,
+      bulletsPhaseThrough: bulletsPhaseThrough ?? this.bulletsPhaseThrough,
     );
   }
 }
@@ -341,6 +356,7 @@ enum PowerUp {
   fastReload('Fast reload'),
   numberOfBulletsPerShotIncrease('Increase bullets per shot'),
   bulletRangeIncrease('Increase range of bullets'),
+  bulletsPhaseThrough('Bullets phase through enemies'),
   healthIncrease('Increase health');
 
   const PowerUp(this.title);
@@ -357,4 +373,22 @@ List<PowerUp> powerUps = [
   PowerUp.sprintDistanceIncrease,
   PowerUp.maxBulletsIncrease,
   PowerUp.healthIncrease,
+  PowerUp.bulletsPhaseThrough,
 ];
+
+Future<List<PowerUp>> pickTwoRandomPowerUps() async {
+  // await Future.delayed(const Duration(seconds: 2)); // Simulate some delay
+  if (powerUps.length < 2) {
+    throw ArgumentError('The list must contain at least 2 items.');
+  }
+
+  final random = Random();
+  final firstIndex = random.nextInt(powerUps.length);
+
+  int secondIndex;
+  do {
+    secondIndex = random.nextInt(powerUps.length);
+  } while (secondIndex == firstIndex);
+
+  return [powerUps[firstIndex], powerUps[secondIndex]];
+}

@@ -412,70 +412,81 @@ class _BaseViewState extends State<BaseView> {
                 return Container(
                   color: Colors.black45,
                   child: Center(
-                    child: SeparatedColumn(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      separatorBuilder: () => const SizedBox(height: 20),
-                      children: List.generate(
-                        2,
-                        (index) {
-                          powerUps.shuffle();
+                    child: FutureBuilder<List<PowerUp>>(
+                      future: pickTwoRandomPowerUps(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const SizedBox
+                              .shrink(); // Show nothing while waiting
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (snapshot.hasData) {
+                          List<PowerUp> selectedPowerUps = snapshot.data!;
+                          return SeparatedColumn(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            separatorBuilder: () => const SizedBox(height: 20),
+                            children: selectedPowerUps.map((powerUp) {
+                              return ClickButton(
+                                onTap: () {
+                                  switch (powerUp) {
+                                    case PowerUp.maxBulletsIncrease:
+                                      gameNotifier.maxBulletsIncrease();
+                                      break;
 
-                          List<PowerUp> selectedPowerUps =
-                              powerUps.take(2).toList();
-                          PowerUp powerUp = selectedPowerUps[index];
-                          return ClickButton(
-                            onTap: () {
-                              switch (powerUp) {
-                                case PowerUp.maxBulletsIncrease:
-                                  gameNotifier.maxBulletsIncrease();
-                                  break;
+                                    case PowerUp.healthIncrease:
+                                      gameNotifier.healthIncrease();
+                                      break;
 
-                                case PowerUp.healthIncrease:
-                                  gameNotifier.healthIncrease();
-                                  break;
+                                    case PowerUp.walkingSpeedIncrease:
+                                      gameNotifier.walkingSpeedIncrease();
+                                      break;
 
-                                case PowerUp.walkingSpeedIncrease:
-                                  gameNotifier.walkingSpeedIncrease();
-                                  break;
+                                    case PowerUp.sprintDistanceIncrease:
+                                      gameNotifier.sprintDistanceIncrease();
+                                      break;
 
-                                case PowerUp.sprintDistanceIncrease:
-                                  gameNotifier.sprintDistanceIncrease();
-                                  break;
+                                    case PowerUp.bulletRangeIncrease:
+                                      gameNotifier.bulletRangeIncrease();
+                                      break;
 
-                                case PowerUp.bulletRangeIncrease:
-                                  gameNotifier.bulletRangeIncrease();
-                                  break;
+                                    case PowerUp.numberOfBulletsPerShotIncrease:
+                                      gameNotifier
+                                          .numberOfBulletsPerShotIncrease();
+                                      break;
 
-                                case PowerUp.numberOfBulletsPerShotIncrease:
-                                  gameNotifier.numberOfBulletsPerShotIncrease();
-                                  break;
+                                    case PowerUp.fastReload:
+                                      gameNotifier.fastReload();
+                                      break;
 
-                                case PowerUp.fastReload:
-                                  gameNotifier.fastReload();
-                                  break;
+                                    case PowerUp.sprintInvincibility:
+                                      gameNotifier.sprintInvincibility();
+                                      break;
 
-                                case PowerUp.sprintInvincibility:
-                                  gameNotifier.sprintInvincibility();
-                                  break;
-                                default:
-                                  {}
-                              }
-                              _myGame.normalizeGameSpeed();
-                              ref
-                                  .read(gameNotifierProvider.notifier)
-                                  .playGame();
-                            },
-                            text: powerUp.title,
-                            buttonColor:
-                                index == 1 ? Palette.buttonBlueVariant : null,
-                            buttonShadow: index == 1
-                                ? Palette.buttonShadowBlueVariant
-                                : null,
-                            width: 300,
-                            height: 60,
-                          ).fadeInFromBottom(delay: 100.ms);
-                        },
-                      ),
+                                    case PowerUp.bulletsPhaseThrough:
+                                      gameNotifier.triggerBulletsPhaseThrough();
+                                      break;
+                                    default:
+                                      {}
+                                  }
+                                  _myGame.normalizeGameSpeed();
+                                  ref
+                                      .read(gameNotifierProvider.notifier)
+                                      .playGame();
+                                },
+                                text: powerUp.title,
+                                buttonColor: Palette.buttonBlueVariant,
+                                buttonShadow: Palette.buttonShadowBlueVariant,
+                                width: 300,
+                                height: 60,
+                              ).fadeInFromBottom(delay: 100.ms);
+                            }).toList(),
+                          );
+                        } else {
+                          return const SizedBox
+                              .shrink(); // In case of any other unexpected state
+                        }
+                      },
                     ),
                   ),
                 );
