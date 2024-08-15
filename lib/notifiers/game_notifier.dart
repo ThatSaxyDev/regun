@@ -265,6 +265,15 @@ class GameNotifier extends Notifier<GameState> {
   void resetFireRate() {
     state = state.copyWith(bulletSpeed: 700);
   }
+
+  //! sprint mine
+  void sprintMine() {
+    state = state.copyWith(triggerSprintMine: true);
+  }
+
+  void removeSprintMine() {
+    state = state.copyWith(triggerSprintMine: false);
+  }
 }
 
 class GameState {
@@ -287,6 +296,7 @@ class GameState {
   bool triggerSprintInvincibility;
   bool bulletsPhaseThrough;
   double bulletSpeed;
+  bool triggerSprintMine;
 
   GameState({
     this.score = 0,
@@ -308,6 +318,7 @@ class GameState {
     this.triggerSprintInvincibility = false,
     this.bulletsPhaseThrough = false,
     this.bulletSpeed = 700,
+    this.triggerSprintMine = false,
   });
 
   GameState copyWith({
@@ -330,6 +341,7 @@ class GameState {
     bool? triggerSprintInvincibility,
     bool? bulletsPhaseThrough,
     double? bulletSpeed,
+    bool? triggerSprintMine,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -352,6 +364,7 @@ class GameState {
           triggerSprintInvincibility ?? this.triggerSprintInvincibility,
       bulletsPhaseThrough: bulletsPhaseThrough ?? this.bulletsPhaseThrough,
       bulletSpeed: bulletSpeed ?? this.bulletSpeed,
+      triggerSprintMine: triggerSprintMine ?? this.triggerSprintMine,
     );
   }
 }
@@ -365,7 +378,7 @@ enum GameplayState {
 
 enum PowerUp {
   maxBulletsIncrease('Increase max bullets'),
-  // sprintGrenade('Sprint leaves grenade behind'),
+  sprintMine('Sprinting plants a mine'),
   sprintInvincibility('Invincible while sprinting'),
   walkingSpeedIncrease('Increase movement speed '),
   sprintDistanceIncrease('Increase sprint distance'),
@@ -381,7 +394,7 @@ enum PowerUp {
 }
 
 List<PowerUp> powerUps = [
-  // PowerUp.sprintGrenade,
+  PowerUp.sprintMine,
   PowerUp.sprintInvincibility,
   PowerUp.fastReload,
   PowerUp.numberOfBulletsPerShotIncrease,

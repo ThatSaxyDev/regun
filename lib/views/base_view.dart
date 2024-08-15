@@ -468,9 +468,14 @@ class _BaseViewState extends State<BaseView> {
                                     case PowerUp.rapidFire:
                                       gameNotifier.rapidFire();
                                       break;
+
+                                    case PowerUp.sprintMine:
+                                      gameNotifier.sprintMine();
+                                      break;
                                     default:
                                       {}
                                   }
+
                                   _myGame.normalizeGameSpeed();
                                   ref
                                       .read(gameNotifierProvider.notifier)

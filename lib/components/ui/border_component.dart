@@ -16,10 +16,12 @@ class BorderComponent extends PositionComponent {
     ..strokeWidth = 5;
 
   double gridSize = 100;
+  // late Sprite _backgroundSprite;
+  // late Sprite _backgroundSprite2;
 
   @override
-  void onLoad() {
-    super.onLoad();
+  Future<void> onLoad() async {
+    await super.onLoad();
     add(RectangleHitbox(
       size: Vector2(size.x, size.x),
       anchor: Anchor.center,
@@ -39,7 +41,7 @@ class BorderComponent extends PositionComponent {
     );
 
     //! grid lines
-    //! vertical
+    // ! vertical
     for (double x = -size.x / 2; x <= size.x / 2; x += gridSize) {
       canvas.drawLine(
         Offset(x, -size.x / 2),
