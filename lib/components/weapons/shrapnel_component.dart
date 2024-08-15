@@ -18,9 +18,9 @@ class ShrapnelComponent extends PositionComponent
         RiverpodComponentMixin {
   ShrapnelComponent({
     super.position,
-    this.bulletRadius = 15,
+    this.bulletRadius = 7,
     this.maxTravelDistance = 300,
-    // required this.direction,
+    required this.direction,
     this.speed = 700,
     this.startPosition,
     super.angle,
@@ -32,7 +32,7 @@ class ShrapnelComponent extends PositionComponent
   }
 
   final double bulletRadius;
-  // final Vector2 direction;
+  final Vector2 direction;
   final double speed;
   final double maxTravelDistance;
   Vector2? startPosition;
@@ -73,9 +73,7 @@ class ShrapnelComponent extends PositionComponent
   void update(double dt) {
     //
     super.update(dt);
-    position += _velocity * dt;
-    _velocity.y += _gravity * dt;
-    _velocity.x += _gravity * dt;
+    position += direction * 1000 * dt;
 
     if ((position - startPosition!).length > maxTravelDistance) {
       removeFromParent();

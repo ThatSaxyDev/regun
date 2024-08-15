@@ -45,6 +45,7 @@ class MineComponent extends SpriteAnimationComponent
   late SpriteAnimation mineAnimation;
   late SpriteAnimation mineExplodeAnimation;
   final explosionRadius = 200;
+  late SpawnComponent shrapnelSpawner;
 
   @override
   Future<void> onLoad() async {
@@ -124,21 +125,20 @@ class MineComponent extends SpriteAnimationComponent
       Future.delayed(const Duration(milliseconds: 500), () {
         removeFromParent();
       });
-      parent!.add(SpawnComponent(
+      game.world.add(shrapnelSpawner = SpawnComponent(
         period: 0.5,
         selfPositioning: true,
         factory: (amount) {
-          // spawnShotgunBullets();
-          return ShrapnelComponent(
-            position: position.clone(),
-          );
+          spawnShrapnel();
+          return EmptyComponent();
         },
         autoStart: true,
-      )
-          // ShrapnelComponent(
-          //   position: position.clone(),
-          // ),
-          );
+      ));
+      Future.delayed(const Duration(milliseconds: 500)).whenComplete(
+        () {
+          game.world.remove(shrapnelSpawner);
+        },
+      );
     } else if (other is Enemy2Component) {
       // FlameAudio.play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
@@ -160,9 +160,23 @@ class MineComponent extends SpriteAnimationComponent
       Future.delayed(const Duration(milliseconds: 500), () {
         removeFromParent();
       });
-      parent!.add(ShrapnelComponent(
+      // parent!.add(ShrapnelComponent(
+      //   position: position.clone(),
+      // ));
+    }
+  }
+
+  void spawnShrapnel() {
+    const spreadAngle = pi / 10;
+    for (int i = -10; i <= 10; i++) {
+      final angle = i * spreadAngle;
+      final direction = Vector2(0.9, 0.1)..rotate(angle);
+      final shrapnel = ShrapnelComponent(
         position: position.clone(),
-      ));
+        direction: direction,
+      );
+
+      game.world.add(shrapnel);
     }
   }
 }

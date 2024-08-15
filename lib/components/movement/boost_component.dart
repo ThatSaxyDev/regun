@@ -29,7 +29,10 @@ class BoostButtonComponent extends ButtonComponent
 
   @override
   void onTapDown(TapDownEvent event) async {
-    game.addMine();
+    if (!game.movementJoystick.delta.isZero()) {
+      game.addMine();
+    }
+
     tapped = true;
     if (ref.read(gameNotifierProvider).sprintInvincibility == true) {
       ref.read(gameNotifierProvider.notifier).triggerSprintInvincibility();
