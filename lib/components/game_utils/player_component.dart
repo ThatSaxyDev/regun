@@ -5,7 +5,6 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
@@ -13,6 +12,8 @@ import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
+import 'package:regun/components/weapons/mine_component.dart';
+import 'package:regun/components/weapons/shrapnel_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
@@ -25,7 +26,7 @@ class PlayerComponent extends SpriteAnimationComponent
     super.position,
     this.playerRadius = 25,
   }) : super(
-        // priority: 20,
+          priority: 10,
         );
 
   final double playerRadius;
@@ -37,6 +38,7 @@ class PlayerComponent extends SpriteAnimationComponent
 
   // double maxSpeed = 300.0;
   late final Vector2 _lastSize = size.clone();
+  late final Vector2 lastPosition = position.clone();
   late final Transform2D _lastTransform = transform.clone();
   late SpriteAnimation idleRightAnimation;
   late SpriteAnimation idleLeftAnimation;
@@ -193,6 +195,8 @@ class PlayerComponent extends SpriteAnimationComponent
             component is! BulletComponent &&
             component is! Enemy2Component &&
             component is! EnemyComponent &&
+            component is! MineComponent &&
+            component is! ShrapnelComponent &&
             component is! CoinComponent)
         .toSet();
   }

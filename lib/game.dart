@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
@@ -15,6 +14,7 @@ import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/game_utils/empty_component.dart';
 import 'package:regun/components/movement/game_joystick_component.dart';
 import 'package:regun/components/game_utils/player_component.dart';
+import 'package:regun/components/weapons/mine_component.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
 class RegunGame extends FlameGame
@@ -27,8 +27,11 @@ class RegunGame extends FlameGame
   late GameState gameState;
   late GameNotifier gameNotifier;
   double bulletFireRate = 0.35;
+  BuildContext context;
+  late Size screenSize;
+  late Vector2 centerOfScreen;
 
-  RegunGame()
+  RegunGame(this.context)
       : super(
           camera: CameraComponent.withFixedResolution(
             width: 1500,
@@ -41,6 +44,8 @@ class RegunGame extends FlameGame
 
   @override
   FutureOr<void> onLoad() async {
+    screenSize = MediaQuery.of(context).size;
+    centerOfScreen = Vector2(screenSize.width / 2, screenSize.height / 2);
     movementJoystick = MovementJoystickComponent();
     weaponJoystick = WeaponJoystickComponent();
     boostButtonComponent = BoostButtonComponent();
@@ -86,32 +91,32 @@ class RegunGame extends FlameGame
       },
       autoStart: true,
     ));
-    // world.add(
-    //   SpawnComponent(
-    //     factory: (index) {
-    //       return EnemyComponent();
-    //     },
-    //     period: 0.7,
-    //     within: false,
-    //     area: Rectangle.fromCenter(
-    //       center: myPlayer.position,
-    //       size: Vector2(size.x * 3, size.x * 3),
-    //     ),
-    //   ),
-    // );
-    // world.add(
-    //   SpawnComponent(
-    //     factory: (index) {
-    //       return Enemy2Component();
-    //     },
-    //     period: 1.5,
-    //     within: false,
-    //     area: Rectangle.fromCenter(
-    //       center: myPlayer.position,
-    //       size: Vector2(size.x * 3, size.x * 3),
-    //     ),
-    //   ),
-    // );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return EnemyComponent();
+        },
+        period: 0.7,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 3, size.x * 3),
+        ),
+      ),
+    );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return Enemy2Component();
+        },
+        period: 1.5,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 3, size.x * 3),
+        ),
+      ),
+    );
     world.add(BorderComponent(size: size * 3));
     world.add(
       SpawnComponent(
@@ -222,5 +227,14 @@ class RegunGame extends FlameGame
     // (decorator as PaintDecorator).addBlur(0);
     resumeEngine();
     ref.read(gameNotifierProvider.notifier).playGame();
+  }
+
+  //! add mine
+  void addMine() {
+    world.add(
+      MineComponent(
+        position: myPlayer.position.clone(),
+      ),
+    );
   }
 }

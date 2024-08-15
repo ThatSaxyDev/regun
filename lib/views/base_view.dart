@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flextras/flextras.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +30,7 @@ class _BaseViewState extends State<BaseView> {
   @override
   void initState() {
     super.initState();
-    _myGame = RegunGame();
+    _myGame = RegunGame(context);
     lottieWidget = Lottie.asset('assets/lottie/reload.json');
   }
 

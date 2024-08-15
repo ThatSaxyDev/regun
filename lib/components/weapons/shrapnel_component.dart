@@ -1,8 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/ui/border_component.dart';
@@ -11,16 +11,16 @@ import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
-class BombComponent extends PositionComponent
+class ShrapnelComponent extends PositionComponent
     with
         HasGameReference<RegunGame>,
         CollisionCallbacks,
         RiverpodComponentMixin {
-  BombComponent({
+  ShrapnelComponent({
     super.position,
     this.bulletRadius = 15,
-    this.maxTravelDistance = 450,
-    required this.direction,
+    this.maxTravelDistance = 300,
+    // required this.direction,
     this.speed = 700,
     this.startPosition,
     super.angle,
@@ -32,18 +32,21 @@ class BombComponent extends PositionComponent
   }
 
   final double bulletRadius;
-  final Vector2 direction;
+  // final Vector2 direction;
   final double speed;
   final double maxTravelDistance;
   Vector2? startPosition;
   static final _paint = Paint()..color = Colors.red;
-  // late Sprite _bulletSprite;
+  late Sprite _bulletSprite;
+  bool hasSpread = false;
+  final _velocity = Vector2.zero();
+  final _gravity = 60;
 
   @override
   Future<void> onLoad() async {
     // debugMode = true;
     await super.onLoad();
-    // _bulletSprite = await Sprite.load('bulletR.png');
+    _bulletSprite = await Sprite.load('bulletR.png');
     add(
       RectangleHitbox(
         collisionType: CollisionType.active,
@@ -68,16 +71,15 @@ class BombComponent extends PositionComponent
 
   @override
   void update(double dt) {
+    //
     super.update(dt);
-    if (!direction.isZero()) {
-      position += direction * speed * dt;
-    } else {
+    position += _velocity * dt;
+    _velocity.y += _gravity * dt;
+    _velocity.x += _gravity * dt;
+
+    if ((position - startPosition!).length > maxTravelDistance) {
       removeFromParent();
     }
-    // if ((position - startPosition!).length >
-    //     (ref.read(gameNotifierProvider).bulletRange)) {
-    //   removeFromParent();
-    // }
   }
 
   @override

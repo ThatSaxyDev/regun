@@ -4,10 +4,12 @@ import 'package:flame/input.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 
 import 'package:flutter/material.dart';
+import 'package:regun/components/weapons/mine_component.dart';
+import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
-class BoostButtonComponent extends HudButtonComponent
-    with RiverpodComponentMixin {
+class BoostButtonComponent extends ButtonComponent
+    with HasGameReference<RegunGame>, RiverpodComponentMixin {
   bool tapped;
   BoostButtonComponent({
     super.onPressed,
@@ -27,6 +29,7 @@ class BoostButtonComponent extends HudButtonComponent
 
   @override
   void onTapDown(TapDownEvent event) async {
+    game.addMine();
     tapped = true;
     if (ref.read(gameNotifierProvider).sprintInvincibility == true) {
       ref.read(gameNotifierProvider.notifier).triggerSprintInvincibility();
