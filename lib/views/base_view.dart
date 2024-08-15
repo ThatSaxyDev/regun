@@ -418,7 +418,7 @@ class _BaseViewState extends State<BaseView> {
                       children: List.generate(
                         2,
                         (index) {
-                          powerUps.shuffle(Random());
+                          powerUps.shuffle();
 
                           List<PowerUp> selectedPowerUps =
                               powerUps.take(2).toList();

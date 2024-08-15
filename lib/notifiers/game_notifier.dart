@@ -114,6 +114,7 @@ class GameNotifier extends Notifier<GameState> {
   void addBullets() async {
     state = state.copyWith(
       noOfBullets: 5,
+      maxBullets: 5,
     );
   }
 
