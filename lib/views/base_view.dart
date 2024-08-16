@@ -95,6 +95,19 @@ class _BaseViewState extends State<BaseView> {
                                     builder: (context, ref, child) {
                                       return Row(
                                         children: [
+                                          if (gameState.triggerSprintMine ==
+                                              true)
+                                            Text(
+                                              'Mines left: ${gameState.sprintMineCount}',
+                                              style: const TextStyle(
+                                                fontFamily: FontFam.orbitron,
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ).fadeInFromTop(delay: 0.ms),
+                                          const SizedBox(
+                                            width: 20,
+                                          ),
                                           Image.asset(
                                             'assets/images/heart.png',
                                             height: 30,
@@ -469,9 +482,9 @@ class _BaseViewState extends State<BaseView> {
                                       gameNotifier.rapidFire();
                                       break;
 
-                                    case PowerUp.sprintMine:
-                                      gameNotifier.sprintMine();
-                                      break;
+                                    // case PowerUp.sprintMine:
+                                    //   gameNotifier.sprintMine();
+                                    //   break;
                                     default:
                                       {}
                                   }

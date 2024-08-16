@@ -82,6 +82,7 @@ class RegunGame extends FlameGame
     gameNotifier.resetBulletsPhaseThrough();
     gameNotifier.resetFireRate();
     gameNotifier.removeSprintMine();
+    gameNotifier.resetSprintMineCount();
     add(boostButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),

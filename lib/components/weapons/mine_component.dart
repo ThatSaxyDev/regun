@@ -115,6 +115,10 @@ class MineComponent extends SpriteAnimationComponent
     super.onCollision(intersectionPoints, other);
 
     if (other is EnemyComponent) {
+      Future(() {
+        ref.read(gameNotifierProvider.notifier).increaseSprintMineCount();
+      });
+
       animation = mineExplodeAnimation;
       // FlameAudio.play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
@@ -158,6 +162,7 @@ class MineComponent extends SpriteAnimationComponent
       });
 
       Future.delayed(const Duration(milliseconds: 500), () {
+        // ref.read(gameNotifierProvider.notifier).increaseSprintMineCount();
         removeFromParent();
       });
       // parent!.add(ShrapnelComponent(
