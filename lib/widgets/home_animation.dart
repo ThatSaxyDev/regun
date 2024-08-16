@@ -27,8 +27,8 @@ class _MenuAnimationState extends State<MenuAnimation> {
 //!
 class MenuAnimationFlame extends FlameGame {
   @override
-  // Color backgroundColor() => const Color.fromRGBO(20, 19, 23, 1);
-  Color backgroundColor() => const Color.fromRGBO(32, 22, 32, 1);
+  Color backgroundColor() => const Color.fromRGBO(20, 19, 23, 1);
+  // Color backgroundColor() => const Color.fromRGBO(32, 22, 32, 1);
 
   @override
   void onMount() {
