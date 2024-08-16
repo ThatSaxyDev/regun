@@ -1,0 +1,21 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+    },
+    "last.imagePath": "/Users/user/Documents/Dev/flamer/regun/assets/images",
+    "map.height": 141,
+    "map.lastUsedFormat": "tmx",
+    "map.width": 141,
+    "openFiles": [
+    ],
+    "project": "reguntile.tiled-project",
+    "recentFiles": [
+    ],
+    "tileset.lastUsedFormat": "tsx"
+}

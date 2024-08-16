@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
+import 'package:regun/components/map/map_component.dart';
 import 'package:regun/components/movement/boost_component.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
@@ -30,6 +31,7 @@ class RegunGame extends FlameGame
   BuildContext context;
   late Size screenSize;
   late Vector2 centerOfScreen;
+  late final MapComponent map;
 
   RegunGame(this.context)
       : super(
@@ -40,10 +42,11 @@ class RegunGame extends FlameGame
         );
 
   @override
-  Color backgroundColor() => const Color(0xff000000);
+  Color backgroundColor() => const Color.fromRGBO(8, 5, 8, 1);
 
   @override
   FutureOr<void> onLoad() async {
+    map = MapComponent();
     screenSize = MediaQuery.of(context).size;
     centerOfScreen = Vector2(screenSize.width / 2, screenSize.height / 2);
     movementJoystick = MovementJoystickComponent();
@@ -101,7 +104,7 @@ class RegunGame extends FlameGame
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
+          size: Vector2(size.x * 2.9, size.x * 2.9),
         ),
       ),
     );
@@ -114,11 +117,12 @@ class RegunGame extends FlameGame
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
+          size: Vector2(size.x * 2.9, size.x * 2.9),
         ),
       ),
     );
     world.add(BorderComponent(size: size * 3));
+    world.add(MapComponent()..position = Vector2(-2256, -2256));
     world.add(
       SpawnComponent(
         factory: (index) {
@@ -128,7 +132,7 @@ class RegunGame extends FlameGame
         within: true,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
+          size: Vector2(size.x * 2.9, size.x * 2.9),
         ),
       ),
     );
@@ -177,7 +181,7 @@ class RegunGame extends FlameGame
 
   @override
   void update(double dt) {
-    // camera.viewfinder.zoom = 0.2;
+    // camera.viewfinder.zoom = 0.05;
     camera.viewfinder.position = myPlayer.position;
 
     // boostButtonComponent.onPressed;

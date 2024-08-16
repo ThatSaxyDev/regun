@@ -61,6 +61,7 @@ class PlayerComponent extends SpriteAnimationComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    // debugMode = true;
     // maxSpeed = ref.read(gameNotifierProvider).movementSpeed;
     final idleRightSpriteSheet = SpriteSheet(
       image: await game.images.load('player_idle.png'),
@@ -100,11 +101,16 @@ class PlayerComponent extends SpriteAnimationComponent
     );
     animation = idleRightAnimation;
     add(
-      RectangleHitbox(
-        size: Vector2(40, 70),
-        anchor: const Anchor(-0.75, -0.18),
+      CircleHitbox(
+        radius: 40,
+        anchor: const Anchor(-0.11, -0.08),
         collisionType: CollisionType.active,
       ),
+      // RectangleHitbox(
+      //   size: Vector2(60, 70),
+      //   anchor: const Anchor(-0.3, -0.18),
+      //   collisionType: CollisionType.active,
+      // ),
     );
   }
 
