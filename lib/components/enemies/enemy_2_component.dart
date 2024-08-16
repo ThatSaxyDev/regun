@@ -152,7 +152,7 @@ class Enemy2Component extends SpriteAnimationComponent
     if (distanceToPlayer > minimumDistance) {
       isAttacking = false;
       timeSinceLastAttack = 0.0; // Reset the attack timer
-      const speed = 40;
+      const speed = 90;
       position += direction * (speed * dt);
 
       // Set move animation if not attacking

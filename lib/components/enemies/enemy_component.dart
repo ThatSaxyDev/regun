@@ -45,7 +45,7 @@ class EnemyComponent extends SpriteAnimationComponent
     add(
       RectangleHitbox(
         size: Vector2(61, 35),
-        anchor: const Anchor(-0.05, -1.4),
+        anchor: const Anchor(-0.4, -1.4),
         collisionType: CollisionType.passive,
       ),
     );
