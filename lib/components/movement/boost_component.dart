@@ -15,10 +15,10 @@ class BoostButtonComponent extends AdvancedButtonComponent
     super.onPressed,
     this.tapped = false,
   }) : super(
-          defaultSkin: Buttonn(radius: 35, buttonAsset: 'b_button.png'),
+          defaultSkin: Buttonn(radius: 35, buttonAsset: 'a_button.png'),
           // downSkin: Buttonn(radius: 35, buttonAsset: 'b_button_pressed.png'),
           size: Vector2.all(70),
-          position: Vector2(620, 320),
+          position: Vector2(620, 340),
           anchor: Anchor.center,
         );
 
@@ -86,7 +86,7 @@ class Buttonn extends PositionComponent {
   void render(Canvas canvas) {
     _buttonSprite.render(
       canvas,
-      size: Vector2.all(70),
+      size: size,
       // anchor: Anchor.center,
     );
   }

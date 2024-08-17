@@ -26,7 +26,7 @@ class WeaponJoystickComponent extends JoystickComponent {
   WeaponJoystickComponent()
       : super(
           knob: JoyStickKnob(knobSize: 120),
-          margin: const EdgeInsets.only(right: 150, bottom: 150),
+          margin: const EdgeInsets.only(right: 200, bottom: 150),
           background: CircleComponent(
             radius: 80,
             paint: BasicPalette.darkGray.withAlpha(30).paint(),

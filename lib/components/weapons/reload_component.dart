@@ -14,10 +14,10 @@ class ReloadButtonComponent extends ButtonComponent
     super.onPressed,
     this.tapped = false,
   }) : super(
-          button: Buttonn(radius: 35, buttonAsset: 'a_button.png'),
-          buttonDown: Buttonn(radius: 35, buttonAsset: 'a_button_pressed.png'),
+          button: Buttonn(radius: 35, buttonAsset: 'b_button.png'),
+          buttonDown: Buttonn(radius: 35, buttonAsset: 'b_button_pressed.png'),
           size: Vector2.all(70),
-          position: Vector2(750, 350),
+          position: Vector2(765, 310),
           anchor: Anchor.center,
         );
 
