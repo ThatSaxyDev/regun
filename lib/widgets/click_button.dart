@@ -2,11 +2,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/theme/palette.dart';
+import 'package:regun/utils/soloud_play.dart';
 
-class ClickButton extends StatefulWidget {
+class ClickButton extends ConsumerStatefulWidget {
   final void Function()? onTap;
   final double? width;
   final double? height;
@@ -28,10 +30,10 @@ class ClickButton extends StatefulWidget {
   });
 
   @override
-  State<ClickButton> createState() => _ClickButtonState();
+  ConsumerState<ClickButton> createState() => _ClickButtonState();
 }
 
-class _ClickButtonState extends State<ClickButton> {
+class _ClickButtonState extends ConsumerState<ClickButton> {
   final ValueNotifier<bool> clicked = ValueNotifier(false);
 
   @override
@@ -45,6 +47,7 @@ class _ClickButtonState extends State<ClickButton> {
           highlightColor: Colors.transparent,
           onTap: () {
             if (widget.isActive == true) {
+              ref.read(soloudPlayProvider).play('click.mp3');
               clicked.value = true;
               Timer(const Duration(milliseconds: 100), () {
                 clicked.value = false;
@@ -106,7 +109,7 @@ class _ClickButtonState extends State<ClickButton> {
 
 //!
 
-class ClickButtonM extends StatefulWidget {
+class ClickButtonM extends ConsumerStatefulWidget {
   final void Function()? onTap;
   final double? width;
   final double? height;
@@ -128,10 +131,10 @@ class ClickButtonM extends StatefulWidget {
   });
 
   @override
-  State<ClickButtonM> createState() => _ClickButtonMState();
+  ConsumerState<ClickButtonM> createState() => _ClickButtonMState();
 }
 
-class _ClickButtonMState extends State<ClickButtonM> {
+class _ClickButtonMState extends ConsumerState<ClickButtonM> {
   final ValueNotifier<bool> clicked = ValueNotifier(false);
 
   @override
@@ -145,6 +148,7 @@ class _ClickButtonMState extends State<ClickButtonM> {
           highlightColor: Colors.transparent,
           onTap: () {
             if (widget.isActive == true) {
+              ref.read(soloudPlayProvider).play('click.mp3');
               clicked.value = true;
               Timer(const Duration(milliseconds: 100), () {
                 clicked.value = false;

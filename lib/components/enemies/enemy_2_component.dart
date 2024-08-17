@@ -8,6 +8,7 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 class Enemy2Component extends SpriteAnimationComponent
     with
@@ -170,6 +171,7 @@ class Enemy2Component extends SpriteAnimationComponent
         timeSinceLastAttack = 0.0;
         ref.read(gameNotifierProvider.notifier).reduceHealth();
         // FlameAudio.play('gameov.wav');
+        ref.read(soloudPlayProvider).play('gameov.wav');
         if (ref.read(gameNotifierProvider).health == 0) {
           game.gameOver();
         }

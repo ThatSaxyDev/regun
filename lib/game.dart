@@ -17,6 +17,7 @@ import 'package:regun/components/movement/game_joystick_component.dart';
 import 'package:regun/components/game_utils/player_component.dart';
 import 'package:regun/components/weapons/mine_component.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
@@ -152,6 +153,8 @@ class RegunGame extends FlameGame
       return;
     }
     // FlameAudio.play('shoot.wav');
+    // soloudPlay.play('shoot.wav');
+    ref.read(soloudPlayProvider).play('shoot.wav');
 
     const spreadAngle = pi / 20;
     for (int i = -(ref.read(gameNotifierProvider).bulletNumberRange);

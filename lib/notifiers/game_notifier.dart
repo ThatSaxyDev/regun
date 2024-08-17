@@ -2,6 +2,7 @@
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(() {
   return GameNotifier();
@@ -73,6 +74,7 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(reloading: true);
 
     // FlameAudio.play('reloadSound.mp3');
+    ref.read(soloudPlayProvider).play('reloadSound.mp3');
 
     await Future.delayed(Duration(milliseconds: state.fastReloadTime));
 
@@ -108,6 +110,7 @@ class GameNotifier extends Notifier<GameState> {
 
     for (int i = 0; i < missingBullets; i++) {
       // FlameAudio.play('reloadSound.mp3');
+      ref.read(soloudPlayProvider).play('reloadSound.mp3');
       await Future.delayed(const Duration(milliseconds: 700));
     }
   }

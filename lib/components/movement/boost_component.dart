@@ -4,7 +4,6 @@ import 'package:flame/input.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 
 import 'package:flutter/material.dart';
-import 'package:regun/components/weapons/mine_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 

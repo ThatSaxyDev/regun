@@ -7,7 +7,6 @@ import 'package:flame/sprite.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/game_utils/empty_component.dart';
-import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/weapons/shrapnel_component.dart';

@@ -9,6 +9,7 @@ import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 class BulletComponent extends PositionComponent
     with
@@ -85,6 +86,7 @@ class BulletComponent extends PositionComponent
 
     if (other is EnemyComponent) {
       // FlameAudio.play('hit.wav');
+      ref.read(soloudPlayProvider).play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
       other.showDeathSplashEffect();
       if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
@@ -96,6 +98,7 @@ class BulletComponent extends PositionComponent
       removeFromParent();
     } else if (other is Enemy2Component) {
       // FlameAudio.play('hit.wav');
+      ref.read(soloudPlayProvider).play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
 
       // stop enemy movement

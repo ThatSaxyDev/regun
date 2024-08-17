@@ -16,6 +16,7 @@ import 'package:regun/components/weapons/mine_component.dart';
 import 'package:regun/components/weapons/shrapnel_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 class PlayerComponent extends SpriteAnimationComponent
     with
@@ -229,12 +230,14 @@ class PlayerComponent extends SpriteAnimationComponent
         other.showDeathSplashEffect();
         other.removeFromParent();
         // FlameAudio.play('gameov.wav');
+        ref.read(soloudPlayProvider).play('gameov.wav');
         if (ref.read(gameNotifierProvider).health == 0) {
           game.gameOver();
         }
       }
     } else if (other is CoinComponent) {
       // FlameAudio.play('coinSound2.wav');
+      ref.read(soloudPlayProvider).play('coinSound2.wav');
       ref.read(gameNotifierProvider.notifier).updateScore();
       ref.read(gameNotifierProvider.notifier).increaseXP();
       other.removeFromParent();
