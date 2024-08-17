@@ -16,6 +16,7 @@ import 'package:regun/components/game_utils/empty_component.dart';
 import 'package:regun/components/movement/game_joystick_component.dart';
 import 'package:regun/components/game_utils/player_component.dart';
 import 'package:regun/components/weapons/mine_component.dart';
+import 'package:regun/components/weapons/reload_component.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/utils/soloud_play.dart';
 
@@ -26,6 +27,7 @@ class RegunGame extends FlameGame
   late final MovementJoystickComponent movementJoystick;
   late final WeaponJoystickComponent weaponJoystick;
   late final BoostButtonComponent boostButtonComponent;
+  late final ReloadButtonComponent reloadButtonComponent;
   late GameState gameState;
   late GameNotifier gameNotifier;
   double bulletFireRate = 0.35;
@@ -53,6 +55,7 @@ class RegunGame extends FlameGame
     movementJoystick = MovementJoystickComponent();
     weaponJoystick = WeaponJoystickComponent();
     boostButtonComponent = BoostButtonComponent();
+    reloadButtonComponent = ReloadButtonComponent();
     camera.viewport.addAll([movementJoystick, weaponJoystick]);
     // await FlameAudio.audioCache.loadAll([
     //   'gameov.wav',
@@ -85,6 +88,7 @@ class RegunGame extends FlameGame
     gameNotifier.removeSprintMine();
     gameNotifier.resetSprintMineCount();
     add(boostButtonComponent);
+    add(reloadButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
     ));

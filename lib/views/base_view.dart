@@ -156,12 +156,9 @@ class _BaseViewState extends State<BaseView> {
                           ),
                           const Spacer(),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const SizedBox(
-                                width: 30,
-                              ),
                               gameState.reloading == true
                                   ? switch (gameState.fastReload) {
                                       true =>
@@ -226,26 +223,6 @@ class _BaseViewState extends State<BaseView> {
                                           ),
                                       },
                                     ),
-
-                              //! reload
-                              Column(
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      ref
-                                          .read(gameNotifierProvider.notifier)
-                                          .reloadBullets();
-                                    },
-                                    icon: const Icon(
-                                      PhosphorIconsBold.repeat,
-                                      size: 40,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  )
-                                ],
-                              ),
                             ],
                           ),
                         ],
