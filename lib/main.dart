@@ -29,13 +29,13 @@ void main() async {
   /// Initialize the player
   await SoLoud.instance.init().then(
     (_) {
-      Logger('main').info('player started');
+      Logger('main').info('Soloud player started');
       SoLoud.instance.setVisualizationEnabled(true);
-      SoLoud.instance.setGlobalVolume(1);
+      SoLoud.instance.setGlobalVolume(0.17);
       SoLoud.instance.setMaxActiveVoiceCount(32);
     },
     onError: (Object e) {
-      Logger('main').severe('player starting error: $e');
+      Logger('main').severe('Soloud player starting error: $e');
     },
   );
   runApp(
