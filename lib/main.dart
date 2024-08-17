@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:logging/logging.dart';
-import 'package:regun/views/menu_view.dart';
+import 'package:regun/views/flame_splash_view.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -64,7 +64,7 @@ class _GameAppState extends State<GameApp> {
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),
-      home: const MenuView(),
+      home: const FlameSplashView(),
     );
   }
 }
