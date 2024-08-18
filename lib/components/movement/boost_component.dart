@@ -1,18 +1,22 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flame/input.dart';
+import 'package:flame_riverpod/flame_riverpod.dart';
 
 import 'package:flutter/material.dart';
+import 'package:regun/game.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 
-class BoostButtonComponent extends HudButtonComponent {
+class BoostButtonComponent extends AdvancedButtonComponent
+    with HasGameReference<RegunGame>, RiverpodComponentMixin {
   bool tapped;
   BoostButtonComponent({
     super.onPressed,
     this.tapped = false,
   }) : super(
-          button: Buttonn(radius: 35),
+          defaultSkin: Buttonn(radius: 35, buttonAsset: 'a_button.png'),
+          // downSkin: Buttonn(radius: 35, buttonAsset: 'b_button_pressed.png'),
           size: Vector2.all(70),
-          position: Vector2(620, 320),
+          position: Vector2(620, 340),
           anchor: Anchor.center,
         );
 
@@ -24,8 +28,21 @@ class BoostButtonComponent extends HudButtonComponent {
 
   @override
   void onTapDown(TapDownEvent event) async {
+    // if (!game.movementJoystick.delta.isZero() &&
+    //     ref.read(gameNotifierProvider).triggerSprintMine == true &&
+    //     ref.read(gameNotifierProvider).sprintMineCount > 0) {
+    //   game.addMine();
+    //   ref.read(gameNotifierProvider.notifier).decreaseSprintMineCount();
+    // }
+    // ref.read(soloudPlayProvider).play('click.mp3');
+
     tapped = true;
-    await Future.delayed(const Duration(milliseconds: 150)).whenComplete(() {
+    if (ref.read(gameNotifierProvider).sprintInvincibility == true) {
+      ref.read(gameNotifierProvider.notifier).triggerSprintInvincibility();
+    }
+    await Future.delayed(Duration(
+            milliseconds: ref.read(gameNotifierProvider).sprintTimeDistance))
+        .whenComplete(() {
       tapped = false;
     });
     super.onTapDown(event);
@@ -43,36 +60,32 @@ class Buttonn extends PositionComponent {
     required double radius,
     Paint? paint,
     super.position,
-  })  : _radius = radius,
-        _paint = paint ?? Paint()
-          ..color = const Color(0xFF80C080),
-        super(
+    required this.buttonAsset,
+  }) : super(
           priority: 30,
           size: Vector2.all(2 * radius),
           // anchor: Anchor.center,
         );
 
-  final double _radius;
-  final Paint _paint;
+  late Sprite _buttonSprite;
+  late String buttonAsset;
+
+  @override
+  Future<void> onLoad() async {
+    // debugMode = true;
+    await super.onLoad();
+    _buttonSprite = await Sprite.load(
+      buttonAsset,
+      srcSize: Vector2.all(16),
+    );
+  }
 
   @override
   void render(Canvas canvas) {
-    super.render(canvas);
-    canvas.drawCircle(Offset(_radius, _radius), _radius, _paint);
-    // Draw the arrow (caret facing right)
-    final arrowPaint = Paint()..color = Colors.black; // Set the arrow color
-
-    // Adjust these values to increase the size of the arrow
-    final arrowHeight = _radius / 2; // Height of the arrow
-    final arrowWidth = _radius / 2.5; // Width of the arrow
-
-    final arrowPath = Path()
-      ..moveTo(_radius + arrowWidth, _radius) // Right point
-      ..lineTo(_radius - arrowWidth / 2, _radius - arrowHeight / 2) // Top left
-      ..lineTo(
-          _radius - arrowWidth / 2, _radius + arrowHeight / 2) // Bottom left
-      ..close(); // Connect back to the starting point
-
-    canvas.drawPath(arrowPath, arrowPaint);
+    _buttonSprite.render(
+      canvas,
+      size: size,
+      // anchor: Anchor.center,
+    );
   }
 }

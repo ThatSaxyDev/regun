@@ -2,6 +2,7 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flextras/flextras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:regun/utils/app_extensions.dart';
@@ -29,7 +30,7 @@ class _BaseViewState extends State<BaseView> {
   @override
   void initState() {
     super.initState();
-    _myGame = RegunGame();
+    _myGame = RegunGame(context);
     lottieWidget = Lottie.asset('assets/lottie/reload.json');
   }
 
@@ -94,6 +95,19 @@ class _BaseViewState extends State<BaseView> {
                                     builder: (context, ref, child) {
                                       return Row(
                                         children: [
+                                          if (gameState.triggerSprintMine ==
+                                              true)
+                                            Text(
+                                              'Mines left: ${gameState.sprintMineCount}',
+                                              style: const TextStyle(
+                                                fontFamily: FontFam.orbitron,
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ).fadeInFromTop(delay: 0.ms),
+                                          const SizedBox(
+                                            width: 20,
+                                          ),
                                           Image.asset(
                                             'assets/images/heart.png',
                                             height: 30,
@@ -142,63 +156,73 @@ class _BaseViewState extends State<BaseView> {
                           ),
                           const Spacer(),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const SizedBox(
-                                width: 30,
-                              ),
                               gameState.reloading == true
-                                  ? SizedBox(
-                                      height: 100,
-                                      width: 200,
-                                      child: lottieWidget,
-                                    )
+                                  ? switch (gameState.fastReload) {
+                                      true =>
+                                        LoadingAnimationWidget.prograssiveDots(
+                                          color: Colors.red,
+                                          size: 70,
+                                        ),
+                                      false => SizedBox(
+                                          height: 100,
+                                          width: 200,
+                                          child: lottieWidget,
+                                        )
+                                    }
                                   : Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 20),
-                                      child: SeparatedRow(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        separatorBuilder: () => const SizedBox(
-                                          width: 10,
-                                        ),
-                                        children: List.generate(
-                                            gameState.noOfBullets, (index) {
-                                          return Container(
-                                            height: 20,
-                                            width: 20,
-                                            decoration: BoxDecoration(
-                                              image: const DecorationImage(
-                                                  image: AssetImage(
-                                                      'assets/images/bullet.png')),
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
+                                      child: switch (gameState.maxBullets > 7) {
+                                        true => Row(
+                                            children: [
+                                              Container(
+                                                height: 20,
+                                                width: 20,
+                                                decoration: BoxDecoration(
+                                                  image: const DecorationImage(
+                                                      image: AssetImage(
+                                                          'assets/images/bullet.png')),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                              ),
+                                              Text(
+                                                ' ${ref.watch(gameNotifierProvider).noOfBullets}',
+                                                style: const TextStyle(
+                                                  fontFamily: FontFam.orbitron,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        false => SeparatedRow(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            separatorBuilder: () =>
+                                                const SizedBox(
+                                              width: 10,
                                             ),
-                                          );
-                                        }),
-                                      ),
+                                            children: List.generate(
+                                                gameState.noOfBullets, (index) {
+                                              return Container(
+                                                height: 20,
+                                                width: 20,
+                                                decoration: BoxDecoration(
+                                                  image: const DecorationImage(
+                                                      image: AssetImage(
+                                                          'assets/images/bullet.png')),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                              );
+                                            }),
+                                          ),
+                                      },
                                     ),
-
-                              //! reload
-                              Column(
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      ref
-                                          .read(gameNotifierProvider.notifier)
-                                          .reloadBullets();
-                                    },
-                                    icon: const Icon(
-                                      PhosphorIconsBold.repeat,
-                                      size: 40,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  )
-                                ],
-                              ),
                             ],
                           ),
                         ],
@@ -367,6 +391,8 @@ class _BaseViewState extends State<BaseView> {
           //! power up
           Consumer(
             builder: (context, ref, child) {
+              GameNotifier gameNotifier =
+                  ref.read(gameNotifierProvider.notifier);
               if (ref.watch(gameNotifierProvider).gameplayState ==
                   GameplayState.powerup) {
                 _myGame.slow();
@@ -374,46 +400,90 @@ class _BaseViewState extends State<BaseView> {
                 return Container(
                   color: Colors.black45,
                   child: Center(
-                    child: Container(
-                      height: 240.0,
-                      width: 327.0,
-                      decoration: BoxDecoration(
-                          color: const Color.fromRGBO(20, 19, 23, 0.5),
-                          borderRadius: BorderRadius.circular(8.0)),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ClickButton(
-                              onTap: () {
-                                _myGame.normalizeGameSpeed();
-                                ref
-                                    .read(gameNotifierProvider.notifier)
-                                    .playGame();
-                              },
-                              text: 'Select power-up 1',
-                              width: 200,
-                              height: 50,
-                            ).fadeInFromBottom(delay: 100.ms),
-                            const SizedBox(
-                              height: 30,
-                            ),
-                            ClickButton(
-                              onTap: () {
-                                _myGame.normalizeGameSpeed();
-                                ref
-                                    .read(gameNotifierProvider.notifier)
-                                    .playGame();
-                              },
-                              buttonColor: Palette.buttonBlueVariant,
-                              buttonShadow: Palette.buttonShadowBlueVariant,
-                              text: 'Select power-up 2',
-                              width: 200,
-                              height: 50,
-                            ).fadeInFromBottom(delay: 100.ms),
-                          ],
-                        ),
-                      ),
+                    child: FutureBuilder<List<PowerUp>>(
+                      future: pickTwoRandomPowerUps(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const SizedBox
+                              .shrink(); // Show nothing while waiting
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (snapshot.hasData) {
+                          List<PowerUp> selectedPowerUps = snapshot.data!;
+                          return SeparatedColumn(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            separatorBuilder: () => const SizedBox(height: 20),
+                            children: selectedPowerUps.map((powerUp) {
+                              return ClickButton(
+                                onTap: () {
+                                  switch (powerUp) {
+                                    case PowerUp.maxBulletsIncrease:
+                                      gameNotifier.maxBulletsIncrease();
+                                      break;
+
+                                    case PowerUp.healthIncrease:
+                                      gameNotifier.healthIncrease();
+                                      break;
+
+                                    case PowerUp.walkingSpeedIncrease:
+                                      gameNotifier.walkingSpeedIncrease();
+                                      break;
+
+                                    case PowerUp.sprintDistanceIncrease:
+                                      gameNotifier.sprintDistanceIncrease();
+                                      break;
+
+                                    case PowerUp.bulletRangeIncrease:
+                                      gameNotifier.bulletRangeIncrease();
+                                      break;
+
+                                    case PowerUp.numberOfBulletsPerShotIncrease:
+                                      gameNotifier
+                                          .numberOfBulletsPerShotIncrease();
+                                      break;
+
+                                    case PowerUp.fastReload:
+                                      gameNotifier.fastReload();
+                                      break;
+
+                                    case PowerUp.sprintInvincibility:
+                                      gameNotifier.sprintInvincibility();
+                                      break;
+
+                                    case PowerUp.bulletsPhaseThrough:
+                                      gameNotifier.triggerBulletsPhaseThrough();
+                                      break;
+
+                                    case PowerUp.rapidFire:
+                                      gameNotifier.rapidFire();
+                                      break;
+
+                                    // case PowerUp.sprintMine:
+                                    //   gameNotifier.sprintMine();
+                                    //   break;
+                                    default:
+                                      {}
+                                  }
+
+                                  _myGame.normalizeGameSpeed();
+                                  ref
+                                      .read(gameNotifierProvider.notifier)
+                                      .playGame();
+                                },
+                                text: powerUp.title,
+                                buttonColor: Palette.buttonBlueVariant,
+                                buttonShadow: Palette.buttonShadowBlueVariant,
+                                width: 300,
+                                height: 60,
+                              ).fadeInFromBottom(delay: 100.ms);
+                            }).toList(),
+                          );
+                        } else {
+                          return const SizedBox
+                              .shrink(); // In case of any other unexpected state
+                        }
+                      },
                     ),
                   ),
                 );

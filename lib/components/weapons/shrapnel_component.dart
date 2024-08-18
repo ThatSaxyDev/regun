@@ -2,23 +2,24 @@ import 'dart:async';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/game.dart';
+import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/utils/soloud_play.dart';
 
-class BulletComponent extends PositionComponent
+class ShrapnelComponent extends PositionComponent
     with
         HasGameReference<RegunGame>,
         CollisionCallbacks,
         RiverpodComponentMixin {
-  BulletComponent({
+  ShrapnelComponent({
     super.position,
-    this.bulletRadius = 15,
-    this.maxTravelDistance = 450,
+    this.bulletRadius = 7,
+    this.maxTravelDistance = 300,
     required this.direction,
     this.speed = 700,
     this.startPosition,
@@ -35,8 +36,11 @@ class BulletComponent extends PositionComponent
   final double speed;
   final double maxTravelDistance;
   Vector2? startPosition;
-  // static final _paint = Paint()..color = Colors.red;
+  static final _paint = Paint()..color = Colors.red;
   late Sprite _bulletSprite;
+  bool hasSpread = false;
+  final _velocity = Vector2.zero();
+  final _gravity = 60;
 
   @override
   Future<void> onLoad() async {
@@ -52,27 +56,25 @@ class BulletComponent extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    _bulletSprite.render(
-      canvas,
-      position: size / 2,
-      size: size,
-      anchor: Anchor.center,
-    );
-    // canvas.drawCircle(
-    //   (size / 2).toOffset(),
-    //   bulletRadius,
-    //   _paint,
+    // _bulletSprite.render(
+    //   canvas,
+    //   position: size / 2,
+    //   size: size,
+    //   anchor: Anchor.center,
     // );
+    canvas.drawCircle(
+      (size / 2).toOffset(),
+      bulletRadius,
+      _paint,
+    );
   }
 
   @override
   void update(double dt) {
+    //
     super.update(dt);
-    if (!direction.isZero()) {
-      position += direction * speed * dt;
-    } else {
-      removeFromParent();
-    }
+    position += direction * 1000 * dt;
+
     if ((position - startPosition!).length > maxTravelDistance) {
       removeFromParent();
     }
@@ -83,15 +85,20 @@ class BulletComponent extends PositionComponent
     super.onCollision(intersectionPoints, other);
 
     if (other is EnemyComponent) {
-      FlameAudio.play('hit.wav');
+      // FlameAudio.play('hit.wav');
+      ref.read(soloudPlayProvider).play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
       other.showDeathSplashEffect();
-      removeFromParent();
+      if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
+        removeFromParent();
+      }
+
       other.removeFromParent();
     } else if (other is BorderComponent) {
       removeFromParent();
     } else if (other is Enemy2Component) {
-      FlameAudio.play('hit.wav');
+      // FlameAudio.play('hit.wav');
+      ref.read(soloudPlayProvider).play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
 
       // stop enemy movement
@@ -107,7 +114,9 @@ class BulletComponent extends PositionComponent
         other.removeFromParent();
       });
 
-      removeFromParent();
+      if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
+        removeFromParent();
+      }
     }
   }
 }

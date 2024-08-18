@@ -5,16 +5,20 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/enemies/enemy_3_component.dart';
+import 'package:regun/components/enemies/enemy_3_projectile.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/ui/border_component.dart';
-import 'package:regun/components/game_utils/bullet_component.dart';
+import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
+import 'package:regun/components/weapons/mine_component.dart';
+import 'package:regun/components/weapons/shrapnel_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 class PlayerComponent extends SpriteAnimationComponent
     with
@@ -25,7 +29,7 @@ class PlayerComponent extends SpriteAnimationComponent
     super.position,
     this.playerRadius = 25,
   }) : super(
-        // priority: 20,
+          priority: 10,
         );
 
   final double playerRadius;
@@ -34,8 +38,10 @@ class PlayerComponent extends SpriteAnimationComponent
   //   ..style = PaintingStyle.stroke
   //   ..strokeCap = StrokeCap.round
   //   ..strokeWidth = 10;
-  double maxSpeed = 300.0;
+
+  // double maxSpeed = 300.0;
   late final Vector2 _lastSize = size.clone();
+  late final Vector2 lastPosition = position.clone();
   late final Transform2D _lastTransform = transform.clone();
   late SpriteAnimation idleRightAnimation;
   late SpriteAnimation idleLeftAnimation;
@@ -50,9 +56,16 @@ class PlayerComponent extends SpriteAnimationComponent
   //!
   LastDirection lastDirection = LastDirection.right;
 
+  double getMaxSpeed() {
+    final speed = ref.read(gameNotifierProvider).movementSpeed;
+    return speed;
+  }
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    // debugMode = true;
+    // maxSpeed = ref.read(gameNotifierProvider).movementSpeed;
     final idleRightSpriteSheet = SpriteSheet(
       image: await game.images.load('player_idle.png'),
       srcSize: Vector2(48, 48),
@@ -91,11 +104,16 @@ class PlayerComponent extends SpriteAnimationComponent
     );
     animation = idleRightAnimation;
     add(
-      RectangleHitbox(
-        size: Vector2(40, 70),
-        anchor: const Anchor(-0.75, -0.18),
+      CircleHitbox(
+        radius: 40,
+        anchor: const Anchor(-0.11, -0.08),
         collisionType: CollisionType.active,
       ),
+      // RectangleHitbox(
+      //   size: Vector2(60, 70),
+      //   anchor: const Anchor(-0.3, -0.18),
+      //   collisionType: CollisionType.active,
+      // ),
     );
   }
 
@@ -167,7 +185,9 @@ class PlayerComponent extends SpriteAnimationComponent
       }
       _lastSize.setFrom(size);
       _lastTransform.setFrom(transform);
-      position.add(game.movementJoystick.relativeDelta * maxSpeed * dt);
+      position.add(game.movementJoystick.relativeDelta *
+          (ref.read(gameNotifierProvider).movementSpeed) *
+          dt);
       // angle = game.movementJoystick.delta.screenAngle();
     } else {
       animation = switch (lastDirection) {
@@ -182,7 +202,12 @@ class PlayerComponent extends SpriteAnimationComponent
     return components
         .where((component) =>
             component is! BulletComponent &&
+            component is! Enemy3Component &&
+            component is! Enemy3Projectile &&
             component is! Enemy2Component &&
+            component is! EnemyComponent &&
+            component is! MineComponent &&
+            component is! ShrapnelComponent &&
             component is! CoinComponent)
         .toSet();
   }
@@ -192,26 +217,41 @@ class PlayerComponent extends SpriteAnimationComponent
     // debugMode = true;
     size = Vector2.all(playerRadius * 4);
     anchor = Anchor.center;
+    // maxSpeed = ref.read(gameNotifierProvider).movementSpeed;
     super.onMount();
   }
 
   @override
   void onCollisionStart(
-      Set<Vector2> intersectionPoints, PositionComponent other) {
+      Set<Vector2> intersectionPoints, PositionComponent other) async {
     super.onCollisionStart(intersectionPoints, other);
     if (other is BorderComponent) {
       transform.setFrom(_lastTransform);
       size.setFrom(_lastSize);
     } else if (other is EnemyComponent) {
-      ref.read(gameNotifierProvider.notifier).reduceHealth();
-      other.showDeathSplashEffect();
-      other.removeFromParent();
-      FlameAudio.play('gameov.wav');
-      if (ref.read(gameNotifierProvider).health == 0) {
-        game.gameOver();
+      if (ref.read(gameNotifierProvider).triggerSprintInvincibility == false) {
+        ref.read(gameNotifierProvider.notifier).reduceHealth();
+        other.showDeathSplashEffect();
+        other.removeFromParent();
+        // FlameAudio.play('gameov.wav');
+        ref.read(soloudPlayProvider).play('gameov.wav');
+        if (ref.read(gameNotifierProvider).health == 0) {
+          game.gameOver();
+        }
+      }
+    } else if (other is Enemy3Projectile) {
+      if (!game.boostButtonComponent.tapped) {
+        ref.read(gameNotifierProvider.notifier).reduceHealth();
+        other.removeFromParent();
+        // FlameAudio.play('gameov.wav');
+        ref.read(soloudPlayProvider).play('gameov.wav');
+        if (ref.read(gameNotifierProvider).health == 0) {
+          game.gameOver();
+        }
       }
     } else if (other is CoinComponent) {
-      FlameAudio.play('coinSound2.wav');
+      // FlameAudio.play('coinSound2.wav');
+      ref.read(soloudPlayProvider).play('coinSound2.wav');
       ref.read(gameNotifierProvider.notifier).updateScore();
       ref.read(gameNotifierProvider.notifier).increaseXP();
       other.removeFromParent();

@@ -26,7 +26,7 @@ class _PowerUpDialogState extends ConsumerState<PowerUpDialog> {
   @override
   void initState() {
     super.initState();
-    _myGame = RegunGame();
+    _myGame = RegunGame(context);
     Future.delayed(const Duration(milliseconds: 100)).whenComplete(() {
       _myGame.slow();
     });

@@ -3,19 +3,23 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/enemy_3_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
+import 'package:regun/components/map/map_component.dart';
 import 'package:regun/components/movement/boost_component.dart';
 import 'package:regun/components/ui/border_component.dart';
-import 'package:regun/components/game_utils/bullet_component.dart';
+import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/game_utils/empty_component.dart';
 import 'package:regun/components/movement/game_joystick_component.dart';
 import 'package:regun/components/game_utils/player_component.dart';
+import 'package:regun/components/weapons/mine_component.dart';
+import 'package:regun/components/weapons/reload_component.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
@@ -24,10 +28,16 @@ class RegunGame extends FlameGame
   late final MovementJoystickComponent movementJoystick;
   late final WeaponJoystickComponent weaponJoystick;
   late final BoostButtonComponent boostButtonComponent;
+  late final ReloadButtonComponent reloadButtonComponent;
   late GameState gameState;
   late GameNotifier gameNotifier;
+  double bulletFireRate = 0.35;
+  BuildContext context;
+  late Size screenSize;
+  late Vector2 centerOfScreen;
+  late final MapComponent map;
 
-  RegunGame()
+  RegunGame(this.context)
       : super(
           camera: CameraComponent.withFixedResolution(
             width: 1500,
@@ -36,22 +46,26 @@ class RegunGame extends FlameGame
         );
 
   @override
-  Color backgroundColor() => const Color(0xff000000);
+  Color backgroundColor() => const Color.fromRGBO(8, 5, 8, 1);
 
   @override
   FutureOr<void> onLoad() async {
+    map = MapComponent();
+    screenSize = MediaQuery.of(context).size;
+    centerOfScreen = Vector2(screenSize.width / 2, screenSize.height / 2);
     movementJoystick = MovementJoystickComponent();
     weaponJoystick = WeaponJoystickComponent();
     boostButtonComponent = BoostButtonComponent();
+    reloadButtonComponent = ReloadButtonComponent();
     camera.viewport.addAll([movementJoystick, weaponJoystick]);
-    await FlameAudio.audioCache.loadAll([
-      'gameov.wav',
-      'hit.wav',
-      'move.wav',
-      'shoot.wav',
-      'coinSound1.mp3',
-      'coinSound2.wav',
-    ]);
+    // await FlameAudio.audioCache.loadAll([
+    //   'gameov.wav',
+    //   'hit.wav',
+    //   'move.wav',
+    //   'shoot.wav',
+    //   'coinSound1.mp3',
+    //   'coinSound2.wav',
+    // ]);
 
     return super.onLoad();
   }
@@ -63,12 +77,24 @@ class RegunGame extends FlameGame
     gameNotifier.playGame();
     gameNotifier.addBullets();
     gameNotifier.resetHealth();
+    gameNotifier.resetWalkingSpeed();
+    gameNotifier.resetSprintTimeDistance();
+    gameNotifier.resetBulletRange();
+    gameNotifier.resetBulletNumberRange();
+    gameNotifier.resetFastReload();
+    gameNotifier.resetSprintInvincibility();
+    gameNotifier.removeSprintInvincibilityTrigger();
+    gameNotifier.resetBulletsPhaseThrough();
+    gameNotifier.resetFireRate();
+    gameNotifier.removeSprintMine();
+    gameNotifier.resetSprintMineCount();
     add(boostButtonComponent);
+    add(reloadButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
     ));
     world.add(SpawnComponent(
-      period: 0.4,
+      period: bulletFireRate,
       selfPositioning: true,
       factory: (amount) {
         spawnShotgunBullets();
@@ -85,7 +111,7 @@ class RegunGame extends FlameGame
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
         ),
       ),
     );
@@ -98,21 +124,35 @@ class RegunGame extends FlameGame
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
+        ),
+      ),
+    );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return Enemy3Component();
+        },
+        period: 3,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 2.93, size.x * 2.93),
         ),
       ),
     );
     world.add(BorderComponent(size: size * 3));
+    world.add(MapComponent()..position = Vector2(-2256, -2256));
     world.add(
       SpawnComponent(
         factory: (index) {
           return CoinComponent(position: randomVector2());
         },
-        period: 1,
+        period: 0.5,
         within: true,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
         ),
       ),
     );
@@ -130,10 +170,14 @@ class RegunGame extends FlameGame
     if (baseDirection.isZero()) {
       return;
     }
-    FlameAudio.play('shoot.wav');
+    // FlameAudio.play('shoot.wav');
+    // soloudPlay.play('shoot.wav');
+    ref.read(soloudPlayProvider).play('shoot.wav');
 
-    const spreadAngle = pi / 16;
-    for (int i = -2; i <= 2; i++) {
+    const spreadAngle = pi / 20;
+    for (int i = -(ref.read(gameNotifierProvider).bulletNumberRange);
+        i <= ref.read(gameNotifierProvider).bulletNumberRange;
+        i++) {
       final angle = i * spreadAngle;
       final direction = baseDirection.clone()..rotate(angle);
       final bulletAngle = -direction.angleToSigned(Vector2(1, 0));
@@ -159,7 +203,7 @@ class RegunGame extends FlameGame
 
   @override
   void update(double dt) {
-    // camera.viewfinder.zoom = 0.2;
+    // camera.viewfinder.zoom = 0.05;
     camera.viewfinder.position = myPlayer.position;
 
     // boostButtonComponent.onPressed;
@@ -180,7 +224,6 @@ class RegunGame extends FlameGame
   }
 
   void removeCoinsAndEnemies() {
-    print('triggered');
     for (var element in world.children) {
       if (
           // element is EnemyComponent ||
@@ -204,12 +247,21 @@ class RegunGame extends FlameGame
   void pauseGame() {
     // (decorator as PaintDecorator).addBlur(8);
     pauseEngine();
-    ref.read(gameNotifierProvider.notifier).pauseGame();
+    gameNotifier.pauseGame();
   }
 
   void resumeGame() {
     // (decorator as PaintDecorator).addBlur(0);
     resumeEngine();
-    ref.read(gameNotifierProvider.notifier).playGame();
+    gameNotifier.playGame();
+  }
+
+  //! add mine
+  void addMine() {
+    world.add(
+      MineComponent(
+        position: myPlayer.position.clone(),
+      ),
+    );
   }
 }
