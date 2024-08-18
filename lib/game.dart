@@ -5,7 +5,9 @@ import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_3_component.dart';
+import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/map/map_component.dart';
 import 'package:regun/components/movement/boost_component.dart';
@@ -100,42 +102,42 @@ class RegunGame extends FlameGame
       },
       autoStart: true,
     ));
-    // world.add(
-    //   SpawnComponent(
-    //     factory: (index) {
-    //       return EnemyComponent();
-    //     },
-    //     period: 0.7,
-    //     within: false,
-    //     area: Rectangle.fromCenter(
-    //       center: myPlayer.position,
-    //       size: Vector2(size.x * 2.9, size.x * 2.9),
-    //     ),
-    //   ),
-    // );
-    // world.add(
-    //   SpawnComponent(
-    //     factory: (index) {
-    //       return Enemy2Component();
-    //     },
-    //     period: 1.5,
-    //     within: false,
-    //     area: Rectangle.fromCenter(
-    //       center: myPlayer.position,
-    //       size: Vector2(size.x * 2.9, size.x * 2.9),
-    //     ),
-    //   ),
-    // );
     world.add(
       SpawnComponent(
         factory: (index) {
-          return Enemy3Component();
+          return EnemyComponent();
+        },
+        period: 0.7,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 2.93, size.x * 2.93),
+        ),
+      ),
+    );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return Enemy2Component();
         },
         period: 1.5,
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 2.9, size.x * 2.9),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
+        ),
+      ),
+    );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return Enemy3Component();
+        },
+        period: 3,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 2.93, size.x * 2.93),
         ),
       ),
     );
@@ -150,7 +152,7 @@ class RegunGame extends FlameGame
         within: true,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 2.9, size.x * 2.9),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
         ),
       ),
     );
