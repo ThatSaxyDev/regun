@@ -11,17 +11,16 @@ import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/utils/soloud_play.dart';
 
-class ShrapnelComponent extends PositionComponent
+class Enemy3Projectile extends PositionComponent
     with
         HasGameReference<RegunGame>,
         CollisionCallbacks,
         RiverpodComponentMixin {
-  ShrapnelComponent({
+  Enemy3Projectile({
     super.position,
     this.bulletRadius = 7,
-    this.maxTravelDistance = 300,
-    required this.direction,
-    this.speed = 700,
+    this.maxTravelDistance = 900,
+    this.speed = 300,
     this.startPosition,
     super.angle,
   }) : super(
@@ -32,19 +31,15 @@ class ShrapnelComponent extends PositionComponent
   }
 
   final double bulletRadius;
-  final Vector2 direction;
   final double speed;
   final double maxTravelDistance;
   Vector2? startPosition;
   static final _paint = Paint()..color = Colors.red;
   late Sprite _bulletSprite;
-  bool hasSpread = false;
-  final _velocity = Vector2.zero();
-  final _gravity = 60;
+  final Vector2 _velocity = Vector2.zero();
 
   @override
   Future<void> onLoad() async {
-    // debugMode = true;
     await super.onLoad();
     _bulletSprite = await Sprite.load('bulletR.png');
     add(
@@ -52,16 +47,17 @@ class ShrapnelComponent extends PositionComponent
         collisionType: CollisionType.active,
       ),
     );
+
+    //! set the direction towards the player's current position
+    final playerPosition = game.myPlayer.position;
+    final direction = (playerPosition - position).normalized();
+
+    //! set the velocity based on the direction and speed
+    _velocity.setFrom(direction * speed);
   }
 
   @override
   void render(Canvas canvas) {
-    // _bulletSprite.render(
-    //   canvas,
-    //   position: size / 2,
-    //   size: size,
-    //   anchor: Anchor.center,
-    // );
     canvas.drawCircle(
       (size / 2).toOffset(),
       bulletRadius,
@@ -71,10 +67,12 @@ class ShrapnelComponent extends PositionComponent
 
   @override
   void update(double dt) {
-    //
     super.update(dt);
-    position += direction * 1000 * dt;
 
+    //! update position based on the velocity
+    position += _velocity * dt;
+
+    //! remove the projectile if it has traveled beyond the max distance
     if ((position - startPosition!).length > maxTravelDistance) {
       removeFromParent();
     }
@@ -85,11 +83,9 @@ class ShrapnelComponent extends PositionComponent
     super.onCollision(intersectionPoints, other);
 
     if (other is EnemyComponent) {
-      // FlameAudio.play('hit.wav');
       ref.read(soloudPlayProvider).play('hit.wav');
-      // ref.read(gameNotifierProvider.notifier).updateScore();
       other.showDeathSplashEffect();
-      if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
+      if (!ref.read(gameNotifierProvider).bulletsPhaseThrough) {
         removeFromParent();
       }
 
@@ -97,11 +93,8 @@ class ShrapnelComponent extends PositionComponent
     } else if (other is BorderComponent) {
       removeFromParent();
     } else if (other is Enemy2Component) {
-      // FlameAudio.play('hit.wav');
       ref.read(soloudPlayProvider).play('hit.wav');
-      // ref.read(gameNotifierProvider.notifier).updateScore();
 
-      // stop enemy movement
       other.isDying = true;
       other.isAttacking = false;
       other.animation = switch (game.myPlayer.position.x > other.position.x) {
@@ -109,12 +102,11 @@ class ShrapnelComponent extends PositionComponent
         false => other.deathLeftAnimation,
       };
 
-      // delay the removal to allow the death animation to play
       Future.delayed(const Duration(milliseconds: 500), () {
         other.removeFromParent();
       });
 
-      if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
+      if (!ref.read(gameNotifierProvider).bulletsPhaseThrough) {
         removeFromParent();
       }
     }

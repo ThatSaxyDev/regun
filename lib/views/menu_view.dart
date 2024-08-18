@@ -15,6 +15,7 @@ class MenuView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(20, 19, 23, 1),
+      // backgroundColor: const Color.fromRGBO(32, 22, 32, 1),
       body: SizedBox(
         height: height(context),
         width: width(context),

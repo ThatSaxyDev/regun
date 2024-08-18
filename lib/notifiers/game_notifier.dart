@@ -2,6 +2,7 @@
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(() {
   return GameNotifier();
@@ -73,6 +74,7 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(reloading: true);
 
     // FlameAudio.play('reloadSound.mp3');
+    ref.read(soloudPlayProvider).play('reloadSound.mp3');
 
     await Future.delayed(Duration(milliseconds: state.fastReloadTime));
 
@@ -108,6 +110,7 @@ class GameNotifier extends Notifier<GameState> {
 
     for (int i = 0; i < missingBullets; i++) {
       // FlameAudio.play('reloadSound.mp3');
+      ref.read(soloudPlayProvider).play('reloadSound.mp3');
       await Future.delayed(const Duration(milliseconds: 700));
     }
   }
@@ -274,6 +277,26 @@ class GameNotifier extends Notifier<GameState> {
   void removeSprintMine() {
     state = state.copyWith(triggerSprintMine: false);
   }
+
+  void decreaseSprintMineCount() {
+    state = state.copyWith(
+        sprintMineCount: switch (state.sprintMineCount) {
+      > 0 => state.sprintMineCount - 1,
+      _ => 0,
+    });
+  }
+
+  void increaseSprintMineCount() {
+    state = state.copyWith(
+        sprintMineCount: switch (state.sprintMineCount) {
+      < 3 => state.sprintMineCount + 1,
+      _ => 3,
+    });
+  }
+
+  void resetSprintMineCount() {
+    state = state.copyWith(sprintMineCount: 3);
+  }
 }
 
 class GameState {
@@ -297,6 +320,7 @@ class GameState {
   bool bulletsPhaseThrough;
   double bulletSpeed;
   bool triggerSprintMine;
+  int sprintMineCount;
 
   GameState({
     this.score = 0,
@@ -319,6 +343,7 @@ class GameState {
     this.bulletsPhaseThrough = false,
     this.bulletSpeed = 700,
     this.triggerSprintMine = false,
+    this.sprintMineCount = 3,
   });
 
   GameState copyWith({
@@ -342,6 +367,7 @@ class GameState {
     bool? bulletsPhaseThrough,
     double? bulletSpeed,
     bool? triggerSprintMine,
+    int? sprintMineCount,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -365,6 +391,7 @@ class GameState {
       bulletsPhaseThrough: bulletsPhaseThrough ?? this.bulletsPhaseThrough,
       bulletSpeed: bulletSpeed ?? this.bulletSpeed,
       triggerSprintMine: triggerSprintMine ?? this.triggerSprintMine,
+      sprintMineCount: sprintMineCount ?? this.sprintMineCount,
     );
   }
 }
@@ -394,7 +421,7 @@ enum PowerUp {
 }
 
 List<PowerUp> powerUps = [
-  PowerUp.sprintMine,
+  // PowerUp.sprintMine,
   PowerUp.sprintInvincibility,
   PowerUp.fastReload,
   PowerUp.numberOfBulletsPerShotIncrease,

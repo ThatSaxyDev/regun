@@ -7,7 +7,6 @@ import 'package:flame/sprite.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/game_utils/empty_component.dart';
-import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/weapons/shrapnel_component.dart';
@@ -115,6 +114,10 @@ class MineComponent extends SpriteAnimationComponent
     super.onCollision(intersectionPoints, other);
 
     if (other is EnemyComponent) {
+      Future(() {
+        ref.read(gameNotifierProvider.notifier).increaseSprintMineCount();
+      });
+
       animation = mineExplodeAnimation;
       // FlameAudio.play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
@@ -158,6 +161,7 @@ class MineComponent extends SpriteAnimationComponent
       });
 
       Future.delayed(const Duration(milliseconds: 500), () {
+        // ref.read(gameNotifierProvider.notifier).increaseSprintMineCount();
         removeFromParent();
       });
       // parent!.add(ShrapnelComponent(

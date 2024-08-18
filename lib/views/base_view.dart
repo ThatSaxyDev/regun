@@ -95,6 +95,19 @@ class _BaseViewState extends State<BaseView> {
                                     builder: (context, ref, child) {
                                       return Row(
                                         children: [
+                                          if (gameState.triggerSprintMine ==
+                                              true)
+                                            Text(
+                                              'Mines left: ${gameState.sprintMineCount}',
+                                              style: const TextStyle(
+                                                fontFamily: FontFam.orbitron,
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ).fadeInFromTop(delay: 0.ms),
+                                          const SizedBox(
+                                            width: 20,
+                                          ),
                                           Image.asset(
                                             'assets/images/heart.png',
                                             height: 30,
@@ -143,12 +156,9 @@ class _BaseViewState extends State<BaseView> {
                           ),
                           const Spacer(),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const SizedBox(
-                                width: 30,
-                              ),
                               gameState.reloading == true
                                   ? switch (gameState.fastReload) {
                                       true =>
@@ -213,26 +223,6 @@ class _BaseViewState extends State<BaseView> {
                                           ),
                                       },
                                     ),
-
-                              //! reload
-                              Column(
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      ref
-                                          .read(gameNotifierProvider.notifier)
-                                          .reloadBullets();
-                                    },
-                                    icon: const Icon(
-                                      PhosphorIconsBold.repeat,
-                                      size: 40,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  )
-                                ],
-                              ),
                             ],
                           ),
                         ],
@@ -469,9 +459,9 @@ class _BaseViewState extends State<BaseView> {
                                       gameNotifier.rapidFire();
                                       break;
 
-                                    case PowerUp.sprintMine:
-                                      gameNotifier.sprintMine();
-                                      break;
+                                    // case PowerUp.sprintMine:
+                                    //   gameNotifier.sprintMine();
+                                    //   break;
                                     default:
                                       {}
                                   }

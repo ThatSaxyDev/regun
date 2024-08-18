@@ -6,8 +6,10 @@ import 'package:flame/game.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/enemy_3_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
+import 'package:regun/components/map/map_component.dart';
 import 'package:regun/components/movement/boost_component.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
@@ -15,7 +17,9 @@ import 'package:regun/components/game_utils/empty_component.dart';
 import 'package:regun/components/movement/game_joystick_component.dart';
 import 'package:regun/components/game_utils/player_component.dart';
 import 'package:regun/components/weapons/mine_component.dart';
+import 'package:regun/components/weapons/reload_component.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
@@ -24,12 +28,14 @@ class RegunGame extends FlameGame
   late final MovementJoystickComponent movementJoystick;
   late final WeaponJoystickComponent weaponJoystick;
   late final BoostButtonComponent boostButtonComponent;
+  late final ReloadButtonComponent reloadButtonComponent;
   late GameState gameState;
   late GameNotifier gameNotifier;
   double bulletFireRate = 0.35;
   BuildContext context;
   late Size screenSize;
   late Vector2 centerOfScreen;
+  late final MapComponent map;
 
   RegunGame(this.context)
       : super(
@@ -40,15 +46,17 @@ class RegunGame extends FlameGame
         );
 
   @override
-  Color backgroundColor() => const Color(0xff000000);
+  Color backgroundColor() => const Color.fromRGBO(8, 5, 8, 1);
 
   @override
   FutureOr<void> onLoad() async {
+    map = MapComponent();
     screenSize = MediaQuery.of(context).size;
     centerOfScreen = Vector2(screenSize.width / 2, screenSize.height / 2);
     movementJoystick = MovementJoystickComponent();
     weaponJoystick = WeaponJoystickComponent();
     boostButtonComponent = BoostButtonComponent();
+    reloadButtonComponent = ReloadButtonComponent();
     camera.viewport.addAll([movementJoystick, weaponJoystick]);
     // await FlameAudio.audioCache.loadAll([
     //   'gameov.wav',
@@ -79,7 +87,9 @@ class RegunGame extends FlameGame
     gameNotifier.resetBulletsPhaseThrough();
     gameNotifier.resetFireRate();
     gameNotifier.removeSprintMine();
+    gameNotifier.resetSprintMineCount();
     add(boostButtonComponent);
+    add(reloadButtonComponent);
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
     ));
@@ -101,7 +111,7 @@ class RegunGame extends FlameGame
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
         ),
       ),
     );
@@ -114,11 +124,25 @@ class RegunGame extends FlameGame
         within: false,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
+        ),
+      ),
+    );
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return Enemy3Component();
+        },
+        period: 3,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: myPlayer.position,
+          size: Vector2(size.x * 2.93, size.x * 2.93),
         ),
       ),
     );
     world.add(BorderComponent(size: size * 3));
+    world.add(MapComponent()..position = Vector2(-2256, -2256));
     world.add(
       SpawnComponent(
         factory: (index) {
@@ -128,7 +152,7 @@ class RegunGame extends FlameGame
         within: true,
         area: Rectangle.fromCenter(
           center: myPlayer.position,
-          size: Vector2(size.x * 3, size.x * 3),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
         ),
       ),
     );
@@ -147,6 +171,8 @@ class RegunGame extends FlameGame
       return;
     }
     // FlameAudio.play('shoot.wav');
+    // soloudPlay.play('shoot.wav');
+    ref.read(soloudPlayProvider).play('shoot.wav');
 
     const spreadAngle = pi / 20;
     for (int i = -(ref.read(gameNotifierProvider).bulletNumberRange);
@@ -177,7 +203,7 @@ class RegunGame extends FlameGame
 
   @override
   void update(double dt) {
-    // camera.viewfinder.zoom = 0.2;
+    // camera.viewfinder.zoom = 0.05;
     camera.viewfinder.position = myPlayer.position;
 
     // boostButtonComponent.onPressed;
@@ -221,13 +247,13 @@ class RegunGame extends FlameGame
   void pauseGame() {
     // (decorator as PaintDecorator).addBlur(8);
     pauseEngine();
-    ref.read(gameNotifierProvider.notifier).pauseGame();
+    gameNotifier.pauseGame();
   }
 
   void resumeGame() {
     // (decorator as PaintDecorator).addBlur(0);
     resumeEngine();
-    ref.read(gameNotifierProvider.notifier).playGame();
+    gameNotifier.playGame();
   }
 
   //! add mine

@@ -4,11 +4,14 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/enemies/enemy_3_component.dart';
+import 'package:regun/components/enemies/enemy_3_projectile.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/utils/soloud_play.dart';
 
 class BulletComponent extends PositionComponent
     with
@@ -85,6 +88,7 @@ class BulletComponent extends PositionComponent
 
     if (other is EnemyComponent) {
       // FlameAudio.play('hit.wav');
+      ref.read(soloudPlayProvider).play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
       other.showDeathSplashEffect();
       if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
@@ -96,6 +100,7 @@ class BulletComponent extends PositionComponent
       removeFromParent();
     } else if (other is Enemy2Component) {
       // FlameAudio.play('hit.wav');
+      ref.read(soloudPlayProvider).play('hit.wav');
       // ref.read(gameNotifierProvider.notifier).updateScore();
 
       // stop enemy movement
@@ -114,6 +119,30 @@ class BulletComponent extends PositionComponent
       if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
         removeFromParent();
       }
+    } else if (other is Enemy3Component) {
+      // FlameAudio.play('hit.wav');
+      ref.read(soloudPlayProvider).play('hit.wav');
+      // ref.read(gameNotifierProvider.notifier).updateScore();
+
+      // stop enemy movement
+      other.isDying = true;
+      other.isAttacking = false;
+      other.animation = switch (game.myPlayer.position.x > other.position.x) {
+        true => other.deathRightAnimation,
+        false => other.deathLeftAnimation,
+      };
+
+      // delay the removal to allow the death animation to play
+      Future.delayed(const Duration(milliseconds: 500), () {
+        other.removeFromParent();
+      });
+
+      if (ref.read(gameNotifierProvider).bulletsPhaseThrough == false) {
+        removeFromParent();
+      }
+    } else if (other is Enemy3Projectile) {
+      removeFromParent();
+      other.removeFromParent();
     }
   }
 }
