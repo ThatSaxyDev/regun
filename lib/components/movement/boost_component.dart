@@ -36,7 +36,7 @@ class BoostButtonComponent extends AdvancedButtonComponent
     //   game.addMine();
     //   ref.read(gameNotifierProvider.notifier).decreaseSprintMineCount();
     // }
-    ref.read(soloudPlayProvider).play('click.mp3');
+    // ref.read(soloudPlayProvider).play('click.mp3');
 
     tapped = true;
     if (ref.read(gameNotifierProvider).sprintInvincibility == true) {

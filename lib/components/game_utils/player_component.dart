@@ -7,6 +7,7 @@ import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/enemies/enemy_3_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
@@ -200,6 +201,7 @@ class PlayerComponent extends SpriteAnimationComponent
     return components
         .where((component) =>
             component is! BulletComponent &&
+            component is! Enemy3Component &&
             component is! Enemy2Component &&
             component is! EnemyComponent &&
             component is! MineComponent &&
@@ -219,7 +221,7 @@ class PlayerComponent extends SpriteAnimationComponent
 
   @override
   void onCollisionStart(
-      Set<Vector2> intersectionPoints, PositionComponent other) {
+      Set<Vector2> intersectionPoints, PositionComponent other) async {
     super.onCollisionStart(intersectionPoints, other);
     if (other is BorderComponent) {
       transform.setFrom(_lastTransform);

@@ -10,12 +10,12 @@ import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/utils/soloud_play.dart';
 
-class Enemy2Component extends SpriteAnimationComponent
+class Enemy3Component extends SpriteAnimationComponent
     with
         HasGameReference<RegunGame>,
         CollisionCallbacks,
         RiverpodComponentMixin {
-  Enemy2Component({super.position})
+  Enemy3Component({super.position})
       : super(
           size: Vector2.all(enemySize),
           anchor: Anchor.center,
@@ -41,35 +41,35 @@ class Enemy2Component extends SpriteAnimationComponent
     await super.onLoad();
     // debugMode = true;
     final moveLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_walk.png'),
+      image: await game.images.load('Deceased_walk.png'),
       srcSize: Vector2(48, 48),
     );
     final moveRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_walk_right.png'),
+      image: await game.images.load('Deceased_walk_right.png'),
       srcSize: Vector2(48, 48),
     );
     final attackLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_attack.png'),
+      image: await game.images.load('Deceased_attack.png'),
       srcSize: Vector2(48, 48),
     );
     final attackRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_attack_right.png'),
+      image: await game.images.load('Deceased_attack_right.png'),
       srcSize: Vector2(48, 48),
     );
     final deathLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_death.png'),
+      image: await game.images.load('Deceased_death.png'),
       srcSize: Vector2(48, 48),
     );
     final deathRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_death_right.png'),
+      image: await game.images.load('Deceased_death_right.png'),
       srcSize: Vector2(48, 48),
     );
     final hurtLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_hurt.png'),
+      image: await game.images.load('Deceased_hurt.png'),
       srcSize: Vector2(48, 48),
     );
     final hurtRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_hurt_right.png'),
+      image: await game.images.load('Deceased_hurt_right.png'),
       srcSize: Vector2(48, 48),
     );
     moveLeftAnimation = moveLeftSpriteSheet.createAnimation(
@@ -115,9 +115,9 @@ class Enemy2Component extends SpriteAnimationComponent
 
     animation = moveLeftAnimation;
     add(
-      CircleHitbox(
-        radius: 40,
-        anchor: const Anchor(-0.15, -0.3),
+      RectangleHitbox(
+        size: Vector2(40, 70),
+        anchor: const Anchor(-0.3, -0.4),
         collisionType: CollisionType.passive,
       ),
     );

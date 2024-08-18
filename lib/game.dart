@@ -6,6 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/enemy_3_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/map/map_component.dart';
@@ -101,23 +102,36 @@ class RegunGame extends FlameGame
       },
       autoStart: true,
     ));
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return EnemyComponent();
+    //     },
+    //     period: 0.7,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 2.9, size.x * 2.9),
+    //     ),
+    //   ),
+    // );
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return Enemy2Component();
+    //     },
+    //     period: 1.5,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 2.9, size.x * 2.9),
+    //     ),
+    //   ),
+    // );
     world.add(
       SpawnComponent(
         factory: (index) {
-          return EnemyComponent();
-        },
-        period: 0.7,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: myPlayer.position,
-          size: Vector2(size.x * 2.9, size.x * 2.9),
-        ),
-      ),
-    );
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return Enemy2Component();
+          return Enemy3Component();
         },
         period: 1.5,
         within: false,
@@ -233,13 +247,13 @@ class RegunGame extends FlameGame
   void pauseGame() {
     // (decorator as PaintDecorator).addBlur(8);
     pauseEngine();
-    ref.read(gameNotifierProvider.notifier).pauseGame();
+    gameNotifier.pauseGame();
   }
 
   void resumeGame() {
     // (decorator as PaintDecorator).addBlur(0);
     resumeEngine();
-    ref.read(gameNotifierProvider.notifier).playGame();
+    gameNotifier.playGame();
   }
 
   //! add mine
