@@ -8,6 +8,7 @@ import 'package:flame/sprite.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/enemy_3_component.dart';
+import 'package:regun/components/enemies/enemy_3_projectile.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
@@ -202,6 +203,7 @@ class PlayerComponent extends SpriteAnimationComponent
         .where((component) =>
             component is! BulletComponent &&
             component is! Enemy3Component &&
+            component is! Enemy3Projectile &&
             component is! Enemy2Component &&
             component is! EnemyComponent &&
             component is! MineComponent &&
@@ -230,6 +232,16 @@ class PlayerComponent extends SpriteAnimationComponent
       if (ref.read(gameNotifierProvider).triggerSprintInvincibility == false) {
         ref.read(gameNotifierProvider.notifier).reduceHealth();
         other.showDeathSplashEffect();
+        other.removeFromParent();
+        // FlameAudio.play('gameov.wav');
+        ref.read(soloudPlayProvider).play('gameov.wav');
+        if (ref.read(gameNotifierProvider).health == 0) {
+          game.gameOver();
+        }
+      }
+    } else if (other is Enemy3Projectile) {
+      if (!game.boostButtonComponent.tapped) {
+        ref.read(gameNotifierProvider.notifier).reduceHealth();
         other.removeFromParent();
         // FlameAudio.play('gameov.wav');
         ref.read(soloudPlayProvider).play('gameov.wav');

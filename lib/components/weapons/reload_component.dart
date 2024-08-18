@@ -5,7 +5,6 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:regun/components/movement/boost_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
-import 'package:regun/utils/soloud_play.dart';
 
 class ReloadButtonComponent extends ButtonComponent
     with HasGameReference<RegunGame>, RiverpodComponentMixin {

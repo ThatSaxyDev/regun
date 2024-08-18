@@ -6,8 +6,8 @@ import 'package:flame/particles.dart';
 import 'package:flame/sprite.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/components/enemies/enemy_3_projectile.dart';
 import 'package:regun/game.dart';
-import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/utils/soloud_play.dart';
 
 class Enemy3Component extends SpriteAnimationComponent
@@ -33,8 +33,8 @@ class Enemy3Component extends SpriteAnimationComponent
   bool isAttacking = false;
   bool isDying = false;
   int health = 2;
-  double attackInterval = 0.6; // Time between health reductions in seconds
-  double timeSinceLastAttack = 0.0; // Timer to track the interval
+  double attackInterval = 2; // Time between attacks
+  double timeSinceLastAttack = 1.9; // Timer to track the interval
 
   @override
   Future<void> onLoad() async {
@@ -85,12 +85,12 @@ class Enemy3Component extends SpriteAnimationComponent
     attackLeftAnimation = attackLeftSpriteSheet.createAnimation(
       row: 0,
       stepTime: 0.1,
-      to: 6,
+      to: 4,
     );
     attackRightAnimation = attackRightSpriteSheet.createAnimation(
       row: 0,
       stepTime: 0.1,
-      to: 6,
+      to: 4,
     );
     deathLeftAnimation = deathLeftSpriteSheet.createAnimation(
       row: 0,
@@ -105,12 +105,12 @@ class Enemy3Component extends SpriteAnimationComponent
     hurtLeftAnimation = hurtLeftSpriteSheet.createAnimation(
       row: 0,
       stepTime: 0.1,
-      to: 6,
+      to: 2,
     );
     hurtRightAnimation = hurtRightSpriteSheet.createAnimation(
       row: 0,
       stepTime: 0.1,
-      to: 6,
+      to: 2,
     );
 
     animation = moveLeftAnimation;
@@ -147,13 +147,13 @@ class Enemy3Component extends SpriteAnimationComponent
     final distanceToPlayer = (playerPosition - position).length;
 
     //! DEFINE A MINIMUM DISTANCE TO STOP BEFORE TOUCHING THE PLAYER
-    const minimumDistance = 40.0; // Adjust this value as needed
+    const minimumDistance = 350;
 
     //! MOVE ENEMY TOWARDS PLAYER IF IT'S FARTHER THAN THE MINIMUM DISTANCE
     if (distanceToPlayer > minimumDistance) {
       isAttacking = false;
-      timeSinceLastAttack = 0.0; // Reset the attack timer
-      const speed = 90;
+      timeSinceLastAttack = 1.9; // Reset the attack timer
+      const speed = 80;
       position += direction * (speed * dt);
 
       // Set move animation if not attacking
@@ -169,12 +169,10 @@ class Enemy3Component extends SpriteAnimationComponent
       timeSinceLastAttack += dt;
       if (timeSinceLastAttack >= attackInterval) {
         timeSinceLastAttack = 0.0;
-        ref.read(gameNotifierProvider.notifier).reduceHealth();
-        // FlameAudio.play('gameov.wav');
-        ref.read(soloudPlayProvider).play('gameov.wav');
-        if (ref.read(gameNotifierProvider).health == 0) {
-          game.gameOver();
-        }
+        ref.read(soloudPlayProvider).play('enemy3projectile.wav');
+        game.world.add(Enemy3Projectile(
+          position: position,
+        ));
       }
 
       // Set attack animation
