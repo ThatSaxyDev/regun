@@ -2,6 +2,7 @@
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:regun/utils/soloud_play.dart';
 
 final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(() {
@@ -143,12 +144,17 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(xP: 0);
   }
 
-  void upgradeLevel() {
+  void upgradeLevel() async {
     state = state.copyWith(
+      triggerEnemySpawn: true,
       xP: 0,
       currentLevel: state.currentLevel + 1,
       noOfCoinsToUpgrade: state.noOfCoinsToUpgrade * 1.2,
     );
+
+    await Future.delayed(const Duration(milliseconds: 20)).whenComplete(() {
+      state = state.copyWith(triggerEnemySpawn: false);
+    });
   }
 
   //! POWER UPS
@@ -321,6 +327,7 @@ class GameState {
   double bulletSpeed;
   bool triggerSprintMine;
   int sprintMineCount;
+  bool triggerEnemySpawn;
 
   GameState({
     this.score = 0,
@@ -344,6 +351,7 @@ class GameState {
     this.bulletSpeed = 700,
     this.triggerSprintMine = false,
     this.sprintMineCount = 3,
+    this.triggerEnemySpawn = false,
   });
 
   GameState copyWith({
@@ -368,6 +376,7 @@ class GameState {
     double? bulletSpeed,
     bool? triggerSprintMine,
     int? sprintMineCount,
+    bool? triggerEnemySpawn,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -392,6 +401,7 @@ class GameState {
       bulletSpeed: bulletSpeed ?? this.bulletSpeed,
       triggerSprintMine: triggerSprintMine ?? this.triggerSprintMine,
       sprintMineCount: sprintMineCount ?? this.sprintMineCount,
+      triggerEnemySpawn: triggerEnemySpawn ?? this.triggerEnemySpawn,
     );
   }
 }

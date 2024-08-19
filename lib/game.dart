@@ -102,6 +102,7 @@ class RegunGame extends FlameGame
       },
       autoStart: true,
     ));
+
     world.add(
       SpawnComponent(
         factory: (index) {
@@ -110,37 +111,41 @@ class RegunGame extends FlameGame
         period: 0.7,
         within: false,
         area: Rectangle.fromCenter(
-          center: myPlayer.position,
+          center: Vector2.zero(),
           size: Vector2(size.x * 2.93, size.x * 2.93),
         ),
       ),
     );
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return Enemy2Component();
-        },
-        period: 1.5,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: myPlayer.position,
-          size: Vector2(size.x * 2.93, size.x * 2.93),
-        ),
-      ),
-    );
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return Enemy3Component();
-        },
-        period: 3,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: myPlayer.position,
-          size: Vector2(size.x * 2.93, size.x * 2.93),
-        ),
-      ),
-    );
+
+    // Future.delayed(Duration(seconds: 5)).whenComplete(() {
+
+    // });
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return Enemy2Component();
+    //     },
+    //     period: 1.5,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 2.93, size.x * 2.93),
+    //     ),
+    //   ),
+    // );
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return Enemy3Component();
+    //     },
+    //     period: 3,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: myPlayer.position,
+    //       size: Vector2(size.x * 2.93, size.x * 2.93),
+    //     ),
+    //   ),
+    // );
     world.add(BorderComponent(size: size * 3));
     world.add(MapComponent()..position = Vector2(-2256, -2256));
     world.add(
@@ -261,6 +266,42 @@ class RegunGame extends FlameGame
     world.add(
       MineComponent(
         position: myPlayer.position.clone(),
+      ),
+    );
+  }
+
+  //! add enemy 2
+  void addEnemy2Component() {
+    debugPrint('enemy 2 added');
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return Enemy2Component();
+        },
+        period: 1.5,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: Vector2.zero(),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
+        ),
+      ),
+    );
+  }
+
+  //! add enemy 3
+  void addEnemy3Component() {
+    debugPrint('enemy 3 added');
+    world.add(
+      SpawnComponent(
+        factory: (index) {
+          return Enemy3Component();
+        },
+        period: 3,
+        within: false,
+        area: Rectangle.fromCenter(
+          center: Vector2.zero(),
+          size: Vector2(size.x * 2.93, size.x * 2.93),
+        ),
       ),
     );
   }

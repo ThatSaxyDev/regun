@@ -254,6 +254,14 @@ class PlayerComponent extends SpriteAnimationComponent
       ref.read(soloudPlayProvider).play('coinSound2.wav');
       ref.read(gameNotifierProvider.notifier).updateScore();
       ref.read(gameNotifierProvider.notifier).increaseXP();
+      if (ref.read(gameNotifierProvider).currentLevel == 3 &&
+          ref.read(gameNotifierProvider).triggerEnemySpawn == true) {
+        game.addEnemy2Component();
+      }
+      if (ref.read(gameNotifierProvider).currentLevel == 5 &&
+          ref.read(gameNotifierProvider).triggerEnemySpawn == true) {
+        game.addEnemy3Component();
+      }
       other.removeFromParent();
     }
   }
