@@ -9,6 +9,7 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/enemy_3_component.dart';
 import 'package:regun/components/enemies/enemy_3_projectile.dart';
+import 'package:regun/components/enemies/shadow_boss_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/ui/border_component.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
@@ -208,6 +209,7 @@ class PlayerComponent extends SpriteAnimationComponent
             component is! EnemyComponent &&
             component is! MineComponent &&
             component is! ShrapnelComponent &&
+            component is! ShadowBossComponent &&
             component is! CoinComponent)
         .toSet();
   }

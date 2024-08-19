@@ -7,7 +7,7 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_3_component.dart';
-import 'package:regun/components/enemies/enemy_component.dart';
+import 'package:regun/components/enemies/shadow_boss_component.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/components/map/map_component.dart';
 import 'package:regun/components/movement/boost_component.dart';
@@ -93,6 +93,9 @@ class RegunGame extends FlameGame
     world.add(myPlayer = PlayerComponent(
       position: Vector2.zero(),
     ));
+    world.add(ShadowBossComponent(
+      position: Vector2(-600, 0),
+    ));
     world.add(SpawnComponent(
       period: bulletFireRate,
       selfPositioning: true,
@@ -103,19 +106,19 @@ class RegunGame extends FlameGame
       autoStart: true,
     ));
 
-    world.add(
-      SpawnComponent(
-        factory: (index) {
-          return EnemyComponent();
-        },
-        period: 0.7,
-        within: false,
-        area: Rectangle.fromCenter(
-          center: Vector2.zero(),
-          size: Vector2(size.x * 2.93, size.x * 2.93),
-        ),
-      ),
-    );
+    // world.add(
+    //   SpawnComponent(
+    //     factory: (index) {
+    //       return EnemyComponent();
+    //     },
+    //     period: 0.7,
+    //     within: false,
+    //     area: Rectangle.fromCenter(
+    //       center: Vector2.zero(),
+    //       size: Vector2(size.x * 2.93, size.x * 2.93),
+    //     ),
+    //   ),
+    // );
 
     // Future.delayed(Duration(seconds: 5)).whenComplete(() {
 
