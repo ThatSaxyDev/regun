@@ -69,10 +69,12 @@ class _GameAppState extends State<GameApp> {
   Widget build(BuildContext context) {
     // final router = goRouter();
     return MaterialApp(
+      title: 'Regun',
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),
-      home: kDebugMode ? const BaseView() : const FlameSplashView(),
+      home: const FlameSplashView(),
+      // home: kDebugMode ? const BaseView() : const FlameSplashView(),
     );
   }
 }
