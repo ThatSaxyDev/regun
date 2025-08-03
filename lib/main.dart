@@ -7,10 +7,17 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:logging/logging.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:regun/views/flame_splash_view.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
+  // await Supabase.initialize(
+  //   url: 'https://izjbjeuciaxnfzrgslro.supabase.co',
+  //   anonKey:
+  //       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6amJqZXVjaWF4bmZ6cmdzbHJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjUzOTIxNDgsImV4cCI6MjA0MDk2ODE0OH0.TndAMEU2RIog9J62KYFmtrb02M4KUERpe_xQ3APUD1w',
+  //   realtimeClientOptions: const RealtimeClientOptions(eventsPerSecond: 70),
+  // );
   Logger.root.level = kDebugMode ? Level.FINE : Level.INFO;
   Logger.root.onRecord.listen((record) {
     dev.log(
