@@ -1,4 +1,6 @@
 import 'package:regun/widgets/menu_layout.dart';
+import 'package:regun/widgets/training_notice.dart';
+import 'package:regun/views/loadout_view.dart';
 import 'package:regun/theme/upgrade_glyph.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/widgets/pixel_icon.dart';
@@ -34,10 +36,12 @@ class BaseView extends StatefulWidget {
   const BaseView(
       {super.key,
       this.loadout = const Loadout(),
+      this.showTrainingIntro = false,
       this.resumeSnapshot,
       this.runStore});
   final RunStore? runStore;
   final Loadout loadout;
+  final bool showTrainingIntro;
   final Map<String, dynamic>? resumeSnapshot;
   @override
   State<BaseView> createState() => _BaseViewState();
@@ -49,12 +53,16 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   bool _editingControls = false;
   bool _arranging = false;
   bool _leaving = false;
+  late bool _trainingIntro;
+  bool _skippingTraining = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _trainingIntro = widget.loadout.training && widget.showTrainingIntro;
     _myGame = RegunGame(context,
+        startPaused: _trainingIntro,
         loadout: widget.loadout,
         resumeSnapshot: widget.resumeSnapshot,
         runStore: widget.runStore);
@@ -86,6 +94,16 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     _leaving = true;
     await _myGame.leaveRun();
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _skipTrainingIntro() async {
+    if (_skippingTraining) return;
+    setState(() => _skippingTraining = true);
+    await _myGame.completeTraining();
+    await _myGame.leaveRun();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoadoutView()));
   }
 
   @override
@@ -121,11 +139,13 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                               style: const TextStyle(
                                                   fontSize: 12,
                                                   color: _brass))))),
-                      if (state.gameplayState != GameplayState.gameOver)
+                      if (!_trainingIntro &&
+                          state.gameplayState != GameplayState.gameOver)
                         _hud(state),
                       if (state.gameplayState == GameplayState.powerup)
                         _upgradePicker(state),
-                      if (state.gameplayState == GameplayState.paused)
+                      if (!_trainingIntro &&
+                          state.gameplayState == GameplayState.paused)
                         _arranging
                             ? ControlArranger(
                                 layout: _myGame.controls,
@@ -139,6 +159,22 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                 : _pauseMenu(),
                       if (state.gameplayState == GameplayState.gameOver)
                         _results(state),
+                      if (_trainingIntro) ...[
+                        const ModalBarrier(
+                            dismissible: false, color: Color(0xB3100D14)),
+                        SafeArea(
+                            minimum: const EdgeInsets.all(16),
+                            child: Center(
+                                child: TrainingNotice(
+                                    ready: state.gameplayState ==
+                                            GameplayState.paused &&
+                                        !_skippingTraining,
+                                    onStart: () {
+                                      setState(() => _trainingIntro = false);
+                                      _myGame.gameNotifier.playGame();
+                                    },
+                                    onSkip: _skipTrainingIntro))),
+                      ],
                     ]);
                   }),
                 ]))),

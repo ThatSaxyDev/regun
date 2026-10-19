@@ -21,3 +21,4 @@ Use `make verify`, `make soak`, `make buildAPK`, and `make buildIOS`. Local Andr
 - [Art bible](docs/art/ART_BIBLE.md): the implemented quarantine-facility direction and asset pipeline.
 
 - [Monetization, SpacetimeDB backend and multiplayer plan](docs/REGUN_MONETIZATION_AND_BACKEND_PLAN.md): code audit, competitor/store research, product catalog, purchase architecture and implementation gates.
+- [Five-boss expansion plan](docs/REGUN_BOSS_EXPANSION_PLAN.md): distinct new encounter concepts, fair difficulty, the path toward fifteen bosses and future paired fights.

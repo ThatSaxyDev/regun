@@ -846,7 +846,8 @@ enum PowerUp {
   walkingSpeedIncrease('Fleet Foot', 'Move faster.', UpgradeGroup.utility),
   healthIncrease(
       'Vitality', 'Add a heart and recover one.', UpgradeGroup.utility),
-  fieldMedic('Field Medic', 'Kills can restore a heart.', UpgradeGroup.utility),
+  fieldMedic('Field Medic', 'Kills: 5% chance per rank to restore a heart.',
+      UpgradeGroup.utility),
   scrapArmour(
       'Scrap Armour', 'Absorb a hit; guard recharges.', UpgradeGroup.utility),
   quickstep('Quickstep', 'Dash recharges faster.', UpgradeGroup.utility),

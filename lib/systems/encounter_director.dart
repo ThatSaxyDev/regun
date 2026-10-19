@@ -11,6 +11,14 @@ class EncounterDirector {
   bool bossActive = false;
   int bossesDefeated = 0;
 
+  /// Combat population targets, independent of the emergency runtime cap.
+  /// Pressure grows through roles/elites/cycles instead of unlimited bodies.
+  int get populationLimit => min(60, 20 + elapsed ~/ 12);
+  int get visibleLimit => min(44, 18 + elapsed ~/ 20);
+
+  bool canReinforce({required int arena, required int visible}) =>
+      arena < populationLimit && visible < visibleLimit;
+
   int get cycle => elapsed ~/ 600 + 1;
   double get healthScale {
     final completed = cycle - 1;

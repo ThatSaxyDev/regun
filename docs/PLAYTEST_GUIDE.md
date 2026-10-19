@@ -6,6 +6,8 @@ This is the full functional-content test build. Art approval, difficulty/comfort
 
 ## Quick tour
 
+On your first **Play**, a **Training mode** briefing appears over the paused arena. Choose **Start training** to learn the controls or **Skip training** to go straight to your normal loadout. Skipping is remembered; Training remains available from the menu.
+
 1. Choose **Training** from the menu. Select any of the three survivors, four weapons and two arenas.
 2. Follow the five short prompts: move, shoot, dash, reload, choose an upgrade. **Skip / Ready** completes the introduction and unlocks Carbine for normal runs.
 3. Pause training to summon **Shadow, Demon or Scorpion Queen**. Each has a second phase. Training protects your health.
@@ -49,7 +51,9 @@ Use a normal run or training with several enemies alive. Run straight for a few 
 - **Bursters:** intercept your route, then stop for the marked detonation. Turn or dash away from the marked area.
 - **Nests / Sentinels:** stay as area-control threats; remove nests to stop reinforcements and leave sentinel ground marks.
 
-Moving enemies now have soft local spacing. Some crowding is intentional; they should overlap less and fan around each other without becoming a rigid wall. Check squeezing through packs, crowded corners, and movement around obstacles. Report any vibrating, stuck or excessively evasive group. Normal damage, health, speeds, spawn limits and boss phases are unchanged; the new movement and ranged cast change difficulty and need physical balance testing. No physical FPS claim is made by the automated dense-scene test.
+Check squeezing through packs, crowded corners, and movement around obstacles. Report any vibrating, stuck or excessively evasive group. The current movement and population revision below changes difficulty and needs physical balance testing. No physical FPS claim is made by the automated dense-scene test.
+
+**Current crowd revision:** living enemy bodies now reserve space and cannot move through each other. Normal pursuit can slide around a blocked body; committed lunges stop rather than bend through a neighbour. Reinforcement warnings reserve their arrival space. Ordinary enemies yield out of a boss's approach. The director counts both arena and visible populations, including pending arrivals: the arena target rises from 20 toward 60, and visible crowd thresholds from 18 toward 44 pause new arrivals. The 120-enemy limit is only an emergency ceiling. The visible threshold controls reinforcements, not an invisible barrier for existing enemies. Try tight turns, columns, near walls, nest reinforcements and bosses among mobs; report overlap, shuffling, blocked bosses or a loss of challenge. Difficulty/readability and motion comfort still need phone review.
 
 ## Menu layout check
 

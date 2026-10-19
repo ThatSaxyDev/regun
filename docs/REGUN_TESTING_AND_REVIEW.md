@@ -117,7 +117,7 @@ Training offers fusion presets, not a free editor for every arbitrary upgrade. T
 | High Velocity | Core | Faster projectiles. |
 | Fleet Foot | Utility | Move faster. |
 | Vitality | Utility | Add a heart and recover one. |
-| Field Medic | Utility | Kills can restore a heart. |
+| Field Medic | Utility | Each kill has a 5% / 10% / 15% chance by rank to restore one heart, up to maximum health. |
 | Scrap Armour | Utility | Absorb a hit; guard recharges. |
 | Quickstep | Utility | Dash recharges faster. |
 | Afterimage | Utility | Longer dash protection. |

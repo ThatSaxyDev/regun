@@ -146,6 +146,43 @@ void main() {
     expect(identical(next, state()), isTrue);
   });
 
+  for (var rank = 1; rank <= 3; rank++) {
+    test('Scrap Armour rank $rank blocks a heavy hit and recharges in play',
+        () {
+      final checkpoint = notifier.checkpoint();
+      checkpoint['state'] = state().copyWith(
+          ranks: {if (rank > 1) PowerUp.scrapArmour: rank - 1},
+          powerUpChoices: [PowerUp.scrapArmour]).toJson();
+      notifier.restoreCheckpoint(checkpoint);
+      notifier.playGame();
+      notifier.applyPowerUp(PowerUp.scrapArmour);
+      expect(state().rank(PowerUp.scrapArmour), rank);
+      expect(state().guard, isTrue);
+      notifier.advanceTime(1); // Expire the checkpoint's resume protection.
+      final health = state().health;
+      expect(notifier.reduceHealth(amount: 2, cause: 'Demon cleave'), isTrue);
+      expect(state().health, health);
+      expect(state().guard, isFalse);
+      expect(notifier.reduceHealth(), isFalse);
+      notifier.advanceTime(.499);
+      expect(notifier.reduceHealth(), isFalse);
+      notifier.advanceTime(.001);
+      expect(notifier.reduceHealth(), isTrue);
+      expect(state().health, health - 1);
+      notifier.pauseGame();
+      notifier.advanceTime(100);
+      expect(state().guard, isFalse);
+      notifier.playGame();
+      notifier.advanceTime(20 - rank * 3 - .501);
+      expect(state().guard, isFalse);
+      notifier.advanceTime(.001);
+      expect(state().guard, isTrue);
+      expect(notifier.reduceHealth(amount: 2), isTrue);
+      expect(state().health, health - 1);
+      expect(state().guard, isFalse);
+    });
+  }
+
   test('fast reload never slows down a partial shotgun reload', () {
     notifier.fastReload();
     notifier.decreaseBullets();

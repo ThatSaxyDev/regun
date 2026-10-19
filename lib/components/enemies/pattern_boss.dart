@@ -196,7 +196,7 @@ class PatternBoss extends PositionComponent
         if (_charge) {
           final before = position.clone();
           game.moveTo(
-              position,
+              this,
               _origin +
                   (_target - _origin) * (clock / activeDuration).clamp(0, 1),
               75);

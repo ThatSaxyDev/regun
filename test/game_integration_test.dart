@@ -245,13 +245,19 @@ void main() {
           peakCoins = math.max(
               peakCoins, game.world.children.whereType<CoinComponent>().length);
           expect(count, lessThanOrEqualTo(RegunGame.maxEnemies));
+          expect(game.enemyPopulation.arena,
+              lessThanOrEqualTo(game.director.populationLimit + 1),
+              reason:
+                  'Reinforcements include pending arrivals; a boss has its own slot');
           expect(peakCoins, lessThanOrEqualTo(RegunGame.maxCoins));
         }
       }
     });
     debugPrint(
         'DENSE SCENE: simulatedSeconds=180 peakEnemies=$peakEnemies peakCoins=$peakCoins retained=${game.world.children.length}');
-    expect(peakEnemies, RegunGame.maxEnemies);
+    expect(peakEnemies, greaterThanOrEqualTo(20),
+        reason: 'The scene must exercise a substantial active crowd');
+    expect(peakEnemies, lessThanOrEqualTo(game.director.populationLimit));
     expect(peakCoins, lessThanOrEqualTo(RegunGame.maxCoins));
     expect(game.world.children.whereType<EmptyComponent>(), isEmpty);
     await tester.pumpWidget(const SizedBox.shrink());

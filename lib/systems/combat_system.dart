@@ -100,7 +100,7 @@ class CombatSystem {
   void onKill(PositionComponent enemy) {
     if (enemy is! CombatEnemy) return;
     if (rank(PowerUp.fieldMedic) > 0 &&
-        game.random.nextDouble() < rank(PowerUp.fieldMedic) * 0.025) {
+        game.random.nextDouble() < rank(PowerUp.fieldMedic) * 0.05) {
       game.gameNotifier.heal();
     }
     if (enemy.burning && enemy.burnCanSpread && rank(PowerUp.accelerant) > 0) {

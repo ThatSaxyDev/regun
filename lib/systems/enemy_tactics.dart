@@ -49,13 +49,18 @@ class EnemyTactics {
           neighborChecks++;
           final delta = p - other.position;
           final distance = delta.length;
+          final low = math.min(sample.id, other.id);
+          final high = math.max(sample.id, other.id);
+          // Keep visible bodies distinct, not just their smaller hitboxes.
+          // Symmetric pair variation avoids an evenly packed formation. The
+          // maximum gap remains below the 128-unit spatial cell width.
+          final variation = .92 + ((low * 73 + high * 37) % 17) * .01;
           final gap =
-              ((actor.size.x + other.actor.size.x) * .34).clamp(42.0, 80.0);
+              ((actor.size.x + other.actor.size.x) * .52).clamp(72.0, 112.0) *
+                  variation;
           if (distance >= gap) continue;
           if (distance < .001) {
             // Deterministic, opposite forces even for exactly coincident spawns.
-            final low = math.min(sample.id, other.id);
-            final high = math.max(sample.id, other.id);
             final angle = ((low * 73 + high * 37) % 360) * math.pi / 180;
             final sign = sample.id < other.id ? 1.0 : -1.0;
             delta.setValues(math.cos(angle) * sign, math.sin(angle) * sign);
@@ -67,8 +72,23 @@ class EnemyTactics {
       }
     }
     if (repel.length > 1.6) repel.scale(1.6 / repel.length);
-    final result = desired + repel * 1.25;
+    final result = desired + repel * 1.8;
     return result.length > 1 ? result.normalized() : result;
+  }
+
+  /// Step out of a large pursuer's approach early, while there is time to yield
+  /// at normal movement speed. This never changes a committed attack direction.
+  static Vector2? yieldToBoss(
+      Vector2 position, Vector2 boss, Vector2 target, double side) {
+    final heading = target - boss;
+    if (heading.length < 1) return null;
+    heading.normalize();
+    final relative = position - boss;
+    final ahead = relative.dot(heading);
+    final tangent = Vector2(-heading.y, heading.x);
+    final lateral = relative.dot(tangent);
+    if (ahead <= 0 || ahead > 420 || lateral.abs() >= 130) return null;
+    return tangent * (lateral.abs() > 4 ? lateral.sign : side);
   }
 
   static Vector2 intent(EnemyKind kind, Vector2 position, Vector2 target,

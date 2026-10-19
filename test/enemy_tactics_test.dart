@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
@@ -7,6 +11,7 @@ import 'package:regun/views/base_view.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/components/enemies/enemy_3_component.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
+import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,6 +71,20 @@ void main() {
     for (final kind in [EnemyKind.nest, EnemyKind.sentinel]) {
       expect(intent(kind, 355, 0).isZero(), isTrue);
     }
+  });
+
+  test('ordinary enemies yield sideways before a boss reaches their body', () {
+    final boss = Vector2.zero(), target = Vector2(800, 0);
+    final upper = EnemyTactics.yieldToBoss(Vector2(350, 30), boss, target, 1)!;
+    final lower =
+        EnemyTactics.yieldToBoss(Vector2(350, -30), boss, target, -1)!;
+    expect(upper.y, 1);
+    expect(lower.y, -1);
+    expect(upper.x, 0);
+    expect(EnemyTactics.yieldToBoss(Vector2(-50, 0), boss, target, 1), isNull);
+    expect(EnemyTactics.yieldToBoss(Vector2(500, 0), boss, target, 1), isNull);
+    expect(
+        EnemyTactics.yieldToBoss(Vector2(100, 150), boss, target, 1), isNull);
   });
 
   test('overlapping spawns separate deterministically without teleporting', () {
@@ -128,8 +147,43 @@ void main() {
     tactics.clear();
     expect(tactics.spaced(scattered.first, Vector2(-1, 0)).x, -1);
   });
+  test('a sustained pursuit does not compress bodies into one dense clump', () {
+    final tactics = EnemyTactics();
+    final crowd = [
+      for (var i = 0; i < 40; i++)
+        PositionComponent(
+            position: Vector2(500 + (i % 5) * 18.0, (i ~/ 5 - 4) * 14.0),
+            size: Vector2.all(85))
+    ];
+    for (var tick = 0; tick < 1200; tick++) {
+      final target = Vector2(-tick * .65, 0);
+      tactics.rebuild(crowd);
+      for (final actor in crowd) {
+        final desired = EnemyTactics.intent(EnemyKind.scorpion, actor.position,
+            target, Vector2(-39, 0), tactics.side(actor));
+        final velocity = tactics.spaced(actor, desired);
+        expect(velocity.length, lessThanOrEqualTo(1.00001));
+        actor.position.addScaled(velocity, 1);
+      }
+    }
+    final nearest = crowd
+        .map((a) => crowd
+            .where((b) => b != a)
+            .map((b) => a.position.distanceTo(b.position))
+            .reduce((a, b) => a < b ? a : b))
+        .toList()
+      ..sort();
+    expect(nearest[nearest.length ~/ 2], greaterThan(65),
+        reason: 'Most enemy bodies should remain individually readable');
+    expect(nearest.where((gap) => gap < 45).length, lessThanOrEqualTo(4),
+        reason:
+            'Sustained chasing must not preserve a tightly overlapped core');
+    expect(crowd.every((actor) => actor.position.x < 500), isTrue,
+        reason: 'Spacing must preserve pursuit');
+  });
+
   testWidgets(
-      'live revenant retreats and plants to cast; lunges cannot track mid-charge',
+      'live tactics preserve committed attacks and keep a pursuing crowd separate',
       (tester) async {
     SharedPreferences.setMockInitialValues({});
     tester.view.physicalSize = const Size(844, 390);
@@ -138,10 +192,17 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     late RegunGame game;
     await tester.runAsync(() async {
+      for (final font in ['PressStart2P', 'Orbitron']) {
+        await (FontLoader(font)
+              ..addFont(rootBundle.load('assets/fonts/$font-Regular.ttf')))
+            .load();
+      }
       await tester.pumpWidget(ProviderScope(
           overrides: [soloudPlayProvider.overrideWithValue(_QuietAudio())],
           child: const MaterialApp(
-              home: BaseView(loadout: Loadout(training: true)))));
+              home: RepaintBoundary(
+                  key: Key('crowd-capture'),
+                  child: BaseView(loadout: Loadout(training: true))))));
       game = tester
           .widget<RiverpodAwareGameWidget>(find.byType(RiverpodAwareGameWidget))
           .game! as RegunGame;
@@ -151,7 +212,7 @@ void main() {
       game.myPlayer.position.setZero();
       final caster = Enemy3Component(position: Vector2(180, 0));
       final runner = ArenaEnemy(EnemyKind.runner, position: Vector2(200, 0));
-      await game.world.addAll([caster, runner]);
+      await game.world.add(caster);
       await game.ready();
       caster.update(.1);
       expect(caster.position.x, greaterThan(180),
@@ -168,6 +229,10 @@ void main() {
       await game.ready();
       expect(caster.isAttacking, isFalse);
       expect(game.runtimeCounts['hostileProjectiles'], 1);
+      caster.removeFromParent();
+      await game.ready();
+      await game.world.add(runner);
+      await game.ready();
       runner.clock = 1.3;
       runner.update(0);
       expect(runner.phase, 1);
@@ -179,6 +244,42 @@ void main() {
       expect(runner.position.x, lessThan(launch.x));
       expect(runner.position.y, closeTo(launch.y, .001),
           reason: 'Committed lunge must remain dodgeable');
+      for (final enemy in game.liveEnemies.toList()) {
+        enemy.removeFromParent();
+      }
+      await game.ready();
+      game.myPlayer.position.setZero();
+      final pack = [
+        for (var i = 0; i < 40; i++) EnemyComponent(position: Vector2(400, 0))
+      ];
+      await game.world.addAll(pack);
+      await game.ready();
+      expect(pack.every((enemy) => enemy.parent == game.world), isTrue);
+      for (var frame = 0; frame < 480; frame++) {
+        game.myPlayer.position.setValues(-frame * .5, 0);
+        game.update(1 / 60);
+        if (frame % 60 != 0) continue;
+        await game.ready();
+        for (var a = 0; a < pack.length; a++) {
+          for (var b = a + 1; b < pack.length; b++) {
+            expect(
+                pack[a].position.distanceTo(pack[b].position),
+                greaterThanOrEqualTo(game.crowdRadius(pack[a]) +
+                    game.crowdRadius(pack[b]) +
+                    3.99),
+                reason: 'Real enemy bodies must stay separate during pursuit');
+          }
+        }
+      }
+      await tester.pump();
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(const Key('crowd-capture')));
+      final image = await boundary.toImage(pixelRatio: 2);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      await Directory('build/test-previews').create(recursive: true);
+      await File('build/test-previews/crowd-spacing.png')
+          .writeAsBytes(bytes!.buffer.asUint8List());
+      image.dispose();
     });
     await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.takeException(), isNull);

@@ -1,6 +1,7 @@
 import 'package:regun/components/ui/damage_feedback.dart';
 import 'package:regun/presentation/weapon_feel.dart';
 import 'package:regun/systems/enemy_tactics.dart';
+import 'package:regun/systems/crowd_occupancy.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/components/enemies/spawn_warning.dart';
 import 'package:regun/components/weapons/death_burst.dart';
@@ -51,7 +52,10 @@ import 'package:regun/utils/soloud_play.dart';
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
   RegunGame(this.context,
-      {this.loadout = const Loadout(), this.resumeSnapshot, RunStore? runStore})
+      {this.loadout = const Loadout(),
+      this.resumeSnapshot,
+      this.startPaused = false,
+      RunStore? runStore})
       : runStore = runStore ?? RunStore.shared,
         super(
           camera: CameraComponent.withFixedResolution(width: 1500, height: 700),
@@ -59,6 +63,7 @@ class RegunGame extends FlameGame
 
   final BuildContext context;
   final Loadout loadout;
+  final bool startPaused;
   final RunStore runStore;
   final Map<String, dynamic>? resumeSnapshot;
   late String runId;
@@ -104,6 +109,27 @@ class RegunGame extends FlameGame
   }
 
   int get projectileCount => _projectiles.length;
+  ({int arena, int visible, int pending}) get enemyPopulation {
+    var arena = 0, visible = 0, pending = 0;
+    final view = camera.visibleWorldRect.inflate(60);
+    for (final enemy in [
+      ..._enemies,
+      if (activeBoss != null) activeBoss!,
+    ]) {
+      if (enemy.isRemoving || enemy.isRemoved) continue;
+      arena++;
+      if (!enemy.isLoaded) pending++;
+      if (view.contains(enemy.position.toOffset())) visible++;
+    }
+    return (arena: arena, visible: visible, pending: pending);
+  }
+
+  bool get canReinforce {
+    final population = enemyPopulation;
+    return director.canReinforce(
+        arena: population.arena, visible: population.visible);
+  }
+
   bool registerProjectile(BulletComponent bullet) {
     if (_projectiles.contains(bullet)) return true;
     if (_projectiles.length >= maxProjectiles) return false;
@@ -146,6 +172,9 @@ class RegunGame extends FlameGame
 
   Map<String, int> get runtimeCounts => {
         'enemies': _enemies.length,
+        'visibleEnemies': enemyPopulation.visible,
+        'pendingEnemies': enemyPopulation.pending,
+        'populationLimit': director.populationLimit,
         'xp': _coins.length,
         'playerProjectiles': _projectiles.length,
         'hostileProjectiles': _hostileProjectiles.length,
@@ -181,6 +210,19 @@ class RegunGame extends FlameGame
   void constrainActor(Vector2 position, double radius) =>
       geometry.constrain(position, radius);
   final enemyTactics = EnemyTactics();
+  final crowdOccupancy = CrowdOccupancy();
+  double crowdRadius(PositionComponent actor) => actor is BossEncounter
+      ? 65
+      : (min(actor.size.x, actor.size.y) * .45).clamp(30.0, 52.0);
+
+  bool reserveEnemySpace(PositionComponent actor,
+          {double minPlayerDistance = 0}) =>
+      crowdOccupancy.place(actor, crowdRadius(actor),
+          (point) => geometry.constrain(point, crowdRadius(actor)),
+          allowed: (point) =>
+              minPlayerDistance == 0 ||
+              point.distanceToSquared(myPlayer.position) >=
+                  minPlayerDistance * minPlayerDistance);
   Vector2 enemyIntent(PositionComponent actor, EnemyKind kind) =>
       EnemyTactics.intent(
           kind,
@@ -197,7 +239,21 @@ class RegunGame extends FlameGame
       if (actor is ArenaEnemy && actor.elite) speed *= 1.15;
     }
     if (actor is CombatEnemy && !actor.isBoss && avoidCrowd) {
-      direction = enemyTactics.spaced(actor, direction);
+      final boss = activeBoss;
+      final yielding = boss == null || !boss.isLoaded || boss.isRemoving
+          ? null
+          : EnemyTactics.yieldToBoss(actor.position, boss.position,
+              myPlayer.position, enemyTactics.side(actor));
+      direction = enemyTactics.spaced(actor, yielding ?? direction);
+    }
+    if (actor is CombatEnemy) {
+      crowdOccupancy.move(actor, direction * (speed * dt),
+          radius: crowdRadius(actor),
+          constrain: (point) =>
+              geometry.constrain(point, max(radius, crowdRadius(actor))),
+          slide: avoidCrowd,
+          side: enemyTactics.side(actor));
+      return;
     }
     final previous = actor.position.clone();
     geometry.move(actor.position, direction * (speed * dt), radius);
@@ -211,8 +267,12 @@ class RegunGame extends FlameGame
     }
   }
 
-  void moveTo(Vector2 position, Vector2 target, double radius) =>
-      geometry.move(position, target - position, radius);
+  void moveTo(PositionComponent actor, Vector2 target, double radius) =>
+      crowdOccupancy.move(actor, target - actor.position,
+          radius: crowdRadius(actor),
+          constrain: (point) =>
+              geometry.constrain(point, max(radius, crowdRadius(actor))),
+          slide: false);
 
   void addCombatEffectForKill(Vector2 position,
           {double radius = 45, Sprite? remains}) =>
@@ -247,9 +307,11 @@ class RegunGame extends FlameGame
   void spawnAdd(EnemyKind kind, Vector2 position) {
     _enemies.removeWhere((e) => e.isRemoved || e.isRemoving);
     if (_enemies.length >= maxEnemies) return;
+    if (!canReinforce) return;
     constrainActor(position, 45);
     if (position.distanceToSquared(myPlayer.position) < 180 * 180) return;
     final enemy = ArenaEnemy(kind, position: position);
+    if (!reserveEnemySpace(enemy, minPlayerDistance: 180)) return;
     _enemies.add(enemy);
     world.add(SpawnWarning(game: this, enemy: enemy));
   }
@@ -399,6 +461,7 @@ class RegunGame extends FlameGame
     );
     _startRun(clearSave: resumeSnapshot == null);
     if (resumeSnapshot != null) restoreRun(resumeSnapshot!);
+    if (startPaused) gameNotifier.pauseGame();
   }
 
   void _startRun({bool clearSave = true}) {
@@ -426,6 +489,7 @@ class RegunGame extends FlameGame
     _enemy3Unlocked = false;
     _enemies.clear();
     enemyTactics.clear();
+    crowdOccupancy.clear();
     _coins.clear();
     _projectiles.clear();
     _hostileProjectiles.clear();
@@ -726,12 +790,16 @@ class RegunGame extends FlameGame
     return true;
   }
 
-  void unregisterEnemy(PositionComponent enemy) => _enemies.remove(enemy);
+  void unregisterEnemy(PositionComponent enemy) {
+    _enemies.remove(enemy);
+    crowdOccupancy.forget(enemy);
+  }
 
   void _spawnEnemy(PositionComponent enemy) {
     if (gameState.gameplayState != GameplayState.playing) return;
     _enemies.removeWhere((entity) => entity.isRemoving || entity.isRemoved);
     if (_enemies.length >= maxEnemies) return;
+    if (!canReinforce) return;
     final floor = map.bounds.floor.deflate(60);
     final visible = camera.visibleWorldRect.inflate(100);
     var spawn = Vector2.zero();
@@ -757,10 +825,13 @@ class RegunGame extends FlameGame
     if (spawn.distanceToSquared(myPlayer.position) < 300 * 300) return;
     constrainActor(spawn, 50);
     enemy.position.setFrom(spawn);
+    if (!reserveEnemySpace(enemy, minPlayerDistance: 300)) return;
     encounteredEnemies.add(enemyId(enemy));
     _enemies.add(
         enemy); // Includes pending loads, so spawning cannot exceed the cap.
-    if (camera.visibleWorldRect.inflate(50).contains(spawn.toOffset())) {
+    if (camera.visibleWorldRect
+        .inflate(50)
+        .contains(enemy.position.toOffset())) {
       world.add(SpawnWarning(game: this, enemy: enemy));
     } else {
       world.add(enemy);
@@ -850,6 +921,10 @@ class RegunGame extends FlameGame
       BossKind.queen => PatternBoss(BossKind.queen,
           position: position, maximumHealth: 300 + scaling.toDouble()),
     };
+    if (!reserveEnemySpace(activeBoss!, minPlayerDistance: 220)) {
+      activeBoss = null;
+      return;
+    }
     encounteredEnemies.add(kind.name);
     audio.play('boss.wav');
     unawaited(audio.playMusic('boss'));
@@ -962,7 +1037,11 @@ class RegunGame extends FlameGame
       }
       combat.update(dt);
     }
-    enemyTactics.rebuild(liveEnemies.where((e) => e is! BossEncounter));
+    enemyTactics.rebuild(liveEnemies);
+    crowdOccupancy.rebuild([
+      ..._enemies,
+      if (activeBoss != null) activeBoss!,
+    ], crowdRadius);
     super.update(dt);
     final state = gameState;
     if (state.gameplayState == GameplayState.playing) {

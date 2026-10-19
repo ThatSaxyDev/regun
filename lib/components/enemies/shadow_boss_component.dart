@@ -165,7 +165,7 @@ class ShadowBossComponent extends PositionComponent
       case ShadowPhase.dash:
         final before = position.clone();
         game.moveTo(
-            position,
+            this,
             _dashStart +
                 (_dashEnd - _dashStart) * (_phaseTime / 0.52).clamp(0, 1),
             80);

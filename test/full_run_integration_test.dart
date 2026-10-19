@@ -14,6 +14,9 @@ import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/components/enemies/enemy_3_component.dart';
+import 'package:regun/components/enemies/enemy_3_projectile.dart';
+import 'package:regun/components/enemies/shadow_projectile.dart';
+import 'package:regun/components/enemies/hostile_area.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/data/enemies.dart';
@@ -143,6 +146,87 @@ void main() {
         }
         expect(tester.takeException(), isNull);
       }
+    }
+
+    // Exercise healing through actual lethal hits, including rolls that the
+    // former 2.5%-per-rank chance rejected. Seeds yield ~2.8%, 5.5%, 11%, 51%.
+    final medic = await mount(const Loadout());
+    for (final scenario in [
+      (0, 2, false),
+      (1, 2, true),
+      (1, 4, false),
+      (2, 4, true),
+      (2, 8, false),
+      (3, 8, true),
+      (3, 1, false),
+    ]) {
+      final checkpoint = medic.gameNotifier.checkpoint();
+      checkpoint['state'] = medic.gameState.copyWith(health: 2, ranks: {
+        if (scenario.$1 > 0) PowerUp.fieldMedic: scenario.$1
+      }).toJson();
+      medic.gameNotifier.restoreCheckpoint(checkpoint);
+      medic.gameNotifier.playGame();
+      final target = EnemyComponent(position: Vector2(300, 0));
+      await tester.runAsync(() async {
+        await medic.world.add(target);
+        await medic.ready();
+      });
+      medic.random.state = scenario.$2;
+      target.lastHitWasSecondary = true;
+      final killsBefore = medic.gameState.kills;
+      expect(target.takeDamage(100), isTrue);
+      expect(medic.gameState.health, scenario.$3 ? 3 : 2,
+          reason: 'Field Medic rank ${scenario.$1}, seed ${scenario.$2}');
+      expect(medic.gameState.kills, killsBefore + 1);
+      expect(target.takeDamage(100), isFalse);
+      expect(medic.gameState.health, scenario.$3 ? 3 : 2,
+          reason: 'A repeated hit cannot award another heart');
+      await tester.runAsync(() => medic.ready());
+    }
+    medic.gameNotifier.resetHealth();
+    final fullHealthTarget = EnemyComponent(position: Vector2(300, 0));
+    await tester.runAsync(() async {
+      await medic.world.add(fullHealthTarget);
+      await medic.ready();
+    });
+    medic.random.state = 2;
+    fullHealthTarget.takeDamage(100);
+    expect(medic.gameState.health, medic.gameState.maxHealth,
+        reason: 'A successful heal cannot exceed maximum health');
+
+    for (final attack in ['contact', 'revenant', 'shadow', 'ground']) {
+      final shield = await mount(const Loadout());
+      final checkpoint = shield.gameNotifier.checkpoint();
+      checkpoint['state'] = shield.gameState
+          .copyWith(guard: true, ranks: {PowerUp.scrapArmour: 1}).toJson();
+      shield.gameNotifier.restoreCheckpoint(checkpoint);
+      shield.gameNotifier.playGame();
+      shield.gameNotifier.advanceTime(1); // Expire resume protection.
+      final health = shield.gameState.health;
+      // Intersect the player's hitbox edge instead of spawning a tiny hollow
+      // projectile wholly inside it (which does not model an incoming shot).
+      final position = shield.myPlayer.position + Vector2(25, 0);
+      final source = switch (attack) {
+        'contact' => EnemyComponent(position: position),
+        'revenant' => Enemy3Projectile(position: position, speed: 0),
+        'shadow' => ShadowProjectile(
+            position: position, direction: Vector2(1, 0), speed: 0),
+        _ => HostileArea(position: position, warning: 0, damage: 2),
+      };
+      await tester.runAsync(() async {
+        await shield.world.add(source);
+        await shield.ready();
+        for (var i = 0; i < 3; i++) {
+          shield.update(1 / 60);
+          await shield.ready();
+        }
+      });
+      expect(shield.gameState.guard, isFalse,
+          reason: '$attack must connect and consume the shield');
+      expect(shield.gameState.health, health,
+          reason: '$attack must not bypass the shield');
+      expect(shield.damageFeedback.remaining, 0,
+          reason: 'A blocked hit must not show health-loss feedback');
     }
 
     final showcase = await mount(const Loadout(training: true));

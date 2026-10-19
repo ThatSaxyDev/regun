@@ -339,3 +339,47 @@ The configured live destination is an official TestFlight invitation, `https://t
 Analyzer clean; **90 tests pass**, four opt-in skips. Added URL-opening and live-policy-shaped UI regressions proving the TestFlight link enables Update instead of displaying link-unavailable feedback. Release candidate increments to 1.0.0 (6); the direct phone test build deliberately overrides its build to 4 so the existing minimum-build-5 policy can be exercised. No dashboard policy was changed.
 
 App Store IPA 1.0.0 (6) rebuilt and signing/profile verified. Corrected phone test release 1.0.0 (4) installed over existing data (installation sequence 6264), with the same project key embedded. Update-button visibility/opening is covered by native-widget/adapter tests; actual TestFlight navigation on the physical phone remains for user confirmation. Older installed beta binaries need the corrected build from TestFlight; remote URL edits do not replace their validator code.
+
+## First-run Training briefing
+
+Checkpointed the existing full game as `2dc4252` before this change. First Play now opens Training with a charcoal/brass field briefing over the paused arena. It names Training mode, briefly describes the controls to practise, and offers Start training / Skip training. Start resumes the existing guided steps; Skip records the existing tutorial completion/unlock and replaces Training with the normal loadout screen. Later Play visits respect that choice. Explicit practice sessions and normal runs retain their existing entry flow.
+
+Added regression coverage for actual Menu → first Play, paused clocks, Start, Skip → normal loadout → Back → Play, and compact landscape/enlarged-text layouts. Rendered and inspected the in-game briefing at `build/test-previews/training-intro-ingame.png`.
+
+`make verify`: clean analyzer, 93 tests passed, four opt-in checks skipped.
+
+At the creator's request, `make runRelease DEVICE=00008101-000248EC1450001E` built, signed, installed and launched the release on the paired iPhone over Wi-Fi. This preserves existing player data; the introduction appears on first Play for profiles that have not completed/skipped Training. Native comfort/performance acceptance remains open.
+
+## Field Medic healing frequency
+
+Player feedback: heart recovery from kills was too rare. The creator rejected the initial fourfold buff and chose twice the original rate. Field Medic is now 5% per rank, increased from 2.5%: ranks 1/2/3 have 5%/10%/15% chance on each kill to recover one heart. The upgrade description states the per-rank odds. Healing remains capped at maximum health; it remains a random chance rather than a guaranteed kill interval. Existing saved upgrade ranks use the improved odds automatically.
+
+Live-scene regression cases cover all three ranks, kills without the upgrade, successful/failed rolls, secondary-damage kills, exactly-once kill/heal handling and the health cap. Physical balance approval remains open.
+
+The selected 2× healing release built, installed and launched successfully on the paired iPhone over Wi-Fi. Analyzer clean; 93 regular tests passed before the shield investigation below.
+
+## Scrap Armour investigation
+
+A player mentioned possible missed shield absorption, without reproducible steps. Added tests of actual Scrap Armour acquisition at each rank, full absorption of two-heart hits, simultaneous-hit protection, recharge at 17/14/11 active seconds and paused recharge clocks. Added live collision checks for scorpion contact, revenant shots, Shadow bolts and a two-damage ground strike: each consumes the shield without losing hearts or showing health-loss feedback.
+
+These cases pass; a shield bypass has not been reproduced. Shield gameplay remains unchanged. One shield blocks one accepted hit, followed by the existing 500 ms damage protection; it does not protect for the entire recharge period. Keep the phone report open until a specific scenario can be captured rather than treating passing automated cases as proof against it.
+
+## Crowd bodies and population-aware pressure
+
+Players reported tightly overlapping moving groups, including discomfort from the clustered appearance. The creator requires enemies to respect each other's space and a challenging arena that is not filled indiscriminately. A sustained-pursuit regression reproduced the old compression (median nearest spacing about 50.7 world units for 85-unit components).
+
+- Soft separation now starts at body-sized distances, with symmetric pair variation instead of one uniform gap.
+- `CrowdOccupancy` adds a live spatial index: accepted movement immediately reserves body space, stationary enemies remain obstacles, ordinary pursuit slides around bodies, and substepped committed moves stop rather than cross enemies. Player movement/collision rules are preserved. Boss movement uses the same occupancy and normal enemies yield early around their approach.
+- Pending arrivals reserve free, wall-valid space before the warning appears; relocation retains safe player distance. Old overlapping checkpoint populations are spread on mount. Bounded search failure skips a new spawn rather than stacking it. Restart/removal clears reservations.
+- The director's progressive arena target is 20 → 60; visible reinforcement thresholds are 18 → 44. Counts include pending arrivals and the active boss. Both director spawns and summoned adds respect the gates; boss encounters retain their separate slot. Existing crowds are not culled or blocked by a viewport wall. No deferred spawn burst accumulates. The old 120-enemy constant remains a runtime safety cap.
+- Damage, health, movement-speed stats, weapon balance, role unlocks, elite/cycle scaling, boss telegraphs and phase timing are unchanged. Reduced body density is a balance change: maintaining strong challenge alongside readable movement requires physical playtesting, not a claim based on the limits alone.
+
+Regression coverage includes a 40-enemy live pursuit with pairwise body-separation checks, stationary blockers, fast committed movement, pending arrivals, full old-save populations, player-safe relocation, population gates and boss threat. Inspected `build/test-previews/crowd-spacing.png`. Physical motion comfort, packed corner behaviour, boss fairness and difficulty remain open.
+
+Verification: analyzer clean; 106 regular tests pass (four opt-in checks skipped). Both explicit soaks pass. The 30-minute simulation peaks at 60 normal enemies / 30 visible / 202 world children, with 8 bosses defeated; the 60-minute simulation peaks at 60 normal enemies / 25 visible / 267 world children, with 16 bosses defeated. These developed builds receive extra health and are lifecycle/population evidence, not physical difficulty or FPS measurements. Logs: `docs/validation/crowd-verify-2026-10-19.txt` and `docs/validation/crowd-soak-2026-10-19.txt`.
+
+The signed iOS release built, installed and launched on the paired iPhone over Wi-Fi, preserving player data. Evidence: `docs/validation/crowd-ios-install-2026-10-19.txt`. Native crowd readability, comfort, difficulty and performance remain for hands-on approval.
+
+## Five-boss expansion planning
+
+The creator's long-term direction is fifteen bosses, with this next batch scoped to five additions. [REGUN_BOSS_EXPANSION_PLAN.md](REGUN_BOSS_EXPANSION_PLAN.md) proposes Bellkeeper, Chain Magistrate, Mirror Saint, Kiln Sovereign and Last Marshal: five distinct encounter tests, their art/presentation, counterplay, phase changes and implementation gates. It also covers a focused improvement pass on the existing three, a compatible encounter/save refactor and later authored two-boss experiments for co-op. This is a design plan, not implemented content or a multiplayer/balance acceptance claim. No gameplay or installed build changes were made for this planning request.

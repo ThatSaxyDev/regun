@@ -87,7 +87,8 @@ class _MenuViewState extends ConsumerState<MenuView> {
       if (replace != true || !mounted) return;
     }
     if (!LocalPreferences.shared.profile.tutorialComplete) {
-      await _open(const BaseView(loadout: Loadout(training: true)));
+      await _open(const BaseView(
+          loadout: Loadout(training: true), showTrainingIntro: true));
     } else {
       await _open(const LoadoutView());
     }

@@ -62,6 +62,10 @@ mixin CombatEnemy
     super.onMount();
     if (parent == game.world && !isBoss && !game.registerEnemy(this)) {
       removeFromParent();
+      return;
+    }
+    if (parent == game.world && !game.reserveEnemySpace(this)) {
+      removeFromParent();
     }
   }
 
