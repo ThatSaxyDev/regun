@@ -250,8 +250,10 @@ void main() {
       game.gameNotifier.healthIncrease();
     }
     for (final kind in BossKind.values) {
-      game.spawnBoss(kind);
-      await tester.runAsync(() => game.ready());
+      await tester.runAsync(() async {
+        game.spawnBoss(kind);
+        await game.ready().timeout(const Duration(seconds: 10));
+      });
       final boss = game.activeBoss!;
       expect((boss as BossEncounter).kind, kind);
       final health = boss as CombatEnemy;
@@ -261,7 +263,12 @@ void main() {
         for (var frame = 0; frame < 25 * 60; frame++) {
           // XP retained from the preceding boss can legitimately open a picker.
           // Resolve it so this scenario continues to exercise the next boss FSM.
-          while (game.gameState.gameplayState == GameplayState.powerup) {
+          for (var picks = 0;
+              game.gameState.gameplayState == GameplayState.powerup;
+              picks++) {
+            if (picks > 30) {
+              throw StateError("Picker stuck ${game.gameState.toJson()}");
+            }
             final offer = game.gameState;
             if (offer.evolutionChoices.isNotEmpty) {
               game.gameNotifier
@@ -282,15 +289,21 @@ void main() {
       expect(health.takeDamage(100000), isTrue);
       expect(health.takeDamage(100000), isFalse);
       expect(game.activeBoss, isNull);
-      while (game.gameState.gameplayState == GameplayState.powerup) {
+      for (var picks = 0;
+          game.gameState.gameplayState == GameplayState.powerup;
+          picks++) {
+        if (picks > 30) {
+          throw StateError("Picker stuck ${game.gameState.toJson()}");
+        }
         game.gameNotifier.applyPowerUp(game.gameState.powerUpChoices.first,
             offerId: game.gameState.offerId);
       }
       game.update(1 / 60);
       await tester.runAsync(() => game.ready());
     }
-    expect(game.gameState.bosses, 3);
-    expect(game.defeatedBosses, {'shadow', 'demon', 'queen'});
+    expect(game.gameState.bosses, BossKind.values.length);
+    expect(
+        game.defeatedBosses, BossKind.values.map((kind) => kind.name).toSet());
 
     // A damaged live enemy, a boss, earned XP, and a partial reload survive a checkpoint.
     final enemy = Enemy2Component(position: Vector2(350, 0));

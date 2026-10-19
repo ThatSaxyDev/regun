@@ -10,6 +10,19 @@ class EncounterDirector {
   double _recoveryUntil = 0;
   bool bossActive = false;
   int bossesDefeated = 0;
+  final _bossBag = <BossKind>[];
+  BossKind? _lastBoss;
+  BossKind chooseBoss(Random random) {
+    if (_bossBag.isEmpty) {
+      _bossBag.addAll(BossKind.values);
+      _bossBag.shuffle(random);
+      if (_bossBag.first == _lastBoss) {
+        final first = _bossBag.removeAt(0);
+        _bossBag.add(first);
+      }
+    }
+    return _lastBoss = _bossBag.removeAt(0);
+  }
 
   /// Combat population targets, independent of the emergency runtime cap.
   /// Pressure grows through roles/elites/cycles instead of unlimited bodies.
@@ -32,6 +45,8 @@ class EncounterDirector {
         'recoveryUntil': _recoveryUntil,
         'bossActive': bossActive,
         'bossesDefeated': bossesDefeated,
+        'bossBag': _bossBag.map((kind) => kind.name).toList(),
+        'lastBoss': _lastBoss?.name,
       };
 
   void restore(Map<String, dynamic> json) {
@@ -41,6 +56,12 @@ class EncounterDirector {
     _recoveryUntil = (json['recoveryUntil'] as num).toDouble();
     bossActive = json['bossActive'] as bool;
     bossesDefeated = json['bossesDefeated'] as int;
+    _bossBag.clear();
+    _bossBag.addAll((json['bossBag'] as List? ?? [])
+        .map((id) => BossKind.values.byName(id as String)));
+    _lastBoss = json['lastBoss'] == null
+        ? null
+        : BossKind.values.byName(json['lastBoss'] as String);
     if (![elapsed, _spawnElapsed, _nextBoss, _recoveryUntil]
         .every((v) => v.isFinite && v >= 0)) {
       throw const FormatException('Invalid encounter clock');

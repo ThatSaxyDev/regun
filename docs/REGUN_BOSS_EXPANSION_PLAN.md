@@ -1,6 +1,6 @@
 # Regun — five new bosses on the road to fifteen
 
-Design proposal · 19 October 2026. Scope: plan five additions, bringing the roster from three to eight. Fifteen is the longer-term roster goal; the remaining seven are not specified here. No new boss, networking, asset generation or balance change is implemented by this document.
+Design proposal · 19 October 2026. Scope: plan five additions, bringing the roster from three to eight. Fifteen is the longer-term roster goal; the remaining seven are not specified here. This document records the original proposal. The five-boss implementation and randomized Training Boss Rush now have a candidate; see the latest REGUN_PROGRESS.md entry and PLAYTEST_GUIDE.md. Networking remains future work.
 
 ## The direction
 

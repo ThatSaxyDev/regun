@@ -5,6 +5,7 @@ from PIL import Image
 
 CONFIG = {**{f'characters/{n}_run':(8,4,896) for n in ['rook','scrapper','warden']},**{f'characters/{n}_actions':(4,4,512) for n in ['rook','scrapper','warden']}, **{f'characters/{n}':(8,4,640) for n in ['rook','scrapper','warden']}, **{f'enemies/{n}':(4,2,640) for n in ['scorpion','mummy','ranged','runner','shield','burster','nest','sentinel']}, **{f'bosses/{n}':(8,5,896) for n in ['shadow','demon','queen']}, 'items/items':(4,2,512), 'weapons/arsenal':(4,2,768), 'arenas/props':(4,2,768)}
 manifest={}
+CONFIG.update({f'bosses/{name}': (8,5,640) for name in ['bellkeeper','magistrate','saint','sovereign','marshal']})
 for name,(cols,rows,decode) in CONFIG.items():
  p=Path('assets/art/'+name+'.png')
  if not p.exists():continue
@@ -62,6 +63,8 @@ for name,(cols,rows,decode) in CONFIG.items():
   neutral=1 if name.endswith('_actions') else 0
   maxheight=max(frames[r*cols+neutral]['rect'][3]*h for r in range(rows))
  manifest[name]={'columns':cols,'rows':rows,'decodeWidth':decode,'height':maxheight/h,'frames':frames,'sourceSize':[w,h]}
+ if name in {f'bosses/{n}' for n in ['bellkeeper','magistrate','saint','sovereign','marshal']}:
+  manifest[name]['lazy']=True
 for texture in ['breach_floor','foundry_floor']:
  if Path(f'assets/art/arenas/{texture}.png').exists():manifest[f'arenas/{texture}']={'decodeWidth':768,'texture':True}
 Path('assets/art/manifest.json').write_text(json.dumps(manifest,separators=(',',':')))

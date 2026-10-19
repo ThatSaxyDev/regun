@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
+import 'package:regun/components/enemies/boss_weak_point.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/weapons/combat_effect.dart';
 import 'package:regun/components/weapons/mine_component.dart';
@@ -48,6 +49,7 @@ class CombatSystem {
 
   bool hit(PositionComponent enemy, double amount,
       {bool primary = true, Vector2? direction}) {
+    if (enemy is BossWeakPoint) return enemy.takeDamage(amount);
     if (enemy is! CombatEnemy ||
         enemy.isRemoving ||
         !enemy.isLoaded ||

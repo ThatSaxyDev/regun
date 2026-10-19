@@ -10,7 +10,7 @@ On your first **Play**, a **Training mode** briefing appears over the paused are
 
 1. Choose **Training** from the menu. Select any of the three survivors, four weapons and two arenas.
 2. Follow the five short prompts: move, shoot, dash, reload, choose an upgrade. **Skip / Ready** completes the introduction and unlocks Carbine for normal runs.
-3. Pause training to summon **Shadow, Demon or Scorpion Queen**. Each has a second phase. Training protects your health.
+3. Pause training to summon any of the **eight bosses**. Each has a second phase. Training protects your health.
 4. The same pause menu offers each of the **six fusion recipes**. It prepares the prerequisite ranks and opens the actual core choice. Select the fusion, resume, then shoot/dash among targets to try it.
 5. Choose **Play** for a normal run. Only earned loadouts are available. Kills produce XP; ranks build toward boss-core fusions. Boss milestones lead into repeating ten-minute cycles. Results award scrap, challenges and horizontal unlocks once.
 6. Open **Collection** to inspect all upgrades, recipes, enemies, challenges and cosmetic rewards. Scrap buys cosmetic palettes; equipped styles appear in play.
@@ -70,3 +70,13 @@ Report attacks whose visible marks disagree with damage, apparently unavoidable 
 ## Weapon feel review
 
 Try all four weapons against the same Training targets. Look/listen for a broad shotgun blast and shell/pump reload, tight carbine fire and magazine motion, heavy revolver flash/recoil and cylinder reload, and an electrical Arc Caster discharge/recharge. Shotgun reload now uses the common mechanical style; the old Lottie is retained only as source. Compare short target flashes with player health-loss edge cues, shield absorption sounds, and heavier boss impacts. Repeat with Reduced Motion and Sound muted. Keep enemy warnings visible during dense fire and report muddy/repetitive/harsh sound or effects obscuring threats. The new local synthesized sounds still need your listening approval.
+
+## Eight-boss candidate — Boss Rush
+
+**Training → Pause → Random Boss Rush → Start rush.** A shuffled roster draws from all eight bosses; 40% of rounds request a distinct pair. Defeat every living boss to advance after a short break. Health and ammo refill between rounds; the build stays. Training protects health and gives no normal profile rewards. Use Fusion Practice to prepare a build. **Next round** skips the current encounter; **Restart** starts a fresh rush. Individual Boss Practice buttons exit the rush.
+
+New encounters: **Bellkeeper** (gapped waves and delayed echoes), **Chain Magistrate** (sequential chains and sweeps), **Mirror Saint** (recorded movement and reflected paths), **Kiln Sovereign** (pressure zones, foot strikes and furnace sweep), **Last Marshal** (aimed shots, front brace and a returning blade). Shoot the exposed bell/clasp/glass/valve/blade to interrupt the relevant attack and earn a longer opening. Every boss enrages below half health.
+
+Watch windup → impact → reset, especially while changing direction or interrupting. Impacts must return to living poses rather than holding a final frame. Test both phases, death during an active pattern, repeated summons, all weapons, walls/columns and reduced motion. In a pair, both health bars must persist independently; killing one must leave its partner fighting. Major attack ownership waits for owned floor attacks and Shadow bolts to finish before the partner commits. Report overlapping warnings, blocked escape routes, clipped limbs, sliding feet, harsh sound or an attack that feels unfair. Training's protected health cannot establish normal-run difficulty.
+
+Normal play uses a saved shuffled eight-boss rotation from the very first encounter. Normal encounters remain single bosses. This is eight total bosses, with fifteen still the longer-term target; multiplayer is not implemented.

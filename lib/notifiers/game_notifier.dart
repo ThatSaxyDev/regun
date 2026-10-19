@@ -457,6 +457,18 @@ class GameNotifier extends Notifier<GameState> {
   void heal([int amount = 1]) => state =
       state.copyWith(health: min(state.maxHealth, state.health + amount));
 
+  void refillPractice() {
+    _reloadDurationMs = 0;
+    _reloadSoundsLeft = 0;
+    _reloadElapsedMs = 0;
+    reloadProgress.value = 0;
+    _hurtCooldownMs = 1000;
+    state = state.copyWith(
+        health: state.maxHealth,
+        noOfBullets: state.maxBullets,
+        reloading: false);
+  }
+
   void grantResumeGrace() => _hurtCooldownMs = 1000;
 
   void pauseGame() {

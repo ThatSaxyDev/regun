@@ -29,3 +29,6 @@ Hands-on control comfort, boss/build balance, iOS and Android frame-time/memory/
 - Any replacement premium art/audio and their licenses.
 
 No online account, ads, analytics or purchases are needed by the game. Unused Supabase and Flame Audio dependencies were removed; SoLoud supplies game audio. Store disclosures still need checking against the exact distributed binary.
+
+
+Five additional boss atlases (40 poses each) are recorded in `art/source/BOSS_GENERATION_PROMPTS.md`; their source PNGs are copied unchanged. Fifteen boss warn/impact/break cues are original deterministic synthesis from `tool/generate_boss_audio.py`. The SHA-256 inventory includes all twenty files. Expansion atlases load only during their encounters and are released after death/exit, retaining the existing 32 MiB decoded texture ceiling for a pair. Visual and listening approval remain device review items.

@@ -16,8 +16,29 @@ enum EnemyKind {
 enum BossKind {
   shadow('Shadow', 'Aimed fans, committed dashes, and close strikes.'),
   demon('Demon', 'Heavy cleaves, marked slams, and charge lanes.'),
-  queen('Scorpion Queen', 'Tail strikes, brood, and lingering poison.');
+  queen('Scorpion Queen', 'Tail strikes, brood, and lingering poison.'),
+  bellkeeper('The Bellkeeper',
+      'Find the gap. Wait for the echo. Break the exposed clapper.'),
+  magistrate('Chain Magistrate',
+      'Read the chains. Break a clasp or leave the tightening line.'),
+  saint('The Mirror Saint',
+      'Change your route. Watch the broken shoulder. Break the glass.'),
+  sovereign('Kiln Sovereign',
+      'Read the vents. Break an exposed valve to open the core.'),
+  marshal('The Last Marshal',
+      'Punish the reload. Flank the brace. Watch the returning blade.');
 
   const BossKind(this.title, this.description);
   final String title, description;
+  bool get expansion => index >= BossKind.bellkeeper.index;
+  double get baseHealth => switch (this) {
+        shadow => 140,
+        demon => 230,
+        queen => 300,
+        bellkeeper => 260,
+        magistrate => 280,
+        saint => 250,
+        sovereign => 340,
+        marshal => 270,
+      };
 }

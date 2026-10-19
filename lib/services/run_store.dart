@@ -36,7 +36,7 @@ class RunStore {
         final map = jsonDecode(await candidate.readAsString());
         if (map is Map && map['settled'] == true) return null;
         if (map is Map &&
-            map['schema'] == 1 &&
+            [1, 2].contains(map['schema']) &&
             map['state'] is Map &&
             map['player'] is List &&
             map['enemies'] is List &&

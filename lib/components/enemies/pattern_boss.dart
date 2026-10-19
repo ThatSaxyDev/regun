@@ -69,6 +69,7 @@ class PatternBoss extends PositionComponent
   }
 
   void _enter(PatternBossPhase next) {
+    if (next == PatternBossPhase.recovery) game.releaseBossAttack(this);
     phase = next;
     clock = 0;
     _committed = false;
@@ -84,6 +85,7 @@ class PatternBoss extends PositionComponent
   }
 
   void _commit() {
+    if (!game.claimBossAttack(this)) return;
     final distance = position.distanceTo(game.myPlayer.position);
     pattern = kind == BossKind.demon
         ? (distance > 400

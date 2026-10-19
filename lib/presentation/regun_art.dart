@@ -12,35 +12,65 @@ class RegunArt {
   final Map<String, Sprite> _rawSprites = {};
   Future<void>? _loading;
   Map<String, dynamic> _manifest = {};
+  final _leases = <String, int>{};
+  final _pending = <String, Future<void>>{};
   Future<void> load() => _loading ??= _load();
   Future<void> _load() async {
     _manifest =
         jsonDecode(await rootBundle.loadString('assets/art/manifest.json'))
             as Map<String, dynamic>;
-    await Future.wait(_manifest.entries.map((entry) async {
-      final bytes = await rootBundle.load('assets/art/${entry.key}.png');
-      final data = entry.value as Map<String, dynamic>;
-      final codec = await ui.instantiateImageCodec(
-          bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
-          targetWidth: data['decodeWidth'] as int,
-          allowUpscaling: false);
-      final image = (await codec.getNextFrame()).image;
-      codec.dispose();
-      _images[entry.key] = image;
-      if (data['texture'] == true) return;
-      final referenceHeight = (data['height'] as num).toDouble() * image.height;
-      _sprites[entry.key] = (data['frames'] as List).map((raw) {
-        final frame = raw as Map;
-        final r =
-            (frame['rect'] as List).map((v) => (v as num).toDouble()).toList();
-        return _GroundedSprite(
-            image,
-            ui.Rect.fromLTWH(r[0] * image.width, r[1] * image.height,
-                r[2] * image.width, r[3] * image.height),
-            (frame['pivot'] as num).toDouble(),
-            referenceHeight);
-      }).toList();
-    }));
+    await Future.wait(_manifest.entries
+        .where((e) => (e.value as Map)['lazy'] != true)
+        .map((entry) => _decode(entry.key)));
+  }
+
+  Future<void> _decode(String name) async {
+    if (_images.containsKey(name)) return;
+    final entry = MapEntry(name, _manifest[name]);
+    final bytes = await rootBundle.load('assets/art/${entry.key}.png');
+    final data = entry.value as Map<String, dynamic>;
+    final codec = await ui.instantiateImageCodec(
+        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
+        targetWidth: data['decodeWidth'] as int,
+        allowUpscaling: false);
+    final image = (await codec.getNextFrame()).image;
+    codec.dispose();
+    _images[entry.key] = image;
+    if (data['texture'] == true) return;
+    final referenceHeight = (data['height'] as num).toDouble() * image.height;
+    _sprites[entry.key] = (data['frames'] as List).map((raw) {
+      final frame = raw as Map;
+      final r =
+          (frame['rect'] as List).map((v) => (v as num).toDouble()).toList();
+      return _GroundedSprite(
+          image,
+          ui.Rect.fromLTWH(r[0] * image.width, r[1] * image.height,
+              r[2] * image.width, r[3] * image.height),
+          (frame['pivot'] as num).toDouble(),
+          referenceHeight);
+    }).toList();
+  }
+
+  /// Only active expansion encounters retain their atlases. A pair fits the
+  /// existing texture budget; inactive new bosses are not preloaded globally.
+  Future<void> acquire(String name) async {
+    await load();
+    _leases[name] = (_leases[name] ?? 0) + 1;
+    await (_pending[name] ??= _decode(name));
+  }
+
+  void release(String name) {
+    final count = (_leases[name] ?? 0) - 1;
+    if (count > 0) {
+      _leases[name] = count;
+      return;
+    }
+    _leases.remove(name);
+    if ((_manifest[name] as Map?)?['lazy'] != true) return;
+    _sprites.remove(name);
+    _rawSprites.removeWhere((key, _) => key.startsWith('$name:'));
+    _images.remove(name)?.dispose();
+    _pending.remove(name);
   }
 
   /// Complete full-body cycles: eight full-body poses, evenly spaced at 12 poses/sec.

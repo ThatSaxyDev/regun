@@ -6,7 +6,7 @@ Updated: 19 October 2026. This guide describes the implemented build, rather tha
 
 Regun is now an endless, manually aimed twin-stick survival shooter. Move, aim/fire, dash, reload, collect kill XP, choose upgrades, combine a build, defeat bosses, then survive harder cycles until death. Normal runs feed horizontal unlocks and cosmetic progression. There is no campaign-ending victory screen; surviving into another cycle is the objective.
 
-The functional roster is **four weapons, three survivors, two arenas, eight normal enemy roles, three bosses, thirty upgrade families, six fusions, and twenty challenges**. The build also includes a collection, cosmetics, training, saved runs, adjustable controls, settings, music, and sound effects.
+The functional roster is **four weapons, three survivors, two arenas, eight normal enemy roles, eight bosses, thirty upgrade families, six fusions, and twenty challenges**. The build also includes a collection, cosmetics, training, saved runs, adjustable controls, settings, music, and sound effects.
 
 It is a **full-content test build**, not a claim that balance, final art, comfort, or physical performance is finished. Some of those can only be judged by playing. You do not have to test everything in one sitting.
 
@@ -199,15 +199,17 @@ Arrival times below describe ordinary director eligibility, not an exact guarant
 
 Some later roles can be elites: more health/speed and a visual distinction. Later cycles increase enemy durability and pressure. Check that elites remain identifiable in a crowd.
 
-### Three bosses
+### Eight bosses
 
-| Boss | First ordinary milestone | Patterns to look for |
+| Boss | Ordinary eligibility | Patterns to look for |
 |---|---|---|
-| Shadow | About 3 minutes | Aimed shot fans, committed dash, close strike, recovery, a stronger second phase. |
-| Demon | About 6 minutes | Cleave, marked slam and charge lane, with second-phase pressure. |
-| Scorpion Queen | About 10 minutes | Tail strike, capped brood, lingering poison and a second phase. |
+| Shadow | Random, from first encounter | Aimed shot fans, committed dash, close strike, recovery, a stronger second phase. |
+| Demon | Random, from first encounter | Cleave, marked slam and charge lane, with second-phase pressure. |
+| Scorpion Queen | Random, from first encounter | Tail strike, capped brood, lingering poison and a second phase. |
 
-These are milestones, not a promise of three simultaneous timed spawns. Only one boss is active. A long fight delays later encounters, and there is recovery after defeating one. Boss order repeats into later cycles. Cycle number follows elapsed ten-minute periods; progression rewards for “complete a cycle” currently use defeating Queen.
+Encounter requests occur around 3, 6 and 10 minutes per cycle; their boss identities are randomized. Normal play keeps one active boss. A long fight delays later encounters, and there is recovery after defeating one. A saved shuffled bag rotates all eight from the first encounter, without repeats within a bag or an immediate repeat across bags. Training Boss Rush draws random single bosses or distinct pairs. Cycle number follows elapsed ten-minute periods; progression rewards for “complete a cycle” currently use defeating Queen.
+
+The five additions are Bellkeeper, Chain Magistrate, Mirror Saint, Kiln Sovereign and Last Marshal. See [Boss Rush practice](PLAYTEST_GUIDE.md#eight-boss-candidate--boss-rush) for moves, weak points and animation checks.
 
 For each boss:
 
@@ -348,7 +350,7 @@ For a measured verdict, capture frame-time and memory traces with Instruments/An
 | Area | Current state | Remaining work / improvement |
 |---|---|---|
 | Core loop and full roster | Implemented and covered by automated scenarios. | Human balance, pacing, build viability and boredom checks. |
-| Bosses | All three have live encounters, phase changes, rewards and practice access. | Phone-based fairness, escape windows near columns/edges, warning readability and richer bespoke animation/audio. |
+| Bosses | All eight have live encounters, phase changes, rewards and practice access; Training includes randomized Boss Rush with occasional pairs. | Phone-based fairness, escape windows near columns/edges, warning readability and richer bespoke animation/audio. |
 | Controls | Adjustable, mirrored, floating/fixed, independent arrangement. | Your physical thumb comfort is still decisive; test small and large phones. |
 | Art | New generated survivor, enemy, boss, gun, item and arena art is integrated throughout gameplay and previews. | Review motion/hand consistency, dense-scene contrast and repeating floor materials on hardware. See `art/ART_OVERHAUL_PROGRESS.md`. |
 | Character identity | Functional stat/passive/accessory differences. | Rook is a baseline rather than a deep unique mechanic; stronger silhouettes/animation could make all three more memorable. |

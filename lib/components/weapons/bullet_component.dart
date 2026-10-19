@@ -112,8 +112,8 @@ class BulletComponent extends PositionComponent
     // Sweep in travel order and stop at walls; callback order must not let a
     // fast round hit a farther body or a target behind a column first.
     _bouncedThisFrame = false;
-    final targets = game.liveEnemies.where((enemy) {
-      if (_hitEnemies.contains(enemy)) return false;
+    final targets = game.projectileTargets.where((enemy) {
+      if (_hitEnemies.contains(game.projectileOwner(enemy))) return false;
       final radius = game.enemyRadius(enemy) + bulletRadius;
       return segmentDistanceSquared(enemy.position, before, position) <=
               radius * radius &&
@@ -136,11 +136,12 @@ class BulletComponent extends PositionComponent
   }
 
   void _hit(PositionComponent other) {
-    if (_hitEnemies.contains(other) ||
+    final owner = game.projectileOwner(other);
+    if (_hitEnemies.contains(owner) ||
         !game.hitEnemy(other, damage, primary: primary, direction: direction)) {
       return;
     }
-    _hitEnemies.add(other);
+    _hitEnemies.add(owner);
     if (primary && game.claimWeaponImpact()) {
       game.addCombatEffect(WeaponImpact(
           position: other.position.clone(),

@@ -7,7 +7,7 @@ import 'package:regun/notifiers/game_notifier.dart';
 class RunCheckpoint {
   static bool valid(Map<String, dynamic> map) {
     try {
-      if (map['schema'] != 1 ||
+      if (![1, 2].contains(map['schema']) ||
           map['id'] is! String ||
           (map['id'] as String).isEmpty) {
         return false;
@@ -66,7 +66,7 @@ class RunCheckpoint {
         return false;
       }
       final enemies = map['enemies'] as List, drops = map['drops'] as List;
-      if (enemies.length > 121 || drops.length > 80) return false;
+      if (enemies.length > 122 || drops.length > 80) return false;
       var bosses = 0;
       for (final raw in enemies) {
         final enemy = raw as Map;
@@ -84,7 +84,7 @@ class RunCheckpoint {
           return false;
         }
       }
-      if (bosses > 1) return false;
+      if (bosses > (map['schema'] == 2 ? 2 : 1)) return false;
       for (final raw in drops) {
         final drop = raw as Map;
         if (!point([drop['x'], drop['y']]) ||

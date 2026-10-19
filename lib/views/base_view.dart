@@ -225,33 +225,67 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           ValueListenableBuilder<int>(
               valueListenable: _myGame.revision,
               builder: (context, _, child) {
-                final boss = _myGame.activeBoss;
-                if (boss == null || !boss.isLoaded || boss.isRemoving) {
-                  return const SizedBox.shrink();
-                }
+                final bosses = _myGame.bosses
+                    .where((boss) => boss.isLoaded && !boss.isRemoving)
+                    .toList();
+                if (bosses.isEmpty) return const SizedBox.shrink();
                 return IgnorePointer(
-                    child: Container(
-                        constraints: const BoxConstraints(maxWidth: 380),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        color: const Color(0xD91D1821),
-                        child: Column(children: [
-                          Text(
-                              '${(boss as BossEncounter).kind.title.toUpperCase()}${(boss as BossEncounter).enraged ? ' / ENRAGED' : ''}',
-                              style: const TextStyle(
-                                  fontFamily: FontFam.pressStart,
-                                  fontSize: 10,
-                                  color: _paper)),
-                          const SizedBox(height: 7),
-                          LinearProgressIndicator(
-                              value:
-                                  (boss as CombatEnemy).combatHealth.fraction,
-                              minHeight: 5,
-                              color: const Color(0xffC782A3),
-                              backgroundColor: const Color(0xff392B3D)),
-                        ])));
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              for (final boss in bosses)
+                                Flexible(
+                                    child: Container(
+                                        constraints:
+                                            const BoxConstraints(maxWidth: 380),
+                                        margin: const EdgeInsets.symmetric(
+                                            horizontal: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        color: const Color(0xD91D1821),
+                                        child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                  '${(boss as BossEncounter).kind.title.toUpperCase()}${(boss as BossEncounter).enraged ? ' / ENRAGED' : ''}',
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      fontFamily:
+                                                          FontFam.pressStart,
+                                                      fontSize:
+                                                          bosses.length > 1
+                                                              ? 8
+                                                              : 10,
+                                                      color: _paper)),
+                                              const SizedBox(height: 7),
+                                              LinearProgressIndicator(
+                                                  value: (boss as CombatEnemy)
+                                                      .combatHealth
+                                                      .fraction,
+                                                  minHeight: 5,
+                                                  color:
+                                                      const Color(0xffC782A3),
+                                                  backgroundColor:
+                                                      const Color(0xff392B3D)),
+                                            ]))),
+                            ])));
               }),
-          if (widget.loadout.training)
+          if (widget.loadout.training && _myGame.bossRush)
+            ValueListenableBuilder<int>(
+                valueListenable: _myGame.revision,
+                builder: (context, _, child) => Text(
+                    'BOSS RUSH / ROUND ${_myGame.bossRushRound} / PRACTICE HEALTH',
+                    style: const TextStyle(
+                        fontFamily: FontFam.orbitron,
+                        fontSize: 11,
+                        color: _brass))),
+          if (widget.loadout.training &&
+              !_myGame.bossRush &&
+              _myGame.bosses.isEmpty)
             ValueListenableBuilder<int>(
                 valueListenable: _myGame.revision,
                 builder: (context, _, child) => Column(children: [
@@ -412,6 +446,20 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             onTap: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => const SettingsView()))),
         if (widget.loadout.training) ...[
+          const SizedBox(height: 24),
+          _practiceGroup('RANDOM BOSS RUSH', [
+            ClickButton(
+                text: 'Start rush', height: 48, onTap: _myGame.startBossRush),
+            if (_myGame.bossRush)
+              ClickButton(
+                  text: 'Next round',
+                  height: 48,
+                  onTap: _myGame.nextBossRushRound),
+          ]),
+          const SizedBox(height: 8),
+          const Text('Random bosses. Sometimes two. Practice health.',
+              style: TextStyle(
+                  fontFamily: FontFam.orbitron, fontSize: 11, color: _muted)),
           const SizedBox(height: 24),
           _practiceGroup('BOSS PRACTICE', [
             for (final kind in BossKind.values)

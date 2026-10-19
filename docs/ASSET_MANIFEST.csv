@@ -2,9 +2,14 @@ path,sha256,source,review
 assets/art/arenas/breach_floor.png,f2841c02dfad13f535afe06169c88ff193eefebe36381e694295ef94fac34ea0,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/arenas/foundry_floor.png,8b185ca6222328f17272812a50f8f7479d3a12c16a239ea55685e1b74edead2c,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/arenas/props.png,bb1ec5c6edc70eafd6bdf958cef2e28c2060d66985bf39d4b472835150d71d40,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/bosses/bellkeeper.png,80d9b352e2b3d20421652b5b371424bee6cf85bb53fe549c642d465f4fca82bb,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
 assets/art/bosses/demon.png,0453517bedaf79f2bafe9d4a4204b0448f21f61db35150c2488764d2b5259f19,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/bosses/magistrate.png,7d80e2bd6d6e54e9645ff2d7e1f7f9c64d146bd8f8ade968b2bca8894817c058,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
+assets/art/bosses/marshal.png,ed96b8b543c2af28ca5db4a8983d27f6456c28fe7e2c65b8fc89dd4f0fa5c50f,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
 assets/art/bosses/queen.png,c0dc6ae6fe91d59907342860e090129346ba5d4f0e325919628378ad6313d7ea,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/bosses/saint.png,af8d7ac6e4c5e94701b25d177e08c74296c985d6a6fd8898c000aabd2750d52c,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
 assets/art/bosses/shadow.png,047ac9d6ffcbb4c16291edcdf99c5a4f474172ccdc0389e2c9c53f5ff47ffc6f,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/bosses/sovereign.png,1f11d2d04bd0a95b091649d4e3de4fcc3f292efa6be978061b79dbd4caf4155f,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
 assets/art/characters/rook.png,197db8db502cce8ebe8f0547f0073a61711645aade9ae5ca004ef178a7514be5,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/characters/rook_actions.png,e8bf7353656936f355cb703460351cee6001ee8334174b09ef5e363940b65d2f,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/characters/rook_run.png,3db335103ded6f1bbdf04e5b29ec5f523bd4d9088c2239fcd6a06e463abf1d63,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Full-body animation candidate; inspect motion and frame anatomy
@@ -26,6 +31,21 @@ assets/art/items/items.png,c24615838306c331e2c9fd00a835c0d3aa0154f645a3f89c4b7cf
 assets/art/manifest.json,cedf835a00e085dcaf9b23315aa3033b3c290058774eefc520a3521cc64765e9,Generated crop metadata: tool/inspect_art.py,Integrated art; creator/device review
 assets/art/weapons/arsenal.png,5795b70768b6639a75766170ee0326c29781994198b44cc2960bd35eff75ccea,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/audio/boss.wav,117cbaaa278705cca89db4fd8c1c4350ae182aba0c6a1f603c3427200eb29d91,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/boss_bellkeeper_break.wav,52058afc7ad050d52b62e53a9e170d0c063c00b0e41041179f31dfad7b08706d,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_bellkeeper_hit.wav,b12ff2f3b4dc85968a40f5a2d68479d4d5748657acfe1b4e01758c261830064c,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_bellkeeper_warn.wav,d8e622b4afaa6d5edfa244c99219fc6173be87f8bf23fc408f316df6184e77aa,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_magistrate_break.wav,38f0073e7f5ea0d3bab64086dfba12a6eec8f82797163745760a40fb6ad0bfbd,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_magistrate_hit.wav,6308ed9f70bea7d4686c28e02bc0b7100ccd7949a32ebb8058df1b7e0daa6abd,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_magistrate_warn.wav,a0d629bcf10b5bf7727bcd482a39c5a01699c324323477aee31dc0f6b1db2f66,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_marshal_break.wav,f8bd49afd4767d2634f940db4a72911ecdc1dd49ec30a09cf719835e4e3884f1,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_marshal_hit.wav,4b3d1fbabeabb29a0c70647e1fd58ee5e903e021957bd8bbdb592f8de18f61ee,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_marshal_warn.wav,980511d60a83461672f4089ae237221a84d8645b4cf945617b5bb2b3dc539451,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_saint_break.wav,3c0865c8556fafde8b69b37ee55ee3c380b749259cc96d36da10060a3fb84675,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_saint_hit.wav,a4f4fe6bfb819fe563f1202712a5c2b21a530c5db09f57e91c5cfe92892a1c66,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_saint_warn.wav,b4b438513b905a34c595dc91e0846d3af215398be7b0b91f27f65ca78407f899,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_sovereign_break.wav,2561954f31508e3a78fb96a9ad80890f7fe961f1227fa81cfd338df8dcc49a5e,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_sovereign_hit.wav,7ff87b88aa306bf30318ed909a96aba5102d7a1851944db0eec51c37cc30eb00,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_sovereign_warn.wav,541186b2d52a92dec0207f477d88ad4d3227cd83749c080ed3433e7b82d823cc,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
 assets/audio/click.mp3,9d2ad727d3e914d6d7380262a0df92c65c8b5322479b4d2e648d7ca1cc96c46f,Inherited project asset,Confirm provenance and license
 assets/audio/coinSound1.mp3,f70d754b410eb8046ce40721441ff6f6f68605cf31ded7480ee218c7f7356f34,Inherited project asset,Confirm provenance and license
 assets/audio/coinSound2.wav,b885775a550469881549ce5df903bfa1b7507bf086cfe81cd972956ada4d0c7b,Inherited project asset,Confirm provenance and license

@@ -2,6 +2,10 @@ import 'package:regun/components/ui/damage_feedback.dart';
 import 'package:regun/presentation/weapon_feel.dart';
 import 'package:regun/systems/enemy_tactics.dart';
 import 'package:regun/systems/crowd_occupancy.dart';
+import 'package:regun/systems/boss_encounter_runtime.dart';
+import 'package:regun/components/enemies/boss_attack.dart';
+import 'package:regun/components/enemies/boss_weak_point.dart';
+import 'package:regun/components/enemies/expansion_boss.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/components/enemies/spawn_warning.dart';
 import 'package:regun/components/weapons/death_burst.dart';
@@ -25,6 +29,7 @@ import 'package:regun/components/weapons/combat_effect.dart';
 import 'package:regun/models/control_layout.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/components/enemies/shadow_boss_component.dart';
+import 'package:regun/components/enemies/shadow_projectile.dart';
 import 'package:regun/systems/encounter_director.dart';
 import 'dart:async';
 import 'dart:math';
@@ -99,6 +104,150 @@ class RegunGame extends FlameGame
   final _fires = <BurningGround>{};
   final _mines = <MineComponent>{};
   final _hazards = <HostileArea>{};
+  final _bossAttacks = <BossAttack>{};
+  final weakPoints = <BossWeakPoint>{};
+  final bossEncounter = BossEncounterRuntime();
+  final _bossDamageTaken = <PositionComponent, bool>{};
+  bool bossRush = false;
+  int bossRushRound = 0;
+  double bossRushWait = 0;
+  final _rushBag = <BossKind>[];
+  Iterable<PositionComponent> get bosses => bossEncounter.live;
+  PositionComponent? get activeBoss => bosses.isEmpty ? null : bosses.first;
+  set activeBoss(PositionComponent? actor) {
+    if (actor == null) {
+      bossEncounter.clear();
+    } else {
+      bossEncounter.add(actor);
+    }
+  }
+
+  Iterable<PositionComponent> get projectileTargets sync* {
+    yield* liveEnemies;
+    yield* weakPoints.where((p) => !p.isRemoving && !p.combatHealth.isDead);
+  }
+
+  PositionComponent projectileOwner(PositionComponent target) =>
+      target is BossWeakPoint ? target.owner : target;
+
+  bool registerBossAttack(BossAttack attack) {
+    if (_bossAttacks.contains(attack)) return true;
+    if (_bossAttacks.length + _hazards.length >= 8) return false;
+    _bossAttacks.add(attack);
+    return true;
+  }
+
+  bool addBossAttack(BossAttack attack) {
+    if (!registerBossAttack(attack)) return false;
+    world.add(attack);
+    return true;
+  }
+
+  void unregisterBossAttack(BossAttack attack) => _bossAttacks.remove(attack);
+  bool claimBossAttack(PositionComponent actor) => bossEncounter.claim(actor);
+  void releaseBossAttack(PositionComponent actor) =>
+      bossEncounter.release(actor);
+  bool _lingeringBossAttack(PositionComponent actor) {
+    final health = (actor as CombatEnemy).combatHealth;
+    return _bossAttacks.any((a) => !a.isRemoving && a.owner == health) ||
+        _hazards.any((a) => !a.isRemoving && a.ownerHealth == health) ||
+        _hostileProjectiles.any((shot) =>
+            shot is ShadowProjectile &&
+            !shot.isRemoving &&
+            shot.ownerHealth == health);
+  }
+
+  List<Vector2> clipBossPath(List<Vector2> path) {
+    if (path.isEmpty) return [];
+    final result = [path.first.clone()];
+    for (final proposed in path.skip(1)) {
+      final end = proposed.clone();
+      geometry.constrain(end, 35);
+      final start = result.last;
+      if (segmentBlocked(start, end)) {
+        var lo = 0.0, hi = 1.0;
+        for (var i = 0; i < 12; i++) {
+          final mid = (lo + hi) / 2;
+          if (segmentBlocked(start, start + (end - start) * mid)) {
+            hi = mid;
+          } else {
+            lo = mid;
+          }
+        }
+        result.add(start + (end - start) * lo);
+        break;
+      }
+      result.add(end);
+    }
+    if (result.length == 1) result.add(result.first.clone());
+    return result;
+  }
+
+  bool bossMoveHasEscape(List<AttackCue> cues) {
+    // Validate each activation window. Delayed echoes/crossings are separate
+    // beats, not an imaginary simultaneous wall made from their whole history.
+    for (final cue in cues) {
+      final time = cue.delay + cue.warning;
+      final overlapping = cues
+          .where((other) =>
+              other.delay + other.warning <= time + .001 && other.end > time)
+          .toList();
+      if (!_bossBeatHasEscape(overlapping, cue.warning)) return false;
+    }
+    return true;
+  }
+
+  bool _bossBeatHasEscape(List<AttackCue> cues, double warning) {
+    final budget = gameState.movementSpeed * warning * .85;
+    final origin = myPlayer.position;
+    // Connected search through floor and current body occupancy. Candidate
+    // points must avoid the full active beat and existing floor hazards.
+    final queue = <Vector2>[origin.clone()];
+    final seen = <(int, int)>{(0, 0)};
+    final distances = <(int, int), double>{(0, 0): 0};
+    for (var i = 0; i < queue.length && i < 225; i++) {
+      final point = queue[i];
+      final key = (
+        ((point.x - origin.x) / 45).round(),
+        ((point.y - origin.y) / 45).round()
+      );
+      final safe = cues.every((cue) => !cue.shape.hits(point, 1, body: 32)) &&
+          _hazards.every((area) =>
+              area.isRemoving ||
+              point.distanceToSquared(area.position) >
+                  pow(area.radius + 32, 2));
+      if (safe) return true;
+      for (final direction in [
+        Vector2(45, 0),
+        Vector2(-45, 0),
+        Vector2(0, 45),
+        Vector2(0, -45)
+      ]) {
+        final next = point + direction;
+        final nextKey = (
+          ((next.x - origin.x) / 45).round(),
+          ((next.y - origin.y) / 45).round()
+        );
+        final travel = distances[key]! + 45;
+        if (travel > budget || !seen.add(nextKey)) continue;
+        final constrained = next.clone();
+        geometry.constrain(constrained, 32);
+        if (constrained.distanceToSquared(next) > 1 ||
+            segmentBlocked(point, next)) {
+          continue;
+        }
+        if (liveEnemies.any((enemy) =>
+            next.distanceToSquared(enemy.position) <
+            pow(crowdRadius(enemy) + 30, 2))) {
+          continue;
+        }
+        distances[nextKey] = travel;
+        queue.add(next);
+      }
+    }
+    return false;
+  }
+
   final _bursts = <DeathBurst>{};
   void unregisterBurst(DeathBurst burst) => _bursts.remove(burst);
   void addDeathParticles(Vector2 position, {required Color color}) {
@@ -114,7 +263,7 @@ class RegunGame extends FlameGame
     final view = camera.visibleWorldRect.inflate(60);
     for (final enemy in [
       ..._enemies,
-      if (activeBoss != null) activeBoss!,
+      ...bosses,
     ]) {
       if (enemy.isRemoving || enemy.isRemoved) continue;
       arena++;
@@ -181,7 +330,7 @@ class RegunGame extends FlameGame
         'effects': _effects.length,
         'fire': _fires.length,
         'mines': _mines.length,
-        'hazards': _hazards.length,
+        'hazards': _hazards.length + _bossAttacks.length,
         'particles': _bursts.length * 8,
       };
   Iterable<PositionComponent> get liveEnemies sync* {
@@ -194,17 +343,20 @@ class RegunGame extends FlameGame
         yield enemy;
       }
     }
-    final boss = activeBoss;
-    if (boss != null &&
-        boss.isLoaded &&
-        !boss.isRemoving &&
-        !(boss as CombatEnemy).combatHealth.isDead) {
-      yield boss;
+    for (final boss in bosses) {
+      if (boss.isLoaded &&
+          !boss.isRemoving &&
+          !(boss as CombatEnemy).combatHealth.isDead) {
+        yield boss;
+      }
     }
   }
 
-  double enemyRadius(PositionComponent enemy) =>
-      enemy is BossEncounter ? 65 : min(enemy.size.x, enemy.size.y) * 0.3;
+  double enemyRadius(PositionComponent enemy) => enemy is BossWeakPoint
+      ? 26
+      : enemy is BossEncounter
+          ? 65
+          : min(enemy.size.x, enemy.size.y) * 0.3;
   bool segmentBlocked(Vector2 start, Vector2 end) =>
       geometry.blocked(start, end);
   void constrainActor(Vector2 position, double radius) =>
@@ -289,7 +441,7 @@ class RegunGame extends FlameGame
       String cause = 'Ground strike',
       bool poison = false,
       CombatHealth? ownerHealth}) {
-    if (_hazards.length >= 8) return;
+    if (_hazards.length + _bossAttacks.length >= 8) return;
     constrainActor(position, radius);
     final hazard = HostileArea(
         position: position,
@@ -370,7 +522,6 @@ class RegunGame extends FlameGame
   final _enemies = <PositionComponent>{};
   final _coins = <CoinComponent>{};
   EncounterDirector director = EncounterDirector();
-  PositionComponent? activeBoss;
   ShadowBossComponent? get shadowBoss => activeBoss is ShadowBossComponent
       ? activeBoss as ShadowBossComponent
       : null;
@@ -388,6 +539,7 @@ class RegunGame extends FlameGame
   bool _enemy2Unlocked = false;
   bool _enemy3Unlocked = false;
   bool _started = false;
+  bool disposed = false;
 
   static const maxEnemies = 120;
   static const maxCoins = 80;
@@ -482,6 +634,13 @@ class RegunGame extends FlameGame
     timeScale = 1;
     director = EncounterDirector();
     activeBoss = null;
+    _bossDamageTaken.clear();
+    _bossAttacks.clear();
+    weakPoints.clear();
+    bossRush = false;
+    bossRushRound = 0;
+    bossRushWait = 0;
+    _rushBag.clear();
     _reloadWasActive = false;
     _breachCharged = false;
     breachEngine = false;
@@ -526,6 +685,9 @@ class RegunGame extends FlameGame
       final enemy = entity as CombatEnemy;
       return {
         'kind': enemyId(entity),
+        if (entity is BossEncounter) 'actor': bossEncounter.idOf(entity),
+        if (entity is BossEncounter)
+          'bossHit': _bossDamageTaken[entity] ?? _bossWasHit,
         'x': entity.position.x,
         'y': entity.position.y,
         'health': enemy.combatHealth.current,
@@ -539,7 +701,7 @@ class RegunGame extends FlameGame
     }
 
     return {
-      'schema': 1,
+      'schema': 2,
       'id': runId,
       'loadout': loadout.toJson(),
       ...gameNotifier.checkpoint(),
@@ -701,14 +863,14 @@ class RegunGame extends FlameGame
         }
         final PositionComponent entity;
         if (BossKind.values.any((k) => k.name == kind)) {
-          if (activeBoss != null) {
+          if (bosses.length >= 2) {
             throw const FormatException('Multiple bosses');
           }
-          entity = kind == 'shadow'
-              ? ShadowBossComponent(position: position, maximumHealth: maximum)
-              : PatternBoss(BossKind.values.byName(kind),
-                  position: position, maximumHealth: maximum);
-          activeBoss = entity;
+          entity = _createBoss(BossKind.values.byName(kind), position, maximum);
+          bossEncounter.add(entity, restoredId: record['actor'] as int?);
+          _bossDamageTaken[entity] = record.containsKey('bossHit')
+              ? record['bossHit'] == true
+              : snapshot['bossWasHit'] == true;
         } else {
           entity = switch (EnemyKind.values.byName(kind)) {
             EnemyKind.scorpion => EnemyComponent(position: position),
@@ -793,6 +955,10 @@ class RegunGame extends FlameGame
   void unregisterEnemy(PositionComponent enemy) {
     _enemies.remove(enemy);
     crowdOccupancy.forget(enemy);
+    if (enemy is BossEncounter) {
+      bossEncounter.remove(enemy);
+      _bossDamageTaken.remove(enemy);
+    }
   }
 
   void _spawnEnemy(PositionComponent enemy) {
@@ -845,16 +1011,21 @@ class RegunGame extends FlameGame
     if (enemy is ArenaEnemy && enemy.elite) eliteKills++;
     gameNotifier.recordKill(score: score, boss: boss);
     combat.onKill(enemy);
-    dropXP(enemy.position, loadout.training ? 7 : xp);
+    if (!bossRush) dropXP(enemy.position, loadout.training ? 7 : xp);
     if (boss) {
       final kind = (enemy as BossEncounter).kind.name;
       defeatedBosses.add(kind);
-      if (!_bossWasHit) noHitBosses.add(kind);
+      if (!(_bossDamageTaken.remove(enemy) ?? _bossWasHit)) {
+        noHitBosses.add(kind);
+      }
       if (kind == 'queen') gameNotifier.addCycleBonus();
-      director.defeatBoss();
-      activeBoss = null;
-      unawaited(audio.playMusic(loadout.arena.name));
-      gameNotifier.awardBossCore();
+      bossEncounter.remove(enemy);
+      if (bosses.isEmpty) {
+        director.defeatBoss();
+        unawaited(audio.playMusic(loadout.arena.name));
+        if (bossRush) bossRushWait = 2.8;
+      }
+      if (!bossRush) gameNotifier.awardBossCore();
       revision.value++;
     }
   }
@@ -888,48 +1059,61 @@ class RegunGame extends FlameGame
 
   void practiceBoss(BossKind kind) {
     if (!loadout.training) return;
-    final old = activeBoss;
-    if (old != null) {
+    bossRush = false;
+    _retirePracticeBosses();
+    resumeGame();
+    spawnBoss(kind);
+  }
+
+  void _retirePracticeBosses() {
+    for (final old in bosses.toList()) {
       final health = (old as CombatEnemy).combatHealth;
       // Retire practice targets without kill rewards or a core; owned attacks
       // see the dead health object and clean themselves up on their next tick.
       health.damage(health.maximum);
       old.removeFromParent();
-      activeBoss = null;
-      director.bossActive = false;
     }
-    resumeGame();
-    spawnBoss(kind);
+    bossEncounter.clear();
+    _bossDamageTaken.clear();
+    director.bossActive = false;
   }
 
   void spawnShadowBoss() => spawnBoss(BossKind.shadow);
 
-  void spawnBoss(BossKind kind) {
-    if (activeBoss != null ||
+  PositionComponent _createBoss(
+          BossKind kind, Vector2 position, double health) =>
+      switch (kind) {
+        BossKind.shadow =>
+          ShadowBossComponent(position: position, maximumHealth: health),
+        BossKind.demon =>
+          DemonBossComponent(position: position, maximumHealth: health),
+        BossKind.queen => PatternBoss(BossKind.queen,
+            position: position, maximumHealth: health),
+        _ => createExpansionBoss(kind, position, health),
+      };
+
+  void spawnBoss(BossKind kind, {bool companion = false}) {
+    if ((!companion && bosses.isNotEmpty) ||
+        bosses.length >= 2 ||
         gameState.gameplayState != GameplayState.playing) {
       return;
     }
-    final position = myPlayer.position + Vector2(450, -200);
+    final position = myPlayer.position + Vector2(companion ? -450 : 450, -65);
     constrainActor(position, 110);
     _bossWasHit = false;
-    final scaling = 180 * pow(director.bossesDefeated ~/ 3, 1.3);
-    activeBoss = switch (kind) {
-      BossKind.shadow => ShadowBossComponent(
-          position: position, maximumHealth: 140 + scaling.toDouble()),
-      BossKind.demon => DemonBossComponent(
-          position: position, maximumHealth: 230 + scaling.toDouble()),
-      BossKind.queen => PatternBoss(BossKind.queen,
-          position: position, maximumHealth: 300 + scaling.toDouble()),
-    };
-    if (!reserveEnemySpace(activeBoss!, minPlayerDistance: 220)) {
-      activeBoss = null;
+    final scaling = bossRush ? 0.0 : 180 * pow(director.cycle - 1, 1.3);
+    final actor = _createBoss(kind, position, kind.baseHealth + scaling);
+    if (!reserveEnemySpace(actor, minPlayerDistance: 220)) {
       return;
     }
+    bossEncounter.add(actor);
+    _bossDamageTaken[actor] = false;
     encounteredEnemies.add(kind.name);
+    unawaited(audio.warmBoss(kind));
     audio.play('boss.wav');
     unawaited(audio.playMusic('boss'));
-    director.beginBoss();
-    world.add(activeBoss!);
+    if (!director.bossActive) director.beginBoss();
+    world.add(actor);
     final distant = liveEnemies
         .where((e) =>
             e is! BossEncounter &&
@@ -941,6 +1125,62 @@ class RegunGame extends FlameGame
     for (final enemy in distant.take(max(0, _enemies.length - 60))) {
       enemy.removeFromParent();
     }
+    revision.value++;
+  }
+
+  void startBossRush() {
+    if (!loadout.training) return;
+    _retirePracticeBosses();
+    for (final enemy in _enemies.toList()) {
+      enemy.removeFromParent();
+    }
+    for (final area in _hazards.toList()) {
+      area.removeFromParent();
+    }
+    for (final shot in _hostileProjectiles.toList()) {
+      shot.removeFromParent();
+    }
+    bossRush = true;
+    bossRushRound = 0;
+    bossRushWait = .5;
+    _rushBag.clear();
+    resumeGame();
+    resetInput();
+    revision.value++;
+  }
+
+  void nextBossRushRound() {
+    if (!loadout.training || !bossRush) return;
+    _retirePracticeBosses();
+    bossRushWait = .5;
+    resumeGame();
+    revision.value++;
+  }
+
+  BossKind _nextRushBoss({BossKind? excluding}) {
+    if (_rushBag.isEmpty) _rushBag.addAll(BossKind.values);
+    if (_rushBag.length == BossKind.values.length) _rushBag.shuffle(random);
+    var index = _rushBag.indexWhere((kind) => kind != excluding);
+    if (index < 0) {
+      _rushBag.addAll(BossKind.values.where((kind) => kind != excluding));
+      _rushBag.shuffle(random);
+      index = _rushBag.indexWhere((kind) => kind != excluding);
+    }
+    return _rushBag.removeAt(index);
+  }
+
+  void _advanceRush(double dt) {
+    if (!bossRush || bosses.isNotEmpty) return;
+    bossRushWait -= dt;
+    if (bossRushWait > 0) return;
+    bossRushRound++;
+    gameNotifier.refillPractice();
+    final first = _nextRushBoss();
+    spawnBoss(first);
+    if (random.nextDouble() < .4) {
+      spawnBoss(_nextRushBoss(excluding: first), companion: true);
+    }
+    if (bosses.isEmpty) bossRushWait = 1;
     revision.value++;
   }
 
@@ -1019,6 +1259,7 @@ class RegunGame extends FlameGame
   @override
   void update(double dt) {
     if (!_started) return;
+    bossEncounter.advance(_lingeringBossAttack);
     _weaponImpacts = 0;
     final phase = gameState.gameplayState;
     if (phase == GameplayState.paused || phase == GameplayState.gameOver) {
@@ -1040,7 +1281,7 @@ class RegunGame extends FlameGame
     enemyTactics.rebuild(liveEnemies);
     crowdOccupancy.rebuild([
       ..._enemies,
-      if (activeBoss != null) activeBoss!,
+      ...bosses,
     ], crowdRadius);
     super.update(dt);
     final state = gameState;
@@ -1050,7 +1291,10 @@ class RegunGame extends FlameGame
         _checkpointElapsed = 0;
         unawaited(saveCheckpoint());
       }
-      if (director.advance(dt) && (!loadout.training || _enemies.length < 4)) {
+      _advanceRush(dt);
+      if (director.advance(dt) &&
+          !bossRush &&
+          (!loadout.training || _enemies.length < 4)) {
         final kind = director.chooseEnemy(random);
         final enemy = switch (kind) {
           EnemyKind.scorpion => EnemyComponent(),
@@ -1064,7 +1308,7 @@ class RegunGame extends FlameGame
         _spawnEnemy(enemy);
       }
       if (director.bossDue && !loadout.training) {
-        spawnBoss(BossKind.values[director.bossesDefeated % 3]);
+        spawnBoss(director.chooseBoss(random));
       }
       if (loadout.arena == ArenaType.foundry &&
           director.bossesDefeated > 0 &&
@@ -1170,7 +1414,12 @@ class RegunGame extends FlameGame
     if (gameState.health < health) {
       myPlayer.hurtFlash = 0.25;
       damageFeedback.trigger();
-      if (activeBoss != null) _bossWasHit = true;
+      if (activeBoss != null) {
+        _bossWasHit = true;
+        for (final boss in bosses) {
+          _bossDamageTaken[boss] = true;
+        }
+      }
       if (preferences.haptics) {
         unawaited(HapticFeedback.mediumImpact().catchError((Object _) {}));
       }
@@ -1195,11 +1444,16 @@ class RegunGame extends FlameGame
   }
 
   void restartGame() {
+    final restartRush = bossRush;
+    for (final boss in world.children.whereType<ExpansionBoss>()) {
+      boss.releaseArt();
+    }
     // Replace the run world, including components that are still loading and
     // are not yet visible in world.children. They must never enter a new run.
     world = World();
     world.add(map);
     _startRun();
+    if (restartRush) startBossRush();
   }
 
   void pauseGame() => gameNotifier.pauseGame();
@@ -1227,6 +1481,10 @@ class RegunGame extends FlameGame
 
   @override
   void onRemove() {
+    disposed = true;
+    for (final boss in world.children.whereType<ExpansionBoss>()) {
+      boss.releaseArt();
+    }
     _phaseSubscription?.close();
     if (_started) gameNotifier.cancelPendingActions();
     super.onRemove();

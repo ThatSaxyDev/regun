@@ -85,6 +85,7 @@ class ShadowBossComponent extends PositionComponent
   }
 
   void _enter(ShadowPhase next) {
+    if (next == ShadowPhase.recovery) game.releaseBossAttack(this);
     phase = next;
     _phaseTime = 0;
     _fired = false;
@@ -99,6 +100,7 @@ class ShadowBossComponent extends PositionComponent
   }
 
   void _commitAttack() {
+    if (!game.claimBossAttack(this)) return;
     final delta = game.myPlayer.position - position;
     final lead =
         game.movementJoystick.relativeDelta * game.gameState.movementSpeed * .3;

@@ -1,4 +1,5 @@
 import 'package:regun/data/loadout.dart';
+import 'package:regun/data/enemies.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:logging/logging.dart';
@@ -54,6 +55,22 @@ class SoloudPlay {
       }));
     } catch (_) {
       // Audio is optional when native initialization is unavailable.
+    }
+  }
+
+  Future<void> warmBoss(BossKind kind) async {
+    try {
+      if (!kind.expansion || !_soloud.isInitialized) return;
+      await Future.wait(['warn', 'hit', 'break'].map((cue) async {
+        final name = 'boss_${kind.name}_$cue.wav';
+        try {
+          await _source(name);
+        } catch (_) {
+          _sources.remove(name);
+        }
+      }));
+    } catch (_) {
+      // Native audio may be unavailable in tests or after interruption.
     }
   }
 

@@ -99,7 +99,7 @@ void main() {
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    for (final kind in BossKind.values) {
+    for (final kind in BossKind.values.where((kind) => !kind.expansion)) {
       final game = await mount(tester);
       for (var i = 0; i < 30; i++) {
         game.gameNotifier.healthIncrease();
@@ -118,6 +118,7 @@ void main() {
         }
       }
       expect(lane, isNotNull);
+      game.random.state = 61;
       game.spawnBoss(kind);
       await tester.runAsync(() => game.ready());
       final boss = game.activeBoss!;
@@ -139,6 +140,11 @@ void main() {
       var sawAttack = false;
       await tester.runAsync(() async {
         for (var tick = 0; tick < 600; tick++) {
+          // Isolate the retreat test from random adds obstructing the marked
+          // lane; crowd/body interactions have separate live-scene coverage.
+          for (final enemy in game.liveEnemies.toList()) {
+            if (!identical(enemy, boss)) enemy.removeFromParent();
+          }
           game.update(1 / 60);
           if (tick % 6 == 0) await game.ready();
           if (boss is PatternBoss && boss.phase == PatternBossPhase.active ||
