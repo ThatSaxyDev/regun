@@ -1,0 +1,5 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/sprite_playback_test.dart
+00:00 +0: all survivor run loops advance without restarting on facing changes
+00:00 +1: home/game full-body run frames have uniform pacing on a 60 Hz loop
+00:00 +2: render actual complete-sprite movement video frames
+00:01 +3: All tests passed!

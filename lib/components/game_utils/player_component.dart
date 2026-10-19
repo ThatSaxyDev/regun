@@ -1,275 +1,237 @@
-import 'dart:async';
+import 'package:regun/presentation/weapon_feel.dart';
+import 'package:regun/presentation/animation_playback.dart';
 import 'dart:math';
-
+import 'package:flutter/material.dart';
+import 'package:regun/components/weapons/combat_effect.dart';
+import 'package:regun/components/weapons/weapon_art.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/game.dart';
-import 'package:flame/sprite.dart';
-import 'package:flame_riverpod/flame_riverpod.dart';
-import 'package:flutter/material.dart';
-import 'package:regun/components/enemies/enemy_3_component.dart';
-import 'package:regun/components/enemies/enemy_3_projectile.dart';
-import 'package:regun/components/enemies/shadow_boss_component.dart';
-import 'package:regun/components/game_utils/coin_component.dart';
-import 'package:regun/components/ui/border_component.dart';
-import 'package:regun/components/weapons/bullet_component.dart';
-import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/components/enemies/enemy_component.dart';
-import 'package:regun/components/weapons/mine_component.dart';
-import 'package:regun/components/weapons/shrapnel_component.dart';
+import 'package:regun/components/enemies/enemy_3_projectile.dart';
+import 'package:regun/components/enemies/shadow_projectile.dart';
+import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
-import 'package:regun/utils/soloud_play.dart';
 
 class PlayerComponent extends SpriteAnimationComponent
-    with
-        HasGameReference<RegunGame>,
-        CollisionCallbacks,
-        RiverpodComponentMixin {
-  PlayerComponent({
-    super.position,
-    this.playerRadius = 25,
-  }) : super(
-          priority: 10,
-        );
+    with HasGameReference<RegunGame>, CollisionCallbacks {
+  PlayerComponent({super.position, this.playerRadius = 25})
+      : super(
+            priority: 10,
+            size: Vector2.all(playerRadius * 4),
+            anchor: Anchor.center);
 
   final double playerRadius;
-  // static final _paint = Paint()
-  //   ..color = Colors.white
-  //   ..style = PaintingStyle.stroke
-  //   ..strokeCap = StrokeCap.round
-  //   ..strokeWidth = 10;
-
-  // double maxSpeed = 300.0;
-  late final Vector2 _lastSize = size.clone();
-  late final Vector2 lastPosition = position.clone();
-  late final Transform2D _lastTransform = transform.clone();
-  late SpriteAnimation idleRightAnimation;
-  late SpriteAnimation idleLeftAnimation;
-  late SpriteAnimation runRightAnimation;
-  late SpriteAnimation runLeftAnimation;
-
-  //!
-  Random random = Random();
-  Tween<double> noise = Tween(begin: -1, end: 1);
-  ColorTween colorTweenn = ColorTween(begin: Colors.red, end: Colors.blue);
-
-  //!
-  LastDirection lastDirection = LastDirection.right;
-
-  double getMaxSpeed() {
-    final speed = ref.read(gameNotifierProvider).movementSpeed;
-    return speed;
-  }
+  static const collisionRadius = 30.0;
+  final List<SpriteAnimation> _idle = [], _run = [];
+  final List<SpriteAnimation> _dash = [], _brace = [], _hurt = [];
+  int _facingRow = 0;
+  final lastMovement = Vector2(1, 0);
+  final dashDirection = Vector2(1, 0);
+  final aimDirection = Vector2(1, 0);
+  double recoil = 0, hurtFlash = 0;
+  double _trailClock = 0;
 
   @override
   Future<void> onLoad() async {
-    await super.onLoad();
-    // debugMode = true;
-    // maxSpeed = ref.read(gameNotifierProvider).movementSpeed;
-    final idleRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('player_idle.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final idleLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('player_idle_left.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final runRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('player_run.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final runLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('player_run_left.png'),
-      srcSize: Vector2(48, 48),
-    );
-    idleRightAnimation = idleRightSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 5,
-    );
-    idleLeftAnimation = idleLeftSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 5,
-    );
-    runRightAnimation = runRightSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-    runLeftAnimation = runLeftSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-    animation = idleRightAnimation;
-    add(
-      CircleHitbox(
-        radius: 40,
-        anchor: const Anchor(-0.11, -0.08),
-        collisionType: CollisionType.active,
-      ),
-      // RectangleHitbox(
-      //   size: Vector2(60, 70),
-      //   anchor: const Anchor(-0.3, -0.18),
-      //   collisionType: CollisionType.active,
-      // ),
-    );
+    final atlas = 'characters/${game.loadout.character.name}';
+    for (var row = 0; row < 4; row++) {
+      _idle
+          .add(RegunArt.shared.animation(atlas, row: row, count: 2, step: 0.3));
+      _run.add(RegunArt.shared
+          .survivorRun(game.loadout.character.name, facing: row));
+      _dash.add(
+          RegunArt.shared.animation('${atlas}_actions', row: row, count: 1));
+      _brace.add(RegunArt.shared
+          .animation('${atlas}_actions', row: row, from: 1, count: 1));
+      _hurt.add(RegunArt.shared
+          .animation('${atlas}_actions', row: row, from: 2, count: 1));
+    }
+    animation = _idle[0];
+    add(CircleHitbox(
+        radius: collisionRadius,
+        position: size / 2,
+        anchor: Anchor.center,
+        collisionType: CollisionType.active));
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    if (game.boostButtonComponent.tapped) {
-      position.add(game.movementJoystick.relativeDelta * 1000 * dt);
+    priority = 10000 + (position.y + size.y * .38).round();
+    final movement = game.movementJoystick.relativeDelta;
+    final aim = game.weaponJoystick.relativeDelta;
+    if (!aim.isZero()) aimDirection.setFrom(aim.normalized());
+    recoil = max(0, recoil - dt / WeaponFeel.of(game.loadout.weapon).recovery);
+    hurtFlash = max(0, hurtFlash - dt);
+    final facing = aim.isZero() ? movement : aim;
+    if (!facing.isZero()) {
+      _facingRow = facing.x.abs() > facing.y.abs()
+          ? (facing.x < 0 ? 2 : 0)
+          : (facing.y > 0 ? 1 : 3);
     }
-    Set<PositionComponent> filteredComponents =
-        getFilteredComponents(activeCollisions);
-    if (!game.weaponJoystick.delta.isZero() &&
-        game.movementJoystick.delta.isZero()) {
-      switch (game.weaponJoystick.direction) {
-        case JoystickDirection.left ||
-              JoystickDirection.upLeft ||
-              JoystickDirection.downLeft ||
-              JoystickDirection.down:
-          animation = idleLeftAnimation;
-          lastDirection = LastDirection.left;
-
-        case JoystickDirection.right ||
-              JoystickDirection.upRight ||
-              JoystickDirection.downRight ||
-              JoystickDirection.up:
-          animation = idleRightAnimation;
-          lastDirection = LastDirection.right;
-        default:
-          animation = switch (lastDirection) {
-            LastDirection.left => idleLeftAnimation,
-            LastDirection.right => idleRightAnimation
-          };
-      }
-    }
-    if (!game.movementJoystick.delta.isZero() && filteredComponents.isEmpty) {
-      switch (game.movementJoystick.direction) {
-        case JoystickDirection.left ||
-              JoystickDirection.upLeft ||
-              JoystickDirection.downLeft ||
-              JoystickDirection.down:
-          if (game.weaponJoystick.direction == JoystickDirection.right ||
-              game.weaponJoystick.direction == JoystickDirection.downRight ||
-              game.weaponJoystick.direction == JoystickDirection.upRight) {
-            animation = runRightAnimation;
-            lastDirection = LastDirection.right;
-          } else {
-            animation = runLeftAnimation;
-            lastDirection = LastDirection.left;
-          }
-
-        case JoystickDirection.right ||
-              JoystickDirection.upRight ||
-              JoystickDirection.downRight ||
-              JoystickDirection.up:
-          if (game.weaponJoystick.direction == JoystickDirection.left ||
-              game.weaponJoystick.direction == JoystickDirection.downLeft ||
-              game.weaponJoystick.direction == JoystickDirection.upLeft) {
-            animation = runLeftAnimation;
-            lastDirection = LastDirection.left;
-          } else {
-            animation = runRightAnimation;
-            lastDirection = LastDirection.right;
-          }
-        default:
-          animation = switch (lastDirection) {
-            LastDirection.left => idleLeftAnimation,
-            LastDirection.right => idleRightAnimation
-          };
-      }
-      _lastSize.setFrom(size);
-      _lastTransform.setFrom(transform);
-      position.add(game.movementJoystick.relativeDelta *
-          (ref.read(gameNotifierProvider).movementSpeed) *
-          dt);
-      // angle = game.movementJoystick.delta.screenAngle();
+    final moving = !movement.isZero();
+    final nextAnimation = game.boostButtonComponent.tapped
+        ? _dash[_facingRow]
+        : hurtFlash > .12
+            ? _hurt[_facingRow]
+            : (!moving && recoil > .5)
+                ? _brace[_facingRow]
+                : moving
+                    ? _run[_facingRow]
+                    : _idle[_facingRow];
+    if (_run.contains(animation) && _run.contains(nextAnimation)) {
+      switchLoopFacing(this, nextAnimation);
     } else {
-      animation = switch (lastDirection) {
-        LastDirection.left => idleLeftAnimation,
-        LastDirection.right => idleRightAnimation
-      };
+      animation = nextAnimation;
     }
-  }
+    if (game.gameState.gameplayState != GameplayState.playing) return;
+    if (!movement.isZero()) lastMovement.setFrom(movement.normalized());
+    _trailClock += dt;
+    if (!movement.isZero() &&
+        game.preferences.profile.cosmetic == 'endless' &&
+        !game.preferences.reducedMotion &&
+        _trailClock > .12) {
+      _trailClock = 0;
+      game.addCombatEffect(CombatEffect(
+          position: position.clone(),
+          radius: 8,
+          duration: .25,
+          color: const Color(0xffD5BA75)));
+    }
 
-  Set<PositionComponent> getFilteredComponents(
-      Set<PositionComponent> components) {
-    return components
-        .where((component) =>
-            component is! BulletComponent &&
-            component is! Enemy3Component &&
-            component is! Enemy3Projectile &&
-            component is! Enemy2Component &&
-            component is! EnemyComponent &&
-            component is! MineComponent &&
-            component is! ShrapnelComponent &&
-            component is! ShadowBossComponent &&
-            component is! CoinComponent)
-        .toSet();
+    if (game.boostButtonComponent.tapped) {
+      game.moveActor(this, dashDirection, 1300, dt, radius: collisionRadius);
+    } else {
+      game.moveActor(this, movement, game.gameState.movementSpeed, dt,
+          radius: collisionRadius);
+    }
+    // Direct geometric bounds also handle large dash steps and corner sliding.
+    game.constrainActor(position, collisionRadius);
   }
 
   @override
-  void onMount() {
-    // debugMode = true;
-    size = Vector2.all(playerRadius * 4);
-    anchor = Anchor.center;
-    // maxSpeed = ref.read(gameNotifierProvider).movementSpeed;
-    super.onMount();
+  void render(Canvas canvas) {
+    final style = game.preferences.profile.cosmetic;
+    final tint = switch (style) {
+      'copper' => const Color(0xffE9BD92),
+      'moss' => const Color(0xffCAD8A3),
+      'ivory' => const Color(0xffFFF4DC),
+      'shadowPalette' => const Color(0xffD7B8EA),
+      'emberPalette' => const Color(0xffF2B58C),
+      'engineer' => const Color(0xffF2D28D),
+      _ => null,
+    };
+    paint.colorFilter = hurtFlash > .17 && !game.preferences.reducedMotion
+        ? const ColorFilter.mode(Color(0xffFFF0DB), BlendMode.srcATop)
+        : tint == null
+            ? null
+            : ColorFilter.mode(tint, BlendMode.modulate);
+    canvas.drawOval(
+        Rect.fromCenter(
+            center: Offset(size.x * .5, size.y * .83), width: 42, height: 12),
+        Paint()..color = const Color(0x650C1113));
+    if (game.gameState.gameplayState == GameplayState.gameOver) {
+      RegunArt.shared
+          .sprite('characters/${game.loadout.character.name}_actions',
+              _facingRow * 4 + 3)
+          .render(canvas, size: size, overridePaint: paint);
+      return;
+    }
+    void weapon() {
+      canvas.save();
+      canvas.translate(
+          size.x * .5 + aimDirection.x * 8, size.y * .56 + aimDirection.y * 8);
+      canvas.rotate(atan2(aimDirection.y, aimDirection.x));
+      if (aimDirection.x < 0) canvas.scale(1, -1);
+      paintWeapon(canvas, game.loadout.weapon,
+          reload: game.gameState.reloading
+              ? game.gameNotifier.reloadProgress.value
+              : -1,
+          recoil: recoil,
+          reloadShells: game.gameState.maxBullets - game.gameState.noOfBullets,
+          reducedMotion: game.preferences.reducedMotion);
+      canvas.drawRRect(
+          RRect.fromRectAndRadius(
+              const Rect.fromLTWH(-11, -2, 7, 7), const Radius.circular(2)),
+          Paint()..color = const Color(0xff454A43));
+      canvas.restore();
+    }
+
+    if (aimDirection.y < -.35) weapon();
+    super.render(canvas);
+    if (aimDirection.y >= -.35) weapon();
+    if (style == 'queenTrophy') {
+      for (var i = 0; i < 3; i++) {
+        canvas.drawRect(Rect.fromLTWH(35 + i * 7, 10 - (i == 1 ? 4 : 0), 5, 8),
+            Paint()..color = const Color(0xffE3C480));
+      }
+    } else if (style == 'veteran' ||
+        style == 'scorpionCharm' ||
+        style == 'eliteHunter' ||
+        style == 'survivor') {
+      canvas.drawRect(
+          const Rect.fromLTWH(31, 40, 8, 8),
+          Paint()
+            ..color = style == 'survivor'
+                ? const Color(0xffAABDE0)
+                : const Color(0xffD5BA75));
+    }
+    if (style == 'veteran') {
+      for (var i = 0; i < 3; i++) {
+        canvas.drawRect(Rect.fromLTWH(30, 44 + i * 4, 10, 2),
+            Paint()..color = const Color(0xffD5BA75));
+      }
+    } else if (style == 'scorpionCharm') {
+      for (var i = 0; i < 4; i++) {
+        canvas.drawRect(Rect.fromLTWH(26 + i * 2, 56 - i * 3, 3, 3),
+            Paint()..color = const Color(0xffA4AE76));
+      }
+    } else if (style == 'eliteHunter') {
+      canvas.drawRect(const Rect.fromLTWH(32, 39, 3, 14),
+          Paint()..color = const Color(0xffD5BA75));
+    }
+    if (hurtFlash > 0) {
+      canvas.drawCircle(
+          (size / 2).toOffset(), 34, Paint()..color = const Color(0x55EBA49A));
+    }
+    if (game.gameState.guard) {
+      canvas.drawCircle(
+          (size / 2).toOffset(),
+          35,
+          Paint()
+            ..color = const Color(0x997EABC0)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2);
+    }
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+    if (other is EnemyComponent &&
+        !other.isRemoving &&
+        game.damagePlayer(cause: 'Scorpion')) {
+      // Contact hurts the player; it does not bypass enemy health.
+    }
   }
 
   @override
   void onCollisionStart(
-      Set<Vector2> intersectionPoints, PositionComponent other) async {
+      Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollisionStart(intersectionPoints, other);
-    if (other is BorderComponent) {
-      transform.setFrom(_lastTransform);
-      size.setFrom(_lastSize);
-    } else if (other is EnemyComponent) {
-      if (ref.read(gameNotifierProvider).triggerSprintInvincibility == false) {
-        ref.read(gameNotifierProvider.notifier).reduceHealth();
-        other.showDeathSplashEffect();
-        other.removeFromParent();
-        // FlameAudio.play('gameov.wav');
-        ref.read(soloudPlayProvider).play('gameov.wav');
-        if (ref.read(gameNotifierProvider).health == 0) {
-          game.gameOver();
-        }
-      }
-    } else if (other is Enemy3Projectile) {
-      if (!game.boostButtonComponent.tapped) {
-        ref.read(gameNotifierProvider.notifier).reduceHealth();
-        other.removeFromParent();
-        // FlameAudio.play('gameov.wav');
-        ref.read(soloudPlayProvider).play('gameov.wav');
-        if (ref.read(gameNotifierProvider).health == 0) {
-          game.gameOver();
-        }
-      }
-    } else if (other is CoinComponent) {
-      // FlameAudio.play('coinSound2.wav');
-      ref.read(soloudPlayProvider).play('coinSound2.wav');
-      ref.read(gameNotifierProvider.notifier).updateScore();
-      ref.read(gameNotifierProvider.notifier).increaseXP();
-      if (ref.read(gameNotifierProvider).currentLevel == 3 &&
-          ref.read(gameNotifierProvider).triggerEnemySpawn == true) {
-        game.addEnemy2Component();
-      }
-      if (ref.read(gameNotifierProvider).currentLevel == 5 &&
-          ref.read(gameNotifierProvider).triggerEnemySpawn == true) {
-        game.addEnemy3Component();
-      }
+    if (game.gameState.gameplayState != GameplayState.playing) return;
+    if (other is CoinComponent && !other.isCollected) {
+      other.isCollected = true;
       other.removeFromParent();
+      game.audio.play('coinSound2.wav');
+      game.gameNotifier.increaseXP(other.value);
+    } else if (other is Enemy3Projectile || other is ShadowProjectile) {
+      if (other.isRemoving) return;
+      other.removeFromParent();
+      game.damagePlayer(
+          cause: other is ShadowProjectile ? 'Shadow bolt' : 'Revenant shot');
     }
   }
-}
-
-enum LastDirection {
-  left,
-  right,
 }

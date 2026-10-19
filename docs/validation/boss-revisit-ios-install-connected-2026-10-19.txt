@@ -1,0 +1,7 @@
+App installed:
+• bundleID: dev.kiishi.regun
+• installationURL: file:///private/var/containers/Bundle/Application/8B22EFCA-373F-4AE4-8BCF-DB5D5E781F91/Runner.app/
+• launchServicesIdentifier: unknown
+• databaseUUID: 0F9DB728-A13A-488F-81A6-0070906FB372
+• databaseSequenceNumber: 6192
+• options: 

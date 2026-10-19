@@ -1,20 +1,20 @@
-import 'dart:math';
+import 'package:regun/data/enemies.dart';
+import 'package:regun/components/enemies/combat_enemy.dart';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/particles.dart';
-import 'package:flame/sprite.dart';
+import 'package:regun/presentation/regun_art.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
 
 class EnemyComponent extends SpriteAnimationComponent
-    with HasGameReference<RegunGame> {
+    with HasGameReference<RegunGame>, CombatEnemy {
   EnemyComponent({super.position})
       : super(
           size: Vector2.all(enemySize),
           anchor: Anchor.center,
         );
-  static final _splashpaint = Paint()..color = Colors.green.shade300;
+  bool isDying = false;
   static const enemySize = 85.0;
   late SpriteAnimation moveLeftAnimation;
   late SpriteAnimation moveRightAnimation;
@@ -22,30 +22,15 @@ class EnemyComponent extends SpriteAnimationComponent
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    // debugMode = true;
-    final moveLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('Scorpio_walk.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final moveRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('Scorpio_walk_right.png'),
-      srcSize: Vector2(48, 48),
-    );
-    moveLeftAnimation = moveLeftSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 4,
-    );
-    moveRightAnimation = moveRightSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 4,
-    );
-    animation = moveLeftAnimation;
+    initializeHealth(2 * game.director.healthScale);
+    moveLeftAnimation = moveRightAnimation =
+        RegunArt.shared.animation('enemies/scorpion', step: 1 / 12);
+    animation = moveRightAnimation;
     add(
       RectangleHitbox(
         size: Vector2(61, 35),
-        anchor: const Anchor(-0.4, -1.4),
+        position: size / 2,
+        anchor: Anchor.center,
         collisionType: CollisionType.passive,
       ),
     );
@@ -59,16 +44,20 @@ class EnemyComponent extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
+    final facingLeft = game.myPlayer.position.x < position.x;
+    if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
+
+    if (isDying) return;
 
     //! PLAYER POSITION
     final playerPosition = game.myPlayer.position;
 
     //! DIRECTION VECTOR FROM THE ENEMY TO THE PLAYER
-    final direction = (playerPosition - position).normalized();
+    final direction = game.enemyIntent(this, EnemyKind.scorpion);
 
     //! MOVE ENEMY TOWARDS PLAYER
     const speed = 60;
-    position += direction * (speed * dt);
+    game.moveActor(this, direction, speed.toDouble(), dt);
 
     if (playerPosition.x > position.x) {
       animation = moveRightAnimation;
@@ -82,29 +71,16 @@ class EnemyComponent extends SpriteAnimationComponent
     // }
   }
 
-  void showDeathSplashEffect() {
-    final rnd = Random();
-    Vector2 randomVector2() => (Vector2.random(rnd) - Vector2.random(rnd)) * 80;
-    parent!.add(
-      ParticleSystemComponent(
-        position: position,
-        particle: Particle.generate(
-            count: 30,
-            lifespan: 0.8,
-            generator: (i) {
-              return AcceleratedParticle(
-                speed: randomVector2(),
-                acceleration: randomVector2(),
-                child: CircleParticle(
-                  radius: 2,
-                  lifespan: 0.5,
-                  paint: _splashpaint,
-                ),
-              );
-            }),
-      ),
-    );
+  @override
+  void onCombatDeath() => showDeathSplashEffect();
 
+  void showDeathSplashEffect() {
+    if (isDying || isRemoving) return;
+    isDying = true;
+    game.addCombatEffectForKill(position,
+        radius: size.y / 2,
+        remains: RegunArt.shared.sprite('enemies/scorpion', 7));
+    game.addDeathParticles(position, color: const Color(0xff8ABF8B));
     removeFromParent();
   }
 }

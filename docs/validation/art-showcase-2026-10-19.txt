@@ -1,0 +1,3 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/full_run_integration_test.dart
+00:00 +0: all weapons/characters mount, bosses work, and a live run restores safely
+00:03 +1: All tests passed!

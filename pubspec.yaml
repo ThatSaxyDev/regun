@@ -1,7 +1,7 @@
 name: regun
-description: "A new Flutter project."
+description: "Regun — a mobile twin-stick survival shooter."
 publish_to: "none"
-version: 1.0.0+1
+version: 1.0.0+6
 
 environment:
   sdk: ">=3.4.3 <4.0.0"
@@ -12,25 +12,29 @@ dependencies:
 
   cupertino_icons: ^1.0.6
   flame: ^1.18.0
-  flame_audio: ^2.10.2
   flame_riverpod: ^5.4.2
   flutter_riverpod: ^2.5.1
-  phosphor_flutter: ^2.1.0
   flutter_animate: ^4.5.0
   go_router: ^14.2.3
   flextras: ^1.0.0
   lottie: ^3.1.2
   loading_animation_widget: ^1.2.1
-  flame_tiled: ^1.20.2
-  flutter_soloud: ^3.2.2
+  flame_tiled: ^3.1.1
+  flutter_soloud: ^3.4.4
   logging: ^1.2.0
   flame_splash_screen: ^0.3.0
-  supabase_flutter: ^2.6.0
   uuid: ^4.5.0
+  shared_preferences: ^2.5.5
+  path_provider: ^2.1.5
+  xml: ^6.6.1
+  package_info_plus: ^9.0.1
+  telling_logger: 1.5.0
+  url_launcher: ^6.3.2
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.4.1
+  flutter_native_splash: ^2.4.8
 
   flutter_test:
     sdk: flutter
@@ -49,13 +53,24 @@ flutter_native_splash:
   image: "app_icon/logo.png"
 
 flutter:
+  # SoLoud currently uses CocoaPods for its iOS native library.
+  config:
+    enable-swift-package-manager: false
   uses-material-design: true
 
   assets:
-    - assets/images/
+    - assets/images/heart.png
+    - assets/images/splash_image.png
     - assets/audio/
     - assets/lottie/
-    - assets/tiles/
+    - assets/tiles/maptile.tmx
+    - assets/art/
+    - assets/art/characters/
+    - assets/art/arenas/
+    - assets/art/enemies/
+    - assets/art/bosses/
+    - assets/art/items/
+    - assets/art/weapons/
 
   fonts:
     - family: PressStart2P

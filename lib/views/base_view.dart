@@ -1,499 +1,692 @@
+import 'package:regun/widgets/menu_layout.dart';
+import 'package:regun/theme/upgrade_glyph.dart';
+import 'package:regun/theme/pixel_glyph.dart';
+import 'package:regun/widgets/pixel_icon.dart';
+import 'package:regun/data/challenges.dart';
+import 'package:regun/widgets/control_arranger.dart';
+import 'package:regun/services/run_store.dart';
+import 'package:regun/data/enemies.dart';
+import 'package:regun/views/settings_view.dart';
+import 'dart:async';
+import 'package:regun/data/loadout.dart';
+import 'package:regun/components/enemies/combat_enemy.dart';
+import 'package:regun/components/enemies/boss_encounter.dart';
+import 'package:regun/components/weapons/weapon_art.dart';
+import 'package:regun/widgets/control_settings.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
-import 'package:flextras/flextras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:lottie/lottie.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:regun/utils/app_extensions.dart';
-import 'package:regun/utils/constants.dart';
 import 'package:regun/game.dart';
+import 'package:regun/models/control_layout.dart';
 import 'package:regun/notifiers/game_notifier.dart';
-import 'package:regun/theme/palette.dart';
-import 'package:regun/utils/nav.dart';
+import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/click_button.dart';
-import "package:flutter_animate/flutter_animate.dart";
+
+const _brass = Color(0xffE1BA78);
+const _paper = Color(0xffE5DDD1);
+const _muted = Color(0xffB2A8B4);
+const _panel = Color(0xf51D1821);
+
+String runTime(int seconds) =>
+    '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
 
 class BaseView extends StatefulWidget {
-  const BaseView({super.key});
-
+  const BaseView(
+      {super.key,
+      this.loadout = const Loadout(),
+      this.resumeSnapshot,
+      this.runStore});
+  final RunStore? runStore;
+  final Loadout loadout;
+  final Map<String, dynamic>? resumeSnapshot;
   @override
   State<BaseView> createState() => _BaseViewState();
 }
 
-class _BaseViewState extends State<BaseView> {
-  late RegunGame _myGame;
-  final GlobalKey<RiverpodAwareGameWidgetState> gameWidgetKey =
-      GlobalKey<RiverpodAwareGameWidgetState>();
-  late final Widget lottieWidget;
+class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
+  late final RegunGame _myGame;
+  final gameWidgetKey = GlobalKey<RiverpodAwareGameWidgetState>();
+  bool _editingControls = false;
+  bool _arranging = false;
+  bool _leaving = false;
 
   @override
   void initState() {
     super.initState();
-    _myGame = RegunGame(context);
-    lottieWidget = Lottie.asset('assets/lottie/reload.json');
+    WidgetsBinding.instance.addObserver(this);
+    _myGame = RegunGame(context,
+        loadout: widget.loadout,
+        resumeSnapshot: widget.resumeSnapshot,
+        runStore: widget.runStore);
   }
 
-  Color getPowerUpColor(double length) {
-    if (length < width(context) * 0.25) {
-      return Colors.red;
-    } else if (length < width(context) * 0.5) {
-      return Colors.orange;
-    } else if (length < width(context) * 0.75) {
-      return Colors.yellow;
-    } else {
-      return Colors.green;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed && _myGame.isMounted) {
+      _myGame.pauseGame();
+      _myGame.resetInput();
+      // This also stops the cosmetic slow world if a picker was open.
+      _myGame.pauseEngine();
+      unawaited(_myGame.saveCheckpoint());
+      _myGame.audio.pauseMusic(true);
+    } else if (_myGame.isMounted &&
+        _myGame.gameState.gameplayState == GameplayState.powerup) {
+      _myGame.resumeEngine();
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          RiverpodAwareGameWidget(
-            key: gameWidgetKey,
-            game: _myGame,
-          ),
-          Consumer(
-            builder: (context, ref, child) {
-              GameState gameState = ref.watch(gameNotifierProvider);
-              final powerUpLength = width(context) *
-                  (gameState.xP / gameState.noOfCoinsToUpgrade.floor());
-              return gameState.gameplayState == GameplayState.playing
-                  ? SafeArea(
-                      bottom: false,
-                      top: false,
-                      child: Column(
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 500),
-                              height: 5,
-                              width: powerUpLength,
-                              color: getPowerUpColor(powerUpLength),
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  _myGame.pauseGame();
-                                },
-                                icon: const Icon(
-                                  PhosphorIconsFill.pause,
-                                  size: 37,
-                                ),
-                              ).fadeInFromTop(delay: 0.ms),
-
-                              //! score
-                              Padding(
-                                  padding: const EdgeInsets.only(right: 12.0),
-                                  child: Consumer(
-                                    builder: (context, ref, child) {
-                                      return Row(
-                                        children: [
-                                          if (gameState.triggerSprintMine ==
-                                              true)
-                                            Text(
-                                              'Mines left: ${gameState.sprintMineCount}',
-                                              style: const TextStyle(
-                                                fontFamily: FontFam.orbitron,
-                                                fontSize: 25,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ).fadeInFromTop(delay: 0.ms),
-                                          const SizedBox(
-                                            width: 20,
-                                          ),
-                                          Image.asset(
-                                            'assets/images/heart.png',
-                                            height: 30,
-                                            width: 30,
-                                          ).fadeInFromTop(delay: 0.ms),
-                                          Text(
-                                            ' ${gameState.health}',
-                                            style: const TextStyle(
-                                              fontFamily: FontFam.orbitron,
-                                              fontSize: 25,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ).fadeInFromTop(delay: 0.ms),
-                                          const SizedBox(
-                                            width: 20,
-                                          ),
-                                          Image.asset(
-                                            'assets/images/coinui.png',
-                                            height: 30,
-                                            width: 30,
-                                          ).fadeInFromTop(delay: 0.ms),
-                                          Text(
-                                            ' ${ref.watch(gameNotifierProvider).score}',
-                                            style: const TextStyle(
-                                              fontFamily: FontFam.orbitron,
-                                              fontSize: 25,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ).fadeInFromTop(delay: 0.ms),
-                                        ],
-                                      );
-                                    },
-                                  )
-                                  //  ValueListenableBuilder(
-                                  //   valueListenable: _myGame.currentScore,
-                                  //   builder: (context, value, child) => Text(
-                                  //     'Score: $value',
-                                  //     style: const TextStyle(
-                                  //       fontSize: 25,
-                                  //       fontWeight: FontWeight.bold,
-                                  //     ),
-                                  //   ),
-                                  // ),
-                                  ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              gameState.reloading == true
-                                  ? switch (gameState.fastReload) {
-                                      true =>
-                                        LoadingAnimationWidget.prograssiveDots(
-                                          color: Colors.red,
-                                          size: 70,
-                                        ),
-                                      false => SizedBox(
-                                          height: 100,
-                                          width: 200,
-                                          child: lottieWidget,
-                                        )
-                                    }
-                                  : Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 20),
-                                      child: switch (gameState.maxBullets > 7) {
-                                        true => Row(
-                                            children: [
-                                              Container(
-                                                height: 20,
-                                                width: 20,
-                                                decoration: BoxDecoration(
-                                                  image: const DecorationImage(
-                                                      image: AssetImage(
-                                                          'assets/images/bullet.png')),
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                ),
-                                              ),
-                                              Text(
-                                                ' ${ref.watch(gameNotifierProvider).noOfBullets}',
-                                                style: const TextStyle(
-                                                  fontFamily: FontFam.orbitron,
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        false => SeparatedRow(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            separatorBuilder: () =>
-                                                const SizedBox(
-                                              width: 10,
-                                            ),
-                                            children: List.generate(
-                                                gameState.noOfBullets, (index) {
-                                              return Container(
-                                                height: 20,
-                                                width: 20,
-                                                decoration: BoxDecoration(
-                                                  image: const DecorationImage(
-                                                      image: AssetImage(
-                                                          'assets/images/bullet.png')),
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                ),
-                                              );
-                                            }),
-                                          ),
-                                      },
-                                    ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    )
-                  : const SizedBox.shrink();
-            },
-          ),
-          Consumer(
-            builder: (context, ref, child) {
-              return ref.watch(gameNotifierProvider).gameplayState ==
-                      GameplayState.paused
-                  ? Container(
-                      color: Colors.black45,
-                      child: SafeArea(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'PAUSED',
-                                style: TextStyle(
-                                  fontFamily: FontFam.pressStart,
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ).fadeInFromTop(delay: 0.ms),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  ClickButton(
-                                    onTap: () {
-                                      _myGame.resumeGame();
-                                    },
-                                    text: 'Resume',
-                                    width: 100,
-                                    height: 50,
-                                  ).fadeInFromBottom(delay: 100.ms),
-                                  const SizedBox(
-                                    width: 30,
-                                  ),
-                                  ClickButton(
-                                    onTap: () {
-                                      _myGame.resumeGame();
-                                      _myGame.restartGame();
-                                    },
-                                    buttonColor: Palette.buttonRed,
-                                    buttonShadow: Palette.buttonShadowRed,
-                                    text: 'Restart',
-                                    width: 100,
-                                    height: 50,
-                                  ).fadeInFromBottom(delay: 100.ms),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              ClickButtonM(
-                                onTap: () {
-                                  goBack(context);
-                                  // goTo(
-                                  //     context: context, view: const MenuView());
-                                  // context.goNamed(Routes.menu.name);
-                                },
-                                text: 'Menu',
-                                width: 100,
-                                height: 50,
-                              ).fadeInFromBottom(delay: 100.ms),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink();
-            },
-          ),
-          Consumer(
-            builder: (context, ref, child) {
-              return ref.watch(gameNotifierProvider).gameplayState ==
-                      GameplayState.gameOver
-                  ? Container(
-                      // height: height(context),
-                      // width: width(context),
-                      color: Colors.black45,
-                      child: SafeArea(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'GAME OVER',
-                                style: TextStyle(
-                                    fontFamily: FontFam.pressStart,
-                                    fontSize: 40,
-                                    color: Palette.redColor
-                                    // fontWeight: FontWeight.bold,
-                                    ),
-                              ).fadeInFromTop(delay: 0.ms),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              Text(
-                                'Score: ${ref.watch(gameNotifierProvider).score}',
-                                style: const TextStyle(
-                                  fontFamily: FontFam.orbitron,
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ).fadeIn(delay: 0.ms),
-                              const SizedBox(
-                                height: 15,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  ClickButton(
-                                    onTap: () {
-                                      _myGame.resumeGame();
-                                      _myGame.restartGame();
-                                    },
-                                    text: 'Restart',
-                                    width: 100,
-                                    height: 50,
-                                  ).fadeInFromBottom(delay: 100.ms),
-                                  const SizedBox(
-                                    width: 20,
-                                  ),
-                                  ClickButtonM(
-                                    onTap: () {
-                                      goBack(context);
-                                      // goTo(
-                                      //     context: context,
-                                      //     view: const MenuView());
-                                      // context.goNamed(Routes.menu.name);
-                                    },
-                                    buttonColor: Palette.buttonRed,
-                                    buttonShadow: Palette.buttonShadowRed,
-                                    text: 'Menu',
-                                    width: 100,
-                                    height: 50,
-                                  ).fadeInFromBottom(delay: 100.ms),
-                                  // IconButton(
-                                  //   onPressed: () {
-                                  //     _myGame.resumeGame();
-                                  //     _myGame.restartGame();
-                                  //   },
-                                  //   icon: const Icon(
-                                  //     PhosphorIconsBold.repeat,
-                                  //     size: 60,
-                                  //   ),
-                                  // ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink();
-            },
-          ),
-
-          //! power up
-          Consumer(
-            builder: (context, ref, child) {
-              GameNotifier gameNotifier =
-                  ref.read(gameNotifierProvider.notifier);
-              if (ref.watch(gameNotifierProvider).gameplayState ==
-                  GameplayState.powerup) {
-                _myGame.slow();
-                _myGame.removeCoinsAndEnemies();
-                return Container(
-                  color: Colors.black45,
-                  child: Center(
-                    child: FutureBuilder<List<PowerUp>>(
-                      future: pickTwoRandomPowerUps(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const SizedBox
-                              .shrink(); // Show nothing while waiting
-                        } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        } else if (snapshot.hasData) {
-                          List<PowerUp> selectedPowerUps = snapshot.data!;
-                          return SeparatedColumn(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            separatorBuilder: () => const SizedBox(height: 20),
-                            children: selectedPowerUps.map((powerUp) {
-                              return ClickButton(
-                                onTap: () {
-                                  switch (powerUp) {
-                                    case PowerUp.maxBulletsIncrease:
-                                      gameNotifier.maxBulletsIncrease();
-                                      break;
-
-                                    case PowerUp.healthIncrease:
-                                      gameNotifier.healthIncrease();
-                                      break;
-
-                                    case PowerUp.walkingSpeedIncrease:
-                                      gameNotifier.walkingSpeedIncrease();
-                                      break;
-
-                                    case PowerUp.sprintDistanceIncrease:
-                                      gameNotifier.sprintDistanceIncrease();
-                                      break;
-
-                                    case PowerUp.bulletRangeIncrease:
-                                      gameNotifier.bulletRangeIncrease();
-                                      break;
-
-                                    case PowerUp.numberOfBulletsPerShotIncrease:
-                                      gameNotifier
-                                          .numberOfBulletsPerShotIncrease();
-                                      break;
-
-                                    case PowerUp.fastReload:
-                                      gameNotifier.fastReload();
-                                      break;
-
-                                    case PowerUp.sprintInvincibility:
-                                      gameNotifier.sprintInvincibility();
-                                      break;
-
-                                    case PowerUp.bulletsPhaseThrough:
-                                      gameNotifier.triggerBulletsPhaseThrough();
-                                      break;
-
-                                    case PowerUp.rapidFire:
-                                      gameNotifier.rapidFire();
-                                      break;
-
-                                    // case PowerUp.sprintMine:
-                                    //   gameNotifier.sprintMine();
-                                    //   break;
-                                    default:
-                                      {}
-                                  }
-
-                                  _myGame.normalizeGameSpeed();
-                                  ref
-                                      .read(gameNotifierProvider.notifier)
-                                      .playGame();
-                                },
-                                text: powerUp.title,
-                                buttonColor: Palette.buttonBlueVariant,
-                                buttonShadow: Palette.buttonShadowBlueVariant,
-                                width: 300,
-                                height: 60,
-                              ).fadeInFromBottom(delay: 100.ms);
-                            }).toList(),
-                          );
-                        } else {
-                          return const SizedBox
-                              .shrink(); // In case of any other unexpected state
-                        }
-                      },
-                    ),
-                  ),
-                );
-              } else {
-                return const SizedBox.shrink();
-              }
-            },
-          ),
-        ],
-      ),
-    );
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
+
+  Future<void> _leave() async {
+    if (_leaving) return;
+    _leaving = true;
+    await _myGame.leaveRun();
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_leave());
+      },
+      child: ProviderScope(
+        overrides: [gameNotifierProvider.overrideWith(GameNotifier.new)],
+        child: Scaffold(
+            body: DefaultTextStyle.merge(
+                style: const TextStyle(fontFamily: FontFam.orbitron),
+                child: Stack(children: [
+                  RiverpodAwareGameWidget(key: gameWidgetKey, game: _myGame),
+                  Consumer(builder: (context, ref, _) {
+                    final state = ref.watch(gameNotifierProvider);
+                    // Results use Positioned.fill after the HUD is removed.
+                    // Keep the overlay full-screen even when no save warning exists.
+                    return Stack(fit: StackFit.expand, children: [
+                      ValueListenableBuilder<int>(
+                          valueListenable: _myGame.revision,
+                          builder: (context, _, child) =>
+                              _myGame.saveIssue == null
+                                  ? const SizedBox.shrink()
+                                  : Positioned(
+                                      top: 64,
+                                      left: 24,
+                                      right: 24,
+                                      child: IgnorePointer(
+                                          child: Text(_myGame.saveIssue!,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: _brass))))),
+                      if (state.gameplayState != GameplayState.gameOver)
+                        _hud(state),
+                      if (state.gameplayState == GameplayState.powerup)
+                        _upgradePicker(state),
+                      if (state.gameplayState == GameplayState.paused)
+                        _arranging
+                            ? ControlArranger(
+                                layout: _myGame.controls,
+                                available: _myGame.controlCanvasRect,
+                                onChanged: (layout) =>
+                                    setState(() => _myGame.setControls(layout)),
+                                onDone: () =>
+                                    setState(() => _arranging = false))
+                            : _editingControls
+                                ? _controlEditor()
+                                : _pauseMenu(),
+                      if (state.gameplayState == GameplayState.gameOver)
+                        _results(state),
+                    ]);
+                  }),
+                ]))),
+      ));
+
+  Widget _hud(GameState state) => SafeArea(
+        child: Column(children: [
+          IgnorePointer(
+              child: LinearProgressIndicator(
+                  value:
+                      (state.xP / state.noOfCoinsToUpgrade.floor()).clamp(0, 1),
+                  minHeight: 3,
+                  color: _brass,
+                  backgroundColor: const Color(0x66352A35))),
+          Row(children: [
+            IconButton(
+                tooltip: 'Pause',
+                onPressed: _myGame.pauseGame,
+                icon: SizedBox(
+                    width: 22,
+                    height: 24,
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(width: 7, color: _paper),
+                          Container(width: 7, color: _paper)
+                        ]))),
+            _readout(runTime(state.survivalSeconds), 'SURVIVAL'),
+            const Spacer(),
+            Text('L${state.currentLevel} / C${state.bosses ~/ 3 + 1}',
+                style: const TextStyle(
+                    fontFamily: FontFam.pressStart,
+                    fontSize: 10,
+                    color: _brass)),
+            const SizedBox(width: 20),
+            Image.asset('assets/images/heart.png', width: 24, height: 24),
+            const SizedBox(width: 5),
+            Text('${state.health}',
+                style: const TextStyle(
+                    fontFamily: FontFam.orbitron,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: _paper)),
+            const SizedBox(width: 18),
+            _readout('${state.kills}', 'KILLS'),
+            const SizedBox(width: 12),
+          ]),
+          ValueListenableBuilder<int>(
+              valueListenable: _myGame.revision,
+              builder: (context, _, child) {
+                final boss = _myGame.activeBoss;
+                if (boss == null || !boss.isLoaded || boss.isRemoving) {
+                  return const SizedBox.shrink();
+                }
+                return IgnorePointer(
+                    child: Container(
+                        constraints: const BoxConstraints(maxWidth: 380),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        color: const Color(0xD91D1821),
+                        child: Column(children: [
+                          Text(
+                              '${(boss as BossEncounter).kind.title.toUpperCase()}${(boss as BossEncounter).enraged ? ' / ENRAGED' : ''}',
+                              style: const TextStyle(
+                                  fontFamily: FontFam.pressStart,
+                                  fontSize: 10,
+                                  color: _paper)),
+                          const SizedBox(height: 7),
+                          LinearProgressIndicator(
+                              value:
+                                  (boss as CombatEnemy).combatHealth.fraction,
+                              minHeight: 5,
+                              color: const Color(0xffC782A3),
+                              backgroundColor: const Color(0xff392B3D)),
+                        ])));
+              }),
+          if (widget.loadout.training)
+            ValueListenableBuilder<int>(
+                valueListenable: _myGame.revision,
+                builder: (context, _, child) => Column(children: [
+                      Text(_myGame.trainingHint,
+                          style: const TextStyle(
+                              fontFamily: FontFam.orbitron,
+                              fontSize: 12,
+                              color: _brass)),
+                      if (_myGame.trainingStep < 5)
+                        ClickButtonM(
+                            text: 'Skip',
+                            width: 100,
+                            height: 44,
+                            onTap: () async {
+                              await _myGame.completeTraining();
+                              await _leave();
+                            }),
+                      if (_myGame.trainingStep >= 5)
+                        ClickButton(
+                            text: 'Ready',
+                            width: 130,
+                            height: 44,
+                            onTap: () async {
+                              await _myGame.completeTraining();
+                              await _leave();
+                            }),
+                    ])),
+          const Spacer(),
+          IgnorePointer(
+              child: SizedBox(
+                  height: 100,
+                  width: 220,
+                  child: Center(
+                      child: state.reloading
+                          ? TickerMode(
+                              enabled:
+                                  state.gameplayState == GameplayState.playing,
+                              child: ValueListenableBuilder<double>(
+                                  valueListenable:
+                                      _myGame.gameNotifier.reloadProgress,
+                                  builder: (context, progress, _) =>
+                                      WeaponReloadDisplay(
+                                          weapon: widget.loadout.weapon,
+                                          progress: progress,
+                                          reducedMotion:
+                                              _myGame.preferences.reducedMotion,
+                                          shells: state.maxBullets -
+                                              state.noOfBullets)))
+                          : Column(mainAxisSize: MainAxisSize.min, children: [
+                              Text(widget.loadout.weapon.title.toUpperCase(),
+                                  style: const TextStyle(
+                                      fontFamily: FontFam.pressStart,
+                                      fontSize: 8,
+                                      color: _muted)),
+                              const SizedBox(height: 8),
+                              if (_myGame.breachEngine)
+                                const Padding(
+                                    padding: EdgeInsets.only(bottom: 8),
+                                    child: Text('BREACH ENGINE',
+                                        style: TextStyle(
+                                            fontFamily: FontFam.pressStart,
+                                            fontSize: 9,
+                                            color: _brass))),
+                              Wrap(
+                                  spacing: 6,
+                                  runSpacing: 4,
+                                  alignment: WrapAlignment.center,
+                                  children: List.generate(
+                                      state.maxBullets.clamp(0, 15),
+                                      (i) => Container(
+                                          width: 6,
+                                          height: 17,
+                                          color: i < state.noOfBullets
+                                              ? _brass
+                                              : const Color(0x88695A66)))),
+                              const SizedBox(height: 7),
+                              Text('${state.noOfBullets} / ${state.maxBullets}',
+                                  style: const TextStyle(
+                                      fontFamily: FontFam.orbitron,
+                                      fontSize: 12,
+                                      color: _paper)),
+                            ])))),
+        ]),
+      );
+
+  Widget _readout(String value, String label) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(value,
+                style: const TextStyle(
+                    fontFamily: FontFam.orbitron,
+                    fontSize: 18,
+                    color: _paper,
+                    fontWeight: FontWeight.bold)),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 8, letterSpacing: 1.4, color: _muted))
+          ]));
+
+  Widget _overlay({required Widget child}) => Positioned.fill(
+      child: ColoredBox(
+          color: const Color(0xB30D0A10),
+          child: SafeArea(
+              child: Center(
+                  child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20), child: child)))));
+
+  Widget _heading(String text, {String? subtitle}) =>
+      Column(mainAxisSize: MainAxisSize.min, children: [
+        Text(text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                fontFamily: FontFam.pressStart,
+                fontSize: 22,
+                height: 1.5,
+                color: _paper)),
+        if (subtitle != null)
+          Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(subtitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: _muted, fontSize: 13)))
+      ]);
+
+  Widget _pauseMenu() => _overlay(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+        _heading('TAKE A BREATHER', subtitle: 'The horde can wait.'),
+        const SizedBox(height: 22),
+        Wrap(
+            spacing: 14,
+            runSpacing: 14,
+            alignment: WrapAlignment.center,
+            children: [
+              ClickButton(
+                  onTap: _myGame.resumeGame,
+                  text: 'Resume',
+                  width: 140,
+                  height: 52),
+              ClickButton(
+                  onTap: () => setState(() => _editingControls = true),
+                  text: 'Controls',
+                  width: 140,
+                  height: 52),
+              ClickButton(
+                  onTap: _myGame.restartGame,
+                  text: 'Restart',
+                  width: 140,
+                  height: 52),
+            ]),
+        const SizedBox(height: 14),
+        ClickButtonM(
+            text: 'Settings',
+            width: 140,
+            height: 48,
+            onTap: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const SettingsView()))),
+        if (widget.loadout.training) ...[
+          const SizedBox(height: 24),
+          _practiceGroup('BOSS PRACTICE', [
+            for (final kind in BossKind.values)
+              ClickButton(
+                  text: kind.title,
+                  height: 48,
+                  onTap: () => _myGame.practiceBoss(kind)),
+          ]),
+          const SizedBox(height: 24),
+          _practiceGroup('FUSION PRACTICE', [
+            for (final recipe in fusionRecipes)
+              ClickButton(
+                  text: recipe.title,
+                  height: 48,
+                  onTap: () =>
+                      _myGame.gameNotifier.prepareTrainingFusion(recipe)),
+          ]),
+          const SizedBox(height: 8),
+          const Text('Choose the fusion on the next screen.',
+              style: TextStyle(
+                  fontFamily: FontFam.orbitron, fontSize: 11, color: _muted)),
+        ],
+        const SizedBox(height: 14),
+        ClickButtonM(onTap: _leave, text: 'Menu', width: 140, height: 48),
+      ]));
+
+  Widget _practiceGroup(String title, List<Widget> actions) => ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 620),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(title,
+            style: const TextStyle(
+                fontFamily: FontFam.pressStart,
+                fontSize: 10,
+                color: Color(0xffE1BA78))),
+        const SizedBox(height: 12),
+        MenuCardGrid(minColumnWidth: 160, children: actions),
+      ]));
+
+  Widget _controlEditor() => _overlay(
+      child: Container(
+          width: 620,
+          padding: const EdgeInsets.all(16),
+          color: _panel,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Text('CONTROLS',
+                style: TextStyle(
+                    fontFamily: FontFam.pressStart,
+                    fontSize: 18,
+                    color: _paper)),
+            const SizedBox(height: 16),
+            LayoutBuilder(builder: (context, constraints) {
+              final sliders = [
+                _slider('Side inset', _myGame.controls.inset, 64, 160,
+                    (v) => _myGame.controls.copyWith(inset: v)),
+                _slider('Height', _myGame.controls.bottom, 60, 140,
+                    (v) => _myGame.controls.copyWith(bottom: v)),
+                _slider('Stick size', _myGame.controls.size, 88, 112,
+                    (v) => _myGame.controls.copyWith(size: v)),
+                _slider('Opacity', _myGame.controls.opacity, 0.25, 1,
+                    (v) => _myGame.controls.copyWith(opacity: v)),
+                _slider('Sensitivity', _myGame.controls.sensitivity, 0.6, 1.5,
+                    (v) => _myGame.controls.copyWith(sensitivity: v)),
+                _slider('Dead zone', _myGame.controls.deadZone, 0.04, 0.25,
+                    (v) => _myGame.controls.copyWith(deadZone: v)),
+              ];
+              if (constraints.maxWidth < 440) return Column(children: sliders);
+              return Column(children: [
+                for (var i = 0; i < sliders.length; i += 2)
+                  Row(children: [
+                    Expanded(child: sliders[i]),
+                    const SizedBox(width: 24),
+                    Expanded(child: sliders[i + 1])
+                  ])
+              ]);
+            }),
+            const SizedBox(height: 8),
+            LayoutBuilder(builder: (context, constraints) {
+              final mode = Row(children: [
+                const Expanded(
+                    child: Text('Sticks',
+                        style: TextStyle(fontSize: 12, color: _muted))),
+                PixelOption(
+                    label: 'Fixed',
+                    width: 80,
+                    selected: !_myGame.controls.floating,
+                    onTap: () => setState(() => _myGame.setControls(
+                        _myGame.controls.copyWith(floating: false)))),
+                const SizedBox(width: 8),
+                PixelOption(
+                    label: 'Float',
+                    width: 80,
+                    selected: _myGame.controls.floating,
+                    onTap: () => setState(() => _myGame.setControls(
+                        _myGame.controls.copyWith(floating: true)))),
+              ]);
+              final hand = HandednessSelector(
+                  compact: true,
+                  leftHanded: _myGame.controls.leftHanded,
+                  onChanged: (value) => setState(() => _myGame.setControls(
+                      _myGame.controls.copyWith(leftHanded: value))));
+              if (constraints.maxWidth < 500) {
+                return Column(
+                    children: [mode, const SizedBox(height: 8), hand]);
+              }
+              return Row(children: [
+                Expanded(child: mode),
+                const SizedBox(width: 24),
+                Expanded(child: hand)
+              ]);
+            }),
+            const SizedBox(height: 8),
+            Wrap(spacing: 14, runSpacing: 10, children: [
+              ClickButton(
+                  text: 'Done',
+                  width: 120,
+                  height: 48,
+                  onTap: () => setState(() => _editingControls = false)),
+              ClickButtonM(
+                  text: 'Arrange',
+                  width: 120,
+                  height: 48,
+                  onTap: () => setState(() => _arranging = true)),
+              ClickButtonM(
+                  text: 'Reset',
+                  width: 120,
+                  height: 48,
+                  onTap: () => setState(
+                      () => _myGame.setControls(const ControlLayout()))),
+            ]),
+          ])));
+
+  Widget _slider(String label, double value, double minimum, double maximum,
+          ControlLayout Function(double) update) =>
+      ControlSlider(
+          label: label,
+          value: value,
+          minimum: minimum,
+          maximum: maximum,
+          onChanged: (v) => setState(() => _myGame.setControls(update(v))));
+
+  Widget _upgradePicker(GameState state) => _overlay(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+        _heading(state.evolutionChoices.isNotEmpty ? 'FUSE' : 'UPGRADE',
+            subtitle: state.evolutionChoices.isNotEmpty
+                ? null
+                : 'Level ${state.currentLevel}'),
+        const SizedBox(height: 16),
+        Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: [
+              for (final id in state.evolutionChoices)
+                _upgradeCard(
+                    fusionRecipes.firstWhere((r) => r.id == id).title,
+                    fusionRecipes.firstWhere((r) => r.id == id).description,
+                    'FUSION',
+                    () => _myGame.gameNotifier.fuse(id, offerId: state.offerId),
+                    glyph: fusionGlyph(id)),
+              for (final choice in state.powerUpChoices)
+                _upgradeCard(
+                    choice.title,
+                    choice.description,
+                    choice == PowerUp.salvage
+                        ? 'RECOVERY'
+                        : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${choice.maxRank}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',
+                    () => _myGame.gameNotifier
+                        .applyPowerUp(choice, offerId: state.offerId),
+                    glyph: choice.glyph,
+                    onBan: state.bans > 0 && choice != PowerUp.salvage
+                        ? () => _myGame.gameNotifier
+                            .ban(choice, offerId: state.offerId)
+                        : null),
+            ]),
+        if (state.evolutionChoices.isEmpty && state.rerolls > 0)
+          Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: ClickButtonM(
+                  text: 'Reroll (${state.rerolls})',
+                  width: 170,
+                  height: 44,
+                  onTap: () =>
+                      _myGame.gameNotifier.reroll(offerId: state.offerId))),
+      ]));
+
+  Widget _upgradeCard(
+          String title, String description, String category, VoidCallback onTap,
+          {VoidCallback? onBan, PixelGlyph glyph = PixelGlyph.star}) =>
+      SizedBox(
+          width: 210,
+          child: Material(
+              color: _panel,
+              child: InkWell(
+                  onTap: onTap,
+                  child: Container(
+                      padding: const EdgeInsets.all(16),
+                      constraints: const BoxConstraints(minHeight: 148),
+                      decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xff75604C))),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(children: [
+                              PixelIcon(glyph, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                  child: Text(category,
+                                      style: const TextStyle(
+                                          fontFamily: FontFam.orbitron,
+                                          fontSize: 9,
+                                          color: _brass)))
+                            ]),
+                            const SizedBox(height: 12),
+                            Text(title,
+                                style: const TextStyle(
+                                    fontFamily: FontFam.pressStart,
+                                    fontSize: 11,
+                                    height: 1.6,
+                                    color: _paper)),
+                            const SizedBox(height: 12),
+                            Text(description,
+                                style: const TextStyle(
+                                    fontFamily: FontFam.orbitron,
+                                    fontSize: 12,
+                                    height: 1.4,
+                                    color: _muted)),
+                            if (onBan != null)
+                              Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                      onPressed: onBan,
+                                      style: TextButton.styleFrom(
+                                          foregroundColor: _muted,
+                                          overlayColor:
+                                              _brass.withValues(alpha: 0.1),
+                                          shape:
+                                              const RoundedRectangleBorder()),
+                                      child: const Text('BAN',
+                                          style: TextStyle(
+                                              fontFamily: FontFam.orbitron,
+                                              fontSize: 10,
+                                              color: _muted)))),
+                          ])))));
+
+  Widget _results(GameState state) => _overlay(
+      child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 620),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            _heading('END OF THE LINE'),
+            if (state.causeOfDeath.isNotEmpty)
+              Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(state.causeOfDeath,
+                      style: const TextStyle(color: _muted))),
+            const SizedBox(height: 20),
+            Wrap(
+                spacing: 22,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: [
+                  _readout(runTime(state.survivalSeconds), 'SURVIVED'),
+                  _readout('${state.kills}', 'KILLS'),
+                  _readout('${state.bosses}', 'BOSSES'),
+                  _readout('${state.score}', 'SCORE'),
+                  _readout('+${_myGame.earnedScrap}', 'SCRAP'),
+                ]),
+            const SizedBox(height: 14),
+            Text(
+                '${_myGame.assisted ? 'ASSISTED BEST ${_myGame.preferences.profile.assistedBestScore}' : 'BEST ${_myGame.preferences.bestScore}'}  /  LONGEST ${runTime(_myGame.assisted ? _myGame.preferences.profile.assistedBestSeconds : _myGame.preferences.bestSeconds)}',
+                style: const TextStyle(
+                    fontFamily: FontFam.orbitron, fontSize: 12, color: _brass)),
+            Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 6,
+                    children: [
+                      for (final entry in state.ranks.entries)
+                        Text('${entry.key.title} ${entry.value}',
+                            style:
+                                const TextStyle(fontSize: 10, color: _muted)),
+                      for (final id in state.evolutions)
+                        Text(fusionRecipes.firstWhere((r) => r.id == id).title,
+                            style:
+                                const TextStyle(fontSize: 11, color: _brass)),
+                    ])),
+            ValueListenableBuilder<int>(
+                valueListenable: _myGame.revision,
+                builder: (context, _, child) => _myGame.newUnlocks.isEmpty
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                            'Unlocked: ${_myGame.newUnlocks.map((id) => challenges.firstWhere((c) => c.id == id).reward).join(', ')}',
+                            style:
+                                const TextStyle(fontSize: 11, color: _brass)))),
+            const SizedBox(height: 24),
+            Wrap(
+                spacing: 16,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: [
+                  ClickButton(
+                      onTap: _myGame.restartGame,
+                      text: 'Restart',
+                      width: 160,
+                      height: 54),
+                  ClickButtonM(
+                      onTap: _leave, text: 'Menu', width: 140, height: 54),
+                ]),
+          ])));
 }

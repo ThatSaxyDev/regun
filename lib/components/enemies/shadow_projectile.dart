@@ -1,120 +1,71 @@
-import 'dart:async';
-
+import 'package:regun/models/combat_health.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/components/ui/border_component.dart';
-import 'package:regun/components/enemies/enemy_2_component.dart';
-import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
-import 'package:regun/utils/soloud_play.dart';
 
+/// Hostile, non-homing bolt. Aiming is snapshotted when the boss commits.
 class ShadowProjectile extends PositionComponent
-    with
-        HasGameReference<RegunGame>,
-        CollisionCallbacks,
-        RiverpodComponentMixin {
-  ShadowProjectile({
-    super.position,
-    this.bulletRadius = 20,
-    this.maxTravelDistance = 900,
-    this.speed = 300,
-    this.startPosition,
-    super.angle,
-  }) : super(
-          size: Vector2.all(bulletRadius * 2),
-          anchor: Anchor.center,
-        ) {
-    startPosition = position.clone();
-  }
+    with HasGameReference<RegunGame> {
+  ShadowProjectile(
+      {super.position, Vector2? direction, this.speed = 260, this.ownerHealth})
+      : direction = direction?.normalized(),
+        super(size: Vector2.all(22), anchor: Anchor.center, priority: 20000);
 
-  final double bulletRadius;
+  final CombatHealth? ownerHealth;
+  Vector2? direction;
   final double speed;
-  final double maxTravelDistance;
-  Vector2? startPosition;
-  static final _paint = Paint()..color = Colors.red;
-  late Sprite _bulletSprite;
-  final Vector2 _velocity = Vector2.zero();
+  double _distance = 0;
 
   @override
   Future<void> onLoad() async {
-    await super.onLoad();
-    _bulletSprite = await Sprite.load('shadow_projectile.png');
-    add(
-      RectangleHitbox(
-        collisionType: CollisionType.active,
-      ),
-    );
-
-    //! set the direction towards the player's current position
-    final playerPosition = game.myPlayer.position;
-    final direction = (playerPosition - position).normalized();
-
-    //! set the velocity based on the direction and speed
-    _velocity.setFrom(direction * speed);
-  }
-
-  @override
-  void render(Canvas canvas) {
-    _bulletSprite.render(
-      canvas,
-      position: size / 2,
-      size: size,
-      anchor: Anchor.center,
-    );
-    // canvas.drawCircle(
-    //   (size / 2).toOffset(),
-    //   bulletRadius,
-    //   _paint,
-    // );
+    if (!game.registerHostileProjectile(this)) {
+      removeFromParent();
+      return;
+    }
+    if (ownerHealth?.isDead ?? false) {
+      removeFromParent();
+      return;
+    }
+    direction ??= (game.myPlayer.position - position).normalized();
+    add(CircleHitbox(radius: 11, collisionType: CollisionType.passive));
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-
-    //! update position based on the velocity
-    position += _velocity * dt;
-
-    //! remove the projectile if it has traveled beyond the max distance
-    if ((position - startPosition!).length > maxTravelDistance) {
+    if (ownerHealth?.isDead ?? false) {
+      removeFromParent();
+      return;
+    }
+    if (game.gameState.gameplayState != GameplayState.playing) return;
+    final before = position.clone();
+    position.addScaled(direction!, speed * dt);
+    _distance += speed * dt;
+    if (game.segmentBlocked(before, position) ||
+        _distance > 1200 ||
+        !game.map.bounds.floor.contains(position.toOffset())) {
       removeFromParent();
     }
   }
 
   @override
-  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
-    super.onCollision(intersectionPoints, other);
+  void onRemove() {
+    game.unregisterHostileProjectile(this);
+    super.onRemove();
+  }
 
-    if (other is EnemyComponent) {
-      ref.read(soloudPlayProvider).play('hit.wav');
-      other.showDeathSplashEffect();
-      if (!ref.read(gameNotifierProvider).bulletsPhaseThrough) {
-        removeFromParent();
-      }
-
-      other.removeFromParent();
-    } else if (other is BorderComponent) {
-      removeFromParent();
-    } else if (other is Enemy2Component) {
-      ref.read(soloudPlayProvider).play('hit.wav');
-
-      other.isDying = true;
-      other.isAttacking = false;
-      other.animation = switch (game.myPlayer.position.x > other.position.x) {
-        true => other.deathRightAnimation,
-        false => other.deathLeftAnimation,
-      };
-
-      Future.delayed(const Duration(milliseconds: 500), () {
-        other.removeFromParent();
-      });
-
-      if (!ref.read(gameNotifierProvider).bulletsPhaseThrough) {
-        removeFromParent();
-      }
-    }
+  @override
+  void render(Canvas canvas) {
+    final path = Path()
+      ..moveTo(11, 0)
+      ..lineTo(22, 11)
+      ..lineTo(11, 22)
+      ..lineTo(0, 11)
+      ..close();
+    canvas.drawPath(path, Paint()..color = const Color(0xffBD7397));
+    canvas.drawCircle(
+        const Offset(11, 11), 4, Paint()..color = const Color(0xffFFF0CD));
   }
 }

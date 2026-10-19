@@ -1,36 +1,42 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/sprite.dart';
-import 'package:flame_riverpod/flame_riverpod.dart';
+import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/game.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 
 class CoinComponent extends SpriteAnimationComponent
-    with
-        HasGameReference<RegunGame>,
-        CollisionCallbacks,
-        RiverpodComponentMixin {
-  CoinComponent({super.position})
+    with HasGameReference<RegunGame>, CollisionCallbacks {
+  CoinComponent({super.position, this.value = 1})
       : super(
           size: Vector2.all(coinSize),
           anchor: Anchor.center,
         );
 
-  static const coinSize = 40.0;
+  bool isCollected = false;
+  int value;
+
+  static const coinSize = 24.0;
   late SpriteAnimation coinAnimation;
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (isCollected || game.gameState.gameplayState != GameplayState.playing) {
+      return;
+    }
+    final toPlayer = game.myPlayer.position - position;
+    final radius = 180 +
+        game.gameState.rank(PowerUp.scavenger) * 60 +
+        (game.loadout.character.name == 'scrapper' ? 80 : 0);
+    if (toPlayer.length2 <= radius * radius) {
+      position.addScaled(toPlayer.normalized(), 460 * dt);
+    }
+  }
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    // debugMode = true;
-    final coinSpriteSheet = SpriteSheet(
-      image: await game.images.load('coin.png'),
-      srcSize: Vector2(16, 16),
-    );
-    coinAnimation = coinSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 5,
-    );
+    coinAnimation = RegunArt.shared.animation('items/items', step: .14);
     animation = coinAnimation;
     add(
       CircleHitbox(

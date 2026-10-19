@@ -1,19 +1,125 @@
+import 'package:regun/data/loadout.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:logging/logging.dart';
 
 class SoloudPlay {
   final SoLoud _soloud = SoLoud.instance;
-  final Map<String, AudioSource> _sources = {};
+  final _sources = <String, Future<AudioSource>>{};
+  final _reportedFailures = <String>{};
+  final _lastPlayed = <String, int>{};
+  final _clock = Stopwatch()..start();
+  SoundHandle? _musicHandle;
+  String? _music;
+  int _musicRequest = 0;
+  double _musicVolume = 0.6, _sfxVolume = 0.8;
+
+  void configure({required double music, required double sfx}) {
+    _musicVolume = music.clamp(0, 1);
+    _sfxVolume = sfx.clamp(0, 1);
+    try {
+      if (_soloud.isInitialized && _musicHandle != null) {
+        _soloud.setVolume(_musicHandle!, _musicVolume * 0.25);
+      }
+    } on Object {
+      _musicHandle = null;
+    }
+  }
+
+  Future<AudioSource> _source(String asset) => _sources.putIfAbsent(
+      asset, () => _soloud.loadAsset('assets/audio/$asset'));
+
+  Future<void> warmCombat(WeaponType weapon) async {
+    try {
+      if (!_soloud.isInitialized) return;
+      final names = [
+        for (var i = 0; i < 3; i++) 'shot_${weapon.name}_$i.wav',
+        'impact_${weapon.name}.wav',
+        'hurt_player.wav',
+        'impact_guard.wav',
+        'impact_boss.wav',
+        'impact_poison.wav',
+        if (weapon == WeaponType.shotgun) ...[
+          'reload_shotgun_shell.wav',
+          'reload_shotgun_pump.wav'
+        ] else
+          for (var i = 0; i < 3; i++) 'reload_${weapon.name}_$i.wav',
+      ];
+      await Future.wait(names.map((name) async {
+        try {
+          await _source(name);
+        } catch (_) {
+          _sources.remove(name);
+        }
+      }));
+    } catch (_) {
+      // Audio is optional when native initialization is unavailable.
+    }
+  }
 
   Future<void> play(String assetPath) async {
-    if (!_sources.containsKey(assetPath)) {
-      final source = await _soloud.loadAsset('assets/audio/$assetPath');
-      _sources[assetPath] = source;
+    try {
+      if (!_soloud.isInitialized || _sfxVolume == 0) return;
+      final now = _clock.elapsedMilliseconds;
+      final limit = assetPath.startsWith('impact_')
+          ? 65
+          : assetPath == 'hit.wav' || assetPath.startsWith('coin')
+              ? 45
+              : 20;
+      if (now - (_lastPlayed[assetPath] ?? -1000) < limit) return;
+      _lastPlayed[assetPath] = now;
+      final source = await _source(assetPath);
+      if (_soloud.isInitialized) {
+        final gain = assetPath.startsWith('shot_')
+            ? .72
+            : assetPath.startsWith('impact_boss')
+                ? .6
+                : assetPath.startsWith('impact_')
+                    ? .25
+                    : assetPath.startsWith('reload_')
+                        ? .42
+                        : assetPath == 'hit.wav'
+                            ? .2
+                            : .5;
+        await _soloud.play(source, volume: _sfxVolume * gain);
+      }
+    } catch (error) {
+      _sources.remove(assetPath);
+      if (_reportedFailures.add(assetPath)) {
+        Logger('audio').warning('Could not play $assetPath: $error');
+      }
     }
-    await _soloud.play(_sources[assetPath]!);
+  }
+
+  Future<void> playMusic(String theme) async {
+    final asset = 'music_$theme.wav';
+    if (_music == asset && _musicHandle != null) return;
+    _music = asset;
+    final request = ++_musicRequest;
+    try {
+      if (!_soloud.isInitialized) return;
+      final source = await _source(asset);
+      if (request != _musicRequest || !_soloud.isInitialized) return;
+      final old = _musicHandle;
+      _musicHandle = await _soloud.play(source,
+          volume: _musicVolume * 0.25, looping: true);
+      if (old != null) await _soloud.stop(old);
+    } catch (error) {
+      if (_reportedFailures.add(asset)) {
+        Logger('audio').warning('Music unavailable: $error');
+      }
+    }
+  }
+
+  void pauseMusic(bool paused) {
+    try {
+      if (_soloud.isInitialized && _musicHandle != null) {
+        _soloud.setPause(_musicHandle!, paused);
+      }
+    } on Object {
+      _musicHandle = null;
+    }
   }
 }
 
-final soloudPlayProvider = Provider<SoloudPlay>((ref) {
-  return SoloudPlay();
-});
+final soloudPlayProvider = Provider<SoloudPlay>((ref) => SoloudPlay());

@@ -1,0 +1,125 @@
+import 'dart:math';
+import 'dart:ui';
+import 'package:flame/components.dart';
+import 'package:regun/presentation/regun_art.dart';
+
+/// A full alternating stride, independent of facing/animation selection.
+/// Feet stay planted through the support half and lift through the swing half.
+class Locomotion {
+  double phase = 0;
+  double weight = 0;
+  double get bob => -sin(phase * 2).abs() * 1.1 * weight;
+  bool get active => weight > .001;
+
+  void advance(double dt, {required double speed, double strideLength = 150}) {
+    final moving = speed > 1;
+    weight = (weight + (moving ? dt / .10 : -dt / .12)).clamp(0, 1);
+    if (moving) {
+      phase =
+          (phase + speed.clamp(0, 550) * dt / strideLength * 2 * pi) % (2 * pi);
+    }
+  }
+
+  Offset foot(double phase, {required bool profile, double ground = 30}) {
+    return Offset(sin(phase) * (profile ? 11 : 2) * weight,
+        ground - max(0, cos(phase)) * 13 * weight);
+  }
+
+  /// Exact two-bone inverse kinematics; never a frame/pose hold.
+  static Offset knee(Offset hip, Offset foot, double upper, double lower,
+      {bool left = false}) {
+    final delta = foot - hip;
+    final distance = delta.distance.clamp(.001, upper + lower - .001);
+    final base = atan2(delta.dy, delta.dx);
+    final bend = acos(((upper * upper + distance * distance - lower * lower) /
+            (2 * upper * distance))
+        .clamp(-1.0, 1.0));
+    final angle = base + (left ? bend : -bend);
+    return hip + Offset(cos(angle) * upper, sin(angle) * upper);
+  }
+
+  void render(
+    Canvas canvas, {
+    required Vector2 size,
+    required String bodyAtlas,
+    required int bodyFrame,
+    required String partsAtlas,
+    required int partsRow,
+    int facing = 0,
+    double hipFraction = .58,
+    double legWidth = 12,
+    List<Rect> preserve = const [],
+    Paint? paint,
+  }) {
+    final art = RegunArt.shared;
+    final bounds = art.bodyBounds(bodyAtlas, bodyFrame, size);
+    final hipY = bounds.top + bounds.height * hipFraction + bob;
+    final ground = bounds.bottom;
+    final reach = ground - hipY;
+    if (partsAtlas.startsWith('characters/') && partsRow == 2) legWidth += 2;
+    final profile = facing == 0 || facing == 2;
+    final spread = size.x * (profile ? .018 : .061);
+    final upper = reach * .59, lower = reach * .57;
+    final scale = size.y / 100;
+    final base = partsRow * (partsAtlas.startsWith('characters/') ? 8 : 4);
+    final playerParts = partsAtlas.startsWith('characters/');
+    final part = playerParts ? base + facing * 2 : base;
+    final dark = Paint()
+      ..filterQuality = FilterQuality.none
+      ..colorFilter =
+          const ColorFilter.mode(Color(0xffABB3AD), BlendMode.modulate);
+    for (final far in [true, false]) {
+      final p = phase + (far ? pi : 0);
+      final hip = Offset(size.x * .5 + (far ? -spread : spread), hipY);
+      final offset = foot(p, profile: profile, ground: reach / scale);
+      final endpoint = hip + Offset(offset.dx * scale, offset.dy * scale);
+      final joint = profile
+          ? knee(hip, endpoint, upper, lower, left: facing == 2)
+          : hip +
+              Offset(
+                  (endpoint.dx - hip.dx) * .45, (endpoint.dy - hip.dy) * .52);
+      final first =
+          art.rawSprite(partsAtlas, playerParts || !far ? part : part + 2);
+      final second =
+          art.rawSprite(partsAtlas, playerParts || !far ? part + 1 : part + 3);
+      final color = far ? dark : (paint ?? Paint());
+      _bone(canvas, first, hip, joint, legWidth * scale, color);
+      _bone(canvas, second, joint, endpoint, (legWidth + 3) * scale, color,
+          toe: facing == 0
+              ? .39
+              : facing == 2
+                  ? .61
+                  : .5);
+    }
+    // The established upper body is retained; the authored limb sections
+    // replace the old feet rather than stretching a complete baked pose.
+    canvas.save();
+    final clip = Path()
+      ..addRect(Rect.fromLTWH(
+          -size.x, -size.y, size.x * 3, hipY + 4 * scale + size.y));
+    for (final rect in preserve) {
+      clip.addRect(rect);
+    }
+    clip.fillType = PathFillType.nonZero;
+    canvas.clipPath(clip);
+    canvas.translate(0, bob);
+    art
+        .sprite(bodyAtlas, bodyFrame)
+        .render(canvas, size: size, overridePaint: paint);
+    canvas.restore();
+  }
+
+  void _bone(Canvas canvas, Sprite sprite, Offset from, Offset to, double width,
+      Paint paint,
+      {double toe = .5}) {
+    final delta = to - from;
+    canvas.save();
+    canvas.translate(from.dx, from.dy);
+    canvas.rotate(atan2(delta.dy, delta.dx) - pi / 2);
+    sprite.render(canvas,
+        position: Vector2(-width * toe, -width * .15),
+        size: Vector2(width, delta.distance + width * .3),
+        overridePaint: paint);
+    canvas.restore();
+  }
+}

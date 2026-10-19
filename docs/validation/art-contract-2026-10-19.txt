@@ -1,0 +1,5 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/art_contract_test.dart
+00:00 +0: authored frames are finite, inside textures and fit the mobile budget
+Shared decoded art: 29.54 MiB
+00:00 +1: authored Tiled solids drive collision and safely relocate old saves
+00:00 +2: All tests passed!

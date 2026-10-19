@@ -1,0 +1,6 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/soak_test.dart
+00:00 +0: 30 minute developed-build component soak
+SOAK minutes=30 wallMs=14153 bosses=7 kills=6254 peaks={enemies: 116, xp: 80, playerProjectiles: 8, hostileProjectiles: 7, effects: 40, fire: 0, mines: 0, hazards: 6, particles: 80} peakChildren=248 retained=126
+00:14 +1: 60 minute developed-build component soak
+SOAK minutes=60 wallMs=48595 bosses=12 kills=13963 peaks={enemies: 120, xp: 80, playerProjectiles: 86, hostileProjectiles: 7, effects: 25, fire: 12, mines: 9, hazards: 8, particles: 48} peakChildren=301 retained=145
+01:03 +2: All tests passed!

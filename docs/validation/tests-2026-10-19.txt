@@ -1,0 +1,67 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart: camera view stays inside the tile map at every edge and corner
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: preserves shotgun timing and shell sounds for 1 missing shells
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: preserves shotgun timing and shell sounds for 1 missing shells
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: preserves shotgun timing and shell sounds for 1 missing shells
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: preserves shotgun timing and shell sounds for 2 missing shells
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: preserves shotgun timing and shell sounds for 3 missing shells
+00:00 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: preserves shotgun timing and shell sounds for 4 missing shells
+00:00 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: preserves shotgun timing and shell sounds for 5 missing shells
+00:00 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: reload and shell sounds freeze while paused
+00:00 +9: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: restart discards an old reload, invulnerability and upgrades
+00:00 +10: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: ammo never becomes negative or decreases during reload
+00:00 +11: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: XP upgrades at exactly seven pickups and freezes one choice set
+00:00 +12: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: damage is guarded, respects invulnerability and ends the run once
+00:00 +13: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: XP overflow survives sequential choices and stale offer tokens
+00:00 +14: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: fast reload never slows down a partial shotgun reload
+00:00 +15: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: run time and kill records freeze during selection and reset together
+00:00 +16: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: capped and one-time upgrades are excluded
+00:00 +17: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/run_store_test.dart: writes and clear serialize; a settled run cannot reappear from backup
+00:00 +18: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/run_store_test.dart: corrupt primary recovers the last completed backup
+00:00 +19: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/run_store_test.dart: settling an older run preserves a newer run checkpoint
+00:00 +20: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/run_store_test.dart: semantically invalid primary uses the valid backup
+00:00 +21: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: catalogue has thirty ranked families and six reachable recipes
+00:00 +22: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Pump Shotgun has its own magazine, reload clock and cue sequence
+00:00 +23: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Carbine has its own magazine, reload clock and cue sequence
+00:00 +24: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Revolver has its own magazine, reload clock and cue sequence
+00:00 +25: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Arc Caster has its own magazine, reload clock and cue sequence
+00:00 +26: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Firebreak consumes only its current stable offer and survives JSON
+00:00 +27: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Storm Circuit consumes only its current stable offer and survives JSON
+00:00 +28: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Minefield consumes only its current stable offer and survives JSON
+00:00 +29: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Pinball consumes only its current stable offer and survives JSON
+00:00 +30: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Breach Engine consumes only its current stable offer and survives JSON
+00:00 +31: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: Hunter Swarm consumes only its current stable offer and survives JSON
+00:00 +32: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: capped build always has a useful fallback and no duplicate offers
+00:00 +33: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: reroll and ban consume once; stale interactions cannot spend again
+00:00 +34: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +35: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +36: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +37: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +38: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +39: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +40: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +41: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +42: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +43: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +44: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +45: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +46: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +47: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +48: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +48 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:00 +48 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:01 +49 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/collection_flow_test.dart: collection, loadout and settings fit Size(667.0, 375.0) with large text
+00:01 +50 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/collection_flow_test.dart: collection, loadout and settings fit Size(667.0, 375.0) with large text
+00:01 +51 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/collection_flow_test.dart: collection, loadout and settings fit Size(667.0, 375.0) with large text
+00:01 +52 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/collection_flow_test.dart: collection, loadout and settings fit Size(667.0, 375.0) with large text
+00:01 +53 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:01 +54 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:01 +54 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/performance_budget_test.dart: ten minutes of idle firing retain one timer and no per-tick components
+AFTER: simulatedSeconds=600 timerTicks=1714 retainedTimerComponents=1 updateMicros=26802
+00:01 +55 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:01 +56 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +57 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +58 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:03 +59 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+DENSE SCENE: simulatedSeconds=180 peakEnemies=120 peakCoins=0 retained=133
+00:03 +60 ~2: All tests passed!

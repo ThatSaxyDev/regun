@@ -5,13 +5,8 @@ import 'package:flutter/material.dart';
 class BorderComponent extends PositionComponent {
   BorderComponent({super.size}) : super(priority: 50);
 
-  static final _paint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 10;
-
   static final gridPaint = Paint()
-    ..color = Colors.grey.withOpacity(0.2)
+    ..color = Colors.grey.withValues(alpha: 0.2)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 5;
 

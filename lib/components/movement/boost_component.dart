@@ -1,91 +1,77 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flame_riverpod/flame_riverpod.dart';
-
-import 'package:flutter/material.dart';
+import 'package:regun/components/ui/action_control_skin.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/theme/pixel_glyph.dart';
 
 class BoostButtonComponent extends AdvancedButtonComponent
-    with HasGameReference<RegunGame>, RiverpodComponentMixin {
-  bool tapped;
-  BoostButtonComponent({
-    super.onPressed,
-    this.tapped = false,
-  }) : super(
-          defaultSkin: Buttonn(radius: 35, buttonAsset: 'a_button.png'),
-          // downSkin: Buttonn(radius: 35, buttonAsset: 'b_button_pressed.png'),
-          size: Vector2.all(70),
-          position: Vector2(620, 340),
+    with HasGameReference<RegunGame> {
+  BoostButtonComponent({super.onPressed, this.tapped = false})
+      : super(
+          defaultSkin: ActionControlSkin(glyph: PixelGlyph.dash, label: 'DASH'),
+          downSkin: ActionControlSkin(
+              glyph: PixelGlyph.dash, label: 'DASH', pressed: true),
+          size: Vector2.all(112),
+          position: Vector2(1130, 585),
           anchor: Anchor.center,
         );
 
-  @override
-  void onMount() {
-    // debugMode = true;
-    super.onMount();
+  bool tapped;
+  double _remaining = 0;
+  double _cooldown = 0, _cooldownDuration = 1.6;
+  Map<String, dynamic> checkpoint() =>
+      {'remaining': _cooldown, 'duration': _cooldownDuration};
+  void restoreCheckpoint(Map<String, dynamic> map) {
+    _cooldown = ((map['remaining'] as num?)?.toDouble() ?? 0).clamp(0, 1.6);
+    _cooldownDuration =
+        ((map['duration'] as num?)?.toDouble() ?? 1.6).clamp(0.7, 1.6);
+  }
+
+  double get cooldownFraction => (_cooldown / _cooldownDuration).clamp(0, 1);
+  void cancelDash() {
+    tapped = false;
+    _remaining = 0;
+  }
+
+  void reset() {
+    tapped = false;
+    _remaining = 0;
+    _cooldown = 0;
   }
 
   @override
-  void onTapDown(TapDownEvent event) async {
-    // if (!game.movementJoystick.delta.isZero() &&
-    //     ref.read(gameNotifierProvider).triggerSprintMine == true &&
-    //     ref.read(gameNotifierProvider).sprintMineCount > 0) {
-    //   game.addMine();
-    //   ref.read(gameNotifierProvider.notifier).decreaseSprintMineCount();
-    // }
-    // ref.read(soloudPlayProvider).play('click.mp3');
+  void update(double dt) {
+    super.update(dt);
+    if (game.gameState.gameplayState != GameplayState.playing) return;
+    _cooldown = (_cooldown - dt).clamp(0, 1.6);
+    if (!tapped) return;
+    _remaining -= dt;
+    if (_remaining <= 0) tapped = false;
+  }
 
-    tapped = true;
-    if (ref.read(gameNotifierProvider).sprintInvincibility == true) {
-      ref.read(gameNotifierProvider.notifier).triggerSprintInvincibility();
-    }
-    await Future.delayed(Duration(
-            milliseconds: ref.read(gameNotifierProvider).sprintTimeDistance))
-        .whenComplete(() {
-      tapped = false;
-    });
+  @override
+  void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-  }
-
-  @override
-  void onTapUp(TapUpEvent event) {
-    // tapped = false;
-    super.onTapUp(event);
-  }
-}
-
-class Buttonn extends PositionComponent {
-  Buttonn({
-    required double radius,
-    Paint? paint,
-    super.position,
-    required this.buttonAsset,
-  }) : super(
-          priority: 30,
-          size: Vector2.all(2 * radius),
-          // anchor: Anchor.center,
-        );
-
-  late Sprite _buttonSprite;
-  late String buttonAsset;
-
-  @override
-  Future<void> onLoad() async {
-    // debugMode = true;
-    await super.onLoad();
-    _buttonSprite = await Sprite.load(
-      buttonAsset,
-      srcSize: Vector2.all(16),
-    );
-  }
-
-  @override
-  void render(Canvas canvas) {
-    _buttonSprite.render(
-      canvas,
-      size: size,
-      // anchor: Anchor.center,
-    );
+    if (game.gameState.gameplayState != GameplayState.playing ||
+        tapped ||
+        _cooldown > 0) {
+      return;
+    }
+    final movement = game.movementJoystick.relativeDelta;
+    final aim = game.weaponJoystick.relativeDelta;
+    game.myPlayer.dashDirection.setFrom(!movement.isZero()
+        ? movement.normalized()
+        : !aim.isZero()
+            ? aim.normalized()
+            : game.myPlayer.lastMovement);
+    _cooldown =
+        (1.6 - game.gameState.rank(PowerUp.quickstep) * 0.25).clamp(0.7, 1.6);
+    _cooldownDuration = _cooldown;
+    game.dashCount++;
+    game.combat.onDash();
+    tapped = true;
+    _remaining = game.gameState.sprintTimeDistance / 1000;
+    game.gameNotifier.triggerSprintInvincibility();
   }
 }

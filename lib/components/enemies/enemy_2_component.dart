@@ -1,26 +1,19 @@
-import 'dart:math';
+import 'package:regun/data/enemies.dart';
+import 'package:regun/components/enemies/combat_enemy.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/particles.dart';
-import 'package:flame/sprite.dart';
-import 'package:flame_riverpod/flame_riverpod.dart';
-import 'package:flutter/material.dart';
+import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/game.dart';
-import 'package:regun/notifiers/game_notifier.dart';
-import 'package:regun/utils/soloud_play.dart';
 
 class Enemy2Component extends SpriteAnimationComponent
-    with
-        HasGameReference<RegunGame>,
-        CollisionCallbacks,
-        RiverpodComponentMixin {
+    with HasGameReference<RegunGame>, CollisionCallbacks, CombatEnemy {
   Enemy2Component({super.position})
       : super(
           size: Vector2.all(enemySize),
           anchor: Anchor.center,
         );
-  static final _splashpaint = Paint()..color = Colors.red;
   static const enemySize = 100.0;
   late SpriteAnimation moveLeftAnimation;
   late SpriteAnimation moveRightAnimation;
@@ -32,92 +25,34 @@ class Enemy2Component extends SpriteAnimationComponent
   late SpriteAnimation hurtRightAnimation;
   bool isAttacking = false;
   bool isDying = false;
-  int health = 2;
+  double _deathElapsed = 0;
+
   double attackInterval = 0.6; // Time between health reductions in seconds
   double timeSinceLastAttack = 0.0; // Timer to track the interval
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    // debugMode = true;
-    final moveLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_walk.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final moveRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_walk_right.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final attackLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_attack.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final attackRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_attack_right.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final deathLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_death.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final deathRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_death_right.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final hurtLeftSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_hurt.png'),
-      srcSize: Vector2(48, 48),
-    );
-    final hurtRightSpriteSheet = SpriteSheet(
-      image: await game.images.load('Mummy_hurt_right.png'),
-      srcSize: Vector2(48, 48),
-    );
-    moveLeftAnimation = moveLeftSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-    moveRightAnimation = moveRightSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-    attackLeftAnimation = attackLeftSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-    attackRightAnimation = attackRightSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-    deathLeftAnimation = deathLeftSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-    deathRightAnimation = deathRightSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-    hurtLeftAnimation = hurtLeftSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-    hurtRightAnimation = hurtRightSpriteSheet.createAnimation(
-      row: 0,
-      stepTime: 0.1,
-      to: 6,
-    );
-
-    animation = moveLeftAnimation;
+    initializeHealth(6 * game.director.healthScale);
+    moveLeftAnimation = moveRightAnimation =
+        RegunArt.shared.animation('enemies/mummy', step: 1 / 12);
+    attackLeftAnimation = attackRightAnimation = RegunArt.shared
+        .animation('enemies/mummy', row: 1, from: 1, count: 2, step: .3);
+    deathLeftAnimation = deathRightAnimation = RegunArt.shared.animation(
+        'enemies/mummy',
+        row: 1,
+        from: 3,
+        count: 1,
+        step: .6,
+        loop: false);
+    hurtLeftAnimation = hurtRightAnimation =
+        RegunArt.shared.animation('enemies/mummy', row: 1, count: 1);
+    animation = moveRightAnimation;
     add(
       CircleHitbox(
         radius: 40,
-        anchor: const Anchor(-0.15, -0.3),
+        position: size / 2,
+        anchor: Anchor.center,
         collisionType: CollisionType.passive,
       ),
     );
@@ -131,9 +66,13 @@ class Enemy2Component extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
+    final facingLeft = game.myPlayer.position.x < position.x;
+    if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
+    if (game.gameState.gameplayState != GameplayState.playing) return;
 
     if (isDying) {
-      // Stop all actions if the enemy is dead
+      _deathElapsed += dt;
+      if (_deathElapsed >= 0.6) removeFromParent();
       return;
     }
 
@@ -141,7 +80,7 @@ class Enemy2Component extends SpriteAnimationComponent
     final playerPosition = game.myPlayer.position;
 
     //! DIRECTION VECTOR FROM THE ENEMY TO THE PLAYER
-    final direction = (playerPosition - position).normalized();
+    final direction = game.enemyIntent(this, EnemyKind.mummy);
 
     //! CALCULATE DISTANCE BETWEEN ENEMY AND PLAYER
     final distanceToPlayer = (playerPosition - position).length;
@@ -154,7 +93,7 @@ class Enemy2Component extends SpriteAnimationComponent
       isAttacking = false;
       timeSinceLastAttack = 0.0; // Reset the attack timer
       const speed = 90;
-      position += direction * (speed * dt);
+      game.moveActor(this, direction, speed.toDouble(), dt);
 
       // Set move animation if not attacking
       if (playerPosition.x > position.x) {
@@ -167,14 +106,10 @@ class Enemy2Component extends SpriteAnimationComponent
 
       // Reduce health at regular intervals
       timeSinceLastAttack += dt;
-      if (timeSinceLastAttack >= attackInterval) {
+      if (timeSinceLastAttack >= attackInterval &&
+          !game.segmentBlocked(position, playerPosition)) {
         timeSinceLastAttack = 0.0;
-        ref.read(gameNotifierProvider.notifier).reduceHealth();
-        // FlameAudio.play('gameov.wav');
-        ref.read(soloudPlayProvider).play('gameov.wav');
-        if (ref.read(gameNotifierProvider).health == 0) {
-          game.gameOver();
-        }
+        game.damagePlayer(cause: 'Mummy strike');
       }
 
       // Set attack animation
@@ -186,29 +121,17 @@ class Enemy2Component extends SpriteAnimationComponent
     }
   }
 
-  void showCollectEffect() {
-    final rnd = Random();
-    Vector2 randomVector2() => (Vector2.random(rnd) - Vector2.random(rnd)) * 80;
-    parent!.add(
-      ParticleSystemComponent(
-        position: position,
-        particle: Particle.generate(
-            count: 30,
-            lifespan: 0.8,
-            generator: (i) {
-              return AcceleratedParticle(
-                speed: randomVector2(),
-                acceleration: randomVector2(),
-                child: CircleParticle(
-                  radius: 2,
-                  lifespan: 0.5,
-                  paint: _splashpaint,
-                ),
-              );
-            }),
-      ),
-    );
+  @override
+  int get xpReward => 3;
+  @override
+  int get scoreReward => 25;
 
-    removeFromParent();
+  @override
+  void onCombatDeath() {
+    isDying = true;
+    isAttacking = false;
+    animation = game.myPlayer.position.x > position.x
+        ? deathRightAnimation
+        : deathLeftAnimation;
   }
 }
