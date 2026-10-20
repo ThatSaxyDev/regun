@@ -102,7 +102,7 @@ class SoloudPlay {
             : assetPath.startsWith('impact_')
             ? .25
             : assetPath.startsWith('reload_')
-            ? .42
+            ? .32
             : assetPath == 'hit.wav'
             ? .2
             : .5;

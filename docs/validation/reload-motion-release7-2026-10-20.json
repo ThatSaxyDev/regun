@@ -1,0 +1,115 @@
+{
+  "version": "1.0.0+7",
+  "bytes": 88950993,
+  "sha256": "b29a6c17aa480295b2ccf6e3eecb66ca2490b3a4a1d6ad5cc4bb88bfc502a8dc",
+  "analyzer": "passed",
+  "tests": 135,
+  "skipped": 4,
+  "reload_assets_checked": 11,
+  "reload_mix_peak": 0.1536,
+  "combat_mix_peak": 0.707,
+  "reload_audio": [
+    {
+      "file": "reload_arcCaster_0.wav",
+      "seconds": "0.28",
+      "peak": "0.439971923828125",
+      "rms": "0.03515175397805998",
+      "dc": "2.4022583363702626e-06",
+      "above_3khz_ratio": "0.025895727550368234",
+      "sha256": "808f9e226545c952c9745200158a3d0f1aff4eaffb1fdf161492788088e2b3ff"
+    },
+    {
+      "file": "reload_arcCaster_1.wav",
+      "seconds": "0.25",
+      "peak": "0.459991455078125",
+      "rms": "0.04870749633335057",
+      "dc": "8.027299461451248e-07",
+      "above_3khz_ratio": "0.047463332273169616",
+      "sha256": "74e885fca83ba0796e1e6c13da968e71c9e651e13f5f52f3b665162367bd0a56"
+    },
+    {
+      "file": "reload_arcCaster_2.wav",
+      "seconds": "0.3",
+      "peak": "0.53997802734375",
+      "rms": "0.09751172792155798",
+      "dc": "-1.5339523396164022e-05",
+      "above_3khz_ratio": "0.04684832887736994",
+      "sha256": "3fe74a9e860065dd03e54178fbdd518037b7fa8e945b737cb7e543531b66e04f"
+    },
+    {
+      "file": "reload_carbine_0.wav",
+      "seconds": "0.25",
+      "peak": "0.459991455078125",
+      "rms": "0.0350098244034544",
+      "dc": "2.1839790603741497e-06",
+      "above_3khz_ratio": "0.02866921885643388",
+      "sha256": "b87dee1e386e26003e960c522e38a2244a44be42ca7aa7a111babf0767c7a54f"
+    },
+    {
+      "file": "reload_carbine_1.wav",
+      "seconds": "0.23",
+      "peak": "0.5",
+      "rms": "0.047892586997974065",
+      "dc": "-1.8714318834417824e-06",
+      "above_3khz_ratio": "0.021360348625112466",
+      "sha256": "37582a6996f46774cb6827b792a9f1ef4e5198282f3b0e1f4a056271122b318c"
+    },
+    {
+      "file": "reload_carbine_2.wav",
+      "seconds": "0.25",
+      "peak": "0.55999755859375",
+      "rms": "0.06576490841652036",
+      "dc": "1.1180090525793651e-05",
+      "above_3khz_ratio": "0.1043316466967022",
+      "sha256": "7d91d136d6dc0144fff8005f09f30c12bf64f2f6b8b548b2e5eef51729150af6"
+    },
+    {
+      "file": "reload_revolver_0.wav",
+      "seconds": "0.2",
+      "peak": "0.439971923828125",
+      "rms": "0.032946826199352464",
+      "dc": "-1.209976992098923e-05",
+      "above_3khz_ratio": "0.14211911813464198",
+      "sha256": "f7c91a9ec6caf548290e3d16df75fdc06f27e73a79034b04d3661937dfb65623"
+    },
+    {
+      "file": "reload_revolver_1.wav",
+      "seconds": "0.23",
+      "peak": "0.459991455078125",
+      "rms": "0.05243744085561341",
+      "dc": "3.911352811051957e-08",
+      "above_3khz_ratio": "0.061834966568114914",
+      "sha256": "9e7efaff0f3d9fa9c34ca0ce907e27ac186b0d720affe82219e4d0d5d440b833"
+    },
+    {
+      "file": "reload_revolver_2.wav",
+      "seconds": "0.25",
+      "peak": "0.53997802734375",
+      "rms": "0.04970828002428574",
+      "dc": "-1.6552845096371882e-06",
+      "above_3khz_ratio": "0.155295546652677",
+      "sha256": "893e15c474c9a46fd8e645183007039a59e097212bfd72efe9fdec10c80ed57b"
+    },
+    {
+      "file": "reload_shotgun_pump.wav",
+      "seconds": "0.26",
+      "peak": "0.5999755859375",
+      "rms": "0.11844425516486469",
+      "dc": "-5.118201878107012e-06",
+      "above_3khz_ratio": "0.057009373557907514",
+      "sha256": "fc45c0a462e8675b85d2c26755913f961018d9f6656672c132f4d8c53b03a957"
+    },
+    {
+      "file": "reload_shotgun_shell.wav",
+      "seconds": "0.2",
+      "peak": "0.379974365234375",
+      "rms": "0.048966551948242946",
+      "dc": "5.224664735685941e-07",
+      "above_3khz_ratio": "0.04963183051870875",
+      "sha256": "42b9c779b7a075bdfa804b4abfe82f28bb3ad8db656941c5cba61199b15f1468"
+    }
+  ],
+  "phone_install": "installed and launched on paired iPhone (release, 19.1s build / 12.6s install)",
+  "physical_sound_and_animation_readability": "requires hands-on review",
+  "carbine_regression": "full and partial magazines both swap at once after 1800ms, with exactly magazine-out/seat/bolt cues and no shell sounds"
+}

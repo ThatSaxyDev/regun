@@ -34,12 +34,12 @@ class WeaponFeel {
       };
   static WeaponFeel of(WeaponType type) => switch (type) {
         WeaponType.shotgun =>
-          const WeaponFeel(Color(0xffE9BC75), 64, .44, 9, .17, 40, 20, 30, 42),
+          const WeaponFeel(Color(0xffE9BC75), 64, .44, 9, .14, 40, 20, 30, 42),
         WeaponType.carbine =>
-          const WeaponFeel(Color(0xffF0D6A2), 57, .45, 4, .085, 23, 8, 36, 19),
+          const WeaponFeel(Color(0xffF0D6A2), 57, .45, 4, .07, 23, 8, 36, 19),
         WeaponType.revolver =>
-          const WeaponFeel(Color(0xffFFC588), 44, .23, 11, .23, 44, 13, 60, 40),
+          const WeaponFeel(Color(0xffFFC588), 44, .23, 11, .19, 44, 13, 60, 40),
         WeaponType.arcCaster =>
-          const WeaponFeel(Color(0xffA6E8D4), 54, .23, 9, .22, 38, 22, 54, 50),
+          const WeaponFeel(Color(0xffA6E8D4), 54, .23, 9, .18, 38, 22, 54, 50),
       };
 }

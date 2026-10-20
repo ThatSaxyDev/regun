@@ -165,3 +165,7 @@ Rook's head now replaces the arrow launcher and both native/Flutter startup artw
 ## Damage readability (2026-10-20)
 
 Accepted health loss emits one light haptic (respect Haptics), a 320ms survivor cue, a 500ms stepped edge fade and actual lost HP beside the heart. Keep the camera steady. Reduced Motion omits the pale flash and softens the edge shading; warm tint and loss readout remain. Shield absorption/protection/contact cooldown must not emit health-loss cues. Pause freezes it; restart/training recovery reset it. `DamageFeedback.healthLost` is the HUD notifier; dispose it only with the game, not on restart. Large-text HUD tests cover the loss readout. Physical haptic strength/readability require hands-on approval.
+
+## Reload audio and sharper motion (2026-10-20)
+
+Reload cues use recorded CC0 mechanism extracts via `tool/generate_reload_audio.py`; full weapon-audio regeneration calls it after firing/impact generation. Preserve source attribution/hashes in `art/source/audio/README.md` and validate with `tool/preview_reload_audio.py`. Reload SFX gain is .32; do not restore the generic high-noise/ringing synth clicks. Recoil recovery is .14/.07/.19/.18s (Shotgun/Carbine/Revolver/Arc); muzzle visibility has its own 45ms window. Reload parts use short eased moves with planted holds and existing audio phase boundaries; Reduced Motion keeps parts/body planted. Total reload timing, shell sound schedule, damage, cadence and shotgun HUD Lottie remain unchanged. Native listening/motion acceptance remains open.

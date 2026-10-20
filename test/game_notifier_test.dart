@@ -7,8 +7,10 @@ import 'package:regun/utils/soloud_play.dart';
 
 class SilentAudio extends SoloudPlay {
   int reloadSounds = 0;
+  final sounds = <String>[];
   @override
   Future<void> play(String assetPath) async {
+    sounds.add(assetPath);
     if (assetPath == 'reload_shotgun_shell.wav') reloadSounds++;
   }
 }
@@ -149,6 +151,32 @@ void main() {
     notifier.restoreCheckpoint(upgraded);
     expect(state().maxBullets, 10);
     expect(state().noOfBullets, 5);
+  });
+
+  test('carbine swaps one magazine with no per-round refill or shell cues', () {
+    for (final spent in [1, WeaponType.carbine.capacity]) {
+      notifier.resetRun(loadout: const Loadout(weapon: WeaponType.carbine));
+      audio.sounds.clear();
+      for (var round = 0; round < spent; round++) {
+        notifier.decreaseBullets();
+      }
+      final before = state().noOfBullets;
+      notifier.reloadBullets();
+      expect(notifier.checkpoint()['reloadDurationMs'], 1800);
+      for (var step = 0; step < 17; step++) {
+        notifier.advanceTime(.1);
+        expect(state().reloading, isTrue);
+        expect(state().noOfBullets, before); // No bullet-by-bullet loading.
+      }
+      notifier.advanceTime(.1);
+      expect(state().reloading, isFalse);
+      expect(state().noOfBullets, WeaponType.carbine.capacity);
+      expect(audio.sounds, [
+        'reload_carbine_0.wav', // Magazine out.
+        'reload_carbine_1.wav', // Fresh magazine seated.
+        'reload_carbine_2.wav', // Bolt.
+      ]);
+    }
   });
 
   for (var missing = 1; missing <= 5; missing++) {

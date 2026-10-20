@@ -81,15 +81,7 @@ def render(name, duration, kind, seed=1):
             v += low*1.4*math.exp(-t*32)+high*.24*math.exp(-t*100)
             if electric: v += high*.2*max(0,math.sin(t*920))*math.exp(-t*35)
         else:
-            # A dry mechanism: paired contacts and several damped metal modes.
-            electric = kind == 'reload_arcCaster'
-            pump = kind == 'pump'
-            centers = [0,.045,.09] if pump else [0,.028]
-            envelope = sum(math.exp(-abs(t-c)*(80 if pump else 170)) for c in centers)
-            v = (high*.9+low*2)*envelope
-            for frequency,gain in [(760,.11),(1480,.07),(2600,.035)]:
-                v += math.sin(2*math.pi*frequency*pitch*t)*gain*math.exp(-t*65)
-            if electric: v += noise*.2*math.exp(-t*16)+math.sin(t*(1800-1800*t))*.12*math.exp(-t*20)
+            raise ValueError(f'Unknown combat event: {kind}')
         fade = min(1,t/.0005)*min(1,(duration-t)/.008)
         raw.append(math.tanh(v*1.1)*fade)
     mean = sum(raw)/len(raw)
@@ -107,11 +99,7 @@ if __name__ == '__main__':
         if args.only and weapon != args.only: continue
         for variant in range(3): render(f'shot_{weapon}_{variant}.wav',duration,weapon,11+variant)
         render(f'impact_{weapon}.wav',.22 if weapon=='carbine' else .3,'impact_'+weapon,31)
-        for cue in ([] if weapon=='shotgun' else range(3)):
-            render(f'reload_{weapon}_{cue}.wav',.19 if weapon!='arcCaster' else .32,'reload_'+weapon,41+cue*2)
     if not args.only:
-        render('reload_shotgun_shell.wav',.18,'reload_shotgun',45)
-        render('reload_shotgun_pump.wav',.24,'pump',47)
         render('impact_boss.wav',.48,'impact_boss',53)
         render('impact_poison.wav',.32,'impact_poison',59)
         render('hurt_player.wav',.24,'impact_shotgun',61)
@@ -127,3 +115,7 @@ if __name__ == '__main__':
     with manifest_path.open('w', newline='') as f:
         writer=csv.writer(f, lineterminator='\n');writer.writerow(['file','seconds','peak','rms','event','seed']);writer.writerows(rows)
     print(f'Wrote {written_count} mono PCM16 sounds at {RATE} Hz; music/UI unchanged.')
+
+    if not args.only:
+        from generate_reload_audio import generate
+        generate()

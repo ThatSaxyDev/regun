@@ -20,6 +20,12 @@ void paintWeapon(Canvas canvas, WeaponType type,
   final loading = reload >= 0;
   final p = reload.clamp(0.0, 1.0);
   final feel = WeaponFeel.of(type);
+  final movingReload = loading && !reducedMotion;
+  // Fast travel into a planted hold; cue boundaries remain at .42 and .82.
+  double action(double value, double start, double end) =>
+      Curves.easeOutCubic.transform(((value - start) / (end - start)).clamp(0, 1));
+  double pulse(double value, double start, double peak, double end) =>
+      action(value, start, peak) - action(value, peak, end);
   final width = feel.width, grip = feel.grip;
   final height = type == WeaponType.shotgun ? 22.0 : 26.0;
   canvas.save();
@@ -28,7 +34,12 @@ void paintWeapon(Canvas canvas, WeaponType type,
     canvas
         .rotate(-recoil * recoil * (type == WeaponType.revolver ? .10 : .035));
   }
-  if (loading && !reducedMotion) canvas.rotate(sin(p * pi) * .14);
+  if (movingReload) {
+    canvas.rotate((action(p, 0, .10) - action(p, .82, .94)) * .12);
+    if (type != WeaponType.shotgun) {
+      canvas.translate(-pulse(p, .82, .85, .93) * 2, 0);
+    }
+  }
   body.render(canvas,
       position: Vector2(-width * grip, -height * .55),
       size: Vector2(width, height));
@@ -37,42 +48,42 @@ void paintWeapon(Canvas canvas, WeaponType type,
       final shells = max(1, reloadShells);
       final duration = 900 + 700 * (shells - 1);
       final elapsed = p * duration;
-      final insert = ((elapsed % 700) / 700).clamp(0.0, 1.0);
+      final insert = ((elapsed % 700) / 210).clamp(0.0, 1.0);
       final finish = ((elapsed - shells * 700) / 200).clamp(0.0, 1.0);
-      final pump = loading ? sin(finish * pi) * 7 : recoil * 6;
+      final pump = movingReload
+          ? pulse(finish, 0, .4, 1) * 7
+          : loading || reducedMotion ? 0.0 : recoil * 6;
       part.render(canvas,
           position: Vector2(8 - pump, -1), size: Vector2(19, 6));
-      if (loading && elapsed < shells * 700 && insert < .8) {
-        final y = 16 * (1 - insert / .8) + 3;
+      if (movingReload && elapsed < shells * 700 && insert < 1) {
+        final y = 16 * (1 - Curves.easeOutCubic.transform(insert)) + 3;
         canvas.drawRect(Rect.fromLTWH(-3, y, 7, 4),
             Paint()..color = const Color(0xffC56E50));
         canvas.drawRect(Rect.fromLTWH(-3, y, 2, 4),
             Paint()..color = const Color(0xffE4C27F));
       }
     case WeaponType.carbine:
-      final travel = loading
-          ? (p < .42
-              ? p / .42 * 20
-              : p < .82
-                  ? (1 - (p - .42) / .4) * 20
-                  : 0.0)
+      final travel = movingReload
+          ? (action(p, 0, .12) - action(p, .32, .42)) * 20
           : 0.0;
       part.render(canvas,
           position: Vector2(4, 5 + travel), size: Vector2(6, 13));
     case WeaponType.revolver:
       canvas.save();
       canvas.translate(10, -4);
-      if (loading) {
-        canvas.translate(0, sin(p * pi) * 9);
-        canvas.rotate(((p - .2) / .55).clamp(0, 1) * pi * 2);
+      if (movingReload) {
+        canvas.translate(0, (action(p, 0, .12) - action(p, .72, .82)) * 9);
+        canvas.rotate(action(p, .42, .58) * pi * 2);
       }
       part.render(canvas, position: Vector2(-5, -5), size: Vector2(10, 10));
       canvas.restore();
     case WeaponType.arcCaster:
-      final lift = loading ? sin(p * pi) * 10 : 0.0;
+      final lift = movingReload
+          ? (action(p, 0, .12) - action(p, .72, .82)) * 10
+          : 0.0;
       part.render(canvas,
           position: Vector2(4, -5 - lift), size: Vector2(13, 8));
-      if (loading) {
+      if (movingReload) {
         for (var i = 0; i < 3; i++) {
           canvas.drawRect(
               Rect.fromLTWH(9 + i * 4, -10 - sin(p * pi * 5 + i) * 4, 2, 3),
@@ -80,7 +91,7 @@ void paintWeapon(Canvas canvas, WeaponType type,
         }
       }
   }
-  if (recoil > .65 && !loading) {
+  if (recoil > max(0, 1 - .045 / feel.recovery) && !loading) {
     final muzzle = feel.muzzle;
     final length = feel.flashLength * (reducedMotion ? .65 : 1);
     final wide = feel.flashWidth;

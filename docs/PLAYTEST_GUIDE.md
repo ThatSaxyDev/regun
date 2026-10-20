@@ -122,3 +122,9 @@ Try standing far away, sustained straight retreat, a late sideways turn after th
 - Repeated contact during the damage guard, protected deployment and an absorbed Scrap Armour hit must not produce a health-loss cue/vibration. Armour still has its own impact sound.
 - Turn Haptics off: keep the visible cues without vibration. With Reduced Motion on, omit the pale flash and use quieter edge shading; the warm player tint/health readout remain. Pause holds the cue; Restart clears it. Training death still follows the existing recovery sequence.
 - Check the cue during busy boss attacks and on the smallest/large-text HUD. Native vibration strength and readability need hands-on approval; automated channel assertions cannot establish physical feel.
+
+### Reload sound and sharper weapon motion — release 7
+
+- Reload Shotgun and Carbine repeatedly. Expect subdued shell handling/a physical pump, and three distinct magazine-out/seat/bolt contacts rather than bright ticking. Check Revolver and Arc too. Music/SFX sliders and mute must still work.
+- Fire each weapon: recoil should recover about 17–18% sooner, with a readable short muzzle flash. Reload parts should move quickly into a hold and seat decisively; ammo must become available at the same time as before. Preserve shotgun shell count/timing and the original HUD Lottie.
+- With Reduced Motion enabled, moving magazine/cylinder/cell/tilt cues stay planted; reload progress remains visible. Try pause, partial reload, Extended Tube and an eight-rank reload build. Judge sound fatigue and animation readability on the phone; automated checks do not replace listening.
