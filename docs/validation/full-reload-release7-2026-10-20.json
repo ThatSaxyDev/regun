@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0+7",
+  "bytes": 93136045,
+  "sha256": "765f06e1e6d643011a386c2ba5fdcf7e8170812fa49475536a33d895b07807a8",
+  "analyzer": "passed",
+  "tests": 152,
+  "opt_in_skipped": 4,
+  "behavior": "Shotgun/Revolver/Arc require complete reload; tactical timing limited to Carbine.",
+  "migration": "Previous staged and closing snapshots require full remaining reload; non-Carbine tactical bonus removed.",
+  "release_build": "passed",
+  "phone_install": "installed and launched release on paired iPhone over Wi-Fi; 20.4s build, 10.0s installation/launch",
+  "native_balance": "open"
+}

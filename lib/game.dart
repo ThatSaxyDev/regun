@@ -1243,7 +1243,7 @@ class RegunGame extends FlameGame
     var damage =
         state.shotDamage * loadout.weapon.damage * loadout.character.damage;
     breachEngine = state.fused('breachEngine');
-    if (state.noOfBullets == 1 && gameNotifier.lastShellBonusReady) {
+    if (state.noOfBullets == 1) {
       damage *= 1 +
           GameState.scaledRank(state.lastShellRank) *
               (breachEngine ? 0.9 : 0.6);
@@ -1335,14 +1335,10 @@ class RegunGame extends FlameGame
     // Gameplay timers use simulation time; pause and restart cannot leak work.
     _reloadWasActive = gameState.reloading;
     gameNotifier.advanceTime(dt * timeScale);
-    if (_reloadWasActive && !gameState.reloading &&
-        gameNotifier.lastReloadCompletedFully) {
-      _breachCharged = true;
-    }
+    if (_reloadWasActive && !gameState.reloading) _breachCharged = true;
     if (gameState.gameplayState == GameplayState.playing) {
       _fireCooldown = max(0, _fireCooldown - dt);
       final firing = !weaponJoystick.relativeDelta.isZero();
-      if (firing) gameNotifier.requestReloadInterrupt();
       if (_fireCooldown <= 0 && firing && spawnShotgunBullets()) {
         _fireCooldown = loadout.weapon.cadence *
             pow(0.85, gameState.effectRank(PowerUp.quickTrigger));

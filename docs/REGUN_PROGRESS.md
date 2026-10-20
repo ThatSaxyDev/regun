@@ -541,3 +541,12 @@ All four music loops now share a darker rhythmic action identity: menu 124 BPM, 
 Release packaging succeeded; all four packaged music hashes match the source manifest and IPA identity remains 1.0.0+7. Paired iPhone remains unavailable, so installation/native listening are pending. See `docs/validation/action-music-release7-2026-10-20.json`.
 
 Phone retry succeeded: the latest 1.0.0+7 release installed and launched over Wi-Fi (22.0s build, 12.8s installation/launch). Native listening and comfort approval remain open.
+
+
+### Full reload commitment restored after device feedback — release 7
+
+The creator found firing between reload stages too forgiving. Shotgun, Revolver and Arc Caster now finish their complete reload before any shot can fire, including held aim. Per-round funding, short ready/closing interruptions and their 15% tactical-duration bonus are removed. Normal reload durations, Fast Reload scaling, the shotgun Lottie and Extended Tube pickup refill are preserved. Last Shell/Breach Loader return to their normal final-/first-shot conditions because one-round interruption loops no longer exist. World/HUD show full reload progress without a separate closing state.
+
+Carbine alone keeps the chambered-round manual magazine reload: .70 duration (base 1.26s versus 1.8s), seat near the end, no final bolt cue; empty reloads retain the full action. Its tactical presentation and checkpoint state remain. Old `reloadPlan` snapshots migrate to a complete reload, roll staged ammo back into the pending refill and undo the old non-Carbine .85 timing multiplier; Continue cannot resurrect a saved short closing action. Regression coverage exercises held aim across all three weapons, full/partial timings, pause/Continue, old interruption saves and Carbine cue/timing persistence. Music and projectile corrections remain.
+
+Validation: analyzer clean, **152 tests passed**, four opt-in cases skipped. The updated 1.0.0+7 release IPA was verified and installed/launched on the paired iPhone over Wi-Fi (20.4s build, 10.0s installation/launch). Physical balance approval remains open. See `docs/validation/full-reload-release7-2026-10-20.json`.

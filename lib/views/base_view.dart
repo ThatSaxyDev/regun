@@ -426,14 +426,11 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                           WeaponReloadDisplay(
                                               weapon: widget.loadout.weapon,
                                               progress: progress,
+                                              tactical: notifier.reloadTactical,
                                               reducedMotion: _myGame
                                                   .preferences.reducedMotion,
-                                              shells: notifier.reloadUnits,
-                                              loaded: state.noOfBullets,
-                                              capacity: state.maxBullets,
-                                              tactical: notifier.reloadTactical,
-                                              closing: notifier.reloadClosing,
-                                              visualProgress: notifier.reloadVisualProgress)))
+                                              shells: state.maxBullets -
+                                                  state.noOfBullets)))
                               : Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [

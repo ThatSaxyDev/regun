@@ -198,12 +198,11 @@ class PlayerComponent extends SpriteAnimationComponent
                   ? 1
                   : game.gameNotifier.quickRefillProgress.value)
               : game.gameState.reloading
-                  ? game.gameNotifier.reloadVisualProgress
+                  ? game.gameNotifier.reloadProgress.value
                   : -1,
           recoil: recoil,
-          reloadShells: game.gameNotifier.reloadUnits,
           tactical: game.gameNotifier.reloadTactical,
-          closing: game.gameNotifier.reloadClosing,
+          reloadShells: game.gameState.maxBullets - game.gameState.noOfBullets,
           reducedMotion: game.preferences.reducedMotion);
       canvas.drawRRect(
           RRect.fromRectAndRadius(

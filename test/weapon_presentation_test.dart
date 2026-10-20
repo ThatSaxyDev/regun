@@ -339,7 +339,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('held aim resumes each staged weapon and hostile dart pauses',
+  testWidgets('held aim waits for full reloads and hostile dart pauses',
       (tester) async {
     SharedPreferences.setMockInitialValues({});
     for (final weapon in WeaponType.values.where((w) => w != WeaponType.carbine)) {
@@ -364,15 +364,19 @@ void main() {
         final fullDuration = (game.gameNotifier.checkpoint()['reloadDurationMs']
             as num).toDouble() / 1000;
         var elapsed = 0.0;
-        while (game.shotsFired == 0 && elapsed < fullDuration) {
+        while (elapsed + .01 < fullDuration - .00001) {
           game.weaponJoystick.delta.setValues(60, 0);
           game.update(.01);
           elapsed += .01;
+          expect(game.shotsFired, 0, reason: weapon.name);
+          expect(game.gameState.noOfBullets, 0);
+          expect(game.gameState.reloading, isTrue);
         }
+        game.weaponJoystick.delta.setValues(60, 0);
+        game.update(fullDuration - elapsed + .001);
         expect(game.shotsFired, 1, reason: weapon.name);
-        expect(elapsed, lessThan(fullDuration));
-        expect(game.gameState.noOfBullets, 0);
-        expect(game.gameState.reloading, isTrue); // Spent one paid round.
+        expect(game.gameState.noOfBullets, weapon.capacity - 1);
+        expect(game.gameState.reloading, isFalse);
         final dart = Enemy3Projectile(position: Vector2(400, 100));
         await game.world.add(dart);
         await game.ready();
