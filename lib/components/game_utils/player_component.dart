@@ -165,11 +165,13 @@ class PlayerComponent extends SpriteAnimationComponent
       'engineer' => const Color(0xffF2D28D),
       _ => null,
     };
-    paint.colorFilter = hurtFlash > .17 && !game.preferences.reducedMotion
+    paint.colorFilter = hurtFlash > .25 && !game.preferences.reducedMotion
         ? const ColorFilter.mode(Color(0xffFFF0DB), BlendMode.srcATop)
-        : tint == null
-            ? null
-            : ColorFilter.mode(tint, BlendMode.modulate);
+        : hurtFlash > 0
+            ? const ColorFilter.mode(Color(0xffEFA28E), BlendMode.modulate)
+            : tint == null
+                ? null
+                : ColorFilter.mode(tint, BlendMode.modulate);
     if (!game.playerEntrance.active) {
       canvas.drawOval(
           Rect.fromCenter(

@@ -1490,8 +1490,8 @@ class RegunGame extends FlameGame
           camera: camera.viewfinder.position);
     }
     if (gameState.health < health) {
-      myPlayer.hurtFlash = 0.25;
-      damageFeedback.trigger();
+      myPlayer.hurtFlash = 0.32;
+      damageFeedback.trigger(amount: health - gameState.health);
       if (activeBoss != null) {
         _bossWasHit = true;
         for (final boss in bosses) {
@@ -1499,7 +1499,7 @@ class RegunGame extends FlameGame
         }
       }
       if (preferences.haptics) {
-        unawaited(HapticFeedback.mediumImpact().catchError((Object _) {}));
+        unawaited(HapticFeedback.lightImpact().catchError((Object _) {}));
       }
     }
     audio.play(gameState.health == 0
@@ -1564,6 +1564,7 @@ class RegunGame extends FlameGame
       boss.releaseArt();
     }
     _phaseSubscription?.close();
+    damageFeedback.healthLost.dispose();
     if (_started) gameNotifier.cancelPendingActions();
     super.onRemove();
   }

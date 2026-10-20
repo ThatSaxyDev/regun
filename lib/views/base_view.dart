@@ -210,14 +210,68 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                     fontSize: 10,
                     color: _brass)),
             const SizedBox(width: 20),
-            Image.asset('assets/images/heart.png', width: 24, height: 24),
-            const SizedBox(width: 5),
-            Text('${state.health}',
-                style: const TextStyle(
-                    fontFamily: FontFam.orbitron,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: _paper)),
+            ValueListenableBuilder<int>(
+              valueListenable: _myGame.damageFeedback.healthLost,
+              builder: (context, lost, _) => Semantics(
+                label: 'Health ${state.health}',
+                child: Container(
+                  width: 90,
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  decoration: BoxDecoration(
+                    color: lost > 0
+                        ? const Color(0x993D2525)
+                        : Colors.transparent,
+                    border: Border.all(
+                      color: lost > 0
+                          ? const Color(0xffEF8B76)
+                          : Colors.transparent,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/images/heart.png',
+                        width: 24,
+                        height: 24,
+                      ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '${state.health}',
+                                style: TextStyle(
+                                  fontFamily: FontFam.orbitron,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: lost > 0
+                                      ? const Color(0xffEF8B76)
+                                      : _paper,
+                                ),
+                              ),
+                              if (lost > 0)
+                                Text(
+                                  '-$lost HP',
+                                  style: const TextStyle(
+                                    fontFamily: FontFam.pressStart,
+                                    fontSize: 7,
+                                    color: Color(0xffEF8B76),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(width: 18),
             _readout('${state.kills}', 'KILLS'),
             const SizedBox(width: 12),

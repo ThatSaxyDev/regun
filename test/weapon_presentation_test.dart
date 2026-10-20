@@ -255,6 +255,88 @@ void main() {
     }
   });
 
+  testWidgets('damage cues track health loss, settings, protection and pause',
+      (tester) async {
+    tester.view.physicalSize = const Size(844, 390);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+    final haptics = <Object?>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform, (call) async {
+      if (call.method == 'HapticFeedback.vibrate') haptics.add(call.arguments);
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null));
+    late RegunGame game;
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(_Audio())],
+          child: const MaterialApp(home: RepaintBoundary(
+              key: Key('damage-world'), child: BaseView()))));
+      game = tester.widget<RiverpodAwareGameWidget>(
+          find.byType(RiverpodAwareGameWidget)).game! as RegunGame;
+      await game.loaded;
+      await tester.pump();
+      await game.ready();
+      expect(game.damagePlayer(), isFalse); // Deployment is protected.
+      game.update(2);
+      game.preferences.haptics = true;
+      game.preferences.reducedMotion = false;
+      expect(game.damagePlayer(), isTrue);
+      await tester.pump();
+      expect(haptics, ['HapticFeedbackType.lightImpact']);
+      expect(find.text('-1 HP'), findsOneWidget);
+      expect(game.damageFeedback.healthLost.value, 1);
+      expect(game.damagePlayer(), isFalse); // Contact cannot spam the cue.
+      expect(haptics, hasLength(1));
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(const Key('damage-world')));
+      final image = await boundary.toImage(pixelRatio: 2);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      await Directory('build/test-previews').create(recursive: true);
+      await File('build/test-previews/player-damage.png')
+          .writeAsBytes(bytes!.buffer.asUint8List());
+      image.dispose();
+      game.pauseGame();
+      final remaining = game.damageFeedback.remaining;
+      game.update(.3);
+      expect(game.damageFeedback.remaining, remaining);
+      game.resumeGame();
+      game.damageFeedback.update(.51);
+      await tester.pump();
+      expect(find.text('-1 HP'), findsNothing);
+      game.gameNotifier.advanceTime(.6);
+      game.preferences.haptics = false;
+      game.preferences.reducedMotion = true;
+      expect(game.damagePlayer(), isTrue);
+      await tester.pump();
+      expect(haptics, hasLength(1));
+      expect(game.damageFeedback.healthLost.value, 1);
+      expect(find.text('-1 HP'), findsOneWidget);
+      game.restartGame();
+      await game.ready();
+      expect(game.damageFeedback.healthLost.value, 0);
+      game.update(2);
+      game.gameNotifier.resetRun(
+          loadout: const Loadout(character: CharacterType.warden));
+      game.preferences.haptics = true;
+      expect(game.damagePlayer(), isTrue); // Armour absorbs the hit.
+      expect(game.damageFeedback.healthLost.value, 0);
+      expect(haptics, hasLength(1));
+      game.gameNotifier.advanceTime(.6);
+      expect(game.damagePlayer(amount: 2), isTrue);
+      expect(game.damageFeedback.healthLost.value, 2);
+      await tester.pump();
+      expect(find.text('-2 HP'), findsOneWidget);
+      expect(haptics, hasLength(2));
+    });
+    await tester.pumpWidget(const SizedBox());
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('render distinct firing and mechanical reload stages for review',
       (tester) async {
     await tester.runAsync(() async {

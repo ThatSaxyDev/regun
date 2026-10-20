@@ -173,6 +173,12 @@ void main() {
         await tester.pump();
         expect(tester.takeException(), isNull,
             reason: '$device / mirror:$mirror / large HUD');
+        // Finish deployment before checking the large-text damage HUD.
+        game.update(2);
+        game.damageFeedback.trigger(amount: 2);
+        await tester.pump();
+        expect(tester.takeException(), isNull, reason: '$device / damage HUD');
+        expect(find.text('-2 HP'), findsOneWidget);
         expect(find.text('99999'), findsOneWidget);
         expect(find.text('L99 / C1'), findsOneWidget);
         final virtual = game.camera.viewport.virtualSize;
