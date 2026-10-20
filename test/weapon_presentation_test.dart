@@ -70,6 +70,7 @@ void main() {
       }
       expect(target.position.distanceTo(blocker.position),
           greaterThanOrEqualTo(89.9));
+      expect(target.position.x - start.x, greaterThan(10));
       expect(target.impactStride, 1); // Repeated pellets cannot prolong it.
       target.update(.2);
       blocker.position.setFrom(target.position + Vector2(95, 0));
@@ -156,9 +157,45 @@ void main() {
         game.weaponJoystick.delta.setZero();
         await game.ready();
         final shots = game.world.children.whereType<BulletComponent>().toList();
-        expect(shots, isNotEmpty);
+        expect(shots, hasLength(type == WeaponType.shotgun ? 3 : 1));
+        if (type == WeaponType.shotgun) {
+          expect(shots.map((s) => s.direction.y).toSet(), hasLength(3));
+          expect(shots[1].direction.y, closeTo(0, .001));
+          expect(
+              shots.first.direction.y, closeTo(-shots.last.direction.y, .001));
+        }
+        if (type == WeaponType.carbine) {
+          final origins = <Vector2>[shots.single.position.clone()];
+          final headings = <double>[shots.single.direction.y];
+          for (var round = 0; round < 6; round++) {
+            game.weaponJoystick.delta.setValues(60, 0);
+            game.spawnShotgunBullets();
+            game.weaponJoystick.delta.setZero();
+            await game.ready();
+            final bullet =
+                game.world.children.whereType<BulletComponent>().last;
+            origins.add(bullet.position.clone());
+            headings.add(bullet.direction.y);
+            expect(bullet.direction.x, greaterThan(.999));
+            expect(bullet.direction.y.abs(), lessThan(.035));
+            final start = bullet.position.clone();
+            final heading = bullet.direction.clone();
+            bullet.update(.005);
+            expect(
+                (bullet.position - start - heading * bullet.speed * .005)
+                    .length,
+                lessThan(.001));
+            expect(bullet.direction, heading);
+            bullet.removeFromParent();
+            await game.ready();
+          }
+          expect(headings.toSet().length, greaterThan(1));
+          expect(origins.map((p) => p.y).toSet().length, greaterThan(1));
+          expect(origins.every((p) => (p - origins.first).length < 7), isTrue);
+        }
         expect(shots.every((s) => s.weapon == type), isTrue);
-        expect(game.gameState.noOfBullets, ammo - 1);
+        expect(game.gameState.noOfBullets,
+            ammo - (type == WeaponType.carbine ? 7 : 1));
         expect(audio.sounds, contains('shot_${type.name}_0.wav'));
         for (final shot in shots) {
           shot.update(.04);
@@ -172,7 +209,7 @@ void main() {
         await File('build/test-previews/rounds-${type.name}.png')
             .writeAsBytes(bytes!.buffer.asUint8List());
         image.dispose();
-        shots.first.update(.3);
+        shots[shots.length ~/ 2].update(.3);
         await game.ready();
         expect(
             game.world.children

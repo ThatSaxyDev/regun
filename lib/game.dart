@@ -1261,9 +1261,18 @@ class RegunGame extends FlameGame
       if (projectileCount >= maxProjectiles) break;
       final direction = baseDirection.clone()
         ..rotate((i - (count - 1) / 2) * spread);
+      var muzzleOffset = Vector2.zero();
+      if (loadout.weapon == WeaponType.carbine) {
+        // A tight per-round grouping, not a shotgun fan or a wandering bullet.
+        direction.rotate((random.nextDouble() * 2 - 1) * pi / 90);
+        final side = Vector2(-baseDirection.y, baseDirection.x);
+        muzzleOffset = side * ((random.nextDouble() * 2 - 1) * 2) +
+            baseDirection * ((random.nextDouble() * 2 - 1) * 1.25);
+      }
       addProjectile(BulletComponent(
           position: myPlayer.position +
               Vector2(0, 6) +
+              muzzleOffset +
               direction * (8 + WeaponFeel.of(loadout.weapon).muzzle),
           weapon: loadout.weapon,
           damage: damage /

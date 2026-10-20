@@ -214,9 +214,8 @@ void main() {
     expect(state().noOfBullets, 0);
   });
 
-  test('XP upgrades at exactly twenty-five pickups and freezes one choice set',
-      () {
-    for (var i = 0; i < 25; i++) {
+  test('XP upgrades at exactly eight pickups and freezes one choice set', () {
+    for (var i = 0; i < 8; i++) {
       notifier.increaseXP();
     }
     expect(state().currentLevel, 2);
@@ -262,14 +261,14 @@ void main() {
 
   test('XP has accelerating costs and no automatic back-to-back choices', () {
     expect([for (var level = 1; level <= 6; level++) XPProgression.cost(level)],
-        [25, 50, 80, 115, 155, 200]);
+        [8, 18, 35, 59, 90, 128]);
     notifier.increaseXP(130);
-    expect(state().xP, 105);
+    expect(state().xP, 122);
     final offerId = state().offerId;
     final choice = state().powerUpChoices.first;
     notifier.applyPowerUp(choice, offerId: offerId);
     expect(state().gameplayState, GameplayState.playing);
-    expect(state().xP, 105);
+    expect(state().xP, 122);
     expect(state().currentLevel, 2);
     final next = state();
     notifier.applyPowerUp(choice, offerId: offerId);
@@ -284,7 +283,7 @@ void main() {
     notifier.increaseXP();
     expect(state().gameplayState, GameplayState.powerup);
     expect(state().currentLevel, 3);
-    expect(state().xP, 57);
+    expect(state().xP, 106);
   });
 
   test('boss rewards never give unfunded ordinary upgrades; fusion is explicit',
@@ -324,10 +323,10 @@ void main() {
         .copyWith(currentLevel: 3, noOfCoinsToUpgrade: 10, xP: 5)
         .toJson();
     notifier.restoreCheckpoint(old);
-    expect(state().noOfCoinsToUpgrade, 80);
-    expect(state().xP, 40);
+    expect(state().noOfCoinsToUpgrade, 35);
+    expect(state().xP, 17);
     notifier.restoreCheckpoint(notifier.checkpoint());
-    expect(state().xP, 40);
+    expect(state().xP, 17);
   });
 
   for (var rank = 1; rank <= 3; rank++) {
@@ -384,7 +383,7 @@ void main() {
     expect(state().kills, 2);
     expect(state().bosses, 1);
     expect(state().score, 1049);
-    notifier.increaseXP(25);
+    notifier.increaseXP(8);
     notifier.advanceTime(100);
     notifier.recordKill();
     expect(state().survivalSeconds, 12);

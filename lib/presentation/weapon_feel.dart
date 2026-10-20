@@ -19,7 +19,7 @@ class WeaponFeel {
   static ({double length, double thickness, double trailWidth}) round(
           WeaponType type) =>
       switch (type) {
-        WeaponType.shotgun => (length: 15, thickness: 8, trailWidth: 5),
+        WeaponType.shotgun => (length: 22, thickness: 11, trailWidth: 7),
         WeaponType.carbine => (length: 13, thickness: 5, trailWidth: 3),
         WeaponType.revolver => (length: 15, thickness: 6, trailWidth: 4),
         WeaponType.arcCaster => (length: 13, thickness: 6, trailWidth: 3),
@@ -27,14 +27,14 @@ class WeaponFeel {
 
   static ({double distance, double duration}) impactMotion(WeaponType type) =>
       switch (type) {
-        WeaponType.shotgun => (distance: 13, duration: .09),
+        WeaponType.shotgun => (distance: 34, duration: .12),
         WeaponType.carbine => (distance: 5, duration: .06),
         WeaponType.revolver => (distance: 16, duration: .1),
         WeaponType.arcCaster => (distance: 8, duration: .075),
       };
   static WeaponFeel of(WeaponType type) => switch (type) {
         WeaponType.shotgun =>
-          const WeaponFeel(Color(0xffE9BC75), 64, .44, 9, .17, 40, 20, 28, 34),
+          const WeaponFeel(Color(0xffE9BC75), 64, .44, 9, .17, 40, 20, 30, 42),
         WeaponType.carbine =>
           const WeaponFeel(Color(0xffF0D6A2), 57, .45, 4, .085, 23, 8, 36, 19),
         WeaponType.revolver =>

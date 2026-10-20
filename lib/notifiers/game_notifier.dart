@@ -68,7 +68,7 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   Map<String, dynamic> checkpoint() => {
-        'xpCurve': 2,
+        'xpCurve': 3,
         'choiceGrace': _choiceGrace,
         'weaponBalance': 2,
         'state': state.toJson(),
@@ -124,7 +124,7 @@ class GameNotifier extends Notifier<GameState> {
     _guardElapsed = (snapshot['guardElapsed'] as num?)?.toDouble() ?? 0;
     _choiceGrace =
         ((snapshot['choiceGrace'] as num?)?.toDouble() ?? 0).clamp(0, 4);
-    if (snapshot['xpCurve'] != 2) {
+    if (snapshot['xpCurve'] != 3) {
       final fraction = restored.xP / restored.noOfCoinsToUpgrade;
       final cost = XPProgression.cost(restored.currentLevel);
       restored = restored.copyWith(
@@ -303,7 +303,7 @@ class GameNotifier extends Notifier<GameState> {
       score: 0,
       xP: 0,
       currentLevel: 1,
-      noOfCoinsToUpgrade: 25,
+      noOfCoinsToUpgrade: 8,
       powerUpChoices: const []);
 
   void addCycleBonus() => state = state.copyWith(score: state.score + 250);
@@ -718,7 +718,7 @@ class GameState {
     this.health = 6,
     this.xP = 0,
     this.currentLevel = 1,
-    this.noOfCoinsToUpgrade = 25,
+    this.noOfCoinsToUpgrade = 8,
     this.movementSpeed = 300.0,
     this.sprintTimeDistance = 150,
     this.bulletRange = 420,
