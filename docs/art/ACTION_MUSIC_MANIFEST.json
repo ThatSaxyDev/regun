@@ -1,0 +1,62 @@
+[
+  {
+    "file": "music_menu.wav",
+    "bpm": 124,
+    "bars": 16,
+    "seconds": 30.967732426303854,
+    "description": "Dark low-string pulse, half-time backbeat and action-ready anticipation",
+    "peak": 0.76,
+    "rms": 0.10635729484214226,
+    "loop_jump": 8.673617379884035e-19,
+    "sha256": "760b6e2af28ee145bb4479d455b36dd85b53958169628a5fa6d1592770505198",
+    "source": "original deterministic composition",
+    "seed": 83,
+    "format": "mono PCM16/44100Hz",
+    "loop": true
+  },
+  {
+    "file": "music_breach.wav",
+    "bpm": 138,
+    "bars": 16,
+    "seconds": 27.826077097505667,
+    "description": "Syncopated low-string ostinato and breakbeat pressure",
+    "peak": 0.7600000000000001,
+    "rms": 0.13397082396575416,
+    "loop_jump": 8.673617379884035e-19,
+    "sha256": "790e33910a0d4009e38ef898198a66a11eec404e793266e2a216ccec2f537f88",
+    "source": "original deterministic composition",
+    "seed": 101,
+    "format": "mono PCM16/44100Hz",
+    "loop": true
+  },
+  {
+    "file": "music_foundry.wav",
+    "bpm": 146,
+    "bars": 16,
+    "seconds": 26.301360544217687,
+    "description": "Grinding chugs, heavy floor toms and machinery pulse",
+    "peak": 0.76,
+    "rms": 0.1284102226305953,
+    "loop_jump": 4.336808689942018e-19,
+    "sha256": "e51ad3fd37bf7d5cd50dc2eabe0c7b7bf043e3505703154e4a01609a54d9272f",
+    "source": "original deterministic composition",
+    "seed": 211,
+    "format": "mono PCM16/44100Hz",
+    "loop": true
+  },
+  {
+    "file": "music_boss.wav",
+    "bpm": 156,
+    "bars": 16,
+    "seconds": 24.615374149659864,
+    "description": "Double-time pursuit, staggered accents and minor-second tension",
+    "peak": 0.76,
+    "rms": 0.16218350221114317,
+    "loop_jump": 0.0,
+    "sha256": "cac071e61521856860b564ac5c179d491717957f55a8122919a3fb809a5afb96",
+    "source": "original deterministic composition",
+    "seed": 307,
+    "format": "mono PCM16/44100Hz",
+    "loop": true
+  }
+]

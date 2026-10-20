@@ -42,20 +42,5 @@ write('level.wav', 0.55, [(i * 0.11, 0.22, note(n), 0.2, 'triangle') for i, n in
 write('boss.wav', 0.9, [(0, 0.85, note(33), 0.3, 'bass'), (0.15, 0.7, note(40), 0.2, 'triangle')])
 write('fusion.wav', 0.9, [(i * 0.12, 0.35, note(n), 0.2, 'triangle') for i, n in enumerate([57, 60, 64, 69, 76])])
 
-for theme, root, beat in [('menu', 45, 0.66), ('breach', 45, 0.6), ('foundry', 42, 0.52), ('boss', 45, 0.45)]:
-    voices = []
-    progression = [0, 5, 3, 7, 0, 8, 5, 7]
-    for bar, interval in enumerate(progression):
-        base = root + interval
-        start = bar * beat * 4
-        for n in [base, base + 3, base + 7]: voices.append((start, beat * 3.9, note(n + 12), 0.045, 'triangle'))
-        for step in range(8):
-            when = start + step * beat / 2
-            voices.append((when, beat * 0.7, note(base - 12 + (7 if step % 4 == 3 else 0)), 0.12, 'bass'))
-            if theme != 'menu':
-                voices.append((when, 0.055, 1600, 0.035, 'noise'))
-                if step % 4 == 0: voices.append((when, 0.14, 65, 0.12, 'click'))
-            melody = [0, 7, 3, 10, 7, 3, 12, 10][(step + bar) % 8]
-            if step % 2 == 0 or theme == 'boss':
-                voices.append((when, beat * 0.6, note(base + 12 + melody), 0.065, 'triangle'))
-    write(f'music_{theme}.wav', beat * 32, voices)
+# Menu and combat music live in tool/generate_action_music.py.
+# Keep this legacy UI/effect generator from overwriting the current score.
