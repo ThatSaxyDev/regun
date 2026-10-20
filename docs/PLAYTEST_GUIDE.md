@@ -150,3 +150,7 @@ Skitter's warning should look like matte claw scrapes/dust in the floor, not the
 ### Action soundtrack — menu and combat
 
 Listen from the menu through both arenas and Boss Rush. The menu should already suggest action; arena rhythm should push harder and the boss score should escalate it. Hear each loop for several minutes on speakers/headphones: no click, silent gap or full fadeout at repetition; no fatigue from the high end. Confirm gunfire, Revenant launches and boss warnings remain readable over music. Change music/SFX sliders separately, mute, pause/background/resume, restart, and return to menu. Solo and gameplay-mix reels are in `build/audio-review/`; native comfort and music taste still need human review.
+
+### Close-range damage reward
+
+Compare each weapon against the same enemy type up close, at mid distance and near maximum range on both arenas. Shotgun has the largest close reward (+20%); Carbine/Revolver/Arc have smaller bonuses (+10/+12/+8%). Far damage retains 90/95/98/98% respectively. Expect a smooth change, with ranged weapons still useful. Check large bosses, upgraded magazines, Scattershot, piercing, Bank Shot, Arc chains and range VIII; approaching carries contact risk and must not erase the boss fight. Moving away after firing or bouncing back toward the player must not refresh close damage. Native kill breakpoints, long-run builds and challenge balance need human review.

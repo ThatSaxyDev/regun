@@ -18,6 +18,7 @@ import 'package:regun/components/weapons/weapon_art.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/game.dart';
+import 'package:regun/systems/weapon_ballistics.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:regun/utils/soloud_play.dart';
@@ -337,6 +338,104 @@ void main() {
     });
     await tester.pumpWidget(const SizedBox());
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('distance damage is frame independent and secondary shots stay unchanged',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    for (final weapon in WeaponType.values) {
+      await tester.runAsync(() async {
+        await tester.pumpWidget(ProviderScope(
+            key: ValueKey(weapon),
+            overrides: [soloudPlayProvider.overrideWithValue(_Audio())],
+            child: MaterialApp(home: BaseView(loadout: Loadout(
+                weapon: weapon, training: true)))));
+        final game = tester.widget<RiverpodAwareGameWidget>(
+            find.byType(RiverpodAwareGameWidget)).game! as RegunGame;
+        await game.loaded;
+        await tester.pump();
+        await game.ready();
+        game.update(2);
+        for (final distance in [50.0, 300.0, 700.0]) {
+          for (final dt in [.01, 1.0]) {
+            final target = Enemy2Component(position: Vector2(distance + 50, 0));
+            await game.world.add(target);
+            await game.ready();
+            // Place its near body surface at exactly the authored distance.
+            target.position.x = distance + game.enemyRadius(target) + 5;
+            final before = target.combatHealth.current;
+            final bullet = BulletComponent(position: Vector2.zero(),
+                direction: Vector2(1, 0), speed: 1000, maxTravelDistance: 1000,
+                damage: 2, weapon: weapon);
+            await game.world.add(bullet);
+            await game.ready();
+            for (var i = 0; i < 101 && !bullet.isRemoving; i++) {
+              bullet.update(dt);
+            }
+            expect(before - target.combatHealth.current,
+                closeTo(2 * WeaponBallistics.of(weapon).multiplier(distance), .001),
+                reason: '${weapon.name}, distance $distance, dt $dt');
+            target.removeFromParent();
+            await game.ready();
+          }
+        }
+        final secondaryTarget = Enemy2Component(position: Vector2(100, 0));
+        await game.world.add(secondaryTarget);
+        await game.ready();
+        final health = secondaryTarget.combatHealth.current;
+        final secondary = BulletComponent(position: Vector2.zero(),
+            direction: Vector2(1, 0), damage: 2, primary: false, weapon: weapon);
+        await game.world.add(secondary);
+        await game.ready();
+        secondary.update(.3);
+        expect(health - secondaryTarget.combatHealth.current, closeTo(2, .001));
+        secondaryTarget.removeFromParent();
+        await game.ready();
+        if (weapon == WeaponType.carbine) {
+          final curve = WeaponBallistics.of(weapon);
+          for (final ricochet in [false, true]) {
+            final first = Enemy2Component(position: Vector2(200, 0));
+            final second = Enemy2Component(position: Vector2(600, 0));
+            await game.world.addAll([first, second]);
+            await game.ready();
+            final h1 = first.combatHealth.current;
+            final h2 = second.combatHealth.current;
+            final bullet = BulletComponent(position: Vector2.zero(),
+                direction: Vector2(1, 0), damage: 1, speed: 1000,
+                weapon: weapon, maxTravelDistance: 1000,
+                pierce: ricochet ? 0 : 1, bounces: ricochet ? 1 : 0);
+            await game.world.add(bullet);
+            await game.ready();
+            bullet.update(.8);
+            if (ricochet) bullet.update(.8);
+            expect(h1 - first.combatHealth.current,
+                closeTo(curve.multiplier(200 - game.enemyRadius(first) - 5), .001));
+            expect(h2 - second.combatHealth.current,
+                closeTo((ricochet ? .7 : 1) *
+                    curve.multiplier(600 - game.enemyRadius(second) - 5), .001));
+            first.removeFromParent();
+            second.removeFromParent();
+            await game.ready();
+          }
+          final beyond = Enemy2Component(position: Vector2(650, 0));
+          await game.world.add(beyond);
+          await game.ready();
+          final health = beyond.combatHealth.current;
+          final limited = BulletComponent(position: Vector2.zero(),
+              direction: Vector2(1, 0), damage: 3, weapon: weapon,
+              maxTravelDistance: 400);
+          await game.world.add(limited);
+          await game.ready();
+          limited.update(2); // A large frame cannot hit past maximum range.
+          expect(beyond.combatHealth.current, health);
+          expect(limited.isRemoving, isTrue);
+          beyond.removeFromParent();
+          await game.ready();
+        }
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets('held aim waits for full reloads and hostile dart pauses',

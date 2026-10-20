@@ -2,6 +2,7 @@ import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/weapon_feel.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
 import 'package:regun/data/loadout.dart';
+import 'package:regun/systems/weapon_ballistics.dart';
 import 'dart:math';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -118,8 +119,10 @@ class BulletComponent extends PositionComponent
       return;
     }
     final before = position.clone();
-    position.addScaled(direction, speed * dt);
-    _travelled += speed * dt;
+    final travelBefore = _travelled;
+    final step = min(speed * dt, max(0.0, maxTravelDistance - _travelled));
+    position.addScaled(direction, step);
+    _travelled += step;
     // Sweep in travel order and stop at walls; callback order must not let a
     // fast round hit a farther body or a target behind a column first.
     _bouncedThisFrame = false;
@@ -135,21 +138,43 @@ class BulletComponent extends PositionComponent
           .compareTo(before.distanceToSquared(b.position)));
     for (final enemy in targets) {
       if (isRemoving) break;
-      _hit(enemy);
+      final radius = game.enemyRadius(enemy) + bulletRadius;
+      final contact = contactDistance(enemy.position, before, position, radius);
+      _hit(enemy, travelled: travelBefore + contact,
+          contactPoint: before + direction * contact);
       if (_bouncedThisFrame) break;
     }
     if (direction.isZero() ||
-        _travelled > maxTravelDistance ||
+        _travelled >= maxTravelDistance ||
         !game.map.bounds.floor.contains(position.toOffset()) ||
         game.segmentBlocked(before, position)) {
       removeFromParent();
     }
   }
 
-  void _hit(PositionComponent other) {
+  /// First entry into the same body circle used by swept collision. Sampling
+  /// the end of a long frame would incorrectly weaken a nearby hit.
+  static double contactDistance(Vector2 point, Vector2 start, Vector2 end,
+      double radius) {
+    final delta = end - start;
+    final length = delta.length;
+    if (length == 0) return 0;
+    final relative = point - start;
+    final along = relative.dot(delta / length);
+    final acrossSquared = max(0.0, relative.length2 - along * along);
+    return (along - sqrt(max(0.0, radius * radius - acrossSquared)))
+        .clamp(0.0, length);
+  }
+
+  void _hit(PositionComponent other,
+      {double? travelled, Vector2? contactPoint}) {
+    final distance = travelled ?? _travelled;
+    final factor = primary ? WeaponBallistics.of(weapon).multiplier(distance) : 1.0;
+    // Preserve the existing hard Bank Shot ceiling after the close bonus too.
+    final amount = min(_baseDamage * 2, damage * factor);
     final owner = game.projectileOwner(other);
     if (_hitEnemies.contains(owner) ||
-        !game.hitEnemy(other, damage, primary: primary, direction: direction)) {
+        !game.hitEnemy(other, amount, primary: primary, direction: direction)) {
       return;
     }
     _hitEnemies.add(owner);
@@ -171,6 +196,9 @@ class BulletComponent extends PositionComponent
             damage *
                 min(1.4,
                     0.7 + game.gameState.effectRank(PowerUp.bankShot) * 0.15));
+        // A ricochet keeps its cumulative path; turning never refreshes the
+        // close bonus or the projectile's remaining range.
+        _travelled = distance + (contactPoint ?? position).distanceTo(other.position);
         position.setFrom(other.position);
         direction.setFrom((next.position - position).normalized());
         angle = atan2(direction.y, direction.x);

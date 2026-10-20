@@ -183,3 +183,7 @@ Release remains 1.0.0+7. The creator reversed staged firing after device play: S
 ## Action music (2026-10-20)
 
 Menu and all combat music use original 16-bar action arrangements (124/138/146/156 BPM for menu/Breach/Foundry/boss). Regenerate with `tool/generate_action_music.py` (NumPy + ffmpeg); `tool/preview_action_music.py` verifies loop continuity, formats, hashes and representative gameplay headroom. `tool/generate_audio.py` intentionally leaves music untouched. Keep existing SoLoud group gains, mute/pause/lifecycle and menu/arena/boss triggers; no additional runtime music voices. Source/review and metadata live in `docs/art/ACTION_MUSIC_REVIEW.md` / `ACTION_MUSIC_MANIFEST.json`. Physical listening, fatigue and cue readability remain open.
+
+## Weapon distance damage (2026-10-20)
+
+`WeaponBallistics` owns bounded primary-shot damage by cumulative distance from the muzzle: Shotgun 1.20→.90 (120–380 units), Carbine 1.10→.95 (100–600), Revolver 1.12→.98 (110–750), Arc 1.08→.98 (100–520), smooth transitions and fixed bands independent of range upgrades. Sample first swept body contact, not the frame endpoint or current player position. Piercing/bounces do not compound falloff or refresh close range; keep the final twice-original-damage ricochet cap. Chains inherit adjusted hit damage once; secondary bullets/mines/drone/burn/explosions do not apply another proximity multiplier. Clip travel to remaining range. Preserve cadence/reload/spread/speed/hitboxes/knockback and proc budgets. See `docs/WEAPON_RANGE_BALANCE.md`; physical balance remains open.
