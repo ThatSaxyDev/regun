@@ -1,4 +1,7 @@
 import 'package:regun/presentation/attack_vfx.dart';
+import 'package:regun/presentation/boss_art.dart';
+import 'package:regun/presentation/weapon_feel.dart';
+import 'package:regun/data/loadout.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
@@ -14,6 +17,32 @@ mixin CombatEnemy
   int get xpReward => 1;
   int get scoreReward => 10;
   bool get isBoss => false;
+  double get impactResponse => isBoss ? 0 : 1;
+  double _impactRemaining = 0, _impactDuration = 1, _impactCooldown = 0;
+  final _impactDirection = Vector2.zero();
+  double _impactDistance = 0;
+  double get impactStride => _impactRemaining > 0
+      ? 1 - .8 * impactResponse * (_impactRemaining / _impactDuration)
+      : 1;
+
+  /// One bounded response per target, not one stack per pellet. A cooldown
+  /// leaves normal pursuit between bursts even with rapid-fire upgrades.
+  void receiveBulletImpact(Vector2 direction, WeaponType weapon) {
+    if (impactResponse <= 0 ||
+        _impactCooldown > 0 ||
+        direction.isZero() ||
+        combatHealth.isDead ||
+        isRemoving) {
+      return;
+    }
+    final motion = WeaponFeel.impactMotion(weapon);
+    _impactDirection.setFrom(direction.normalized());
+    _impactDistance = motion.distance * impactResponse;
+    _impactDuration = motion.duration;
+    _impactRemaining = motion.duration;
+    _impactCooldown = .24;
+  }
+
   double _flash = 0;
   final _flashPaint = Paint()
     ..colorFilter =
@@ -100,12 +129,29 @@ mixin CombatEnemy
     super.update(dt);
     priority = 10000 + (position.y + size.y * .35).round();
     _flash = (_flash - dt).clamp(0, 0.12);
+    if (game.gameState.gameplayState == GameplayState.playing &&
+        !combatHealth.isDead) {
+      _impactCooldown = (_impactCooldown - dt).clamp(0, .24);
+      if (_impactRemaining > 0) {
+        final step = dt.clamp(0.0, _impactRemaining);
+        final next = _impactRemaining - step;
+        final travel = (_impactRemaining * _impactRemaining - next * next) /
+            (_impactDuration * _impactDuration);
+        // Uses body occupancy and wall substeps; never shove through a body.
+        game.moveTo(
+            this,
+            position + _impactDirection * (_impactDistance * travel),
+            game.crowdRadius(this));
+        _impactRemaining = (_impactRemaining - dt).clamp(0, _impactDuration);
+      }
+    }
     // Sprite enemies draw themselves; boss bodies live one level below the root.
     final bodies = this is SpriteAnimationComponent
         ? [this as SpriteAnimationComponent]
         : children.whereType<SpriteAnimationComponent>();
     for (final body in bodies) {
-      body.paint.colorFilter = damagePaint?.colorFilter;
+      body.paint.colorFilter = damagePaint?.colorFilter ??
+          (isBoss ? BossArt.ambient(game.loadout.arena) : null);
     }
     if (game.gameState.gameplayState == GameplayState.playing &&
         burning &&

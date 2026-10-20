@@ -65,26 +65,34 @@ class BulletComponent extends PositionComponent
     if (weapon == WeaponType.arcCaster && primary) {
       AttackVfx.lightning(canvas, center - Offset(length, 0), center, 1,
           heavy: true);
-      AttackVfx.stroke(
-          canvas,
-          [
-            center + const Offset(-13, -8),
-            center,
-            center + const Offset(-13, 8)
-          ],
-          const Color(0xffDCE5C7),
-          3);
+      AttackVfx.chip(canvas, center, 7, const Color(0xffDCE5C7));
+      for (final side in [-1, 1]) {
+        AttackVfx.chip(
+            canvas, center + Offset(-18, side * 9), 4, const Color(0xff8EA99B));
+      }
     } else {
+      final round = WeaponFeel.round(weapon);
       ink
         ..color = (primary ? feel.color : const Color(0xffB9D5C5))
             .withValues(alpha: .5)
-        ..strokeWidth = weapon == WeaponType.revolver ? 3 : 2;
+        ..strokeWidth = primary ? round.trailWidth : 2;
       canvas.drawLine(Offset(center.dx - length, center.dy), center, ink);
-      canvas.drawRect(
-          Rect.fromCenter(
-              center: center,
-              width: weapon == WeaponType.revolver ? 12 : 7,
-              height: 3),
+      final l = primary ? round.length : 7.0;
+      final h = primary ? round.thickness : 3.0;
+      final left = center.dx - l / 2, right = center.dx + l / 2;
+      final body = Path()
+        ..addPolygon([
+          Offset(left, center.dy - h / 2),
+          Offset(right - 3, center.dy - h / 2),
+          Offset(right, center.dy - h / 2 + 2),
+          Offset(right, center.dy + h / 2 - 2),
+          Offset(right - 3, center.dy + h / 2),
+          Offset(left, center.dy + h / 2),
+        ], true);
+      canvas.drawPath(body.shift(const Offset(0, 2)),
+          Paint()..color = const Color(0xff5C4431));
+      canvas.drawPath(body, Paint()..color = feel.color);
+      canvas.drawRect(Rect.fromLTWH(left + 2, center.dy - 1, l - 4, 2),
           Paint()..color = const Color(0xffFFF1C9));
     }
   }

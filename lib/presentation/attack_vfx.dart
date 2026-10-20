@@ -313,7 +313,7 @@ class AttackVfx {
       for (var i = 1; i < count; i++)
         start +
             delta * (i / count) +
-            n * ((i.isEven ? -1 : 1) * (7 + i % 3 * 3)),
+            n * ((i.isEven ? -1 : 1) * (4 + (i * 17 % 13))),
       end
     ];
     stroke(canvas, points, _dark.withValues(alpha: fade), heavy ? 11 : 8);

@@ -75,6 +75,10 @@ Report attacks whose visible marks disagree with damage, apparently unavoidable 
 
 ## Weapon feel review
 
+**Build 1.0.0+11:** all four weapons have heavier projectile/muzzle/impact presentation, without damage, cadence, range, speed, reload or collision-size changes. Shotgun pellets now draw at 15×8 world units, Carbine rounds 13×5 and Revolver rounds 15×6, with brass edges, shaded undersides and small hot cores. Arc Caster has thicker irregular pixel arcs, short forks and a grounded impact scuff rather than a clean arrow/line effect. Compare each against the same targets; look for readable rounds without losing enemy warnings.
+
+Accepted primary bullet hits give moving normal enemies a brief decaying shove and reduced stride. One response per target per .24 seconds prevents pellet stacking or rapid-fire pinning. Shotgun/Carbine/Revolver/Arc responses last .09/.06/.1/.075 seconds and request 13/5/16/8 units before resistance, walls or body occupancy. Mummies, elites and Wardens resist; nests, sentinels and bosses stay planted. Secondary chains/burn/drone hits do not add pushback. Try close blasts, sustained fire, upgrades, columns and dense crowds; enemies should visibly absorb the hit, then resume pressure. Reduced Motion suppresses extra shotgun debris. Physical feel and comfort need phone approval.
+
 Try all four weapons against the same Training targets. Look/listen for a broad shotgun blast and shell/pump reload, tight carbine fire and magazine motion, heavy revolver flash/recoil and cylinder reload, and an electrical Arc Caster discharge/recharge. Shotgun reload now uses the common mechanical style; the old Lottie is retained only as source. Compare short target flashes with player health-loss edge cues, shield absorption sounds, and heavier boss impacts. Repeat with Reduced Motion and Sound muted. Keep enemy warnings visible during dense fire and report muddy/repetitive/harsh sound or effects obscuring threats. The new local synthesized sounds still need your listening approval.
 
 ## Eight-boss candidate — Boss Rush

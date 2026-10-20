@@ -22,9 +22,13 @@ class WeaponImpact extends CombatEffect {
     final t = (age / duration).clamp(0.0, 1.0);
     final reduced = game.preferences.reducedMotion;
     final radius = feel.impact * (reduced ? .55 : .35 + t * .65);
+    if (weapon == WeaponType.arcCaster) {
+      AttackVfx.stamp(canvas, 5, const Offset(0, 14), 70,
+          alpha: .4 * (1 - t), material: AttackMaterial.shadow);
+    }
     final ink = Paint()
       ..color = feel.color.withValues(alpha: 1 - t)
-      ..strokeWidth = weapon == WeaponType.carbine ? 1.5 : 2.5
+      ..strokeWidth = weapon == WeaponType.carbine ? 2.5 : 3.5
       ..strokeCap = StrokeCap.square;
     canvas.save();
     canvas.rotate(atan2(direction.y, direction.x));
@@ -35,13 +39,6 @@ class WeaponImpact extends CombatEffect {
       canvas.drawLine(d * (radius * .35), d * radius, ink);
     }
     if (weapon == WeaponType.arcCaster) {
-      final path = Path()
-        ..moveTo(-radius, 0)
-        ..lineTo(-radius * .3, -radius * .3)
-        ..lineTo(radius * .15, radius * .25)
-        ..lineTo(radius, 0);
-      ink.style = PaintingStyle.stroke;
-      canvas.drawPath(path, ink);
       AttackVfx.lightning(canvas, Offset(-radius, 0), Offset(radius, 0), 1 - t,
           heavy: true);
     } else if (weapon == WeaponType.revolver) {
@@ -49,8 +46,16 @@ class WeaponImpact extends CombatEffect {
           ink..strokeWidth = 4);
     }
     if (t < .35) {
-      canvas.drawRect(const Rect.fromLTWH(-3, -3, 6, 6),
+      final core = weapon == WeaponType.shotgun ? 11.0 : 8.0;
+      canvas.drawRect(
+          Rect.fromCenter(center: Offset.zero, width: core, height: core),
           Paint()..color = const Color(0xffFFF1CF));
+    }
+    if (!reduced && weapon == WeaponType.shotgun) {
+      for (final side in [-1, 1]) {
+        AttackVfx.chip(canvas, Offset(radius * .65, side * radius * .55),
+            5 * (1 - t), feel.color.withValues(alpha: 1 - t));
+      }
     }
     canvas.restore();
   }

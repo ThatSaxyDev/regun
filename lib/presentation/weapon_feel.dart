@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:regun/data/loadout.dart';
 
-/// Presentation values only: never change projectile physics or damage here.
+/// Presentation and bounded hit response; projectile stats/damage stay in loadout.
 class WeaponFeel {
   const WeaponFeel(this.color, this.width, this.grip, this.kick, this.recovery,
       this.flashLength, this.flashWidth, this.trail, this.impact);
@@ -15,14 +15,31 @@ class WeaponFeel {
       trail,
       impact;
   double get muzzle => width * (1 - grip);
+  // Draw size is independent of the projectile's collision radius.
+  static ({double length, double thickness, double trailWidth}) round(
+          WeaponType type) =>
+      switch (type) {
+        WeaponType.shotgun => (length: 15, thickness: 8, trailWidth: 5),
+        WeaponType.carbine => (length: 13, thickness: 5, trailWidth: 3),
+        WeaponType.revolver => (length: 15, thickness: 6, trailWidth: 4),
+        WeaponType.arcCaster => (length: 13, thickness: 6, trailWidth: 3),
+      };
+
+  static ({double distance, double duration}) impactMotion(WeaponType type) =>
+      switch (type) {
+        WeaponType.shotgun => (distance: 13, duration: .09),
+        WeaponType.carbine => (distance: 5, duration: .06),
+        WeaponType.revolver => (distance: 16, duration: .1),
+        WeaponType.arcCaster => (distance: 8, duration: .075),
+      };
   static WeaponFeel of(WeaponType type) => switch (type) {
         WeaponType.shotgun =>
-          const WeaponFeel(Color(0xffE9BC75), 64, .44, 7, .17, 30, 15, 22, 24),
+          const WeaponFeel(Color(0xffE9BC75), 64, .44, 9, .17, 40, 20, 28, 34),
         WeaponType.carbine =>
-          const WeaponFeel(Color(0xffF0D6A2), 57, .45, 3, .085, 18, 6, 32, 13),
+          const WeaponFeel(Color(0xffF0D6A2), 57, .45, 4, .085, 23, 8, 36, 19),
         WeaponType.revolver =>
-          const WeaponFeel(Color(0xffFFC588), 44, .23, 9, .23, 36, 9, 52, 30),
+          const WeaponFeel(Color(0xffFFC588), 44, .23, 11, .23, 44, 13, 60, 40),
         WeaponType.arcCaster =>
-          const WeaponFeel(Color(0xffA6E8D4), 54, .23, 7, .22, 32, 18, 46, 44),
+          const WeaponFeel(Color(0xffA6E8D4), 54, .23, 9, .22, 38, 22, 54, 50),
       };
 }

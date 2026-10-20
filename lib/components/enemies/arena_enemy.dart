@@ -17,6 +17,12 @@ class ArenaEnemy extends PositionComponent
             size: Vector2.all(kind == EnemyKind.nest ? 104 : 82),
             anchor: Anchor.center);
   final EnemyKind kind;
+  @override
+  double get impactResponse => switch (kind) {
+        EnemyKind.nest || EnemyKind.sentinel => 0,
+        EnemyKind.shield => .35,
+        _ => elite ? .65 : 1,
+      };
   final bool elite;
   double clock = 0, _summonClock = 0;
   int phase = 0;

@@ -391,6 +391,7 @@ class RegunGame extends FlameGame
       speed *= 1 + min(0.5, (director.cycle - 1) * 0.08);
       if (actor is ArenaEnemy && actor.elite) speed *= 1.15;
     }
+    if (actor is CombatEnemy) speed *= actor.impactStride;
     if (actor is CombatEnemy && !actor.isBoss && avoidCrowd) {
       final boss = activeBoss;
       final yielding = boss == null || !boss.isLoaded || boss.isRemoving

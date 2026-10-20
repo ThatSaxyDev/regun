@@ -70,6 +70,9 @@ class CombatSystem {
       }
     }
     if (!enemy.takeDamage(amount)) return false;
+    if (primary && direction != null) {
+      enemy.receiveBulletImpact(direction, game.loadout.weapon);
+    }
     if (primary) {
       final innate = game.loadout.weapon == WeaponType.arcCaster;
       if (_chainBudget > 0 &&

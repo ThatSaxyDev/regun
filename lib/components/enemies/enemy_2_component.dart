@@ -15,6 +15,8 @@ class Enemy2Component extends SpriteAnimationComponent
           anchor: Anchor.center,
         );
   static const enemySize = 100.0;
+  @override
+  double get impactResponse => .7;
   late SpriteAnimation moveLeftAnimation;
   late SpriteAnimation moveRightAnimation;
   late SpriteAnimation attackLeftAnimation;

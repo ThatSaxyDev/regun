@@ -3,11 +3,15 @@ import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/combat_enemy.dart';
+import 'package:regun/components/enemies/arena_enemy.dart';
+import 'package:regun/data/enemies.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/weapons/weapon_art.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
@@ -34,6 +38,83 @@ class _Audio extends SoloudPlay {
 
 void main() {
   testWidgets(
+      'bullet impacts shove within occupancy, resist mass and cannot stack-lock',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    late RegunGame game;
+    await tester.runAsync(() async {
+      await tester.pumpWidget(ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(_Audio())],
+          child: const MaterialApp(
+              home: BaseView(loadout: Loadout(training: true)))));
+      game = tester
+          .widget<RiverpodAwareGameWidget>(find.byType(RiverpodAwareGameWidget))
+          .game! as RegunGame;
+      await game.loaded;
+      await tester.pump();
+      await game.ready();
+      game.update(2);
+      final target = Enemy2Component(position: Vector2(300, 0));
+      final blocker = Enemy2Component(position: Vector2(495, 0));
+      await game.world.addAll([target, blocker]);
+      await game.ready();
+      final health = target.combatHealth.current;
+      expect(game.hitEnemy(target, 1, direction: Vector2(1, 0)), isTrue);
+      expect(target.combatHealth.current, health - 1);
+      expect(target.impactStride, lessThan(1));
+      final start = target.position.clone();
+      for (var i = 0; i < 12; i++) {
+        target.receiveBulletImpact(Vector2(1, 0), WeaponType.shotgun);
+        target.update(.01);
+        if (i == 1) expect(target.position.x, greaterThan(start.x));
+      }
+      expect(target.position.distanceTo(blocker.position),
+          greaterThanOrEqualTo(89.9));
+      expect(target.impactStride, 1); // Repeated pellets cannot prolong it.
+      target.update(.2);
+      blocker.position.setFrom(target.position + Vector2(95, 0));
+      game.crowdOccupancy.rebuild(game.liveEnemies, game.crowdRadius);
+      target.receiveBulletImpact(Vector2(1, 0), WeaponType.revolver);
+      expect(target.impactStride, lessThan(1)); // Recovers for the next round.
+      target.update(.11);
+      expect(target.impactStride, 1);
+      expect(target.position.distanceTo(blocker.position),
+          greaterThanOrEqualTo(93.9));
+
+      for (final kind in [
+        EnemyKind.shield,
+        EnemyKind.nest,
+        EnemyKind.sentinel
+      ]) {
+        final enemy =
+            ArenaEnemy(kind, position: Vector2(-300, kind.index * 150.0));
+        await game.world.add(enemy);
+        await game.ready();
+        enemy.receiveBulletImpact(Vector2(1, 0), WeaponType.revolver);
+        expect(enemy.impactStride,
+            kind == EnemyKind.shield ? greaterThan(.7) : equals(1));
+      }
+      game.spawnBoss(BossKind.demon);
+      await game.ready();
+      final boss = game.activeBoss! as CombatEnemy;
+      boss.receiveBulletImpact(Vector2(1, 0), WeaponType.revolver);
+      expect(boss.impactStride, 1); // Keep planted warning/attack geometry.
+
+      final wall = game.geometry.obstacles.first;
+      target.position
+          .setValues(wall.left - game.crowdRadius(target) - 1, wall.center.dy);
+      game.crowdOccupancy.rebuild(game.liveEnemies, game.crowdRadius);
+      target.update(.25);
+      target.receiveBulletImpact(Vector2(1, 0), WeaponType.revolver);
+      target.update(.1);
+      expect(target.position.x,
+          lessThanOrEqualTo(wall.left - game.crowdRadius(target) + .01));
+    });
+    await tester.pumpWidget(const SizedBox());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
       'each weapon fires its own visuals/audio, hits once, and clears hit feedback',
       (tester) async {
     tester.view.physicalSize = const Size(844, 390);
@@ -45,11 +126,18 @@ void main() {
       final audio = _Audio();
       late RegunGame game;
       await tester.runAsync(() async {
+        for (final font in ['PressStart2P', 'Orbitron']) {
+          await (FontLoader(font)
+                ..addFont(rootBundle.load('assets/fonts/$font-Regular.ttf')))
+              .load();
+        }
         await tester.pumpWidget(ProviderScope(
             overrides: [soloudPlayProvider.overrideWithValue(audio)],
             child: MaterialApp(
                 key: UniqueKey(),
-                home: BaseView(loadout: Loadout(weapon: type)))));
+                home: RepaintBoundary(
+                    key: const Key('weapon-world'),
+                    child: BaseView(loadout: Loadout(weapon: type))))));
         game = tester
             .widget<RiverpodAwareGameWidget>(
                 find.byType(RiverpodAwareGameWidget))
@@ -65,12 +153,25 @@ void main() {
         final ammo = game.gameState.noOfBullets;
         game.weaponJoystick.delta.setValues(60, 0);
         game.spawnShotgunBullets();
+        game.weaponJoystick.delta.setZero();
         await game.ready();
         final shots = game.world.children.whereType<BulletComponent>().toList();
         expect(shots, isNotEmpty);
         expect(shots.every((s) => s.weapon == type), isTrue);
         expect(game.gameState.noOfBullets, ammo - 1);
         expect(audio.sounds, contains('shot_${type.name}_0.wav'));
+        for (final shot in shots) {
+          shot.update(.04);
+        }
+        await tester.pump();
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+            find.byKey(const Key('weapon-world')));
+        final image = await boundary.toImage(pixelRatio: 2);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        await Directory('build/test-previews').create(recursive: true);
+        await File('build/test-previews/rounds-${type.name}.png')
+            .writeAsBytes(bytes!.buffer.asUint8List());
+        image.dispose();
         shots.first.update(.3);
         await game.ready();
         expect(

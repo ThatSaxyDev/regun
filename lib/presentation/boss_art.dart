@@ -7,10 +7,14 @@ import 'package:regun/presentation/regun_art.dart';
 /// Existing, inspected poses. Do not play the Queen's incomplete final tail/spit
 /// cells or let attack-frame duration finish before the gameplay phase does.
 class BossArt {
+  static final _cryptAmbient = _makeAmbient(false);
+  static final _foundryAmbient = _makeAmbient(true);
+
   /// Shared ambient light softens source-atlas highlights into the arena.
   /// Preserve silhouettes and material colour; never tint warning geometry.
-  static ColorFilter ambient(ArenaType arena) {
-    final warm = arena == ArenaType.foundry;
+  static ColorFilter ambient(ArenaType arena) =>
+      arena == ArenaType.foundry ? _foundryAmbient : _cryptAmbient;
+  static ColorFilter _makeAmbient(bool warm) {
     const s = .82;
     final r = warm ? .96 : .88, g = warm ? .87 : .94, b = warm ? .81 : .9;
     return ColorFilter.matrix([
