@@ -78,6 +78,7 @@ class ShadowBossComponent extends PositionComponent
         position: Vector2(size.x * .5, size.y * .85 - .38 * kind.spriteSize),
         anchor: Anchor.center);
     add(_body);
+    _body.paint.colorFilter = BossArt.ambient(game.loadout.arena);
     add(CircleHitbox(
         radius: kind.bodyRadius,
         position: size / 2,
@@ -207,6 +208,8 @@ class ShadowBossComponent extends PositionComponent
   @override
   void render(Canvas canvas) {
     final center = (size / 2).toOffset();
+    BossArt.contactShadow(
+        canvas, Offset(size.x * .5, size.y * .86), kind.bodyRadius);
     if (phase == ShadowPhase.arrival ||
         phase == ShadowPhase.strikeWarning ||
         phase == ShadowPhase.strike) {

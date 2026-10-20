@@ -1,4 +1,5 @@
 import 'package:regun/components/ui/damage_feedback.dart';
+import 'package:regun/presentation/player_entrance.dart';
 import 'package:regun/presentation/weapon_feel.dart';
 import 'package:regun/systems/enemy_tactics.dart';
 import 'package:regun/systems/crowd_occupancy.dart';
@@ -508,6 +509,16 @@ class RegunGame extends FlameGame
   bool _controlsLoaded = false;
 
   late PlayerComponent myPlayer;
+  final playerEntrance = PlayerEntrance();
+  bool trainingDamage = false;
+  void setTrainingDamage(bool enabled) {
+    if (!loadout.training) return;
+    trainingDamage = enabled;
+    if (!enabled && !playerEntrance.active) gameNotifier.refillPractice();
+    resetInput();
+    revision.value++;
+  }
+
   late final MovementJoystickComponent movementJoystick;
   late final WeaponJoystickComponent weaponJoystick;
   late final BoostButtonComponent boostButtonComponent;
@@ -573,6 +584,7 @@ class RegunGame extends FlameGame
       boostButtonComponent,
       reloadButtonComponent,
       damageFeedback,
+      EntranceVeil(),
     ]);
   }
 
@@ -675,6 +687,10 @@ class RegunGame extends FlameGame
     ]);
     _started = true;
     _updateCamera();
+    playerEntrance.begin(
+        respawn: false,
+        reducedMotion: preferences.reducedMotion,
+        camera: camera.viewfinder.position);
     layoutControls();
     revision.value++;
     resumeEngine();
@@ -812,6 +828,7 @@ class RegunGame extends FlameGame
   }
 
   bool restoreRun(Map<String, dynamic> snapshot) {
+    playerEntrance.cancel();
     try {
       if (!RunCheckpoint.valid(snapshot)) {
         throw const FormatException('Unsupported checkpoint');
@@ -1185,6 +1202,7 @@ class RegunGame extends FlameGame
   }
 
   void spawnShotgunBullets() {
+    if (playerEntrance.active) return;
     final state = gameState;
     if (state.gameplayState != GameplayState.playing || state.reloading) return;
     if (state.noOfBullets <= 0) {
@@ -1259,6 +1277,35 @@ class RegunGame extends FlameGame
   @override
   void update(double dt) {
     if (!_started) return;
+    if (playerEntrance.active) {
+      if (gameState.gameplayState == GameplayState.paused) return;
+      resetInput();
+      final before = playerEntrance.elapsed;
+      playerEntrance.advance(dt);
+      final impact = playerEntrance.landingStart + playerEntrance.dropDuration;
+      if (before < impact && playerEntrance.elapsed >= impact) {
+        audio.play('impact_guard.wav');
+      }
+      final centerCamera = map.bounds.cameraPosition(
+          Vector2.zero(), camera.viewport.virtualSize / camera.viewfinder.zoom);
+      camera.viewfinder.position = playerEntrance.cameraFrom +
+          (centerCamera - playerEntrance.cameraFrom) *
+              playerEntrance.cameraProgress;
+      if (playerEntrance.atCenter) myPlayer.position.setZero();
+      if (playerEntrance.elapsed >= playerEntrance.fall) damageFeedback.reset();
+      // Mount pending components without advancing attacks or contact damage.
+      super.update(0);
+      if (playerEntrance.elapsed >= playerEntrance.duration) {
+        final respawn = playerEntrance.respawning;
+        playerEntrance.cancel();
+        if (respawn) {
+          gameNotifier.recoverTrainingPlayer();
+        }
+        resetInput();
+        _updateCamera();
+      }
+      return;
+    }
     bossEncounter.advance(_lingeringBossAttack);
     _weaponImpacts = 0;
     final phase = gameState.gameplayState;
@@ -1408,9 +1455,24 @@ class RegunGame extends FlameGame
   }
 
   bool damagePlayer({int amount = 1, String cause = 'The horde'}) {
-    if (loadout.training) return false;
+    if (playerEntrance.active || (loadout.training && !trainingDamage)) {
+      return false;
+    }
     final health = gameState.health;
-    if (!gameNotifier.reduceHealth(amount: amount, cause: cause)) return false;
+    if (!gameNotifier.reduceHealth(
+        amount: amount,
+        cause: cause,
+        trainingRespawn: loadout.training && trainingDamage)) {
+      return false;
+    }
+    if (loadout.training && gameState.health == 0) {
+      resetInput();
+      boostButtonComponent.reset();
+      playerEntrance.begin(
+          respawn: true,
+          reducedMotion: preferences.reducedMotion,
+          camera: camera.viewfinder.position);
+    }
     if (gameState.health < health) {
       myPlayer.hurtFlash = 0.25;
       damageFeedback.trigger();

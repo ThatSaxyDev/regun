@@ -61,6 +61,32 @@ class AttackVfx {
     final sprite = RegunArt.shared.rawSprite('effects/combat_materials', frame);
     final paint = Paint()
       ..filterQuality = FilterQuality.none
+      // Muted stone/iron/glass share the floor's ambient light. Emission stays
+      // warm and readable in the furnace row and electrical effects.
+      ..colorFilter = material == AttackMaterial.ember
+          ? null
+          : const ColorFilter.matrix([
+              .84,
+              .04,
+              .02,
+              0,
+              0,
+              .03,
+              .86,
+              .03,
+              0,
+              0,
+              .02,
+              .04,
+              .81,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+            ])
       ..color = Color.fromRGBO(255, 255, 255, alpha.clamp(0, 1));
     if (material == AttackMaterial.poison) {
       paint.colorFilter = const ColorFilter.matrix([

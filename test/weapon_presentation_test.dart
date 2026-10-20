@@ -57,6 +57,7 @@ void main() {
         await game.loaded;
         await tester.pump();
         await game.ready();
+        game.update(2); // Finish deployment before exercising combat.
         final target =
             Enemy2Component(position: game.myPlayer.position + Vector2(180, 0));
         await game.world.add(target);

@@ -447,6 +447,34 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 .push(MaterialPageRoute(builder: (_) => const SettingsView()))),
         if (widget.loadout.training) ...[
           const SizedBox(height: 24),
+          ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Row(children: [
+                const Expanded(
+                    child: Text('Take damage',
+                        style: TextStyle(
+                            fontFamily: FontFam.orbitron,
+                            color: _paper,
+                            fontSize: 14))),
+                PixelOption(
+                    label: 'Off',
+                    width: 80,
+                    selected: !_myGame.trainingDamage,
+                    onTap: () =>
+                        setState(() => _myGame.setTrainingDamage(false))),
+                const SizedBox(width: 8),
+                PixelOption(
+                    label: 'On',
+                    width: 80,
+                    selected: _myGame.trainingDamage,
+                    onTap: () =>
+                        setState(() => _myGame.setTrainingDamage(true))),
+              ])),
+          const SizedBox(height: 8),
+          const Text('Fall. Return to center. Keep your build.',
+              style: TextStyle(
+                  fontFamily: FontFam.orbitron, fontSize: 11, color: _muted)),
+          const SizedBox(height: 24),
           _practiceGroup('RANDOM BOSS RUSH', [
             ClickButton(
                 text: 'Start rush', height: 48, onTap: _myGame.startBossRush),
@@ -457,7 +485,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                   onTap: _myGame.nextBossRushRound),
           ]),
           const SizedBox(height: 8),
-          const Text('Random bosses. Sometimes two. Practice health.',
+          const Text('Random bosses. Sometimes two.',
               style: TextStyle(
                   fontFamily: FontFam.orbitron, fontSize: 11, color: _muted)),
           const SizedBox(height: 24),

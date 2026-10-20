@@ -59,6 +59,7 @@ Future<RegunGame> mount(WidgetTester tester, {bool training = false}) async {
     await game.loaded;
     await tester.pump();
     await game.ready();
+    game.update(2); // Finish deployment before exercising combat.
   });
   return game;
 }

@@ -209,6 +209,7 @@ void main() {
       await game.loaded;
       await tester.pump();
       await game.ready();
+      game.update(2); // Finish deployment before exercising combat.
       game.myPlayer.position.setZero();
       final caster = Enemy3Component(position: Vector2(180, 0));
       final runner = ArenaEnemy(EnemyKind.runner, position: Vector2(200, 0));

@@ -52,6 +52,7 @@ class BoostButtonComponent extends AdvancedButtonComponent
 
   @override
   void onTapDown(TapDownEvent event) {
+    if (game.playerEntrance.active) return;
     super.onTapDown(event);
     if (game.gameState.gameplayState != GameplayState.playing ||
         tapped ||

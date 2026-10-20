@@ -16,7 +16,7 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
       this.cause = 'Ground strike',
       this.poison = false,
       this.ownerHealth})
-      : super(priority: 9000);
+      : super(priority: -10);
   final double radius, warning, active;
   final int damage;
   final String cause;

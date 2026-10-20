@@ -19,6 +19,7 @@ class ReloadButtonComponent extends ButtonComponent
 
   @override
   void onTapDown(TapDownEvent event) {
+    if (game.playerEntrance.active) return;
     if (!game.gameState.reloading &&
         game.gameState.noOfBullets < game.gameState.maxBullets) {
       game.manualReloads++;

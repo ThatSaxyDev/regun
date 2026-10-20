@@ -20,7 +20,7 @@ It is a **full-content test build**, not a claim that balance, final art, comfor
 6. Return to the menu and inspect **Collection**. Its tabs list upgrades, recipes, enemies, challenges, styles, and credits.
 7. Later, use **Play** for a normal run. Training does not prove the normal progression or difficulty curve.
 
-Training prevents health damage and does not award normal run scrap, records, combat challenges, or boss unlocks. Completing or skipping the short introduction does unlock Carbine. Training is a practice space, not a way to farm the normal profile.
+Training prevents health damage by default; Pause → Take damage → On enables damage and center respawn. It does not award normal run scrap, records, combat challenges, or boss unlocks. Completing or skipping the short introduction does unlock Carbine. Training is a practice space, not a way to farm the normal profile.
 
 ### Recent fixes to retest
 

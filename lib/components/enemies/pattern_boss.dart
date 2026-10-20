@@ -67,6 +67,7 @@ class PatternBoss extends PositionComponent
         anchor: Anchor.center,
         animation: _idle);
     add(_body);
+    _body.paint.colorFilter = BossArt.ambient(game.loadout.arena);
   }
 
   void _enter(PatternBossPhase next) {
@@ -235,10 +236,8 @@ class PatternBoss extends PositionComponent
   @override
   void render(Canvas canvas) {
     final center = (size / 2).toOffset();
-    canvas.drawOval(
-        Rect.fromCenter(
-            center: Offset(size.x * .5, size.y * .86), width: 160, height: 30),
-        Paint()..color = const Color(0x650A0B0E));
+    BossArt.contactShadow(
+        canvas, Offset(size.x * .5, size.y * .86), kind.bodyRadius);
     if (phase == PatternBossPhase.arrival) {
       AttackVfx.disk(canvas, center, 110, warning: true, progress: clock / 1.5);
     }

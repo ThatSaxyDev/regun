@@ -54,6 +54,7 @@ void main() {
       await game.loaded.timeout(const Duration(seconds: 15));
       await tester.pump();
       await game.ready().timeout(const Duration(seconds: 15));
+      game.update(2); // Finish deployment before exercising combat.
     });
     Future<void> screenshot(String name) async {
       await tester.pump();

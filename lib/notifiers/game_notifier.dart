@@ -233,7 +233,10 @@ class GameNotifier extends Notifier<GameState> {
 
   /// One damage path for contact, melee and projectiles; simultaneous overlaps
   /// cannot consume all health in a single frame.
-  bool reduceHealth({int amount = 1, String cause = 'The horde'}) {
+  bool reduceHealth(
+      {int amount = 1,
+      String cause = 'The horde',
+      bool trainingRespawn = false}) {
     if (state.gameplayState != GameplayState.playing ||
         state.health <= 0 ||
         state.triggerSprintInvincibility ||
@@ -250,8 +253,9 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(
       health: health,
       causeOfDeath: health == 0 ? cause : state.causeOfDeath,
-      gameplayState:
-          health == 0 ? GameplayState.gameOver : GameplayState.playing,
+      gameplayState: health == 0 && !trainingRespawn
+          ? GameplayState.gameOver
+          : GameplayState.playing,
     );
     return true;
   }
@@ -481,6 +485,12 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void grantResumeGrace() => _hurtCooldownMs = 1000;
+
+  void recoverTrainingPlayer() {
+    refillPractice();
+    _hurtCooldownMs = 2000;
+    state = state.copyWith(causeOfDeath: '');
+  }
 
   void pauseGame() {
     if (state.gameplayState == GameplayState.playing) {

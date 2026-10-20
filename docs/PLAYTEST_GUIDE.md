@@ -37,6 +37,12 @@ Use release builds on the iPhone and a representative Android phone. Simulation 
 
 ## Repeatable developer checks
 
+**Training → Pause → Take damage → On** enables real damage with automatic recovery. It defaults Off on a new training visit and stays selected across Restart and Boss Rush rounds. Death preserves the build and encounter: a short fallen pose fades, the camera eases back to arena center, then the survivor descends into dust, braces and returns to control. The world waits during this roughly 2.7-second sequence. Health/ammo refill and two seconds of protection allow an escape from center. Turning damage Off restores practice health. Normal runs still end at death.
+
+Fresh starts and restarts use the same landing entrance, without the death/camera return (about 1.2 seconds). Continue preserves the saved position and opens paused without deploying again. Pause/background freezes the entrance; Reduced Motion replaces travel with a short concealed relocation/fade. Try dying off-center during reload, amid hazards, in a boss pair, pausing halfway, toggling damage Off, restarting, and leaving mid-return. Boss health/build must survive a recovery; no normal rewards or game-over overlay should appear in training. Check the landing audio and motion pacing on the phone.
+
+Boss bodies now share subdued arena lighting (cool crypt/warm foundry) and layered contact shadows. Non-emissive stone, glass and iron attack sprites have a restrained ambient grade; furnace heat retains its emission. Compare all eight bosses and attacks on both floors, especially dark silhouettes, mirror glass and chain warnings. This treatment needs physical visual approval, not only screenshot review.
+
 `make verify` runs analyzer and regular tests. `make soak` runs the explicit 30/60-minute simulation. `make buildAPK` creates a local Android candidate; `make buildIOS` creates the signed iOS device build when the development team is configured. `make runRelease DEVICE=<id>` installs/runs a connected phone. APKs use local debug signing until a private upload keystore is configured.
 
 ## Enemy personality pass — what to try
@@ -65,7 +71,7 @@ Training → Pause separates **Boss Practice** and **Fusion Practice**. Boss but
 
 For each boss, try retreating straight, then dodging sideways after a warning, then attacking during recovery. Repeat below half health. Demon should close distance with its marked charge and threaten nearby targets with cleaves/slams. Queen should obstruct the projected route with staggered strikes/poison while retaining brood summons. Shadow should close long gaps and send staggered, faster fans. Check that turning after a warning does not make the boss silently reverse the marked attack. Test near walls/columns, during reload, after Continue, and kill a boss during an active attack to check cleanup.
 
-Report attacks whose visible marks disagree with damage, apparently unavoidable chains, excessive chase downtime, distorted poses, or slipping foot movement. Demon source walk poses remain limited; this candidate fixes playback/anchor issues without a new art generation pass. Training protects health; use a normal run to judge actual threat and damage.
+Report attacks whose visible marks disagree with damage, apparently unavoidable chains, excessive chase downtime, distorted poses, or slipping foot movement. Demon source walk poses remain limited; this candidate fixes playback/anchor issues without a new art generation pass. Training protects health by default; enable Take damage to rehearse hits and recovery, and use a normal run to judge final difficulty.
 
 ## Weapon feel review
 
@@ -73,7 +79,7 @@ Try all four weapons against the same Training targets. Look/listen for a broad 
 
 ## Eight-boss candidate — Boss Rush
 
-**Training → Pause → Random Boss Rush → Start rush.** A shuffled roster draws from all eight bosses; 40% of rounds request a distinct pair. Defeat every living boss to advance after a short break. Health and ammo refill between rounds; the build stays. Training protects health and gives no normal profile rewards. Use Fusion Practice to prepare a build. **Next round** skips the current encounter; **Restart** starts a fresh rush. Individual Boss Practice buttons exit the rush.
+**Training → Pause → Random Boss Rush → Start rush.** A shuffled roster draws from all eight bosses; 40% of rounds request a distinct pair. Defeat every living boss to advance after a short break. Health and ammo refill between rounds; the build stays. Training protects health by default and gives no normal profile rewards. Use Fusion Practice to prepare a build. **Next round** skips the current encounter; **Restart** starts a fresh rush. Individual Boss Practice buttons exit the rush.
 
 New encounters: **Bellkeeper** (gapped waves and delayed echoes), **Chain Magistrate** (sequential chains and sweeps), **Mirror Saint** (recorded movement and reflected paths), **Kiln Sovereign** (pressure zones, foot strikes and furnace sweep), **Last Marshal** (aimed shots, front brace and a returning blade). Shoot the exposed bell/clasp/glass/valve/blade to interrupt the relevant attack and earn a longer opening. Every boss enrages below half health.
 

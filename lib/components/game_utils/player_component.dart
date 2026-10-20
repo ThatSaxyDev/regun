@@ -61,6 +61,13 @@ class PlayerComponent extends SpriteAnimationComponent
   void update(double dt) {
     super.update(dt);
     priority = 10000 + (position.y + size.y * .38).round();
+    if (game.playerEntrance.active) {
+      animation =
+          game.playerEntrance.landing ? _brace[_facingRow] : _idle[_facingRow];
+      recoil = 0;
+      hurtFlash = 0;
+      return;
+    }
     final movement = game.movementJoystick.relativeDelta;
     final aim = game.weaponJoystick.relativeDelta;
     if (!aim.isZero()) aimDirection.setFrom(aim.normalized());
@@ -113,7 +120,41 @@ class PlayerComponent extends SpriteAnimationComponent
   }
 
   @override
+  // The sprite's super.render is invoked by _renderSurvivor inside the layer.
+  // ignore: must_call_super
   void render(Canvas canvas) {
+    final entrance = game.playerEntrance;
+    if (!entrance.active) {
+      _renderSurvivor(canvas);
+      return;
+    }
+    if (entrance.atCenter) {
+      final foot = Offset(size.x / 2, size.y * .83);
+      canvas.drawOval(Rect.fromCenter(center: foot, width: 42, height: 12),
+          Paint()..color = const Color(0x650C1113));
+      final settle =
+          ((entrance.elapsed - entrance.landingStart - entrance.dropDuration) /
+                  .45)
+              .clamp(0.0, 1.0);
+      AttackVfx.stamp(canvas, 5, foot + const Offset(0, 12), 140,
+          alpha: (.2 + entrance.drop * .4) * (1 - settle));
+      if (entrance.drop >= .9) {
+        for (final side in [-1, 1]) {
+          AttackVfx.stamp(canvas, settle < .4 ? 3 : 4,
+              foot + Offset(side * (18 + settle * 45), 12), 95 + settle * 35,
+              alpha: .65 * (1 - settle));
+        }
+      }
+    }
+    if (entrance.bodyOpacity <= 0) return;
+    canvas.saveLayer(null,
+        Paint()..color = Color.fromRGBO(255, 255, 255, entrance.bodyOpacity));
+    canvas.translate(0, entrance.fallen ? 0 : -entrance.height);
+    _renderSurvivor(canvas);
+    canvas.restore();
+  }
+
+  void _renderSurvivor(Canvas canvas) {
     final style = game.preferences.profile.cosmetic;
     final tint = switch (style) {
       'copper' => const Color(0xffE9BD92),
@@ -129,11 +170,14 @@ class PlayerComponent extends SpriteAnimationComponent
         : tint == null
             ? null
             : ColorFilter.mode(tint, BlendMode.modulate);
-    canvas.drawOval(
-        Rect.fromCenter(
-            center: Offset(size.x * .5, size.y * .83), width: 42, height: 12),
-        Paint()..color = const Color(0x650C1113));
-    if (game.gameState.gameplayState == GameplayState.gameOver) {
+    if (!game.playerEntrance.active) {
+      canvas.drawOval(
+          Rect.fromCenter(
+              center: Offset(size.x * .5, size.y * .83), width: 42, height: 12),
+          Paint()..color = const Color(0x650C1113));
+    }
+    if (game.gameState.gameplayState == GameplayState.gameOver ||
+        game.playerEntrance.fallen) {
       RegunArt.shared
           .sprite('characters/${game.loadout.character.name}_actions',
               _facingRow * 4 + 3)

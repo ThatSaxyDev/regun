@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
@@ -114,6 +115,7 @@ abstract class ExpansionBoss extends PositionComponent
         anchor: Anchor.center,
         animation: _idle);
     add(body);
+    body.paint.colorFilter = BossArt.ambient(game.loadout.arena);
     add(CircleHitbox(
         radius: kind.bodyRadius,
         position: size / 2,
@@ -365,10 +367,8 @@ abstract class ExpansionBoss extends PositionComponent
   void render(Canvas canvas) {
     super.render(canvas);
     final center = (size / 2).toOffset();
-    canvas.drawOval(
-        Rect.fromCenter(
-            center: center + const Offset(0, 65), width: 150, height: 25),
-        Paint()..color = const Color(0x660B090E));
+    BossArt.contactShadow(
+        canvas, center + const Offset(0, 65), kind.bodyRadius);
     if (phase == ExpansionPhase.arrival ||
         (phase == ExpansionPhase.recovery && _interrupted)) {
       AttackVfx.disk(canvas, center, 85,
