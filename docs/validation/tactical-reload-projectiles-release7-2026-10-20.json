@@ -1,0 +1,52 @@
+{
+  "version": "1.0.0+7",
+  "bytes": 88985981,
+  "sha256": "fc9b37aad3d8b48de0c57bd609f96013eb766857fa566b89fafcd2d6c390fbcd",
+  "analyzer": "passed",
+  "tests": 149,
+  "opt_in_skipped": 4,
+  "targeted_after_visual_refinement": {
+    "passed": 5
+  },
+  "audio": {
+    "assets_verified": 36,
+    "representative_mix_peak": 0.707,
+    "native_listening": "open"
+  },
+  "soak_30_minutes": {
+    "passed": true,
+    "bosses": 8,
+    "kills": 7173,
+    "peak_enemies": 60,
+    "peak_hostile_projectiles": 33,
+    "peak_hazards": 8,
+    "peak_children": 197,
+    "retained": 161
+  },
+  "soak_60_minutes": {
+    "passed": true,
+    "bosses": 16,
+    "kills": 7249,
+    "peak_enemies": 60,
+    "peak_hostile_projectiles": 36,
+    "peak_hazards": 8,
+    "peak_children": 266,
+    "retained": 187
+  },
+  "archive_seconds": 25.8,
+  "export_seconds": 26.9,
+  "phone_install": "attempted; Flutter could not find paired iPhone",
+  "native_acceptance": "Audio fatigue, readability and reload balance remain open; simulations do not prove physical-device performance.",
+  "scope": [
+    "tactical reloads",
+    "staged ammo and held-fire interruption",
+    "reload close animation and checkpoint persistence",
+    "Revenant shot silhouette/color",
+    "shared enemy cast audio"
+  ],
+  "unrelated_files_left_unstaged": [
+    "makefile",
+    ".firebaserc",
+    "docs/REGUN_MULTIPLAYER_PLAN.md"
+  ]
+}

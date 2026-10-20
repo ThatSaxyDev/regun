@@ -11,6 +11,8 @@ void paintWeapon(Canvas canvas, WeaponType type,
     {double reload = -1,
     double recoil = 0,
     int reloadShells = 5,
+    bool tactical = false,
+    bool closing = false,
     bool reducedMotion = false}) {
   final art = RegunArt.shared;
   if (!art.contains('weapons/arsenal')) return;
@@ -35,8 +37,11 @@ void paintWeapon(Canvas canvas, WeaponType type,
         .rotate(-recoil * recoil * (type == WeaponType.revolver ? .10 : .035));
   }
   if (movingReload) {
-    canvas.rotate((action(p, 0, .10) - action(p, .82, .94)) * .12);
-    if (type != WeaponType.shotgun) {
+    final tilt = closing
+        ? 1 - action(p, 0, 1)
+        : action(p, 0, .10) - action(p, .82, tactical ? 1 : .96);
+    canvas.rotate(tilt * .12);
+    if (type != WeaponType.shotgun && !tactical && !closing) {
       canvas.translate(-pulse(p, .82, .85, .93) * 2, 0);
     }
   }
@@ -51,11 +56,11 @@ void paintWeapon(Canvas canvas, WeaponType type,
       final insert = ((elapsed % 700) / 210).clamp(0.0, 1.0);
       final finish = ((elapsed - shells * 700) / 200).clamp(0.0, 1.0);
       final pump = movingReload
-          ? pulse(finish, 0, .4, 1) * 7
+          ? pulse(closing ? p : finish, 0, .4, 1) * 7
           : loading || reducedMotion ? 0.0 : recoil * 6;
       part.render(canvas,
           position: Vector2(8 - pump, -1), size: Vector2(19, 6));
-      if (movingReload && elapsed < shells * 700 && insert < 1) {
+      if (movingReload && !closing && elapsed < shells * 700 && insert < 1) {
         final y = 16 * (1 - Curves.easeOutCubic.transform(insert)) + 3;
         canvas.drawRect(Rect.fromLTWH(-3, y, 7, 4),
             Paint()..color = const Color(0xffC56E50));
@@ -64,7 +69,7 @@ void paintWeapon(Canvas canvas, WeaponType type,
       }
     case WeaponType.carbine:
       final travel = movingReload
-          ? (action(p, 0, .12) - action(p, .32, .42)) * 20
+          ? (action(p, 0, tactical ? .16 : .12) - action(p, tactical ? .55 : .32, tactical ? .82 : .42)) * 20
           : 0.0;
       part.render(canvas,
           position: Vector2(4, 5 + travel), size: Vector2(6, 13));
@@ -72,18 +77,23 @@ void paintWeapon(Canvas canvas, WeaponType type,
       canvas.save();
       canvas.translate(10, -4);
       if (movingReload) {
-        canvas.translate(0, (action(p, 0, .12) - action(p, .72, .82)) * 9);
-        canvas.rotate(action(p, .42, .58) * pi * 2);
+        final open = closing
+            ? 1 - action(p, 0, .85)
+            : action(p, 0, .12) - action(p, .82, .96);
+        canvas.translate(0, open * 9);
+        if (!closing) canvas.rotate(action(p, .42, .82) * pi * 2);
       }
       part.render(canvas, position: Vector2(-5, -5), size: Vector2(10, 10));
       canvas.restore();
     case WeaponType.arcCaster:
       final lift = movingReload
-          ? (action(p, 0, .12) - action(p, .72, .82)) * 10
+          ? (closing
+                  ? 1 - action(p, 0, .85)
+                  : action(p, 0, .12) - action(p, .82, .96)) * 10
           : 0.0;
       part.render(canvas,
           position: Vector2(4, -5 - lift), size: Vector2(13, 8));
-      if (movingReload) {
+      if (movingReload && !closing) {
         for (var i = 0; i < 3; i++) {
           canvas.drawRect(
               Rect.fromLTWH(9 + i * 4, -10 - sin(p * pi * 5 + i) * 4, 2, 3),
@@ -133,24 +143,33 @@ class WeaponReloadDisplay extends StatelessWidget {
       required this.weapon,
       required this.progress,
       this.shells = 5,
+      this.loaded = 0,
+      this.capacity = 0,
+      this.tactical = false,
+      this.closing = false,
+      this.visualProgress,
       this.reducedMotion = false});
   final WeaponType weapon;
   final double progress;
-  final int shells;
-  final bool reducedMotion;
+  final int shells, loaded, capacity;
+  final bool reducedMotion, tactical, closing;
+  final double? visualProgress;
   @override
   Widget build(BuildContext context) => CustomPaint(
       size: const Size(150, 80),
-      painter: _ReloadPainter(weapon, progress, shells, reducedMotion));
+      painter: _ReloadPainter(weapon, progress, shells, reducedMotion,
+          loaded, capacity, tactical, closing, visualProgress));
 }
 
 class _ReloadPainter extends CustomPainter {
-  const _ReloadPainter(
-      this.weapon, this.progress, this.shells, this.reducedMotion);
+  const _ReloadPainter(this.weapon, this.progress, this.shells,
+      this.reducedMotion, this.loaded, this.capacity, this.tactical,
+      this.closing, this.visualProgress);
   final WeaponType weapon;
   final double progress;
-  final int shells;
-  final bool reducedMotion;
+  final int shells, loaded, capacity;
+  final bool reducedMotion, tactical, closing;
+  final double? visualProgress;
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
@@ -167,8 +186,23 @@ class _ReloadPainter extends CustomPainter {
     canvas.translate(size.width / 2, 38);
     canvas.scale(1.5);
     paintWeapon(canvas, weapon,
-        reload: progress, reloadShells: shells, reducedMotion: reducedMotion);
+        reload: visualProgress ?? progress, reloadShells: shells,
+        tactical: tactical, closing: closing, reducedMotion: reducedMotion);
     canvas.restore();
+    if (capacity > 0) {
+      final ammo = TextPainter(
+        text: TextSpan(
+          text: '$loaded / $capacity',
+          style: const TextStyle(
+            fontFamily: FontFam.orbitron,
+            fontSize: 10,
+            color: Color(0xffE5DDD1),
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      ammo.paint(canvas, Offset((size.width - ammo.width) / 2, 58));
+    }
     canvas.drawRect(const Rect.fromLTWH(24, 74, 102, 3),
         Paint()..color = const Color(0xff4F404D));
     canvas.drawRect(Rect.fromLTWH(24, 74, 102 * progress, 3),
@@ -180,5 +214,10 @@ class _ReloadPainter extends CustomPainter {
       oldDelegate.weapon != weapon ||
       oldDelegate.progress != progress ||
       oldDelegate.shells != shells ||
+      oldDelegate.loaded != loaded ||
+      oldDelegate.capacity != capacity ||
+      oldDelegate.tactical != tactical ||
+      oldDelegate.closing != closing ||
+      oldDelegate.visualProgress != visualProgress ||
       oldDelegate.reducedMotion != reducedMotion;
 }

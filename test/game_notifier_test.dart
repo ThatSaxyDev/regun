@@ -179,6 +179,123 @@ void main() {
     }
   });
 
+  test('manual chambered Carbine skips bolt and empty reload keeps it', () {
+    notifier.resetRun(loadout: const Loadout(weapon: WeaponType.carbine));
+    notifier.decreaseBullets();
+    notifier.reloadBullets(manual: true);
+    expect(notifier.checkpoint()['reloadDurationMs'], closeTo(1260, .001));
+    notifier.advanceTime(1.259);
+    expect(state().reloading, isTrue);
+    expect(notifier.requestReloadInterrupt(), isFalse);
+    notifier.advanceTime(.001);
+    expect(state().reloading, isFalse);
+    expect(state().noOfBullets, state().maxBullets);
+    expect(audio.sounds, ['reload_carbine_0.wav', 'reload_carbine_1.wav']);
+    audio.sounds.clear();
+    while (state().noOfBullets > 0) {
+      notifier.decreaseBullets();
+    }
+    notifier.reloadBullets(manual: true);
+    expect(notifier.checkpoint()['reloadDurationMs'], 1800);
+    notifier.advanceTime(1.8);
+    expect(audio.sounds, [
+      'reload_carbine_0.wav',
+      'reload_carbine_1.wav',
+      'reload_carbine_2.wav',
+    ]);
+  });
+
+  for (final weapon in WeaponType.values.where(
+    (w) => w != WeaponType.carbine,
+  )) {
+    test(
+      '${weapon.name} funds staged ammo, closes and preserves partial save',
+      () {
+        notifier.resetRun(loadout: Loadout(weapon: weapon));
+        while (state().noOfBullets > 0) {
+          notifier.decreaseBullets();
+        }
+        expect(notifier.lastShellBonusReady, isFalse);
+        notifier.reloadBullets();
+        expect(notifier.requestReloadInterrupt(), isFalse);
+        var elapsed = 0.0;
+        while (state().noOfBullets == 0) {
+          notifier.advanceTime(.01);
+          elapsed += .01;
+          expect(elapsed, lessThan(2));
+        }
+        expect(state().noOfBullets, 1);
+        expect(state().reloading, isTrue);
+        expect(notifier.requestReloadInterrupt(), isTrue);
+        expect(notifier.requestReloadInterrupt(), isFalse);
+        notifier.advanceTime(.04);
+        final saved = notifier.checkpoint();
+        notifier.restoreCheckpoint(saved);
+        expect(notifier.reloadClosing, isTrue);
+        final frozen = notifier.reloadProgress.value;
+        notifier.advanceTime(30); // Restored runs are paused.
+        expect(notifier.reloadProgress.value, frozen);
+        notifier.playGame();
+        notifier.advanceTime(.2);
+        expect(state().reloading, isFalse);
+        expect(state().noOfBullets, 1); // Closing cannot award later stages.
+        expect(notifier.lastReloadCompletedFully, isFalse);
+        expect(notifier.lastShellBonusReady, isFalse);
+        notifier.decreaseBullets();
+        notifier.reloadBullets();
+        notifier.advanceTime(10);
+        expect(state().noOfBullets, state().maxBullets);
+        expect(notifier.lastReloadCompletedFully, isTrue);
+        expect(notifier.lastShellBonusReady, isTrue);
+      },
+    );
+
+    test(
+      '${weapon.name} tactical reload is modest and retained ammo cannot cancel',
+      () {
+        notifier.resetRun(loadout: Loadout(weapon: weapon));
+        notifier.decreaseBullets();
+        notifier.decreaseBullets();
+        notifier.reloadBullets(manual: true);
+        final duration =
+            (notifier.checkpoint()['reloadDurationMs'] as num).toDouble();
+        expect(
+          duration,
+          closeTo(
+            (weapon == WeaponType.shotgun
+                    ? GameNotifier.reloadDurationFor(2)
+                    : weapon.reloadMs) *
+                .85,
+            .001,
+          ),
+        );
+        expect(notifier.requestReloadInterrupt(), isFalse);
+        notifier.advanceTime(.05);
+        expect(notifier.requestReloadInterrupt(), isFalse);
+        notifier.advanceTime(duration / 1000);
+        expect(state().reloading, isFalse);
+        expect(state().noOfBullets, state().maxBullets);
+      },
+    );
+  }
+
+  test('legacy reloads restore and malformed staged ammo is rejected', () {
+    notifier.decreaseBullets();
+    notifier.reloadBullets();
+    final old = notifier.checkpoint()
+      ..remove('reloadPlan')
+      ..remove('lastShellArmed');
+    notifier.restoreCheckpoint(old);
+    notifier.playGame();
+    notifier.advanceTime(.9);
+    expect(state().noOfBullets, 5);
+    notifier.decreaseBullets();
+    notifier.reloadBullets();
+    final bad = notifier.checkpoint();
+    (bad['reloadPlan'] as Map)['loaded'] = 2;
+    expect(() => notifier.restoreCheckpoint(bad), throwsFormatException);
+  });
+
   for (var missing = 1; missing <= 5; missing++) {
     test(
         'preserves shotgun timing and shell sounds for $missing missing shells',
@@ -192,8 +309,8 @@ void main() {
       notifier.reloadBullets();
       notifier.advanceTime((duration - 1) / 1000);
       expect(state().reloading, isTrue);
-      expect(state().noOfBullets, 5 - missing);
-      expect(audio.reloadSounds, missing);
+      expect(state().noOfBullets, 5); // Funded shells still need the finish.
+        expect(audio.reloadSounds, missing);
       notifier.advanceTime(0.001);
       expect(state().reloading, isFalse);
       expect(state().noOfBullets, 5);

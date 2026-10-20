@@ -24,7 +24,7 @@ class ReloadButtonComponent extends ButtonComponent
         game.gameState.noOfBullets < game.gameState.maxBullets) {
       game.manualReloads++;
     }
-    game.gameNotifier.reloadBullets();
+    game.gameNotifier.reloadBullets(manual: true);
     super.onTapDown(event);
   }
 }

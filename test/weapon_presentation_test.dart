@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/enemy_3_projectile.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/data/enemies.dart';
@@ -338,6 +339,56 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('held aim resumes each staged weapon and hostile dart pauses',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    for (final weapon in WeaponType.values.where((w) => w != WeaponType.carbine)) {
+      late RegunGame game;
+      final audio = _Audio();
+      await tester.runAsync(() async {
+        await tester.pumpWidget(ProviderScope(
+            key: ValueKey(weapon),
+            overrides: [soloudPlayProvider.overrideWithValue(audio)],
+            child: MaterialApp(home: BaseView(loadout: Loadout(
+                weapon: weapon, training: true)))));
+        game = tester.widget<RiverpodAwareGameWidget>(
+            find.byType(RiverpodAwareGameWidget)).game! as RegunGame;
+        await game.loaded;
+        await tester.pump();
+        await game.ready();
+        game.update(2);
+        while (game.gameState.noOfBullets > 0) {
+          game.gameNotifier.decreaseBullets();
+        }
+        game.gameNotifier.reloadBullets();
+        final fullDuration = (game.gameNotifier.checkpoint()['reloadDurationMs']
+            as num).toDouble() / 1000;
+        var elapsed = 0.0;
+        while (game.shotsFired == 0 && elapsed < fullDuration) {
+          game.weaponJoystick.delta.setValues(60, 0);
+          game.update(.01);
+          elapsed += .01;
+        }
+        expect(game.shotsFired, 1, reason: weapon.name);
+        expect(elapsed, lessThan(fullDuration));
+        expect(game.gameState.noOfBullets, 0);
+        expect(game.gameState.reloading, isTrue); // Spent one paid round.
+        final dart = Enemy3Projectile(position: Vector2(400, 100));
+        await game.world.add(dart);
+        await game.ready();
+        game.gameNotifier.pauseGame();
+        final start = dart.position.clone();
+        dart.update(1);
+        expect(dart.position, start);
+        game.gameNotifier.playGame();
+        dart.update(.1);
+        expect(dart.position.distanceTo(start), closeTo(30, .001));
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('render distinct firing and mechanical reload stages for review',
       (tester) async {
     await tester.runAsync(() async {
@@ -369,8 +420,16 @@ void main() {
           canvas.restore();
         }
       }
+      canvas.save();
+      canvas.translate(90, 680);
+      RegunArt.shared.rawSprite('items/items', 0).render(canvas,
+          size: Vector2.all(72), anchor: Anchor.center);
+      canvas.translate(240, 0);
+      canvas.scale(3);
+      Enemy3Projectile.paintDart(canvas);
+      canvas.restore();
       final picture = recorder.endRecording();
-      final image = await picture.toImage(900, 640);
+      final image = await picture.toImage(900, 740);
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
       await Directory('build/test-previews').create(recursive: true);
       await File('build/test-previews/weapon-identity.png')

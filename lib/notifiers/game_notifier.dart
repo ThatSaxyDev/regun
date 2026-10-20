@@ -16,6 +16,22 @@ class GameNotifier extends Notifier<GameState> {
   int _reloadSoundsLeft = 0;
   int _reloadCue = 0;
   double _nextReloadSoundMs = 700;
+  int _reloadStartAmmo = 0, _reloadMissing = 0, _reloadLoaded = 0;
+  bool _reloadTactical = false;
+  double _reloadCloseElapsedMs = -1, _reloadCloseDurationMs = 0;
+  double _reloadCloseStartProgress = 0;
+  bool lastReloadCompletedFully = false;
+  bool _lastShellArmed = true;
+  bool get lastShellBonusReady => _lastShellArmed;
+  bool get reloadTactical => state.reloading && _reloadTactical;
+  bool get reloadClosing => state.reloading && _reloadCloseElapsedMs >= 0;
+  int get reloadUnits => state.reloading ? _reloadMissing : 1;
+  double get reloadVisualProgress => reloadClosing
+      ? (_reloadCloseElapsedMs / _reloadCloseDurationMs).clamp(0, 1)
+      : reloadProgress.value;
+  bool get _stagedReload => weapon != WeaponType.carbine;
+  double get _shellSoundInterval =>
+      700 * _reloadDurationMs / max(1, reloadDurationFor(_reloadMissing));
   double _invincibilityMs = 0;
   double _hurtCooldownMs = 0;
   double _activeSeconds = 0;
@@ -58,6 +74,12 @@ class GameNotifier extends Notifier<GameState> {
     quickRefillProgress.value = -1;
     _reloadDurationMs = 0;
     _reloadElapsedMs = 0;
+    _reloadStartAmmo = _reloadMissing = _reloadLoaded = 0;
+    _reloadTactical = false;
+    _reloadCloseElapsedMs = -1;
+    _reloadCloseDurationMs = 0;
+    lastReloadCompletedFully = false;
+    _lastShellArmed = true;
     _reloadSoundsLeft = 0;
     _nextReloadSoundMs = 700;
     _invincibilityMs = 0;
@@ -75,6 +97,16 @@ class GameNotifier extends Notifier<GameState> {
         'offerRandom': _offerRandom.state,
         'guardElapsed': _guardElapsed,
         'reloadCue': _reloadCue,
+        'lastShellArmed': _lastShellArmed,
+        'reloadPlan': {
+          'startAmmo': _reloadStartAmmo,
+          'missing': _reloadMissing,
+          'loaded': _reloadLoaded,
+          'tactical': _reloadTactical,
+          'closeElapsedMs': _reloadCloseElapsedMs,
+          'closeDurationMs': _reloadCloseDurationMs,
+          'closeStartProgress': _reloadCloseStartProgress,
+        },
         'activeSeconds': _activeSeconds,
         'reloadElapsedMs': _reloadElapsedMs,
         'reloadDurationMs': _reloadDurationMs,
@@ -130,10 +162,49 @@ class GameNotifier extends Notifier<GameState> {
       restored = restored.copyWith(
           noOfCoinsToUpgrade: cost.toDouble(), xP: (fraction * cost).floor());
     }
+    final plan = snapshot['reloadPlan'] as Map?;
+    _reloadStartAmmo = (plan?['startAmmo'] as int?) ?? restored.noOfBullets;
+    _reloadMissing = (plan?['missing'] as int?) ??
+        restored.maxBullets - restored.noOfBullets;
+    _reloadLoaded = (plan?['loaded'] as int?) ?? 0;
+    _reloadTactical = plan?['tactical'] == true;
+    _reloadCloseElapsedMs = (plan?['closeElapsedMs'] as num?)?.toDouble() ?? -1;
+    _reloadCloseDurationMs =
+        (plan?['closeDurationMs'] as num?)?.toDouble() ?? 0;
+    _reloadCloseStartProgress =
+        (plan?['closeStartProgress'] as num?)?.toDouble() ?? 0;
+    _lastShellArmed =
+        snapshot['lastShellArmed'] as bool? ?? restored.noOfBullets > 0;
+    if (_reloadStartAmmo < 0 ||
+        _reloadMissing < 0 ||
+        _reloadLoaded < 0 ||
+        _reloadLoaded > _reloadMissing ||
+        _reloadMissing > 100 ||
+        !_reloadCloseElapsedMs.isFinite ||
+        _reloadCloseElapsedMs < -1 ||
+        !_reloadCloseDurationMs.isFinite ||
+        _reloadCloseDurationMs < 0 ||
+        !_reloadCloseStartProgress.isFinite ||
+        _reloadCloseStartProgress < 0 ||
+        _reloadCloseStartProgress > 1 ||
+        (_reloadCloseElapsedMs >= 0 &&
+            (_reloadCloseDurationMs <= 0 || !_stagedReload)) ||
+        (restored.reloading &&
+            (_reloadDurationMs <= 0 ||
+                _reloadMissing == 0 ||
+                _reloadStartAmmo + _reloadMissing != restored.maxBullets ||
+                _reloadStartAmmo + _reloadLoaded != restored.noOfBullets))) {
+      throw const FormatException('Invalid reload plan');
+    }
     _reloadCue = snapshot['reloadCue'] as int? ?? 0;
     reloadProgress.value = _reloadDurationMs > 0
         ? (_reloadElapsedMs / _reloadDurationMs).clamp(0, 1)
         : 0;
+    if (_reloadCloseElapsedMs >= 0) {
+      reloadProgress.value = _reloadCloseStartProgress +
+          (1 - _reloadCloseStartProgress) *
+              (_reloadCloseElapsedMs / _reloadCloseDurationMs).clamp(0, 1);
+    }
     _hurtCooldownMs = 1000; // Clear, fair resume window; no offline simulation.
     state = restored.copyWith(
         gameplayState: GameplayState.paused, triggerSprintInvincibility: false);
@@ -143,7 +214,7 @@ class GameNotifier extends Notifier<GameState> {
   static int reloadDurationFor(int missingShells) =>
       missingShells <= 0 ? 0 : 900 + 700 * (missingShells - 1);
 
-  void reloadBullets() {
+  void reloadBullets({bool manual = false}) {
     if (state.gameplayState != GameplayState.playing ||
         state.reloading ||
         state.noOfBullets >= state.maxBullets) {
@@ -154,6 +225,13 @@ class GameNotifier extends Notifier<GameState> {
     quickRefillProgress.value = -1;
     _reloadElapsedMs = 0;
     _reloadCue = 0;
+    _reloadStartAmmo = state.noOfBullets;
+    _reloadMissing = missing;
+    _reloadLoaded = 0;
+    _reloadTactical = manual && state.noOfBullets > 0;
+    _reloadCloseElapsedMs = -1;
+    _reloadCloseDurationMs = 0;
+    lastReloadCompletedFully = false;
     final normal = weapon == WeaponType.shotgun
         ? reloadDurationFor(state.maxBullets > weapon.capacity
             ? min(missing, weapon.capacity)
@@ -171,14 +249,77 @@ class GameNotifier extends Notifier<GameState> {
                             ? (2500 - state.fastReloadTime) ~/ 500
                             : 0)))
             .toDouble();
+    if (_reloadTactical) {
+      _reloadDurationMs *= weapon == WeaponType.carbine ? .70 : .85;
+    }
     _reloadSoundsLeft =
         weapon == WeaponType.shotgun && !state.fastReload ? missing - 1 : 0;
     reloadProgress.value = 0;
-    _nextReloadSoundMs = 700;
+    _nextReloadSoundMs = _shellSoundInterval;
     state = state.copyWith(reloading: true);
     ref.read(soloudPlayProvider).play(weapon == WeaponType.shotgun
         ? 'reload_shotgun_shell.wav'
         : 'reload_${weapon.name}_0.wav');
+  }
+
+  double _unitReadyAt(int index) {
+    if (weapon == WeaponType.shotgun) {
+      // Original full duration is shell handling (700 each) + a 200ms finish.
+      final base = max(1, reloadDurationFor(_reloadMissing));
+      final last = _reloadDurationMs * 700 * _reloadMissing / base;
+      final first = min(last, max(300.0, _reloadDurationMs * 700 / base));
+      return _reloadMissing == 1
+          ? last
+          : first + (last - first) * index / (_reloadMissing - 1);
+    }
+    final fraction =
+        _reloadMissing == 1 ? .82 : .42 + .4 * index / (_reloadMissing - 1);
+    return _reloadDurationMs * fraction;
+  }
+
+  /// A funded round may interrupt a staged reload after its short ready action.
+  bool requestReloadInterrupt() {
+    if (state.gameplayState != GameplayState.playing ||
+        !state.reloading ||
+        !_stagedReload ||
+        _reloadLoaded == 0 ||
+        state.noOfBullets == 0 ||
+        reloadClosing) {
+      return false;
+    }
+    _reloadCloseStartProgress = reloadProgress.value;
+    _reloadCloseElapsedMs = 0;
+    _reloadCloseDurationMs = max(
+      70,
+      switch (weapon) {
+        WeaponType.shotgun => 120.0,
+        WeaponType.revolver => 140.0,
+        _ => 100.0,
+      } * (_reloadTactical ? .85 : 1),
+    );
+    if (weapon == WeaponType.shotgun) {
+      if (_reloadCue == 0) {
+        ref.read(soloudPlayProvider).play('reload_shotgun_pump.wav');
+      }
+    } else {
+      if (_reloadCue < 2) {
+        ref.read(soloudPlayProvider).play('reload_${weapon.name}_2.wav');
+      }
+    }
+    _reloadCue = weapon == WeaponType.shotgun ? 1 : 2;
+    state = state.copyWith(); // Rebuild the HUD for the ready-action pose.
+    return true;
+  }
+
+  void _finishReload({required bool fill}) {
+    final ammo = fill ? state.maxBullets : state.noOfBullets;
+    lastReloadCompletedFully = ammo == state.maxBullets;
+    if (lastReloadCompletedFully) _lastShellArmed = true;
+    _reloadDurationMs = 0;
+    _reloadSoundsLeft = 0;
+    _reloadCloseElapsedMs = -1;
+    reloadProgress.value = 1;
+    state = state.copyWith(noOfBullets: ammo, reloading: false);
   }
 
   void fastReloadBullets() => reloadBullets();
@@ -218,21 +359,47 @@ class GameNotifier extends Notifier<GameState> {
       if (_invincibilityMs == 0) removeSprintInvincibilityTrigger();
     }
     if (!state.reloading || _reloadDurationMs <= 0) return;
+    if (reloadClosing) {
+      _reloadCloseElapsedMs += milliseconds;
+      reloadProgress.value = _reloadCloseStartProgress +
+          (1 - _reloadCloseStartProgress) *
+              (_reloadCloseElapsedMs / _reloadCloseDurationMs).clamp(0, 1);
+      if (_reloadCloseElapsedMs >= _reloadCloseDurationMs) {
+        _finishReload(fill: false);
+      }
+      return;
+    }
     _reloadElapsedMs += milliseconds;
     reloadProgress.value = (_reloadElapsedMs / _reloadDurationMs).clamp(0, 1);
     if (weapon != WeaponType.shotgun) {
-      while (_reloadCue < 2 &&
-          reloadProgress.value >= (_reloadCue == 0 ? 0.42 : 0.82)) {
-        _reloadCue++;
-        ref
-            .read(soloudPlayProvider)
-            .play('reload_${weapon.name}_$_reloadCue.wav');
+      if (weapon == WeaponType.carbine && _reloadTactical) {
+        if (_reloadCue == 0 && reloadProgress.value >= .82) {
+          _reloadCue = 2; // A chambered round: seat the magazine, skip the bolt.
+          ref.read(soloudPlayProvider).play('reload_carbine_1.wav');
+        }
+      } else {
+        while (_reloadCue < 2 &&
+            reloadProgress.value >= (_reloadCue == 0 ? .42 : .82)) {
+          _reloadCue++;
+          ref.read(soloudPlayProvider).play('reload_${weapon.name}_$_reloadCue.wav');
+        }
+      }
+    }
+    if (_stagedReload) {
+      var loaded = _reloadLoaded;
+      while (loaded < _reloadMissing &&
+          _reloadElapsedMs + .000001 >= _unitReadyAt(loaded)) {
+        loaded++;
+      }
+      if (loaded != _reloadLoaded) {
+        _reloadLoaded = loaded;
+        state = state.copyWith(noOfBullets: _reloadStartAmmo + loaded);
       }
     }
     while (_reloadSoundsLeft > 0 && _reloadElapsedMs >= _nextReloadSoundMs) {
       ref.read(soloudPlayProvider).play('reload_shotgun_shell.wav');
       _reloadSoundsLeft--;
-      _nextReloadSoundMs += 700;
+      _nextReloadSoundMs += _shellSoundInterval;
     }
     if (weapon == WeaponType.shotgun &&
         _reloadCue == 0 &&
@@ -241,9 +408,7 @@ class GameNotifier extends Notifier<GameState> {
       ref.read(soloudPlayProvider).play('reload_shotgun_pump.wav');
     }
     if (_reloadElapsedMs + 0.000001 >= _reloadDurationMs) {
-      _reloadDurationMs = 0;
-      _reloadSoundsLeft = 0;
-      state = state.copyWith(noOfBullets: state.maxBullets, reloading: false);
+      _finishReload(fill: true);
     }
   }
 
@@ -255,12 +420,15 @@ class GameNotifier extends Notifier<GameState> {
     }
     _quickRefillMs = -1;
     quickRefillProgress.value = -1;
+    if (state.noOfBullets == 1) _lastShellArmed = false;
     state = state.copyWith(noOfBullets: state.noOfBullets - 1);
   }
 
   void addBullets() {
     _reloadDurationMs = 0;
     _reloadSoundsLeft = 0;
+    _reloadCloseElapsedMs = -1;
+    _lastShellArmed = true;
     state = state.copyWith(noOfBullets: 5, maxBullets: 5, reloading: false);
   }
 
@@ -519,6 +687,9 @@ class GameNotifier extends Notifier<GameState> {
       state.copyWith(health: min(state.maxHealth, state.health + amount));
 
   void refillPractice() {
+    _reloadCloseElapsedMs = -1;
+    _lastShellArmed = true;
+    lastReloadCompletedFully = false;
     _reloadDurationMs = 0;
     _reloadSoundsLeft = 0;
     _reloadElapsedMs = 0;
@@ -558,6 +729,9 @@ class GameNotifier extends Notifier<GameState> {
       state = state.copyWith(health: 0, gameplayState: GameplayState.gameOver);
 
   void maxBulletsIncrease() {
+    _reloadCloseElapsedMs = -1;
+    _lastShellArmed = true;
+    lastReloadCompletedFully = false;
     _reloadDurationMs = 0;
     _reloadSoundsLeft = 0;
     final lateRank = state.rank(PowerUp.maxBulletsIncrease) > 3;
@@ -974,9 +1148,9 @@ enum PowerUp {
   ricochet(
       'Ricochet', 'Projectiles bounce to a new enemy.', UpgradeGroup.special),
   bankShot('Bank Shot', 'Bounced shots hit harder.', UpgradeGroup.special),
-  lastShell('Last Shell', 'Stronger final shot. Diminishing gains.',
+  lastShell('Last Shell', 'Full magazine’s final shot hits harder.',
       UpgradeGroup.special),
-  breachLoader('Breach Loader', 'Stronger first shot after reload.',
+  breachLoader('Breach Loader', 'Stronger first shot after full reload.',
       UpgradeGroup.special),
   orbitDrone('Orbit Drone', 'A companion fires at nearby enemies.',
       UpgradeGroup.special),

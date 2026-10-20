@@ -1205,16 +1205,16 @@ class RegunGame extends FlameGame
     revision.value++;
   }
 
-  void spawnShotgunBullets() {
-    if (playerEntrance.active) return;
+  bool spawnShotgunBullets() {
+    if (playerEntrance.active) return false;
     final state = gameState;
-    if (state.gameplayState != GameplayState.playing || state.reloading) return;
+    if (state.gameplayState != GameplayState.playing || state.reloading) return false;
     if (state.noOfBullets <= 0) {
       gameNotifier.reloadBullets();
-      return;
+      return false;
     }
     final baseDirection = weaponJoystick.relativeDelta.normalized();
-    if (baseDirection.isZero()) return;
+    if (baseDirection.isZero()) return false;
     if (preferences.aimAssist) {
       assisted = true;
       PositionComponent? target;
@@ -1243,7 +1243,7 @@ class RegunGame extends FlameGame
     var damage =
         state.shotDamage * loadout.weapon.damage * loadout.character.damage;
     breachEngine = state.fused('breachEngine');
-    if (state.noOfBullets == 1) {
+    if (state.noOfBullets == 1 && gameNotifier.lastShellBonusReady) {
       damage *= 1 +
           GameState.scaledRank(state.lastShellRank) *
               (breachEngine ? 0.9 : 0.6);
@@ -1291,6 +1291,7 @@ class RegunGame extends FlameGame
     }
     gameNotifier.decreaseBullets();
     if (gameState.noOfBullets == 0) gameNotifier.reloadBullets();
+    return true;
   }
 
   @override
@@ -1334,11 +1335,15 @@ class RegunGame extends FlameGame
     // Gameplay timers use simulation time; pause and restart cannot leak work.
     _reloadWasActive = gameState.reloading;
     gameNotifier.advanceTime(dt * timeScale);
-    if (_reloadWasActive && !gameState.reloading) _breachCharged = true;
+    if (_reloadWasActive && !gameState.reloading &&
+        gameNotifier.lastReloadCompletedFully) {
+      _breachCharged = true;
+    }
     if (gameState.gameplayState == GameplayState.playing) {
       _fireCooldown = max(0, _fireCooldown - dt);
-      if (_fireCooldown <= 0 && !weaponJoystick.relativeDelta.isZero()) {
-        spawnShotgunBullets();
+      final firing = !weaponJoystick.relativeDelta.isZero();
+      if (firing) gameNotifier.requestReloadInterrupt();
+      if (_fireCooldown <= 0 && firing && spawnShotgunBullets()) {
         _fireCooldown = loadout.weapon.cadence *
             pow(0.85, gameState.effectRank(PowerUp.quickTrigger));
       }

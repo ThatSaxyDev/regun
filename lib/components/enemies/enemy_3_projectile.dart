@@ -2,6 +2,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/game.dart';
 
@@ -47,16 +48,46 @@ class Enemy3Projectile extends PositionComponent
   void render(Canvas canvas) {
     canvas.save();
     canvas.translate(size.x / 2, size.y / 2);
-    canvas.rotate(atan2(_velocity.y, _velocity.x) - pi * 3 / 4);
-    RegunArt.shared
-        .rawSprite('items/items', 7)
-        .render(canvas, size: size * 1.6, anchor: Anchor.center);
+    canvas.rotate(atan2(_velocity.y, _velocity.x));
+    paintDart(canvas);
+    canvas.restore();
+  }
+
+  /// Iron fins, a pointed nose and a short ragged wake. Unlike the round brass
+  /// pickups, this silhouette shows its committed direction even without color.
+  static void paintDart(Canvas canvas) {
+    final ink = Paint()..isAntiAlias = false;
+    void block(double x, double y, double w, double h, int color) {
+      canvas.drawRect(Rect.fromLTWH(x, y, w, h), ink..color = Color(color));
+    }
+
+    block(-29, -2, 7, 4, 0x55784665);
+    block(-20, -4, 9, 3, 0x99784665);
+    block(-22, 2, 8, 3, 0x99784665);
+    // Keep the painted iron/ember texture, but remove the brass pickup color
+    // and stretch its two pointed ends into a long hostile silhouette.
+    canvas.save();
+    canvas.scale(1, .48);
+    canvas.rotate(pi / 4);
+    RegunArt.shared.rawSprite('items/items', 7).render(canvas,
+        size: Vector2.all(30), anchor: Anchor.center,
+        overridePaint: Paint()
+          ..filterQuality = FilterQuality.none
+          ..colorFilter = const ColorFilter.matrix([
+            .60, .20, .10, 0, 12,
+            .18, .33, .08, 0, 0,
+            .45, .20, .25, 0, 12,
+            0, 0, 0, 1, 0,
+          ]));
     canvas.restore();
   }
 
   @override
   void update(double dt) {
     super.update(dt);
+    if (isRemoving || game.gameState.gameplayState != GameplayState.playing) {
+      return;
+    }
     final before = position.clone();
     position.addScaled(_velocity, dt);
     if (game.segmentBlocked(before, position) ||
