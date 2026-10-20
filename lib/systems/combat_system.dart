@@ -160,6 +160,7 @@ class CombatSystem {
     game.addCombatEffect(CombatEffect(
         position: position.clone(),
         radius: radius,
+        duration: .42,
         material: AttackMaterial.ember));
     for (final target in game.liveEnemies.toList()) {
       if (target.position.distanceToSquared(position) < radius * radius) {

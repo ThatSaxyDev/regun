@@ -1,0 +1,43 @@
+{
+  "version": "1.0.0+7",
+  "bytes": 88959005,
+  "sha256": "2182b8d232b5d2040e2e76130c1d85c1fdb049bcd11480f161231a49e61cd07b",
+  "analyzer": "passed",
+  "tests": 140,
+  "opt_in_skipped": 4,
+  "soak_30_minutes": {
+    "passed": true,
+    "bosses": 8,
+    "kills": 7446,
+    "peak_enemies": 60,
+    "peak_hazards": 8,
+    "peak_effects": 40,
+    "peak_world_children": 194,
+    "retained": 154
+  },
+  "soak_60_minutes": {
+    "passed": true,
+    "bosses": 16,
+    "kills": 9309,
+    "peak_enemies": 60,
+    "peak_hazards": 8,
+    "peak_effects": 36,
+    "peak_world_children": 315,
+    "retained": 226
+  },
+  "archive_seconds": 44.5,
+  "export_seconds": 26.3,
+  "phone_install": "installed and launched on paired iPhone (release; 23.1s build / 11.8s install)",
+  "reviewed_previews": [
+    "magistrate-forward-fan-breach.png",
+    "magistrate-forward-fan-foundry.png",
+    "explosion-grounded-breach.png",
+    "explosion-grounded-foundry.png",
+    "explosion-settle-breach.png",
+    "marshal-continuous-beam-breach.png",
+    "vfx-regular-warning.png",
+    "skitter-grounded-leap-warning.png"
+  ],
+  "physical_acceptance": "difficulty, motion, haptic comfort, sound and performance require hands-on review",
+  "proposal_only": "four weapons, new power-ups including Rupture, unlocks and loadout redesign"
+}

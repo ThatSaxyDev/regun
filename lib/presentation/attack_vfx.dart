@@ -5,7 +5,7 @@ import 'package:regun/presentation/regun_art.dart';
 
 /// World-space pixel masonry, glass and embers. Damage stays in the authored
 /// shape; these bounded-cost strokes give that footprint physical material.
-enum AttackMaterial { stone, glass, chain, ember, poison, shadow }
+enum AttackMaterial { stone, glass, chain, ember, poison, shadow, laser }
 
 class AttackVfx {
   static const _dark = Color(0xff17141C);
@@ -18,6 +18,7 @@ class AttackVfx {
         AttackMaterial.poison => const Color(0xffA2AD72),
         AttackMaterial.shadow => const Color(0xffBB869E),
         AttackMaterial.stone => const Color(0xffD3A47F),
+        AttackMaterial.laser => const Color(0xffF49A75),
       };
   static void stroke(
       Canvas canvas, List<Offset> points, Color color, double width) {
@@ -55,6 +56,7 @@ class AttackVfx {
   static void stamp(Canvas canvas, int frame, Offset point, double width,
       {double alpha = 1,
       double? height,
+      ColorFilter? grading,
       AttackMaterial material = AttackMaterial.stone,
       Anchor anchor = Anchor.bottomCenter}) {
     if (!RegunArt.shared.contains('effects/combat_materials')) return;
@@ -135,6 +137,7 @@ class AttackVfx {
         0
       ]);
     }
+    if (grading != null) paint.colorFilter = grading;
     sprite.render(canvas,
         position: Vector2(point.dx, point.dy),
         size: Vector2(
@@ -172,6 +175,102 @@ class AttackVfx {
           canvas, base + frame, center + Offset(0, radius * .45), radius * 1.7,
           material: material);
     }
+  }
+
+  /// Shared grounded burst for mines and future death explosions. Reuses the
+  /// ember atlas; the foot stays planted while heat gives way to dust/char.
+  static void explosion(Canvas canvas, Offset center, double radius,
+      {required double progress, required ColorFilter ambient,
+      bool reducedMotion = false}) {
+    final p = progress.clamp(0.0, 1.0);
+    final fade = ((1 - p) / .45).clamp(0.0, 1.0);
+    final foot = center + Offset(0, radius * .28);
+    stamp(canvas, 23, foot, radius * 2,
+        height: radius * .85, alpha: .55 * fade,
+        material: AttackMaterial.ember, grading: ambient);
+    // Sparse pieces share the damaged floor footprint without a glowing ring.
+    for (var i = 0; i < 6; i++) {
+      final angle = i * math.pi / 3 + .2;
+      final offset = Offset(math.cos(angle), math.sin(angle) * .65) * radius * .78;
+      stamp(canvas, 23, center + offset + Offset(0, radius * .15), radius * .38,
+          height: radius * .24, alpha: .5 * fade,
+          material: AttackMaterial.ember, grading: ambient);
+    }
+    final frame = reducedMotion ? 21 : 19 + (p * 5).floor().clamp(0, 4);
+    stamp(canvas, frame, foot, radius * 1.65,
+        height: radius * 1.65, alpha: (reducedMotion ? .72 : .9) * fade,
+        material: AttackMaterial.ember, grading: ambient);
+  }
+
+  /// Matte ground scars belong to a creature's leap, not a gunshot lane.
+  static void lungeWarning(Canvas canvas, Offset start, Offset end,
+      {required double progress, required ColorFilter ambient}) {
+    final delta = end - start;
+    if (delta.distance < 1) return;
+    final length = delta.distance;
+    final heading = math.atan2(delta.dy, delta.dx);
+    final count = (length / 100).ceil().clamp(2, 7);
+    for (var i = 0; i <= count; i++) {
+      final point = start + delta * (i / count);
+      canvas.save();
+      canvas.translate(point.dx, point.dy);
+      canvas.rotate(heading);
+      stamp(canvas, 5, const Offset(4, 7), 38,
+          height: 14, alpha: .35 + progress * .18, grading: ambient);
+      for (final side in [-1, 1]) {
+        for (var claw = 0; claw < 3; claw++) {
+          final y = side * (6.0 + claw * 4);
+          final marks = [Offset(-10.0 + claw * 2, y),
+            Offset(-1, y - side * 2), Offset(7.0 - claw, y - side * 1)];
+          stroke(canvas, marks, const Color(0x99100F0E), 5);
+          stroke(canvas, marks,
+              Color.fromRGBO(151, 140, 112, .4 + progress * .3), 2);
+        }
+      }
+      canvas.restore();
+    }
+  }
+
+  /// Continuous hostile energy. One unbroken core, no repeated impact sprites.
+  /// Width is the exact line-shape radius; outer glow is non-damaging light.
+  static void laser(Canvas canvas, Offset start, Offset end, double width,
+      {required bool warning, required double progress,
+      bool reducedMotion = false}) {
+    final delta = end - start;
+    final length = delta.distance;
+    if (length < 1) return;
+    canvas.save();
+    canvas.translate(start.dx, start.dy);
+    canvas.rotate(math.atan2(delta.dy, delta.dx));
+    void band(double halfWidth, Color color) => canvas.drawRect(
+        Rect.fromLTWH(0, -halfWidth, length, halfWidth * 2),
+        Paint()..color = color..isAntiAlias = false);
+    if (warning) {
+      band(width, const Color(0x163C1312));
+      band(2, Color.fromRGBO(232, 117, 88, .45 + progress * .35));
+      final paint = Paint()..color = const Color(0xffCB9775)..isAntiAlias = false;
+      for (final side in [-1, 1]) {
+        canvas.drawRect(Rect.fromLTWH(-6, side * (width + 5) - 2, 17, 4), paint);
+      }
+    } else {
+      final fade = ((1 - progress) / .18).clamp(.35, 1.0);
+      band(width + 12, Color.fromRGBO(221, 67, 41, .14 * fade));
+      band(width, Color.fromRGBO(239, 99, 51, .65 * fade));
+      band(width * .58, Color.fromRGBO(255, 175, 103, .95 * fade));
+      band(width * .20, Color.fromRGBO(255, 245, 212, fade));
+      // A few square hot filaments give the beam material without breaking it.
+      if (!reducedMotion) {
+        final count = (length / 65).ceil().clamp(1, 32);
+        for (var i = 0; i < count; i++) {
+          final x = ((i / count + progress * .24) % 1) * length;
+          canvas.drawRect(Rect.fromLTWH(x, (i.isEven ? -1 : 1) * width * .6, 16, 3),
+              Paint()..color = Color.fromRGBO(255, 212, 143, .6 * fade));
+        }
+      }
+      canvas.drawRect(Rect.fromLTWH(-9, -width * .65, 22, width * 1.3),
+          Paint()..color = Color.fromRGBO(255, 238, 192, fade));
+    }
+    canvas.restore();
   }
 
   static void ribbon(Canvas canvas, Offset start, Offset end, double width,

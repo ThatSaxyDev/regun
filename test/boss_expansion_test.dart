@@ -10,6 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/components/enemies/boss_attack.dart';
+import 'package:regun/components/enemies/hostile_area.dart';
+import 'package:regun/components/weapons/combat_effect.dart';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/components/enemies/boss_encounter.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/components/enemies/expansion_boss.dart';
@@ -565,6 +568,271 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  test('laser renders an unbroken bright core instead of tiled sprites', () async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    canvas.drawColor(const Color(0xff141117), BlendMode.src);
+    AttackVfx.laser(canvas, const Offset(20, 60), const Offset(620, 60), 24,
+        warning: false, progress: .5);
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(640, 120);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    for (var x = 21; x < 620; x++) {
+      final offset = (60 * 640 + x) * 4;
+      expect(bytes!.getUint8(offset), greaterThan(220));
+      expect(bytes.getUint8(offset + 1), greaterThan(200));
+      expect(bytes.getUint8(offset + 2), greaterThan(170));
+    }
+    image.dispose(); picture.dispose();
+  });
+
+  testWidgets('Marshal beams start at the gun, hit their visible route and freeze',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final arena in ArenaType.values) {
+      final game = await mount(tester, loadout: Loadout(arena: arena));
+      await tester.runAsync(() async {
+        game.myPlayer.position.setValues(-180, 0);
+        game.spawnBoss(BossKind.marshal);
+        await game.ready();
+        final boss = game.activeBoss! as LastMarshalBoss;
+        boss.position.setValues(380, 0);
+        expect(boss.beginMove(), isTrue);
+        await game.ready();
+        final shots = game.world.children.whereType<BossAttack>().toList();
+        expect(shots, hasLength(2));
+        final shot = shots.first;
+        expect(shot.material, AttackMaterial.laser);
+        expect(shot.priority, greaterThan(boss.priority));
+        expect(shot.shape.points.first, boss.shotOrigin(game.myPlayer.position));
+        expect(shot.shape.hits(game.myPlayer.position, 1, body: 0), isTrue,
+            reason: 'Muzzle offset must not cause the laser to miss its aim point');
+        final locked = shot.shape.points.map((point) => point.clone()).toList();
+        final health = game.gameState.health;
+        shot.update(shot.warning - .01);
+        expect(game.gameState.health, health);
+        shot.update(.03);
+        expect(game.gameState.health, health - 1);
+        shot.update(.06);
+        expect(game.gameState.health, health - 1, reason: 'One hit per beam');
+        game.myPlayer.position.y += 120;
+        expect(shot.shape.points, orderedEquals(locked));
+        game.pauseGame();
+        final age = shot.age;
+        shot.update(.2);
+        expect(shot.age, age);
+        game.resumeGame();
+      });
+      await capture(tester, 'marshal-continuous-beam-${arena.name}');
+      await tester.runAsync(() async {
+        game.preferences.reducedMotion = true;
+      });
+      await capture(tester, 'marshal-beam-reduced-${arena.name}');
+      await tick(tester, game, 120);
+      expect(game.runtimeCounts['hazards']!, lessThanOrEqualTo(8));
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    }
+  });
+
+  testWidgets('explosions stay grounded, fade and preserve damage on both arenas',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final arena in ArenaType.values) {
+      final game = await mount(tester, loadout: Loadout(training: true, arena: arena));
+      await tester.runAsync(() async {
+        final target = Enemy2Component(position: Vector2(110, 0));
+        await game.world.add(target);
+        await game.ready();
+        final before = target.combatHealth.current;
+        game.explode(Vector2(40, 0), radius: 155, damage: 1);
+        await game.ready();
+        expect(target.combatHealth.current, before - 1);
+        final effect = game.world.children.whereType<CombatEffect>()
+            .singleWhere((effect) => effect.material == AttackMaterial.ember);
+        expect(effect.priority, lessThan(game.myPlayer.priority));
+        effect.update(.10);
+        game.pauseGame();
+        game.update(.20);
+        expect(effect.age, .10);
+        game.resumeGame();
+      });
+      await capture(tester, 'explosion-grounded-${arena.name}');
+      await tester.runAsync(() async {
+        final effect = game.world.children.whereType<CombatEffect>()
+            .singleWhere((effect) => effect.material == AttackMaterial.ember);
+        effect.update(.20);
+      });
+      await capture(tester, 'explosion-settle-${arena.name}');
+      await tester.runAsync(() async {
+        game.preferences.reducedMotion = true;
+        game.explode(Vector2(-130, 80), radius: 100, damage: 0);
+        await game.ready();
+      });
+      await capture(tester, 'explosion-reduced-${arena.name}');
+      await tick(tester, game, 40);
+      expect(game.world.children.whereType<CombatEffect>()
+          .where((effect) => effect.material == AttackMaterial.ember), isEmpty);
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    }
+  });
+
+  testWidgets('Magistrate sends multiple straight chains toward the player',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final signatures = <String>{};
+    for (final arena in ArenaType.values) {
+      final game = await mount(tester, loadout: Loadout(arena: arena));
+      await tester.runAsync(() async {
+        game.myPlayer.position.setValues(-600, -1400);
+        game.spawnBoss(BossKind.magistrate);
+        await game.ready();
+        final boss = game.activeBoss! as MagistrateBoss;
+        boss.position.setValues(-1000, -1400);
+        for (final enraged in [false, true]) {
+          if (enraged) boss.combatHealth.damage(boss.combatHealth.maximum * .51);
+          for (var seed = 1; seed <= 24; seed++) {
+            game.random.state = seed;
+            final move = boss.plan();
+            expect(move.cues.length, enraged ? 7 : 5);
+            expect(game.bossMoveHasEscape(move.cues), isTrue);
+            signatures.add('${move.cues.length}/${move.name}');
+            for (final cue in move.cues) {
+              expect(cue.shape.kind, BossShapeKind.line);
+              expect(cue.shape.points, hasLength(2));
+              expect(cue.shape.points.first, boss.position);
+              final ray = (cue.shape.points.last - boss.position).normalized();
+              final toward = (game.myPlayer.position - boss.position).normalized();
+              expect(ray.dot(toward), greaterThan(.62),
+                  reason: 'Every chain must threaten the player-facing sector');
+              expect(cue.shape.points.last.distanceTo(boss.position), greaterThan(90));
+              expect(game.segmentBlocked(cue.shape.points.first, cue.shape.points.last), isFalse);
+            }
+            final committed = move.cues.first.shape.points.last.clone();
+            game.myPlayer.position.y += 20;
+            expect(move.cues.first.shape.points.last, committed);
+            game.myPlayer.position.y -= 20;
+          }
+        }
+        // Capture the complete forward fan, not an off-screen radial pattern.
+        boss.position.setValues(380, 0);
+        game.myPlayer.position.setValues(-180, 0);
+        game.random.state = 11;
+        game.addHostileArea(Vector2(-1200, -1000), radius: 50, warning: 2);
+        game.addHostileArea(Vector2(-1000, -1000), radius: 50, warning: 2);
+        await game.ready();
+        expect(boss.beginMove(), isFalse,
+            reason: 'Wait for room for all seven chains instead of dropping some');
+        expect(game.world.children.whereType<BossAttack>(), isEmpty);
+        for (final hazard in game.world.children.whereType<HostileArea>().toList()) {
+          hazard.removeFromParent();
+        }
+        await game.ready();
+        expect(boss.beginMove(), isTrue);
+        await game.ready();
+        for (final attack in game.world.children.whereType<BossAttack>()) {
+          attack.update(.4);
+        }
+      });
+      await capture(tester, 'magistrate-forward-fan-${arena.name}');
+      await tester.runAsync(() async {
+        final boss = game.activeBoss! as MagistrateBoss;
+        boss.cancelAttacks();
+        // Clipping near the wall shortens spokes without bending them.
+        boss.position.setValues(game.geometry.bounds.floor.right - 130, -1400);
+        for (final cue in boss.plan().cues) {
+          expect(cue.shape.points, hasLength(2));
+          expect(cue.shape.points.first, boss.position);
+          expect(game.geometry.bounds.floor.contains(cue.shape.points.last.toOffset()), isTrue);
+          expect(game.segmentBlocked(cue.shape.points.first, cue.shape.points.last), isFalse);
+        }
+      });
+      await tester.pumpWidget(const SizedBox());
+    }
+    expect(signatures.length, greaterThanOrEqualTo(4));
+  });
+
+  testWidgets('Skitter leaps farther with direct and predicted locked attacks',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final game = await mount(tester);
+    var direct = 0, predicted = 0;
+    await tester.runAsync(() async {
+      for (var seed = 1; seed <= 24; seed++) {
+        game.myPlayer.position.setValues(-300, -1400);
+        game.movementJoystick.delta.setValues(0, 80);
+        game.random.state = seed;
+        final runner = ArenaEnemy(EnemyKind.runner, elite: seed.isEven, position: Vector2(-800, -1400))
+          ..clock = 1.21;
+        await game.world.add(runner);
+        await game.ready();
+        runner.update(0);
+        expect(runner.phase, 1, reason: 'Commit from 500 units away');
+        runner.update(.55);
+        expect(runner.phase, 2);
+        // Change direction after commitment: the attack must not home in.
+        game.movementJoystick.delta.setValues(0, -80);
+        final start = runner.position.clone();
+        runner.update(.1);
+        final heading = (runner.position - start).normalized();
+        if (heading.y.abs() < .01) { direct++; } else { predicted++; }
+        game.myPlayer.position.y -= 300;
+        runner.update(.1);
+        final next = (runner.position - start).normalized();
+        expect(next.distanceTo(heading), lessThan(.001));
+        runner.update(1);
+        expect(runner.phase, 3);
+        expect(runner.position.distanceTo(start), greaterThan(450));
+        expect(runner.position.distanceTo(start), lessThanOrEqualTo(681));
+        runner.removeFromParent();
+        await game.ready();
+      }
+      game.movementJoystick.delta.setZero();
+      game.myPlayer.position.setValues(-300, -1400);
+      game.setTrainingDamage(true);
+      game.random.state = 2; // Direct attack.
+      final runner = ArenaEnemy(EnemyKind.runner, position: Vector2(-800, -1400))
+        ..clock = 1.21;
+      await game.world.add(runner);
+      await game.ready();
+      runner.update(0);
+      runner.update(.55);
+      final health = game.gameState.health;
+      runner.update(1); // A coarse step must still hit across the player's body.
+      expect(game.gameState.health, health - 1);
+      runner.removeFromParent();
+      await game.ready();
+      // A long leap still cannot cross another enemy's occupied body.
+      final blocker = Enemy2Component(position: Vector2(-500, -1400));
+      final blocked = ArenaEnemy(EnemyKind.runner, position: Vector2(-800, -1400))
+        ..clock = 1.21;
+      await game.world.addAll([blocker, blocked]);
+      await game.ready();
+      game.random.state = 2;
+      blocked.update(0); blocked.update(.55); blocked.update(1);
+      expect(blocked.position.x, lessThan(blocker.position.x - 75));
+      blocker.removeFromParent(); blocked.removeFromParent();
+      await game.ready();
+      game.myPlayer.position.setValues(220, 90);
+      final preview = ArenaEnemy(EnemyKind.runner, position: Vector2(-340, 90))
+        ..clock = 1.21;
+      await game.world.add(preview);
+      await game.ready();
+      preview.update(0); preview.update(.35);
+      game.update(0);
+    });
+    await capture(tester, 'skitter-grounded-leap-warning');
+    expect(direct, greaterThan(5));
+    expect(predicted, greaterThan(5));
+    await tester.pumpWidget(const SizedBox());
+    expect(tester.takeException(), isNull);
+  });
+
   for (final kind in [BossKind.saint, BossKind.magistrate]) {
     for (final dodge in [false, true]) {
       testWidgets(
@@ -582,6 +850,8 @@ void main() {
           boss.position.setValues(-1000, -1400);
           game.movementJoystick.delta.setValues(80, 0);
           var dodged = false;
+          Vector2? chainGap;
+          var avoidedSequence = -1;
           for (var frame = 0; frame < 330; frame++) {
             for (final actor in game.liveEnemies.toList()) {
               if (!identical(actor, boss)) actor.removeFromParent();
@@ -591,8 +861,43 @@ void main() {
             }
             // Drive a sustained intent each frame, matching a held pointer.
             // Flame resets a directly assigned delta without a drag owner.
-            game.movementJoystick.delta
-                .setValues(dodged ? 0 : 80, dodged ? 80 : 0);
+            if (dodge && kind == BossKind.magistrate &&
+                boss.phase == ExpansionPhase.warning &&
+                boss.sequence != avoidedSequence) {
+              avoidedSequence = boss.sequence;
+              chainGap = null;
+              final origin = game.myPlayer.position;
+              for (var distance = 45.0; distance <= 225 && chainGap == null; distance += 45) {
+                for (var direction = 0; direction < 24; direction++) {
+                  final angle = direction * math.pi / 12;
+                  final candidate = origin + Vector2(math.cos(angle), math.sin(angle)) * distance;
+                  if (candidate.distanceTo(boss.position) < 120 ||
+                      game.segmentBlocked(origin, candidate)) {
+                    continue;
+                  }
+                  final constrained = candidate.clone();
+                  game.constrainActor(constrained, 30);
+                  if (constrained.distanceTo(candidate) > 1) continue;
+                  if (boss.currentMove!.cues.every((cue) =>
+                      !cue.shape.hits(candidate, 1, body: 38))) {
+                    chainGap = candidate;
+                    break;
+                  }
+                }
+              }
+              expect(chainGap, isNotNull,
+                  reason: 'A reachable gap must exist in the forward volley');
+            }
+            if (chainGap != null) {
+              // Read the fan and settle between lanes. Blindly holding a
+              // perpendicular direction would cross the neighboring chains.
+              final delta = chainGap - game.myPlayer.position;
+              game.movementJoystick.delta.setFrom(
+                  delta.length < 3 ? Vector2.zero() : delta.normalized() * 80);
+            } else {
+              game.movementJoystick.delta
+                  .setValues(dodged ? 0 : 80, dodged ? 80 : 0);
+            }
             game.update(1 / 60);
             if (frame % 6 == 0) await game.ready();
           }

@@ -99,7 +99,14 @@ class BossAttackShape {
       AttackMaterial material = AttackMaterial.stone}) {
     final center = points.first.toOffset();
     final textureProgress = reducedMotion && !warning ? .35 : progress;
-    if (kind == BossShapeKind.circle) {
+    if (kind == BossShapeKind.line && material == AttackMaterial.laser) {
+      for (var i = 0; i + 1 < points.length; i++) {
+        AttackVfx.laser(canvas, points[i].toOffset(), points[i + 1].toOffset(), width,
+            warning: warning,
+            progress: warning ? warningProgress : progress,
+            reducedMotion: reducedMotion);
+      }
+    } else if (kind == BossShapeKind.circle) {
       AttackVfx.disk(canvas, center, radius,
           warning: warning,
           progress: warning ? warningProgress : textureProgress,

@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
@@ -13,7 +14,8 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
       this.material = AttackMaterial.stone,
       this.color = const Color(0xffE3BF83),
       this.duration = 0.25})
-      : super(priority: 20010);
+      : super(priority: material == AttackMaterial.ember &&
+              endpoint == null && remains == null ? -10 : 20010);
   final Vector2? endpoint;
   final Sprite? remains;
   final double radius, duration;
@@ -50,6 +52,11 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
       AttackVfx.lightning(
           canvas, Offset.zero, end, (1 - age / duration).clamp(0, 1),
           heavy: true);
+    } else if (material == AttackMaterial.ember) {
+      AttackVfx.explosion(canvas, Offset.zero, radius,
+          progress: (age / duration).clamp(0, 1),
+          ambient: BossArt.ambient(game.loadout.arena),
+          reducedMotion: game.preferences.reducedMotion);
     } else {
       AttackVfx.disk(canvas, Offset.zero, radius,
           warning: false,

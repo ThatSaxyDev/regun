@@ -70,7 +70,7 @@ abstract class ExpansionBoss extends PositionComponent
   final _owned = <BossAttack>[];
   final _props = <BossWeakPoint>[];
   late SpriteAnimationComponent body;
-  late SpriteAnimation _idle, _walk, _enragedIdle, _impact;
+  late SpriteAnimation _idle, _walk, _enragedIdle, _impact, _aimHold;
   final facing = Vector2(1, 0);
   double get targetDistance => position.distanceTo(game.myPlayer.position);
   Vector2 get target {
@@ -88,6 +88,7 @@ abstract class ExpansionBoss extends PositionComponent
 
   List<Vector2> path(List<Vector2> points) => game.clipBossPath(points);
   BossMove plan();
+  Vector2 shotOrigin(Vector2 aim) => position.clone();
 
   SpriteAnimation clip(List<int> frames, double duration,
           {bool loop = false}) =>
@@ -109,6 +110,7 @@ abstract class ExpansionBoss extends PositionComponent
     _idle = clip([0, 1, 2, 3], 1.2, loop: true);
     _walk = clip([4, 5, 6, 7], .64, loop: true);
     _enragedIdle = clip([32, 33, 34, 35], 1.0, loop: true);
+    _aimHold = clip([10], 1.0, loop: true);
     body = SpriteAnimationComponent(
         size: Vector2.all(kind.spriteSize),
         position: Vector2(100, 170 - .38 * kind.spriteSize),
@@ -173,6 +175,13 @@ abstract class ExpansionBoss extends PositionComponent
   bool beginMove() {
     if (!game.claimBossAttack(this)) return false;
     final move = plan();
+    if (kind == BossKind.magistrate && !game.canStageBossMove(move.cues.length)) {
+      // Stage the complete volley atomically. Existing floor hazards must not
+      // silently reduce a five/seven-chain attack to one or two chains.
+      game.releaseBossAttack(this);
+      clock = .45;
+      return false;
+    }
     if (!game.bossMoveHasEscape(move.cues)) {
       game.releaseBossAttack(this);
       // Try another authored pattern after a bounded rethink, not a costly
@@ -198,7 +207,7 @@ abstract class ExpansionBoss extends PositionComponent
         ? [27, 28, 29]
         : [start + 4, start + 5, start + 6, start + 7];
     _impact = clip(
-        kind == BossKind.marshal && move.pose == 0 ? [11, 12, 13, 14] : impact,
+        kind == BossKind.marshal && move.pose == 0 ? [10] : impact,
         .48);
     phase = ExpansionPhase.warning;
     clock = 0;
@@ -207,7 +216,9 @@ abstract class ExpansionBoss extends PositionComponent
       final attack = BossAttack(
           shape: cue.shape,
           owner: combatHealth,
-          material: switch (kind) {
+          material: kind == BossKind.marshal && move.pose == 0
+              ? AttackMaterial.laser
+              : switch (kind) {
             BossKind.saint => AttackMaterial.glass,
             BossKind.magistrate => AttackMaterial.chain,
             BossKind.sovereign => AttackMaterial.ember,
@@ -264,9 +275,15 @@ abstract class ExpansionBoss extends PositionComponent
         _countered = true;
         final counter = BossAttack(
             owner: combatHealth,
-            shape: BossAttackShape.line(path([position, target]), width: 12),
+            shape: BossAttackShape.line(
+                path([shotOrigin(target), target]), width: 12),
+            material: AttackMaterial.laser,
             warning: 1.05,
-            active: .15,
+            active: .24,
+            onImpact: () {
+              body.animation = clip([10], .3);
+              _impactUntil = clock + .3;
+            },
             cause: 'Marshal counter',
             sound: 'boss_marshal_hit.wav');
         if (game.addBossAttack(counter)) _owned.add(counter);
@@ -343,7 +360,10 @@ abstract class ExpansionBoss extends PositionComponent
         }
       case ExpansionPhase.active:
         if (clock >= _impactUntil && body.animation?.loop == false) {
-          body.animation = enraged ? _enragedIdle : _idle;
+          final aimingNextBeam = kind == BossKind.marshal &&
+              currentMove?.pose == 0 && currentMove!.cues.any(
+                  (cue) => cue.delay + cue.warning > clock);
+          body.animation = aimingNextBeam ? _aimHold : enraged ? _enragedIdle : _idle;
         }
         if (clock >= currentMove!.duration) {
           _enterRecovery(currentMove!.recovery);
@@ -448,59 +468,62 @@ class BellkeeperBoss extends ExpansionBoss {
 class MagistrateBoss extends ExpansionBoss {
   MagistrateBoss({super.position, required super.maximumHealth})
       : super(BossKind.magistrate);
+  /// Clip the ray's length, never bend its angle at a wall or column.
+  List<Vector2> _spoke(double angle, double reach) {
+    final direction = Vector2(cos(angle), sin(angle));
+    final floor = game.geometry.bounds.floor.deflate(35);
+    var low = 0.0, high = reach;
+    for (var i = 0; i < 14; i++) {
+      final length = (low + high) / 2;
+      final point = position + direction * length;
+      if (!floor.contains(point.toOffset()) || game.segmentBlocked(position, point)) {
+        high = length;
+      } else {
+        low = length;
+      }
+    }
+    return [position.clone(), position + direction * low];
+  }
+
   @override
   BossMove plan() {
     final velocity =
         game.movementJoystick.relativeDelta * game.gameState.movementSpeed;
     final aim = safePoint(game.myPlayer.position + velocity * .8);
-    final forward = (aim - position).normalized();
-    final side = Vector2(-forward.y, forward.x);
-    final a = safePoint(aim + forward * 600 + side * 30);
-    final b = safePoint(aim + forward * 570 - side * 140);
-    if (sequence % 3 == 1 && targetDistance < 750) {
-      return BossMove(
-          'Reaping chain',
-          1,
-          [
-            AttackCue(
-                BossAttackShape.sweep(position,
-                    (position.distanceTo(aim) + 260).clamp(600.0, 1200.0),
-                    angle: atan2(forward.y, forward.x) - 1.5,
-                    arc: 3.0,
-                    innerRadius: 200,
-                    width: 35),
-                warning: .95,
-                active: .85,
-                damage: 2),
-          ],
-          prop: BossPropKind.clasp,
-          propPositions: [a, b],
-          recovery: 1.25);
+    final forward = aim - position;
+    final random = game.random;
+    final count = enraged ? 7 : 5;
+    final spread = (enraged ? 1.60 : 1.35) + random.nextDouble() * .08;
+    final heading = atan2(forward.y, forward.x) +
+        (random.nextDouble() * 2 - 1) * .02;
+    final reach = (position.distanceTo(aim) + 620).clamp(1250.0, 1950.0);
+    final reverse = random.nextBool();
+    final staggered = random.nextBool();
+    final cues = <AttackCue>[];
+    final ends = <Vector2>[];
+    for (var i = 0; i < count; i++) {
+      final middle = (count - 1) ~/ 2;
+      final offset = (i - middle) * spread / (count - 1);
+      final jitter = i == middle ? 0.0 : (random.nextDouble() * 2 - 1) * .015;
+      final points = _spoke(heading + offset + jitter,
+          reach * (i == middle ? 1 : .88 + random.nextDouble() * .12));
+      if (points.first.distanceTo(points.last) < 90) continue;
+      ends.add(points.last);
+      final order = reverse ? count - 1 - i : i;
+      cues.add(AttackCue(BossAttackShape.line(points, width: enraged ? 18 : 20),
+          warning: enraged ? .95 : 1.0,
+          delay: staggered ? (order % 3) * .16 : 0,
+          active: .48,
+          damage: 2));
     }
-    final crossed = sequence % 3 == 2;
     return BossMove(
-        crossed ? 'Cross examination' : 'Writ of iron',
-        crossed ? 2 : 0,
-        [
-          AttackCue(BossAttackShape.line(path([position, a]), width: 34),
-              warning: .95, active: .5, damage: 2),
-          AttackCue(
-              BossAttackShape.line(path([crossed ? b - side * 350 : a, b]),
-                  width: 34),
-              delay: .55,
-              warning: .95,
-              active: .5,
-              damage: 2),
-          if (enraged)
-            AttackCue(
-                BossAttackShape.circle(safePoint(aim + forward * 170), 110),
-                delay: 1.2,
-                warning: .9,
-                active: .45),
-        ],
+        staggered ? 'Judgement volley' : 'Iron barrage',
+        sequence % 3,
+        cues,
         prop: BossPropKind.clasp,
-        propPositions: [a, b],
-        recovery: 1.3);
+        // Two readable break opportunities; no connecting or branching chains.
+        propPositions: [for (final end in ends.take(2)) end],
+        recovery: enraged ? 1.05 : 1.3);
   }
 }
 
@@ -612,6 +635,11 @@ class KilnSovereignBoss extends ExpansionBoss {
   KilnSovereignBoss({super.position, required super.maximumHealth})
       : super(BossKind.sovereign);
   @override
+  Vector2 shotOrigin(Vector2 aim) => position +
+      Vector2((aim.x < position.x ? -1 : 1) * kind.spriteSize * .41,
+          -kind.spriteSize * .37);
+
+  @override
   BossMove plan() {
     final aim = target, forward = (aim - position).normalized();
     final side = Vector2(-forward.y, forward.x);
@@ -684,6 +712,11 @@ class LastMarshalBoss extends ExpansionBoss {
   LastMarshalBoss({super.position, required super.maximumHealth})
       : super(BossKind.marshal);
   @override
+  Vector2 shotOrigin(Vector2 aim) => position +
+      Vector2((aim.x < position.x ? -1 : 1) * kind.spriteSize * .41,
+          -kind.spriteSize * .37);
+
+  @override
   BossMove plan() {
     final aim = target, forward = (aim - position).normalized();
     final side = Vector2(-forward.y, forward.x);
@@ -724,22 +757,25 @@ class LastMarshalBoss extends ExpansionBoss {
           propPositions: [blade],
           recovery: 1.8);
     }
+    final source = shotOrigin(aim);
+    List<Vector2> shot(Vector2 point) =>
+        path([source, point + (point - source).normalized() * 900]);
     return BossMove(
         'Measured fire',
         0,
         [
           AttackCue(
-              BossAttackShape.line(path([position, aim + forward * 900]),
+              BossAttackShape.line(shot(aim),
                   width: 24),
               warning: .9,
-              active: .12),
+              active: .28),
           AttackCue(
               BossAttackShape.line(
-                  path([position, aim + forward * 900 + side * 140]),
+                  shot(aim + side * 140),
                   width: 24),
               delay: .65,
               warning: .9,
-              active: .12),
+              active: .28),
         ],
         recovery: 1.3);
   }

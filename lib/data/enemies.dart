@@ -2,7 +2,7 @@ enum EnemyKind {
   scorpion('Scorpion', 'Fans around your sides, then closes in.'),
   mummy('Mummy', 'Intercepts your route. Leave its reach before the strike.'),
   ranged('Revenant', 'Keeps its distance. Close in during its cast.'),
-  runner('Skitter', 'Flanks, commits to a lunge, then recovers.'),
+  runner('Skitter', 'Leaps at you or cuts off your route. Dodge its marked lane.'),
   shield(
       'Shield Warden', 'Front armor blocks shots. Strike during its recovery.'),
   burster('Burster', 'Cuts off your route. Escape its marked explosion.'),
@@ -20,7 +20,7 @@ enum BossKind {
   bellkeeper('The Bellkeeper',
       'Find the gap. Wait for the echo. Break the exposed clapper.'),
   magistrate('Chain Magistrate',
-      'Read the chains. Break a clasp or leave the tightening line.'),
+      'Dodge the chain volleys. Break an exposed clasp.'),
   saint('The Mirror Saint',
       'Change your route. Dodge the glass. Break the mirrors.'),
   sovereign('Kiln Sovereign',

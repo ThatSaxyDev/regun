@@ -131,6 +131,9 @@ class RegunGame extends FlameGame
   PositionComponent projectileOwner(PositionComponent target) =>
       target is BossWeakPoint ? target.owner : target;
 
+  bool canStageBossMove(int count) =>
+      _bossAttacks.length + _hazards.length + count <= 8;
+
   bool registerBossAttack(BossAttack attack) {
     if (_bossAttacks.contains(attack)) return true;
     if (_bossAttacks.length + _hazards.length >= 8) return false;

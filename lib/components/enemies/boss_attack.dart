@@ -19,7 +19,7 @@ class BossAttack extends PositionComponent with HasGameReference<RegunGame> {
       this.color = const Color(0xffDDA46E),
       this.sound = 'impact_boss.wav',
       this.onImpact})
-      : super(priority: -10);
+      : super(priority: material == AttackMaterial.laser ? 20010 : -10);
   final BossAttackShape shape;
   final CombatHealth owner;
   final double warning, active, delay;

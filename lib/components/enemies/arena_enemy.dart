@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/presentation/attack_vfx.dart';
+import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/components/weapons/combat_effect.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:flame/collisions.dart';
@@ -28,6 +31,9 @@ class ArenaEnemy extends PositionComponent
   int phase = 0;
   final _committed = Vector2(1, 0);
   final _shieldDirection = Vector2(1, 0);
+  double _lungeDistance = 105, _lungeDuration = .3;
+  static const lungeSpeed = 1050.0;
+  static const lungeWarning = .55;
   @override
   int get xpReward => (kind == EnemyKind.nest ? 4 : 2) * (elite ? 3 : 1);
   @override
@@ -85,18 +91,40 @@ class ArenaEnemy extends PositionComponent
       case EnemyKind.runner:
         if (phase == 0) {
           game.moveActor(this, approach, 105, dt);
-          if (distance < 260 && clock > 1.2) {
+          if (distance < 620 && clock > 1.2) {
             phase = 1;
             clock = 0;
-            _committed.setFrom(direction);
+            final aim = game.myPlayer.position.clone();
+            // Mix direct attacks with route cuts. Lock before showing the lane;
+            // turning after the warning always changes the player's escape.
+            if (game.random.nextDouble() < .4) {
+              final lead = game.movementJoystick.relativeDelta *
+                  game.gameState.movementSpeed * .8;
+              if (lead.length > 200) lead.scale(200 / lead.length);
+              aim.add(lead);
+            }
+            final delta = aim - position;
+            _committed.setFrom(delta.normalized());
+            if (_committed.isZero()) _committed.setValues(1, 0);
+            _lungeDistance = (delta.length + 60).clamp(240, 680);
+            final speedScale =
+                (1 + math.min(.5, (game.director.cycle - 1) * .08)) *
+                (elite ? 1.15 : 1);
+            _lungeDuration = _lungeDistance / (lungeSpeed * speedScale);
           }
-        } else if (phase == 1 && clock >= 0.55) {
+        } else if (phase == 1 && clock >= lungeWarning) {
           phase = 2;
           clock = 0;
         } else if (phase == 2) {
-          game.moveActor(this, _committed, 350, dt, avoidCrowd: false);
-          if (distance < 52) game.damagePlayer(cause: kind.title);
-          if (clock >= 0.3) {
+          final before = position.clone();
+          final step = math.min(dt, math.max(0.0, _lungeDuration - (clock - dt)));
+          game.moveActor(this, _committed, lungeSpeed, step, avoidCrowd: false);
+          if (BulletComponent.segmentDistanceSquared(
+                  game.myPlayer.position, before, position) < 52 * 52 &&
+              !game.segmentBlocked(position, game.myPlayer.position)) {
+            game.damagePlayer(cause: kind.title);
+          }
+          if (clock >= _lungeDuration) {
             phase = 3;
             clock = 0;
           }
@@ -134,6 +162,7 @@ class ArenaEnemy extends PositionComponent
           game.addCombatEffect(CombatEffect(
               position: position.clone(),
               radius: 150,
+              duration: .42,
               material: AttackMaterial.ember));
           removeFromParent();
         }
@@ -174,9 +203,10 @@ class ArenaEnemy extends PositionComponent
             kind == EnemyKind.shield ||
             kind == EnemyKind.burster)) {
       if (kind == EnemyKind.runner) {
-        AttackVfx.ribbon(
-            canvas, center, center + (_committed * 105).toOffset(), 26,
-            warning: true, progress: (clock / .55).clamp(0, 1));
+        AttackVfx.lungeWarning(
+            canvas, center, center + (_committed * _lungeDistance).toOffset(),
+            progress: (clock / lungeWarning).clamp(0, 1),
+            ambient: BossArt.ambient(game.loadout.arena));
       } else {
         AttackVfx.disk(canvas, center, kind == EnemyKind.burster ? 150 : 140,
             warning: true,
@@ -209,6 +239,10 @@ class ArenaEnemy extends PositionComponent
     if (!directional && game.myPlayer.position.x < position.x) {
       canvas.translate(size.x, 0);
       canvas.scale(-1, 1);
+    }
+    if (kind == EnemyKind.runner && phase == 2 &&
+        !game.preferences.reducedMotion) {
+      canvas.translate(0, -math.sin((clock / _lungeDuration).clamp(0, 1) * math.pi) * 24);
     }
     RegunArt.shared
         .sprite('enemies/${kind.name}', frame)
