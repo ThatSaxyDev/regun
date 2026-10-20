@@ -40,7 +40,7 @@
   "release_build": "passed",
   "dart_runtime_changes": false,
   "prior_game_regression": "149 tests and 30/60-minute simulations passed before this music-assets-only pass",
-  "phone_install": "not installed; paired iPhone still unavailable",
+  "phone_install": "installed and launched on paired iPhone over Wi-Fi; release build 22.0s, installation/launch 12.8s",
   "native_listening": "open; solo and gameplay reels prepared",
   "archive_seconds": "26.0",
   "export_seconds": "24.8"
