@@ -161,30 +161,26 @@ Use a TypeScript SpacetimeDB module for authoritative tables and transactional r
 
 Start with one regional deployment and logical match isolation. A module/database is a scheduling and resource boundary, not automatically an independently scaling process per match. Measure transaction duration and cross-match contention before choosing matches per database, regional sharding or dedicated match allocations. High-frequency combat tables should not share an avoidable failure/maintenance boundary with future commerce.
 
-### Proposed repository structure
+### Repository boundary and implementation structure
+
+The creator explicitly requested an independent sibling project, **`../regun-server`**, outside the Flutter repository. The initial `regun/server` scaffold was moved there; do not recreate an embedded backend. The server runs with its own pinned npm dependencies and local SpacetimeDB configuration. Future shared contracts are versioned/exported across this boundary, not an untracked runtime dependency on another checkout.
 
 ```text
-server/
-  spacetimedb/          # Schema, reducers, schedules, lifecycle and access rules
-  simulation/          # Movement, geometry, weapons, entities and mode rules
-  tests/               # Reducer integration, bots, abuse and load scenarios
-shared/
-  rules/               # Versioned numeric content and arena geometry
-  protocol/            # Reviewed application contracts/version metadata
-  fixtures/            # Cross-language movement/combat expected outcomes
-tool/
-  multiplayer/         # Export/check contracts, run local instances and bots
-lib/multiplayer/
-  transport/           # SDK-specific adapter and generated bindings
-  models/              # Inputs, snapshots, events and online state
-  prediction/          # Movement replay, reconciliation and interpolation
-  presentation/        # Remote actors and network-driven combat rendering
-  session/             # Connection, membership and lifecycle controller
-docs/validation/multiplayer/
-                         # Compatibility, network, fairness and device evidence
+MINE/
+  regun/                         # Flutter repository
+    lib/multiplayer/             # Planned transport, prediction, session and presentation
+    docs/validation/multiplayer/ # Planned native/device acceptance evidence
+  regun-server/                  # Independent backend repository
+    spacetimedb/src/             # Schema, reducers, views and pure simulation rules
+    spacetimedb/tests/           # Pure-rule and real-WebSocket integration tests
+    tool/                       # Versioned geometry/contract exporters
+    shared/                     # Planned shared rules/protocol/fixture packages
+    docs/                       # Backend implementation status and compatibility evidence
 ```
 
-Names are proposed, not existing files. Generated wire bindings come from the pinned SDK/schema toolchain. Separate application contracts must not duplicate that generator's serialization logic.
+The backend's `README.md` and `docs/IMPLEMENTATION_STATUS.md` distinguish implemented foundations from planned paths. Generated wire bindings come from the pinned SDK/schema toolchain. Separate application contracts must not duplicate that generator's serialization logic.
+
+**Initial implementation, 20 October 2026:** the sibling backend builds/publishes locally on SpacetimeDB 2.12.0 and passes pure-rule plus non-owner TypeScript WebSocket checks for room privacy, three-player co-op/six-player PvP limits, all three PvP team formats, lobby authority, scheduled movement, stale input, connection replacement, true reconnect and application RTT. This is a movement/transport foundation: no combat, AI, supplies, production maps or Flutter networking is implemented. Native Dart/iOS/Android compatibility remains open, so M1 is not marked complete. The `network_lab` geometry is an internal fixture and does not satisfy the tactical-map scope.
 
 ## 5. Native Flutter compatibility gate
 
