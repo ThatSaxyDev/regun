@@ -30,6 +30,6 @@
     "live_displacement_check": "passed"
   },
   "release_build": "passed",
-  "phone_install": "in progress",
+  "phone_install": "installed and launched on paired iPhone over Wi-Fi; 20.3s build, 9.9s installation/launch",
   "native_comfort_balance": "open"
 }
