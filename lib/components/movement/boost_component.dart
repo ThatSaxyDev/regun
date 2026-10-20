@@ -25,7 +25,7 @@ class BoostButtonComponent extends AdvancedButtonComponent
   void restoreCheckpoint(Map<String, dynamic> map) {
     _cooldown = ((map['remaining'] as num?)?.toDouble() ?? 0).clamp(0, 1.6);
     _cooldownDuration =
-        ((map['duration'] as num?)?.toDouble() ?? 1.6).clamp(0.7, 1.6);
+        ((map['duration'] as num?)?.toDouble() ?? 1.6).clamp(0.6, 1.6);
   }
 
   double get cooldownFraction => (_cooldown / _cooldownDuration).clamp(0, 1);
@@ -66,8 +66,8 @@ class BoostButtonComponent extends AdvancedButtonComponent
         : !aim.isZero()
             ? aim.normalized()
             : game.myPlayer.lastMovement);
-    _cooldown =
-        (1.6 - game.gameState.rank(PowerUp.quickstep) * 0.25).clamp(0.7, 1.6);
+    _cooldown = (1.6 - game.gameState.effectRank(PowerUp.quickstep) * 0.25)
+        .clamp(0.6, 1.6);
     _cooldownDuration = _cooldown;
     game.dashCount++;
     game.combat.onDash();

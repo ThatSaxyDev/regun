@@ -141,7 +141,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                                   color: _brass))))),
                       if (!_trainingIntro &&
                           state.gameplayState != GameplayState.gameOver)
-                        _hud(state),
+                        _hud(state, ref.read(gameNotifierProvider.notifier)),
                       if (state.gameplayState == GameplayState.powerup)
                         _upgradePicker(state),
                       if (!_trainingIntro &&
@@ -180,7 +180,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 ]))),
       ));
 
-  Widget _hud(GameState state) => SafeArea(
+  Widget _hud(GameState state, GameNotifier notifier) => SafeArea(
         child: Column(children: [
           IgnorePointer(
               child: LinearProgressIndicator(
@@ -274,6 +274,12 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                             ]))),
                             ])));
               }),
+          if (notifier.canFuse && state.gameplayState == GameplayState.playing)
+            ClickButtonM(
+                text: 'Fuse core',
+                width: 150,
+                height: 40,
+                onTap: notifier.openBossCore),
           if (widget.loadout.training && _myGame.bossRush)
             ValueListenableBuilder<int>(
                 valueListenable: _myGame.revision,
@@ -319,55 +325,84 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                   height: 100,
                   width: 220,
                   child: Center(
-                      child: state.reloading
-                          ? TickerMode(
-                              enabled:
-                                  state.gameplayState == GameplayState.playing,
-                              child: ValueListenableBuilder<double>(
-                                  valueListenable:
-                                      _myGame.gameNotifier.reloadProgress,
-                                  builder: (context, progress, _) =>
+                      child: ValueListenableBuilder<double>(
+                          valueListenable: notifier.quickRefillProgress,
+                          builder: (context, refill, child) => refill >= 0
+                              ? Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
                                       WeaponReloadDisplay(
                                           weapon: widget.loadout.weapon,
-                                          progress: progress,
-                                          reducedMotion:
-                                              _myGame.preferences.reducedMotion,
-                                          shells: state.maxBullets -
-                                              state.noOfBullets)))
-                          : Column(mainAxisSize: MainAxisSize.min, children: [
-                              Text(widget.loadout.weapon.title.toUpperCase(),
-                                  style: const TextStyle(
-                                      fontFamily: FontFam.pressStart,
-                                      fontSize: 8,
-                                      color: _muted)),
-                              const SizedBox(height: 8),
-                              if (_myGame.breachEngine)
-                                const Padding(
-                                    padding: EdgeInsets.only(bottom: 8),
-                                    child: Text('BREACH ENGINE',
-                                        style: TextStyle(
-                                            fontFamily: FontFam.pressStart,
-                                            fontSize: 9,
-                                            color: _brass))),
-                              Wrap(
-                                  spacing: 6,
-                                  runSpacing: 4,
-                                  alignment: WrapAlignment.center,
-                                  children: List.generate(
-                                      state.maxBullets.clamp(0, 15),
-                                      (i) => Container(
-                                          width: 6,
-                                          height: 17,
-                                          color: i < state.noOfBullets
-                                              ? _brass
-                                              : const Color(0x88695A66)))),
-                              const SizedBox(height: 7),
-                              Text('${state.noOfBullets} / ${state.maxBullets}',
-                                  style: const TextStyle(
-                                      fontFamily: FontFam.orbitron,
-                                      fontSize: 12,
-                                      color: _paper)),
-                            ])))),
+                                          progress:
+                                              _myGame.preferences.reducedMotion
+                                                  ? 1
+                                                  : refill,
+                                          shells: 1,
+                                          reducedMotion: _myGame
+                                              .preferences.reducedMotion),
+                                      const Text('MAG READY',
+                                          style: TextStyle(
+                                              fontFamily: FontFam.pressStart,
+                                              fontSize: 8,
+                                              color: _brass)),
+                                    ])
+                              : child!,
+                          child: state.reloading
+                              ? TickerMode(
+                                  enabled: state.gameplayState ==
+                                      GameplayState.playing,
+                                  child: ValueListenableBuilder<double>(
+                                      valueListenable:
+                                          _myGame.gameNotifier.reloadProgress,
+                                      builder: (context, progress, _) =>
+                                          WeaponReloadDisplay(
+                                              weapon: widget.loadout.weapon,
+                                              progress: progress,
+                                              reducedMotion: _myGame
+                                                  .preferences.reducedMotion,
+                                              shells: state.maxBullets -
+                                                  state.noOfBullets)))
+                              : Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                      Text(
+                                          widget.loadout.weapon.title
+                                              .toUpperCase(),
+                                          style: const TextStyle(
+                                              fontFamily: FontFam.pressStart,
+                                              fontSize: 8,
+                                              color: _muted)),
+                                      const SizedBox(height: 8),
+                                      if (_myGame.breachEngine)
+                                        const Padding(
+                                            padding: EdgeInsets.only(bottom: 8),
+                                            child: Text('BREACH ENGINE',
+                                                style: TextStyle(
+                                                    fontFamily:
+                                                        FontFam.pressStart,
+                                                    fontSize: 9,
+                                                    color: _brass))),
+                                      Wrap(
+                                          spacing: 6,
+                                          runSpacing: 4,
+                                          alignment: WrapAlignment.center,
+                                          children: List.generate(
+                                              state.maxBullets.clamp(0, 15),
+                                              (i) => Container(
+                                                  width: 6,
+                                                  height: 17,
+                                                  color: i < state.noOfBullets
+                                                      ? _brass
+                                                      : const Color(
+                                                          0x88695A66)))),
+                                      const SizedBox(height: 7),
+                                      Text(
+                                          '${state.noOfBullets} / ${state.maxBullets}',
+                                          style: const TextStyle(
+                                              fontFamily: FontFam.orbitron,
+                                              fontSize: 12,
+                                              color: _paper)),
+                                    ]))))),
         ]),
       );
 
@@ -439,6 +474,12 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                   height: 52),
             ]),
         const SizedBox(height: 14),
+        if (_myGame.gameNotifier.canFuse)
+          ClickButton(
+              text: 'Fuse core',
+              width: 150,
+              height: 48,
+              onTap: _myGame.gameNotifier.openBossCore),
         ClickButtonM(
             text: 'Settings',
             width: 140,

@@ -95,7 +95,7 @@ void main() {
 
   test('reroll and ban consume once; stale interactions cannot spend again',
       () {
-    notifier.increaseXP(7);
+    notifier.increaseXP(25);
     final token = state().offerId;
     notifier.reroll(offerId: token);
     expect(state().rerolls, 1);

@@ -99,7 +99,7 @@ Enemies drop XP when defeated. XP increases level and opens upgrade choices. It 
 
 The deliberate **0.1× world presentation during selection remains**. Your logical combat/run/reload clocks wait for the choice; selection should be safe. This explanation is for testing, not additional in-game narration.
 
-Most families have **three ranks**. Afterimage has **one**. A build can take up to **six different special families** and up to **two fusions**; core/utility families do not use the six special slots. Taking an existing family's next rank does not consume a new special slot. A card flags the final special slot. Each run starts with **two rerolls and one ban**.
+All thirty families have **eight ranks**. Later picks have smaller but rewarding gains, with stricter reload/dash limits. A build can take up to **six different special families** and up to **two fusions**; core/utility families do not use the six special slots. Taking an existing family's next rank does not consume a new special slot. A card flags the final special slot. Each run starts with **two rerolls and one ban**.
 
 Training offers fusion presets, not a free editor for every arbitrary upgrade. Test other families by gaining XP and selecting their cards. The collection explains every family even before you discover its effects.
 

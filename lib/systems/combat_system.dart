@@ -19,13 +19,14 @@ class CombatSystem {
   int _chainBudget = 8;
   GameState get state => game.gameState;
   int rank(PowerUp p) => state.rank(p);
+  double effect(PowerUp p) => state.effectRank(p);
 
   void update(double dt) {
     angle += dt;
     _chainBudget = 8;
     if (rank(PowerUp.orbitDrone) == 0) return;
     droneClock += dt;
-    if (droneClock < max(0.3, 1.0 - rank(PowerUp.orbitDrone) * 0.15)) return;
+    if (droneClock < max(0.3, 1.0 - effect(PowerUp.orbitDrone) * 0.15)) return;
     droneClock = 0;
     final count = state.fused('hunterSwarm') ? 3 : 1;
     for (var i = 0; i < count; i++) {
@@ -42,8 +43,8 @@ class CombatSystem {
       final marked = (target as CombatEnemy).marked;
       hit(
           target,
-          (0.6 + rank(PowerUp.orbitDrone) * 0.35) *
-              (marked ? 1 + rank(PowerUp.targetingLink) * 0.3 : 1),
+          (0.6 + effect(PowerUp.orbitDrone) * 0.35) *
+              (marked ? 1 + effect(PowerUp.targetingLink) * 0.3 : 1),
           primary: false);
     }
   }
@@ -62,11 +63,11 @@ class CombatSystem {
     enemy.incomingDirection = direction;
     if (primary) {
       if (rank(PowerUp.hotShot) > 0) {
-        enemy.ignite(0.25 + rank(PowerUp.hotShot) * 0.2);
+        enemy.ignite(0.25 + effect(PowerUp.hotShot) * 0.2);
       }
       if (rank(PowerUp.targetingLink) > 0) enemy.marked = true;
       if (enemy.combatHealth.fraction < 0.35) {
-        amount *= 1 + rank(PowerUp.executioner) * 0.3;
+        amount *= 1 + effect(PowerUp.executioner) * 0.3;
       }
     }
     if (!enemy.takeDamage(amount)) return false;
@@ -77,7 +78,7 @@ class CombatSystem {
       final innate = game.loadout.weapon == WeaponType.arcCaster;
       if (_chainBudget > 0 &&
           (innate ||
-              game.random.nextDouble() < rank(PowerUp.staticCharge) * 0.12)) {
+              game.random.nextDouble() < effect(PowerUp.staticCharge) * 0.12)) {
         _chainBudget--;
         final count = (innate ? 2 : 0) +
             rank(PowerUp.conductiveCore) +
@@ -106,11 +107,11 @@ class CombatSystem {
   void onKill(PositionComponent enemy) {
     if (enemy is! CombatEnemy) return;
     if (rank(PowerUp.fieldMedic) > 0 &&
-        game.random.nextDouble() < rank(PowerUp.fieldMedic) * 0.05) {
+        game.random.nextDouble() < effect(PowerUp.fieldMedic) * 0.05) {
       game.gameNotifier.heal();
     }
     if (enemy.burning && enemy.burnCanSpread && rank(PowerUp.accelerant) > 0) {
-      final radius = 100 + rank(PowerUp.accelerant) * 30;
+      final radius = 100 + effect(PowerUp.accelerant) * 30;
       for (final target in game.liveEnemies.toList()) {
         if (target != enemy &&
             target.position.distanceToSquared(enemy.position) <
@@ -125,7 +126,7 @@ class CombatSystem {
     }
     if (!enemy.lastHitWasSecondary &&
         rank(PowerUp.shrapnel) > 0 &&
-        game.random.nextDouble() < rank(PowerUp.shrapnel) * 0.18) {
+        game.random.nextDouble() < effect(PowerUp.shrapnel) * 0.18) {
       shards(enemy.position,
           count: 3 + rank(PowerUp.shrapnel),
           damage: 0.65,

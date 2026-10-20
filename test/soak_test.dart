@@ -83,7 +83,7 @@ void main() {
       final ranks = {
         for (final p in powerUps.where((p) => p.group != UpgradeGroup.special))
           p: p.maxRank,
-        for (final p in specials) p: 3
+        for (final p in specials) p: 8
       };
       final state = game.gameState.copyWith(
           ranks: ranks,
@@ -93,15 +93,15 @@ void main() {
           maxHealth: 6,
           health: 6,
           guard: true,
-          maxBullets: 9,
-          noOfBullets: 9,
+          maxBullets: minutes == 30 ? 17 : 16,
+          noOfBullets: minutes == 30 ? 17 : 16,
           bulletNumberRange: 4,
-          shotDamage: 2.05,
-          bulletRange: 800,
-          bulletSpeed: 1300,
+          shotDamage: 2.4,
+          bulletRange: minutes == 30 ? 860 : 720,
+          bulletSpeed: minutes == 30 ? 1850 : 1500,
           fastReload: true,
-          fastReloadTime: 1000,
-          movementSpeed: 450,
+          fastReloadTime: 850,
+          movementSpeed: 510,
           sprintInvincibility: true,
           bulletsPhaseThrough: true);
       game.gameNotifier.restoreCheckpoint(

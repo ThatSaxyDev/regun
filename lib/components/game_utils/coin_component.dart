@@ -26,7 +26,7 @@ class CoinComponent extends SpriteAnimationComponent
     }
     final toPlayer = game.myPlayer.position - position;
     final radius = 180 +
-        game.gameState.rank(PowerUp.scavenger) * 60 +
+        game.gameState.effectRank(PowerUp.scavenger) * 60 +
         (game.loadout.character.name == 'scrapper' ? 80 : 0);
     if (toPlayer.length2 <= radius * radius) {
       position.addScaled(toPlayer.normalized(), 460 * dt);

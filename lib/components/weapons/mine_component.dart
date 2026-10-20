@@ -30,7 +30,7 @@ class MineComponent extends PositionComponent with HasGameReference<RegunGame> {
       exploded = true;
       game.explode(position,
           radius: 155,
-          damage: (2.5 + game.gameState.rank(PowerUp.sprintMine)) *
+          damage: (2.5 + game.gameState.effectRank(PowerUp.sprintMine)) *
               (game.loadout.character.name == 'scrapper' ? 1.4 : 1));
       removeFromParent();
     }

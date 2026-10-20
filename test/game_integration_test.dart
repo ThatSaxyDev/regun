@@ -93,7 +93,7 @@ void main() {
     expect(game.reloadButtonComponent.parent, game.camera.viewport);
     expect(game.map.size.x, 4512);
     final notifier = game.gameNotifier;
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < 25; i++) {
       notifier.increaseXP();
     }
     expect(game.paused, isFalse);
@@ -180,7 +180,7 @@ void main() {
     await screenshot('shadow-arrival');
     expect(boss.takeDamage(80), isTrue);
     expect(boss.enraged, isTrue);
-    game.gameNotifier.increaseXP(7);
+    game.gameNotifier.increaseXP(25);
     final phase = boss.phase;
     game.update(20);
     expect(boss.phase, phase); // Selection freezes the attack scheduler.

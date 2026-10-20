@@ -191,9 +191,13 @@ class PlayerComponent extends SpriteAnimationComponent
       canvas.rotate(atan2(aimDirection.y, aimDirection.x));
       if (aimDirection.x < 0) canvas.scale(1, -1);
       paintWeapon(canvas, game.loadout.weapon,
-          reload: game.gameState.reloading
-              ? game.gameNotifier.reloadProgress.value
-              : -1,
+          reload: game.gameNotifier.quickRefillProgress.value >= 0
+              ? (game.preferences.reducedMotion
+                  ? 1
+                  : game.gameNotifier.quickRefillProgress.value)
+              : game.gameState.reloading
+                  ? game.gameNotifier.reloadProgress.value
+                  : -1,
           recoil: recoil,
           reloadShells: game.gameState.maxBullets - game.gameState.noOfBullets,
           reducedMotion: game.preferences.reducedMotion);

@@ -1241,16 +1241,22 @@ class RegunGame extends FlameGame
         state.shotDamage * loadout.weapon.damage * loadout.character.damage;
     breachEngine = state.fused('breachEngine');
     if (state.noOfBullets == 1) {
-      damage *= 1 + state.lastShellRank * (breachEngine ? 0.9 : 0.6);
+      damage *= 1 +
+          GameState.scaledRank(state.lastShellRank) *
+              (breachEngine ? 0.9 : 0.6);
     }
     if (_breachCharged) {
-      damage *= 1 + state.breachRank * (breachEngine ? 0.8 : 0.5);
+      damage *= 1 +
+          GameState.scaledRank(state.breachRank) * (breachEngine ? 0.8 : 0.5);
     }
     _breachCharged = false;
     final count = loadout.weapon == WeaponType.shotgun
         ? state.bulletNumberRange * 2 + 1
-        : 1 + state.rank(PowerUp.numberOfBulletsPerShotIncrease);
-    final spread = loadout.weapon == WeaponType.shotgun ? pi / 20 : pi / 32;
+        : 1 + min(3, state.rank(PowerUp.numberOfBulletsPerShotIncrease));
+    final spread = (loadout.weapon == WeaponType.shotgun ? pi / 20 : pi / 32) *
+        (1 -
+            max(0, state.rank(PowerUp.numberOfBulletsPerShotIncrease) - 3) *
+                .04);
     for (var i = 0; i < count; i++) {
       if (projectileCount >= maxProjectiles) break;
       final direction = baseDirection.clone()
@@ -1322,7 +1328,7 @@ class RegunGame extends FlameGame
       if (_fireCooldown <= 0 && !weaponJoystick.relativeDelta.isZero()) {
         spawnShotgunBullets();
         _fireCooldown = loadout.weapon.cadence *
-            pow(0.85, gameState.rank(PowerUp.quickTrigger));
+            pow(0.85, gameState.effectRank(PowerUp.quickTrigger));
       }
       combat.update(dt);
     }

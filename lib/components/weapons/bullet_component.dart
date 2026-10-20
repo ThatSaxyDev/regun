@@ -26,13 +26,15 @@ class BulletComponent extends PositionComponent
       this.bounces = 0,
       this.primary = true,
       this.weapon = WeaponType.shotgun})
-      : direction = direction.normalized(),
+      : _baseDamage = damage,
+        direction = direction.normalized(),
         super(
             size: Vector2.all(bulletRadius * 2),
             anchor: Anchor.center,
             priority: 20000);
   final double bulletRadius, speed, maxTravelDistance;
   double damage;
+  final double _baseDamage;
   final Vector2 direction;
   final bool primary;
   final WeaponType weapon;
@@ -164,7 +166,11 @@ class BulletComponent extends PositionComponent
       if (next != null) {
         bounces--;
         _bouncedThisFrame = true;
-        damage *= min(1.15, 0.7 + game.gameState.rank(PowerUp.bankShot) * 0.15);
+        damage = min(
+            _baseDamage * 2,
+            damage *
+                min(1.4,
+                    0.7 + game.gameState.effectRank(PowerUp.bankShot) * 0.15));
         position.setFrom(other.position);
         direction.setFrom((next.position - position).normalized());
         angle = atan2(direction.y, direction.x);

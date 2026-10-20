@@ -191,6 +191,19 @@ void main() {
         expect(game.world.children.whereType<WeaponImpact>(), isEmpty);
         expect(game.runtimeCounts['effects']!, lessThanOrEqualTo(40));
         expect(game.claimWeaponImpact(), isTrue);
+        game.gameNotifier.maxBulletsIncrease();
+        game.gameNotifier.advanceTime(.16);
+        await tester.pump();
+        expect(find.text('MAG READY'), findsOneWidget);
+        final refillBoundary = tester.renderObject<RenderRepaintBoundary>(
+            find.byKey(const Key('weapon-world')));
+        final refillImage = await refillBoundary.toImage(pixelRatio: 2);
+        final refillBytes =
+            await refillImage.toByteData(format: ui.ImageByteFormat.png);
+        await File('build/test-previews/refill-${type.name}.png')
+            .writeAsBytes(refillBytes!.buffer.asUint8List());
+        refillImage.dispose();
+        game.gameNotifier.advanceTime(.16);
         final health = game.gameState.health;
         game.damagePlayer();
         expect(game.gameState.health, health - 1);
