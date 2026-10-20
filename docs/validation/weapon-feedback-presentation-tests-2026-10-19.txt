@@ -1,0 +1,4 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart
+00:00 +0: each weapon fires its own visuals/audio, hits once, and clears hit feedback
+00:00 +1: render distinct firing and mechanical reload stages for review
+00:00 +2: All tests passed!

@@ -1,0 +1,2 @@
+1accdb2fa45f483e96f6ba9ad3b30e34ea675debaa47e1936c938c32729bfab9  build/app/outputs/flutter-apk/app-release.apk
+c5f26a7fd8057fb720368934b3f2231d769ff117bc1733fa577ad710c86a8841  build/ios/iphoneos/Runner.app/Frameworks/App.framework/App

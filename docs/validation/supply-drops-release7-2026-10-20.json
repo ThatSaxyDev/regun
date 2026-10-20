@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0+7",
+  "bytes": 95407499,
+  "sha256": "44840634e0370c46623ee42bdcd15934f0e3072865349c0d149437e6c0e11106",
+  "analyzer": "passed",
+  "tests": 167,
+  "opt_in_skipped": 4,
+  "audio": {
+    "assets_validated": 48,
+    "representative_mix_peak": 0.745,
+    "supply_cues": 12
+  },
+  "capture": {
+    "radius": 220,
+    "previous_preview_radius": 145,
+    "seconds_inside": 8,
+    "expiry_seconds": 45
+  },
+  "landing": {
+    "warning_seconds": 1.8,
+    "fall_seconds": 0.65,
+    "crush_radius": 62,
+    "ordinary_roles_killed": 8,
+    "boss_base_max_health_fraction": 0.03
+  },
+  "lifecycle_tests": [
+    "single reward",
+    "claimed/unclaimed breakdown",
+    "pause/upgrade freeze",
+    "Continue",
+    "restart during pending art load",
+    "Rush exclusion",
+    "training call",
+    "base art budget",
+    "all-boss art budgets"
+  ],
+  "soak_30_minutes": {
+    "passed": true,
+    "bosses": 8,
+    "kills": 7577,
+    "peak_enemies": 60,
+    "peak_hazards": 7,
+    "peak_world_children": 198,
+    "retained": 126
+  },
+  "soak_60_minutes": {
+    "passed": true,
+    "bosses": 17,
+    "kills": 8517,
+    "peak_enemies": 60,
+    "peak_hazards": 8,
+    "peak_world_children": 357,
+    "retained": 234
+  },
+  "archive_seconds": 27.1,
+  "export_seconds": 27.9,
+  "packaged_assets": "all 14 new art/audio hashes verified",
+  "phone_install": "installed and launched on paired iPhone over Wi-Fi; 22.5s build, 14.7s installation/launch",
+  "native_acceptance": "Sound weight, comfort, objective readability and balance remain for creator review; installation/simulation are not physical performance proof."
+}

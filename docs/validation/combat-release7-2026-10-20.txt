@@ -1,0 +1,22 @@
+Combat release validation — 2026-10-20
+Release identity: 1.0.0+7 / dev.kiishi.regun
+make verify: exit 0; analyzer clean; 132 tests passed, four opt-in cases skipped.
+make soak: exit 0; 30- and 60-minute prepared-build simulations passed.
+python3 tool/preview_combat_audio.py: 35 assets passed format/headroom/DC/endpoints;
+representative SFX-only overlapping mix peak .707 (not all possible mixes).
+flutter build ipa --release with local release defines and App Store export options:
+exit 0; archive 31.2s, export 26.0s. Export method app-store-connect.
+Export profile: iOS Team Store Provisioning Profile: dev.kiishi.regun;
+get-task-allow false; no device restrictions.
+IPA Info.plist: CFBundleShortVersionString 1.0.0; CFBundleVersion 7.
+flutter run --release --no-resident on paired iPhone: exit 0;
+Xcode build 24.1s; installing and launching 4.3s.
+Physical listening, comfort, performance and final balance remain open.
+IPA: build/releases/Regun-1.0.0+7.ipa
+IPA bytes: 86492333
+SHA256: 1edef3a82e73524fe793ded629464f96a5fe04ae4b557a96a255d9472d8032a3
+
+Final soak evidence:
+SOAK minutes=30 wallMs=17610 bosses=8 kills=7386 peaks={enemies: 60, visibleEnemies: 28, pendingEnemies: 44, populationLimit: 60, xp: 80, playerProjectiles: 12, hostileProjectiles: 43, effects: 40, fire: 0, mines: 0, hazards: 6, particles: 64} peakChildren=215 retained=158
+SOAK minutes=60 wallMs=93586 bosses=17 kills=7692 peaks={enemies: 60, visibleEnemies: 23, pendingEnemies: 40, populationLimit: 60, xp: 80, playerProjectiles: 145, hostileProjectiles: 36, effects: 37, fire: 12, mines: 9, hazards: 8, particles: 48} peakChildren=314 retained=209
+01:51 +2: All tests passed!

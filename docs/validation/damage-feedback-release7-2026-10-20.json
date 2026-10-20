@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0+7",
+  "bytes": 88921552,
+  "sha256": "c1ab4e9094ffb65998d9f365e4d509c553e38b243d622c76e77f7d57498664e1",
+  "analyzer": "passed",
+  "tests": 134,
+  "skipped": 4,
+  "visual_review": "844x390 damage preview; large-text/safe-area layout matrix passed",
+  "phone_install": "heart-sprite follow-up installed and launched on paired iPhone (release, 17.8s build / 7.4s install)",
+  "physical_haptic_comfort": "requires hands-on review",
+  "followup": "HP text replaced by the game heart sprite; analyzer and six damage/layout tests passed; 844x390 render reviewed"
+}

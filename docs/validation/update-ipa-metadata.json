@@ -1,0 +1,10 @@
+{
+  "file": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun/build/ios/ipa/regun.ipa",
+  "version": "1.0.0",
+  "build": "4",
+  "bundle": "dev.kiishi.regun",
+  "profile": "iOS Team Store Provisioning Profile: dev.kiishi.regun",
+  "signatureVerified": true,
+  "tellingKeyEmbedded": true,
+  "sha256": "61bd6c228e19a0a61b12c79c6f3cf797e6c01e9b2d0138e369c8096db6ababf2"
+}

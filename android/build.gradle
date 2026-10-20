@@ -16,3 +16,10 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+// Keep native libraries on the same toolchain as the Flutter application.
+subprojects { project ->
+    project.plugins.withId("com.android.library") {
+        project.android.ndkVersion = "28.2.13676358"
+    }
+}

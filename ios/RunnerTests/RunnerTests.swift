@@ -1,12 +1,23 @@
 import Flutter
 import UIKit
 import XCTest
+import AVFAudio
 
 class RunnerTests: XCTestCase {
 
-  func testExample() {
-    // If you add code to the Runner application, consider adding tests here.
-    // See https://developer.apple.com/documentation/xctest for more information about using XCTest.
+  func testGameLaunchConfiguresPlaybackSession() {
+    let session = AVAudioSession.sharedInstance()
+    XCTAssertEqual(session.category, .playback)
+    XCTAssertTrue(session.categoryOptions.contains(.mixWithOthers))
+    XCTAssertGreaterThan(session.sampleRate, 0)
+  }
+
+  func testForegroundRestoresPlaybackCategory() throws {
+    let session = AVAudioSession.sharedInstance()
+    try session.setCategory(.ambient)
+    NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
+    XCTAssertEqual(session.category, .playback)
+    XCTAssertTrue(session.categoryOptions.contains(.mixWithOthers))
   }
 
 }

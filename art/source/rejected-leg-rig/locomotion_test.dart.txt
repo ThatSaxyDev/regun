@@ -1,0 +1,114 @@
+import 'dart:io';
+import 'dart:math';
+import 'dart:ui' as ui;
+import 'package:flame/components.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:regun/data/loadout.dart';
+import 'package:regun/presentation/locomotion.dart';
+import 'package:regun/presentation/regun_art.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  test(
+      'opposite feet alternate continuously and stride follows movement distance',
+      () {
+    final gait = Locomotion();
+    gait.advance(.5, speed: 300);
+    expect(gait.phase, closeTo(0, .00001));
+    expect(gait.weight, 1);
+    var previous = gait.foot(gait.phase, profile: true);
+    for (var i = 0; i < 60; i++) {
+      gait.advance(1 / 60, speed: 300);
+      final current = gait.foot(gait.phase, profile: true);
+      final other = gait.foot(gait.phase + pi, profile: true);
+      expect((current - previous).distance, inExclusiveRange(.01, 3));
+      expect(current.dx, closeTo(-other.dx, .00001));
+      expect(min(current.dy, other.dy), lessThanOrEqualTo(30));
+      expect(max(current.dy, other.dy), closeTo(30, .00001));
+      previous = current;
+    }
+    final phase = gait.phase;
+    gait.advance(.05, speed: 0);
+    expect(gait.phase, phase);
+    expect(gait.weight, lessThan(1));
+    gait.advance(.1, speed: 0);
+    expect(gait.active, isFalse);
+    final knee =
+        Locomotion.knee(ui.Offset.zero, const ui.Offset(8, 28), 18, 17);
+    expect(knee.distance, closeTo(18, .001));
+    expect((knee - const ui.Offset(8, 28)).distance, closeTo(17, .001));
+  });
+
+  test(
+      'replacement gait renders all survivor facings and stays in texture budget',
+      () async {
+    await RegunArt.shared.load();
+    expect(RegunArt.shared.decodedBytes, lessThanOrEqualTo(32 * 1048576));
+    final folder = Directory('build/test-previews/gait');
+    await folder.create(recursive: true);
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(recorder);
+    canvas.drawColor(const ui.Color(0xff24272b), ui.BlendMode.src);
+    for (final survivor in CharacterType.values) {
+      for (var facing = 0; facing < 4; facing++) {
+        for (var step = 0; step < 8; step++) {
+          canvas.save();
+          canvas.translate(
+              step * 150 + 25, (survivor.index * 4 + facing) * 130 + 10);
+          final gait = Locomotion()
+            ..weight = 1
+            ..phase = step * pi / 4;
+          gait.render(canvas,
+              size: Vector2.all(100),
+              bodyAtlas: 'characters/${survivor.name}',
+              bodyFrame: facing * 8,
+              partsAtlas: 'characters/gait_parts',
+              partsRow: survivor.index,
+              facing: facing);
+          canvas.restore();
+        }
+      }
+    }
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(1200, 1560);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    await File('${folder.path}/all-survivors.png')
+        .writeAsBytes(bytes!.buffer.asUint8List());
+    image.dispose();
+    picture.dispose();
+    // Opt-in video frames are rendered through the same runtime code, not
+    // generated interpolation or edited source art.
+    if (const bool.fromEnvironment('REGUN_GAIT_VIDEO')) {
+      for (var frame = 0; frame < 60; frame++) {
+        final recorder = ui.PictureRecorder();
+        final canvas = ui.Canvas(recorder);
+        canvas.drawColor(const ui.Color(0xff171a1d), ui.BlendMode.src);
+        for (final survivor in CharacterType.values) {
+          for (var facing = 0; facing < 4; facing++) {
+            canvas.save();
+            canvas.translate(150.0 * survivor.index, 130.0 * facing);
+            canvas.scale(1.4);
+            final gait = Locomotion()
+              ..weight = 1
+              ..phase = frame / 60 * pi * 4;
+            gait.render(canvas,
+                size: Vector2.all(100),
+                bodyAtlas: 'characters/${survivor.name}',
+                bodyFrame: facing * 8,
+                partsAtlas: 'characters/gait_parts',
+                partsRow: survivor.index,
+                facing: facing);
+            canvas.restore();
+          }
+        }
+        final picture = recorder.endRecording();
+        final image = await picture.toImage(450, 530);
+        final data = await image.toByteData(format: ui.ImageByteFormat.png);
+        await File('${folder.path}/${frame.toString().padLeft(3, '0')}.png')
+            .writeAsBytes(data!.buffer.asUint8List());
+        image.dispose();
+        picture.dispose();
+      }
+    }
+  });
+}

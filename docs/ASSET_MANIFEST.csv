@@ -1,0 +1,137 @@
+path,sha256,source,review
+assets/art/arenas/breach_floor.png,f2841c02dfad13f535afe06169c88ff193eefebe36381e694295ef94fac34ea0,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/arenas/foundry_floor.png,8b185ca6222328f17272812a50f8f7479d3a12c16a239ea55685e1b74edead2c,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/arenas/props.png,bb1ec5c6edc70eafd6bdf958cef2e28c2060d66985bf39d4b472835150d71d40,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/bosses/bellkeeper.png,80d9b352e2b3d20421652b5b371424bee6cf85bb53fe549c642d465f4fca82bb,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
+assets/art/bosses/demon.png,0453517bedaf79f2bafe9d4a4204b0448f21f61db35150c2488764d2b5259f19,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/bosses/magistrate.png,7d80e2bd6d6e54e9645ff2d7e1f7f9c64d146bd8f8ade968b2bca8894817c058,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
+assets/art/bosses/marshal.png,ed96b8b543c2af28ca5db4a8983d27f6456c28fe7e2c65b8fc89dd4f0fa5c50f,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
+assets/art/bosses/queen.png,c0dc6ae6fe91d59907342860e090129346ba5d4f0e325919628378ad6313d7ea,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/bosses/saint.png,af8d7ac6e4c5e94701b25d177e08c74296c985d6a6fd8898c000aabd2750d52c,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
+assets/art/bosses/shadow.png,047ac9d6ffcbb4c16291edcdf99c5a4f474172ccdc0389e2c9c53f5ff47ffc6f,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/bosses/sovereign.png,1f11d2d04bd0a95b091649d4e3de4fcc3f292efa6be978061b79dbd4caf4155f,AI-assisted raster: image_gen.imagegen; art/source/BOSS_GENERATION_PROMPTS.md,Integrated candidate; creator/device review
+assets/art/characters/rook.png,197db8db502cce8ebe8f0547f0073a61711645aade9ae5ca004ef178a7514be5,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/characters/rook_actions.png,e8bf7353656936f355cb703460351cee6001ee8334174b09ef5e363940b65d2f,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/characters/rook_run.png,3db335103ded6f1bbdf04e5b29ec5f523bd4d9088c2239fcd6a06e463abf1d63,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Full-body animation candidate; inspect motion and frame anatomy
+assets/art/characters/scrapper.png,b583cf2cdf09a684e9760dff922e8aa4891d83b64b2648c8e6fadddd4e973316,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/characters/scrapper_actions.png,041258b0fdf2234df810f5c77534c2a55ce8a5fad58581b6b78f2843a74fa689,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/characters/scrapper_run.png,0bc0858403f24807267289cbabb7476d3db491f7a2954b82cfb5fb7355d9446d,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Full-body animation candidate; inspect motion and frame anatomy
+assets/art/characters/warden.png,d5b63fb1e1b9499493380d438efae5be5e9915393ce21d95b56f7aadc1da2d32,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/characters/warden_actions.png,999523b503f59de9f60f8f71e9028c4d86288c253aaeebf432e94350cd1266b9,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/characters/warden_run.png,6ed63f84375ebf82274e0b7abfded00ecb5e254d234c61dcc6a3db36f03ede68,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Full-body animation candidate; inspect motion and frame anatomy
+assets/art/effects/combat_materials.png,47773b247c169d02581c2fe041cf314eaec147782816fc6f416024ebaf672c5a,AI-assisted raster: built-in imagegen; art/source/COMBAT_VFX_PROMPT.md,Integrated combat candidate; creator/device review
+assets/art/enemies/burster.png,b59655ef5deb7a88bfa8ec6685cbe007292bc88de972b2df4e16263c37cd4734,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/enemies/mummy.png,6caa550ac52d4497abdfbbdb9a4fca35ad05d68f3ee7a2fda7b19d684cbba0f0,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/enemies/nest.png,7884ba81b2bfbdad07dc13c4fcb5208eeaea14c50f29825d7e36970303683a85,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/enemies/ranged.png,903b9e484fa2c63fe30cf0681a8eb235a42fea74c798cba05a0d80a60907b77b,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/enemies/runner.png,c40f20ab975a67a9a20db6095b550f82adc82e9769857dc70deb0ed03c56fc32,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/enemies/scorpion.png,e068464b2c6d9c20e0b7dc82a8be856da12aeaff564469fd583b7bd5e6c66ecf,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/enemies/sentinel.png,77913d5115b64eb8a3522ab5fdf1cf911544473952e485a4a68d258e03dd73e1,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/enemies/shield.png,bfab473f3b08576480dfd3150563fbb6101e3c4bbf36d03353426fd51d850ac7,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/items/items.png,c24615838306c331e2c9fd00a835c0d3aa0154f645a3f89c4b7cf77a33cc3c18,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/art/manifest.json,0f51cc412e1be23f860c3c52ce7e51cbd0b70a63a395586805f25f1a3b4c7437,Generated crop metadata: tool/inspect_art.py,Integrated art; creator/device review
+assets/art/weapons/arsenal.png,5795b70768b6639a75766170ee0326c29781994198b44cc2960bd35eff75ccea,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
+assets/audio/boss.wav,117cbaaa278705cca89db4fd8c1c4350ae182aba0c6a1f603c3427200eb29d91,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/boss_bellkeeper_break.wav,52058afc7ad050d52b62e53a9e170d0c063c00b0e41041179f31dfad7b08706d,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_bellkeeper_hit.wav,b12ff2f3b4dc85968a40f5a2d68479d4d5748657acfe1b4e01758c261830064c,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_bellkeeper_warn.wav,d8e622b4afaa6d5edfa244c99219fc6173be87f8bf23fc408f316df6184e77aa,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_magistrate_break.wav,38f0073e7f5ea0d3bab64086dfba12a6eec8f82797163745760a40fb6ad0bfbd,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_magistrate_hit.wav,6308ed9f70bea7d4686c28e02bc0b7100ccd7949a32ebb8058df1b7e0daa6abd,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_magistrate_warn.wav,a0d629bcf10b5bf7727bcd482a39c5a01699c324323477aee31dc0f6b1db2f66,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_marshal_break.wav,f8bd49afd4767d2634f940db4a72911ecdc1dd49ec30a09cf719835e4e3884f1,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_marshal_hit.wav,4b3d1fbabeabb29a0c70647e1fd58ee5e903e021957bd8bbdb592f8de18f61ee,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_marshal_warn.wav,980511d60a83461672f4089ae237221a84d8645b4cf945617b5bb2b3dc539451,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_saint_break.wav,3c0865c8556fafde8b69b37ee55ee3c380b749259cc96d36da10060a3fb84675,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_saint_hit.wav,a4f4fe6bfb819fe563f1202712a5c2b21a530c5db09f57e91c5cfe92892a1c66,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_saint_warn.wav,b4b438513b905a34c595dc91e0846d3af215398be7b0b91f27f65ca78407f899,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_sovereign_break.wav,2561954f31508e3a78fb96a9ad80890f7fe961f1227fa81cfd338df8dcc49a5e,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_sovereign_hit.wav,7ff87b88aa306bf30318ed909a96aba5102d7a1851944db0eec51c37cc30eb00,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/boss_sovereign_warn.wav,541186b2d52a92dec0207f477d88ad4d3227cd83749c080ed3433e7b82d823cc,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
+assets/audio/click.mp3,9d2ad727d3e914d6d7380262a0df92c65c8b5322479b4d2e648d7ca1cc96c46f,Inherited project asset,Confirm provenance and license
+assets/audio/coinSound1.mp3,f70d754b410eb8046ce40721441ff6f6f68605cf31ded7480ee218c7f7356f34,Inherited project asset,Confirm provenance and license
+assets/audio/coinSound2.wav,b885775a550469881549ce5df903bfa1b7507bf086cfe81cd972956ada4d0c7b,Inherited project asset,Confirm provenance and license
+assets/audio/enemy3projectile.wav,2bc285fb7e385982cb09cb2b1ae1d92366fc222704aaa72177cec2c4d127e99c,Inherited project asset,Confirm provenance and license
+assets/audio/fusion.wav,3952a8a445eecb538bcb7a625858d1b962fb39b155fcd63ae6ec2cab8bfb3416,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/gameov.wav,bd8b24f30b52a740e0e4adf541917883054aee4cd4f097fc87e67397b1d7d04c,Inherited project asset,Confirm provenance and license
+assets/audio/hit.wav,994bc574155e6bf0e47b232f65bed220ecbf013d4e88c805fda308d33486119f,Inherited project asset,Confirm provenance and license
+assets/audio/hite.wav,4f45ad99605aebc39b431d57d9f40a20b46b838991932785c24dc0b4fd2b2c54,Inherited project asset,Confirm provenance and license
+assets/audio/level.wav,f824cf0b16930539e6a99ddfd082326b4ad75103bfab055e9341a6b3a7e5a759,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/move.wav,386c165ff57a2f31dd81e673086b40580d1aef45789e9050180d5cdd7337aee8,Inherited project asset,Confirm provenance and license
+assets/audio/music_boss.wav,f21aacdc9d76095d6d56d35217f0ef915f643f33880054471dc0713cabaa70b9,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/music_breach.wav,de3615b911f3f7d3f823d127ace5e89e082acbe3013cb912e352ac7b42e78a6e,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/music_foundry.wav,5e2df9f987a3499fe6859ae9376ca1ead75dff2cdf4e84dc736bbded59f5e6b8,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/music_menu.wav,792559543bfd9f98c869d121c3e06db88d7a941430c6116f4594ab4c1ef43978,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reloadSound.mp3,c09b4b20ef9785ec65f8a3185451a62981f442441a81b5a992f01ec111266149,Inherited project asset,Confirm provenance and license
+assets/audio/reload_arcCaster_0.wav,f2612d2ff9f9afb527bb16331ae9ce9ceaca6ff5468b624b42da01e3405e2bd5,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_arcCaster_1.wav,ba348af8ef5e2ada0eb649d745d4fa4fff7319b275a06ba341c07bc259307aa8,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_arcCaster_2.wav,2431c9f2603a3a1a42dd93fb55111ca2358483b00b7349e7b5efa14f3cf89ffa,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_carbine_0.wav,1da76c9b8b7be0a14d6d1351189ab61fe36a59cbf54e89b19c269a315d380173,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_carbine_1.wav,4ff5f09d16512961e9523f61202157755c6ff9ad5909c0fa14d1beb712c62638,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_carbine_2.wav,450fa42a293787ab976b7110752eea5709193d696cb02dc4e5414ed54cd5394f,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_revolver_0.wav,1da76c9b8b7be0a14d6d1351189ab61fe36a59cbf54e89b19c269a315d380173,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_revolver_1.wav,4ff5f09d16512961e9523f61202157755c6ff9ad5909c0fa14d1beb712c62638,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_revolver_2.wav,450fa42a293787ab976b7110752eea5709193d696cb02dc4e5414ed54cd5394f,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/shoot.wav,3a6b3be078df1812b2b2124b26e647a6bab80aeab3e5f4d98cdee054cd4c8089,Inherited project asset,Confirm provenance and license
+assets/audio/shoot_arcCaster.wav,15ab6d9946dd440eda5ee4d70420d00df277d693f058ddd2799823b7307814fb,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/shoot_carbine.wav,bb540e093b9052dc06d3944131b4cd2406dc49009c4736ccab339599d5c203d1,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/shoot_revolver.wav,ac8efb0c0216965a1aca3edb6cbfa48a786a6a46d818b83c93da738f94320f57,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/fonts/Orbitron-Black.ttf,7a10eef6deacce53b75a179fb98264492db8109b86ff9c49cfc74e08d7c48d73,Inherited project asset,Confirm provenance and license
+assets/fonts/Orbitron-Bold.ttf,7530194bdd9dc0484c9ee2d912150839e065809edc73d9c9cf12234712611d22,Inherited project asset,Confirm provenance and license
+assets/fonts/Orbitron-ExtraBold.ttf,e2694ab08e4a1d120e495107b2b12d753372fa5cf569c8864a55422bbbb0580e,Inherited project asset,Confirm provenance and license
+assets/fonts/Orbitron-Medium.ttf,dffdeea679a57ca6ee8c01917da250a8845b99b65e5785a5cee7078ea6846bc8,Inherited project asset,Confirm provenance and license
+assets/fonts/Orbitron-Regular.ttf,e90e73f2e9a383510d6221a91872176a633ef7b22d19acfb6ea6008a051ffc25,Inherited project asset,Confirm provenance and license
+assets/fonts/Orbitron-SemiBold.ttf,05adf1e085df3db27c5ccdfb70fbdcefca8586239ad49ba35524557e442f7cc3,Inherited project asset,Confirm provenance and license
+assets/fonts/PressStart2P-Regular.ttf,8d0248e41694fdd875dbcde859ee1bae5982ecfdc6c7e5e451b48950d29ba95a,Inherited project asset,Confirm provenance and license
+assets/images/Ball.png,023f330cfc5e45ca9b51e4a981943cb58c9149699b5b16f0f9cf877381cfcaee,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Deceased_attack.png,2649c19a50c818f5065e8676390859ca9831ade58f3374e44e8eba1b4b074ba6,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Deceased_attack_right.png,d24d2c8ed5539e92699dc20dda9795d3fff43d63497a8f1805d4441ddeb9fe96,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Deceased_death.png,595cc87f3a889f355943287910f99196ba9f27afa62c5a1ccb308632feba6836,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Deceased_death_right.png,b2ebf9379dd3ed3dae60ad61dc0231d0fe278c04b6df2af48b8bdc279dd2d49b,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Deceased_hurt.png,f43b9dd61632264d394e155394f7f160523bd559807537d22e1bf01b44ef806c,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Deceased_hurt_right.png,f8858697ce1c79b1f070935706106181b82dfdfa0f84a7e7c6952406c000438d,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Deceased_walk.png,3677d6aaffe878dbd459c9fe1c355fe260beddb81e908e05a39eb43fe598e28b,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Deceased_walk_right.png,6a203f401ee98a6b7e0af1b0a5f7d28eac71b7297d8a88841f59529df09d2038,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Dungeon_Tileset.png,b0da342a01f0e67fb57c095e2199b5e8935a836d65bc9c1af87163c40ce16a74,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Mummy_attack.png,60d7c8cbda12c5610e2f351fd7325d473cf62881d3c310cb8914eb7cde4d5796,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Mummy_attack_right.png,9ea107d4873c5b6d9ce0b8f1a4841cb7cebf87b4e668f6534d8489c11da87428,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Mummy_death.png,52382dc6a88fa3cd9dab5b725b12c6b81df17c4e7cc8ef1336be0fcf1110b411,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Mummy_death_right.png,79432e6a5ce54483ffd6160a3773bab1448ed2efe6ac97892bd15fa6bcc4396f,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Mummy_hurt.png,2a63cfedac3b8f30d3e88b40781ff85c7ed0ca13c9171f47c113ca9b19ef9a04,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Mummy_hurt_right.png,260fa7ba6308510556ad7cd0c869551ac6a94fe7d9ef99ced0f2bbad2c61436a,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Mummy_walk.png,ade9198d6b6b2afbd6173758f0192aaba97520ecf0c7259378455e1122c5243e,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Mummy_walk_right.png,f70e3559641485ebce6586ec53029ad18aec3d2bd4d364d3369d54bdf1e7e94a,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Scorpio_death.png,3e0cc81a3c33494e8301188322d1c85e1e9989123e942d5076f66a51dd14a9d5,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Scorpio_walk.png,3de7c0a354729089f94c1f89e2c6ef8e46b4551a7f11a7692cb748ab8957237e,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/Scorpio_walk_right.png,08f04b910107af9fdb3b26237cfd41b69347f1367f9d6539438073a8b318fb52,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/a_button.png,343a96df6b86e95d720c0b97087c05f0d5aae4947ff2262a37ba61bf97f920f4,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/a_button_pressed.png,43827984d9525d4604933dbe1b15234d643330347e81eabe44a46ccf95a1188c,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/b_button.png,d1425c9db023ebebd738152f2e749393320cf078189f06bf5899b206878fd6ad,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/b_button_pressed.png,16d2b9afafdbc06890e8156ce487e2400bb4b8789cf2b6412dab2afafaeda883,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/bullet.png,ef3604e3c897cdb9d874ea68b15a361e6fab2f854b662bc381fde92f6955f694,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/bulletR.png,64233f8dad8b83315b558914d8cc6636b7aae6fa75226f838ea7423b28f515d5,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/coin.png,643abe68755a7bf4f211e336c3481f0967f6b5b668ae67a16b6da1ff7638d638,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/coinui.png,0b089954c5498f36d0408da8b65654f5aea663bc9f8ebc462f70896bca94aa20,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/demon_boss.png,272110dbc97c487fe8574bd7c883d3a876113ea8f3d0128f0d0be943ed022392,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/enemy_idle.png,889dd115e86497a802097cb07d73c5e59f23ffb1226c28c69f7f8dd1d1ce4638,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/heart.png,d7670b6029061ad39048bde9b362f339ecb6ce1d3a8e1ddb5c321842afeddd31,Inherited project asset,Confirm provenance and license
+assets/images/joystick.png,5c61f4b4eccd8438d71e64f398d61015adfcf5bd3070493290a8167cb363f330,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/king.png,27fbae994bc49c8db9752e30cc29ca903881618139a51c51e5194b56a661f5c9,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/mine.png,33c0978dccd14d0e7d46953b74b1a66705571bfdd1c6c2fccca3426159c32702,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/mine_explode.png,3d7f0da6bb8616a0d3103dfb94075b2d91ff6e17bd4551b66fd87f432de6ada2,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/player_idle.png,a5ff2b2eb17626a7a1fd53d5b8befdc1be56e81abb4e3c007fed0dfef874847f,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/player_idle_left.png,60e2fa24d5bd3faea7f64d0ae98e780b01033581b1387a9f4010b256170b45cd,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/player_run.png,30fb191c98487127a841cdcb09cd21e709758222709978eb8037059a43720925,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/player_run_left.png,0d3688b5f029b62127762075a981ab4a0cfe358b8fdcfdced16e3a5577548765,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/samurai_attack.png,9305daeaad66a5412a5d08cf9de91e4e52a34ca2c42fedb37739fb82ce86a690,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/samurai_walk.png,16325ace53bc9a4d793c7bf7732c190bbd62072f453de3b05e5dc3b3c1621761,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/shadow_attack_1.png,98d188354d28ab764164a4016cb50ef3273fe76c72a2dd5fb3e3f17f33e793dd,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/shadow_attack_2.png,1d84ba1299876170ee3b9094f4244405adebc1b179e557ae8e97812a5baa4afb,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/shadow_idle.png,9eb0e6219fc457a368971c8b12976b22d790fc6821fd4a82bb34530aabb44739,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/shadow_projectile.png,b8dc1aea687c1f7532a7150355e627a9c2ff94b30c4ea9b135c212e8119c759c,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/shadow_walk.png,0abb06ff5c88d3e756c4b5e152fcf836e16ce9098cf8897ce7c2f71f1f4a1cdd,Inherited project asset,Retired from Flutter packaged assets; source retained
+assets/images/splash_image.png,77ceea450cd33ad665cc2dc2922eeca6714886b20252be603cdb54a13d159334,Inherited project asset,Confirm provenance and license
+assets/lottie/reload.json,cad95cd63922b1248c3b3ae3211b73816f8283a1f9b44fcb85be3d58e3465439,Inherited project asset,Confirm provenance and license
+assets/tiles/maptile.tmx,145f658e347508495ee1b09e50a6a80a84b487f8c71b01c9784a3eb99474e57b,Inherited Tiled map dimensions; authored replacement collision/vent object groups,Runtime bounds/layout contract tested
+assets/tiles/reguntile.tiled-project,c9587ce5859875c3f47095ee98a09596bfce2265dfe808030297e442572786f3,Inherited project asset,Confirm provenance and license
+assets/tiles/reguntile.tiled-session,cfa7d204c64cf5d331a48d4a9f97eeda4c9f81fe87a9ac7bb50576ed37d51f8d,Inherited project asset,Confirm provenance and license
+assets/tiles/reguntile.tsx,d4f50d2083ee9c77afc4c0a6b3c1e225da53e73389f1ab031224961609454884,Inherited project asset,Confirm provenance and license

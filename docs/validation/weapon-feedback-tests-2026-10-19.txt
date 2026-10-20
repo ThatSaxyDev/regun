@@ -1,0 +1,90 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart: camera view stays inside the tile map at every edge and corner
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart: player and dash cannot cross walls; moving along an edge still works
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart: oversized view centers on the map instead of invalid clamp ranges
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: flankers split sides but close directly at striking distance
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: bruisers and bursters lead movement; shields keep a direct advance
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: revenants retreat when rushed, strafe at range, and approach from afar
+00:00 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: overlapping spawns separate deterministically without teleporting
+00:00 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/build_system_test.dart: catalogue has thirty ranked families and six reachable recipes
+00:00 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: crowd spreads while continuing to close in, with local neighbor queries
+00:00 +9: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: crowd spreads while continuing to close in, with local neighbor queries
+00:00 +10: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: crowd spreads while continuing to close in, with local neighbor queries
+00:00 +11: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: crowd spreads while continuing to close in, with local neighbor queries
+00:00 +12: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: crowd spreads while continuing to close in, with local neighbor queries
+00:00 +13: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: preserves shotgun timing and shell sounds for 1 missing shells
+00:00 +14: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_notifier_test.dart: preserves shotgun timing and shell sounds for 1 missing shells
+00:00 +15: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +16: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +17: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +18: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +19: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +20: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +21: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +22: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +23: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +24: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +25: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +26: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +27: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +28: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +29: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +30: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +31: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +32: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +33: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +34: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +35: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +36: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +37: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +38: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +39: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +40: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +41: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +42: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +43: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +43: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/art_contract_test.dart: authored frames are finite, inside textures and fit the mobile budget
+Shared decoded art: 29.13 MiB
+00:00 +44: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +45: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +46: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +47: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +48: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +49: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +50: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +51: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +52: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +53: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +54: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/enemy_tactics_test.dart: live revenant retreats and plants to cast; lunges cannot track mid-charge
+00:00 +55: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:01 +56: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:01 +57: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:01 +57 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:01 +57 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:01 +57 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:01 +58 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/collection_flow_test.dart: collection, loadout and settings fit Size(667.0, 375.0) with large text
+00:01 +59 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/collection_flow_test.dart: collection, loadout and settings fit Size(667.0, 375.0) with large text
+00:01 +60 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/collection_flow_test.dart: collection, loadout and settings fit Size(667.0, 375.0) with large text
+00:01 +61 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/collection_flow_test.dart: collection, loadout and settings fit Size(667.0, 375.0) with large text
+00:01 +62 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +63 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +64 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +65 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +66 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +67 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +67 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +68 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +68 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/performance_budget_test.dart: ten minutes of idle firing retain one timer and no per-tick components
+AFTER: simulatedSeconds=600 timerTicks=1714 retainedTimerComponents=1 updateMicros=28384
+00:02 +69 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:02 +70 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:03 +71 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:03 +72 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:03 +73 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:03 +74 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:03 +75 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:03 +76 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:04 +77 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:05 +78 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+DENSE SCENE: simulatedSeconds=180 peakEnemies=120 peakCoins=0 retained=137
+00:06 +79 ~4: All tests passed!

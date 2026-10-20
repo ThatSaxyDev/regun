@@ -1,0 +1,74 @@
+[
+  {
+    "file": "supply_land.wav",
+    "seconds": 0.8,
+    "peak": 0.7799999999999999,
+    "rms": 0.09144434274753147
+  },
+  {
+    "file": "supply_incoming.wav",
+    "seconds": 0.6,
+    "peak": 0.35,
+    "rms": 0.09357801569428707
+  },
+  {
+    "file": "supply_break.wav",
+    "seconds": 0.6,
+    "peak": 0.42,
+    "rms": 0.0858682963297701
+  },
+  {
+    "file": "supply_claim.wav",
+    "seconds": 0.4,
+    "peak": 0.38,
+    "rms": 0.10269076449928229
+  },
+  {
+    "file": "supply_charge_0.wav",
+    "seconds": 0.18,
+    "peak": 0.24,
+    "rms": 0.0968126315938868
+  },
+  {
+    "file": "supply_charge_1.wav",
+    "seconds": 0.18,
+    "peak": 0.24,
+    "rms": 0.09548172330479682
+  },
+  {
+    "file": "supply_charge_2.wav",
+    "seconds": 0.18,
+    "peak": 0.24,
+    "rms": 0.0974213585846885
+  },
+  {
+    "file": "supply_charge_3.wav",
+    "seconds": 0.18,
+    "peak": 0.24000000000000002,
+    "rms": 0.09779876788482143
+  },
+  {
+    "file": "supply_charge_4.wav",
+    "seconds": 0.18,
+    "peak": 0.24,
+    "rms": 0.09907376963573865
+  },
+  {
+    "file": "supply_charge_5.wav",
+    "seconds": 0.18,
+    "peak": 0.24,
+    "rms": 0.09485422206312588
+  },
+  {
+    "file": "supply_charge_6.wav",
+    "seconds": 0.18,
+    "peak": 0.24,
+    "rms": 0.0960796773967687
+  },
+  {
+    "file": "supply_charge_7.wav",
+    "seconds": 0.18,
+    "peak": 0.24,
+    "rms": 0.09312265866744598
+  }
+]

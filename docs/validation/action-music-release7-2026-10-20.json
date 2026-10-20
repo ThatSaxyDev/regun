@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0+7",
+  "bytes": 93144362,
+  "sha256": "2942cd17239393fddf3388e28880fbfebc74dc7e94883dd46e1ce02b5deb98a4",
+  "packaged_music_hashes": "all four match manifest",
+  "audio_validation": [
+    {
+      "file": "music_menu.wav",
+      "peak": 0.759979248046875,
+      "rms": 0.10635406236246822,
+      "loop_jump": 0.0,
+      "dc": -1.0026702730358276e-07,
+      "gameplay_mix_peak": 0.09896392822265625
+    },
+    {
+      "file": "music_breach.wav",
+      "peak": 0.759979248046875,
+      "rms": 0.13396672552154032,
+      "loop_jump": 0.0,
+      "dc": -3.491616999625142e-08,
+      "gameplay_mix_peak": 0.7046121215820312
+    },
+    {
+      "file": "music_foundry.wav",
+      "peak": 0.759979248046875,
+      "rms": 0.12840630367149394,
+      "loop_jump": 0.0,
+      "dc": -8.027410431969843e-08,
+      "gameplay_mix_peak": 0.6924630737304688
+    },
+    {
+      "file": "music_boss.wav",
+      "peak": 0.759979248046875,
+      "rms": 0.16217856659910607,
+      "loop_jump": 0.0,
+      "dc": -1.1751175597952352e-06,
+      "gameplay_mix_peak": 0.7141015625
+    }
+  ],
+  "release_build": "passed",
+  "dart_runtime_changes": false,
+  "prior_game_regression": "149 tests and 30/60-minute simulations passed before this music-assets-only pass",
+  "phone_install": "installed and launched on paired iPhone over Wi-Fi; release build 22.0s, installation/launch 12.8s",
+  "native_listening": "open; solo and gameplay reels prepared",
+  "archive_seconds": "26.0",
+  "export_seconds": "24.8"
+}

@@ -1,0 +1,63 @@
+{
+  "version": "1.0.0+7",
+  "bytes": 93139987,
+  "sha256": "93ba5d1c20edd6f5670541d0d7f1109b077e9ae2db2fc424eaf6a4653fd0257d",
+  "analyzer": "passed",
+  "tests": 158,
+  "opt_in_skipped": 4,
+  "profiles": {
+    "shotgun": {
+      "close": 1.2,
+      "far": 0.9,
+      "band": [
+        120,
+        380
+      ]
+    },
+    "carbine": {
+      "close": 1.1,
+      "far": 0.95,
+      "band": [
+        100,
+        600
+      ]
+    },
+    "revolver": {
+      "close": 1.12,
+      "far": 0.98,
+      "band": [
+        110,
+        750
+      ]
+    },
+    "arcCaster": {
+      "close": 1.08,
+      "far": 0.98,
+      "band": [
+        100,
+        520
+      ]
+    }
+  },
+  "soak_30_minutes": {
+    "passed": true,
+    "bosses": 8,
+    "kills": 7387,
+    "peak_enemies": 60,
+    "peak_hazards": 8,
+    "peak_world_children": 199,
+    "retained": 123
+  },
+  "soak_60_minutes": {
+    "passed": true,
+    "bosses": 16,
+    "kills": 9447,
+    "peak_enemies": 60,
+    "peak_hazards": 8,
+    "peak_world_children": 319,
+    "retained": 228
+  },
+  "release_build": "passed",
+  "phone_install": "installed and launched on paired iPhone over Wi-Fi; 21.4s build, 8.2s installation/launch",
+  "native_balance": "open; automated runs establish correctness and budgets, not physical difficulty or performance"
+}

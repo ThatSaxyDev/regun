@@ -1,0 +1,8 @@
+Building dev.kiishi.regun for device (ios-release)...
+The following plugins do not support Swift Package Manager for ios:
+  - flutter_soloud
+This will become an error in a future version of Flutter. Please contact the plugin maintainers to request Swift Package Manager adoption.
+Automatically signing iOS for device deployment using specified development team in Xcode project: 27LSZPF3J7
+Running Xcode build...                                          
+Xcode build done.                                           17.3s
+✓ Built build/ios/iphoneos/Runner.app (68.5MB)
