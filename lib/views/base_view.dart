@@ -255,13 +255,27 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                 ),
                               ),
                               if (lost > 0)
-                                Text(
-                                  '-$lost HP',
-                                  style: const TextStyle(
-                                    fontFamily: FontFam.pressStart,
-                                    fontSize: 7,
-                                    color: Color(0xffEF8B76),
-                                  ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '-$lost',
+                                      style: const TextStyle(
+                                        fontFamily: FontFam.pressStart,
+                                        fontSize: 7,
+                                        color: Color(0xffEF8B76),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Image.asset(
+                                      'assets/images/heart.png',
+                                      key: const Key('health-loss-heart'),
+                                      width: 12,
+                                      height: 12,
+                                      filterQuality: FilterQuality.none,
+                                      excludeFromSemantics: true,
+                                    ),
+                                  ],
                                 ),
                             ],
                           ),

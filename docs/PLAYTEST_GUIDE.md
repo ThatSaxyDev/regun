@@ -118,7 +118,7 @@ Try standing far away, sustained straight retreat, a late sideways turn after th
 
 ### Damage readability — release 7, 20 October
 
-- In Training, enable Take damage. Let an enemy hit you: expect one light haptic, a brief pale hit on the survivor followed by a warm tint, a half-second stepped edge cue and the actual health loss (`−1 HP`, or `−2 HP` for a two-point attack) beside the heart. Aim/camera must stay steady.
+- In Training, enable Take damage. Let an enemy hit you: expect one light haptic, a brief pale hit on the survivor followed by a warm tint, a half-second stepped edge cue and the actual health loss (`−1` followed by the heart sprite, or `−2` plus the heart for a two-point attack) beside the heart. Aim/camera must stay steady.
 - Repeated contact during the damage guard, protected deployment and an absorbed Scrap Armour hit must not produce a health-loss cue/vibration. Armour still has its own impact sound.
 - Turn Haptics off: keep the visible cues without vibration. With Reduced Motion on, omit the pale flash and use quieter edge shading; the warm player tint/health readout remain. Pause holds the cue; Restart clears it. Training death still follows the existing recovery sequence.
 - Check the cue during busy boss attacks and on the smallest/large-text HUD. Native vibration strength and readability need hands-on approval; automated channel assertions cannot establish physical feel.

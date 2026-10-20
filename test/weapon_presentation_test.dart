@@ -288,7 +288,8 @@ void main() {
       expect(game.damagePlayer(), isTrue);
       await tester.pump();
       expect(haptics, ['HapticFeedbackType.lightImpact']);
-      expect(find.text('-1 HP'), findsOneWidget);
+      expect(find.text('-1'), findsOneWidget);
+      expect(find.byKey(const Key('health-loss-heart')), findsOneWidget);
       expect(game.damageFeedback.healthLost.value, 1);
       expect(game.damagePlayer(), isFalse); // Contact cannot spam the cue.
       expect(haptics, hasLength(1));
@@ -307,7 +308,7 @@ void main() {
       game.resumeGame();
       game.damageFeedback.update(.51);
       await tester.pump();
-      expect(find.text('-1 HP'), findsNothing);
+      expect(find.text('-1'), findsNothing);
       game.gameNotifier.advanceTime(.6);
       game.preferences.haptics = false;
       game.preferences.reducedMotion = true;
@@ -315,7 +316,7 @@ void main() {
       await tester.pump();
       expect(haptics, hasLength(1));
       expect(game.damageFeedback.healthLost.value, 1);
-      expect(find.text('-1 HP'), findsOneWidget);
+      expect(find.text('-1'), findsOneWidget);
       game.restartGame();
       await game.ready();
       expect(game.damageFeedback.healthLost.value, 0);
@@ -330,7 +331,7 @@ void main() {
       expect(game.damagePlayer(amount: 2), isTrue);
       expect(game.damageFeedback.healthLost.value, 2);
       await tester.pump();
-      expect(find.text('-2 HP'), findsOneWidget);
+      expect(find.text('-2'), findsOneWidget);
       expect(haptics, hasLength(2));
     });
     await tester.pumpWidget(const SizedBox());
