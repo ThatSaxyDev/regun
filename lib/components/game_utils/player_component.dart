@@ -110,7 +110,7 @@ class PlayerComponent extends SpriteAnimationComponent
     }
 
     if (game.boostButtonComponent.tapped) {
-      game.moveActor(this, dashDirection, 1300, dt, radius: collisionRadius);
+      game.moveActor(this, dashDirection, 1450, dt, radius: collisionRadius);
     } else {
       game.moveActor(this, movement, game.gameState.movementSpeed, dt,
           radius: collisionRadius);

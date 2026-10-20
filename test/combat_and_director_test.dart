@@ -34,6 +34,34 @@ void main() {
     expect(director.bossDue, isTrue);
   });
 
+  test('all control sizes scale actions, fit edges and preserve mirrored spacing', () {
+    for (final viewport in [const Size(568, 270), const Size(750, 330),
+        const Size(1024, 720)]) {
+      for (final size in [88.0, 96.0, 112.0]) {
+        for (final inset in [64.0, 160.0]) {
+          for (final bottom in [60.0, 140.0]) {
+            final layout = ControlLayout(size: size, inset: inset, bottom: bottom);
+            final geometry = layout.geometry(viewport);
+            expect(geometry.separate(size / 2,
+                buttonRadius: layout.buttonSize / 2), isTrue);
+            final mirrored = layout.copyWith(leftHanded: true).geometry(viewport);
+            final normal = [geometry.movement, geometry.aim, geometry.dash, geometry.reload];
+            final mirror = [mirrored.movement, mirrored.aim, mirrored.dash, mirrored.reload];
+            for (var i = 0; i < normal.length; i++) {
+              final r = i < 2 ? size / 2 : layout.buttonSize / 2;
+              expect(normal[i].dx - r, greaterThanOrEqualTo(8 - .001));
+              expect(normal[i].dx + r, lessThanOrEqualTo(viewport.width - 8 + .001));
+              expect(normal[i].dy - r, greaterThanOrEqualTo(8 - .001));
+              expect(normal[i].dy + r, lessThanOrEqualTo(viewport.height - 8 + .001));
+              expect(mirror[i].dx, closeTo(viewport.width - normal[i].dx, .001));
+              expect(mirror[i].dy, normal[i].dy);
+            }
+          }
+        }
+      }
+    }
+  });
+
   for (final size in [
     const Size(568, 270),
     const Size(750, 330),

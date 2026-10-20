@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0+7",
+  "bytes": 93139974,
+  "sha256": "1a62b7043f93c05409777a5e088123ae6ae1a2230cae88f7710dd2fa8951a851",
+  "analyzer": "passed",
+  "tests": 159,
+  "opt_in_skipped": 4,
+  "controls": {
+    "label": "Control size",
+    "persisted_key": "size",
+    "stick_diameter": [
+      88,
+      112
+    ],
+    "action_diameter": [
+      51.333333333333336,
+      65.33333333333333
+    ],
+    "default_action_diameter": 56,
+    "visual_and_touch_scale_together": true,
+    "mirrored_geometry_and_safe_edges": "passed"
+  },
+  "dash": {
+    "previous_speed": 1300,
+    "speed": 1450,
+    "relative_increase": 0.11538461538461542,
+    "duration": "unchanged",
+    "cooldown": "unchanged",
+    "protection": "unchanged",
+    "live_displacement_check": "passed"
+  },
+  "release_build": "passed",
+  "phone_install": "in progress",
+  "native_comfort_balance": "open"
+}

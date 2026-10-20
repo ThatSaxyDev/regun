@@ -4,7 +4,13 @@ RELEASE_CONFIG ?= config/telling.local.json
 RELEASE_DEFINES = $(if $(wildcard $(RELEASE_CONFIG)),--dart-define-from-file=$(RELEASE_CONFIG),)
 DEVICE ?=
 
-.PHONY: analyze test soak verify runRelease build buildAPK buildIOS buildIPA cleanAndGet pubGet createLauncherIcons createSplashScreen
+FIREBASE_APP_ID ?= 1:225712394437:android:a774f7de7e22d0abd0e0ac
+DIST_TESTERS ?=
+DIST_GROUPS ?=
+DIST_NOTES ?= Regun $(shell sed -n 's/^version: //p' pubspec.yaml)
+APK_PATH ?= build/app/outputs/flutter-apk/app-release.apk
+
+.PHONY: analyze test soak verify runRelease build buildAPK buildIOS buildIPA cleanAndGet pubGet createLauncherIcons createSplashScreen distribute
 
 analyze:
 	$(FLUTTER) analyze
@@ -45,3 +51,10 @@ createLauncherIcons:
 
 createSplashScreen:
 	$(DART) run flutter_native_splash:create
+
+# Uploads the local Android release APK to Firebase App Distribution (App Tester).
+distribute: buildAPK
+	firebase appdistribution:distribute $(APK_PATH) --app $(FIREBASE_APP_ID) \
+		$(if $(DIST_TESTERS),--testers "$(DIST_TESTERS)") \
+		$(if $(DIST_GROUPS),--groups "$(DIST_GROUPS)") \
+		--release-notes "$(DIST_NOTES)"

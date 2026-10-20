@@ -654,7 +654,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                     (v) => _myGame.controls.copyWith(inset: v)),
                 _slider('Height', _myGame.controls.bottom, 60, 140,
                     (v) => _myGame.controls.copyWith(bottom: v)),
-                _slider('Stick size', _myGame.controls.size, 88, 112,
+                _slider('Control size', _myGame.controls.size, 88, 112,
                     (v) => _myGame.controls.copyWith(size: v)),
                 _slider('Opacity', _myGame.controls.opacity, 0.25, 1,
                     (v) => _myGame.controls.copyWith(opacity: v)),

@@ -17,6 +17,8 @@ class ControlLayout {
   final bool leftHanded, floating;
   final double sensitivity, deadZone;
   final Map<String, List<double>> positions;
+  // Keep the original 56px action buttons at the default 96px stick size.
+  double get buttonSize => 56 * size / 96;
 
   ControlLayout copyWith(
           {double? inset,
@@ -86,26 +88,31 @@ class ControlLayout {
 
   ControlGeometry geometry(Size viewport) {
     final radius = size / 2;
+    final buttonRadius = buttonSize / 2;
+    final minReloadY = max(40.0, buttonRadius + 8);
     final x =
         inset.clamp(radius + 8, max(radius + 8, viewport.width / 2 - 110));
     final y = (viewport.height -
             bottom.clamp(radius + 8, max(radius + 8, viewport.height - 110)))
+        .clamp(min(minReloadY + radius + buttonRadius + 8,
+            viewport.height - radius - 8), viewport.height - radius - 8)
         .toDouble();
     final left = Offset(x.toDouble(), y);
     final right = Offset(viewport.width - x, y);
-    final reach = max(76.0, radius + 32);
+    final reach = max(76.0, radius + buttonRadius + 4);
     final defaults = {
       'move': left,
       'aim': right,
-      'dash': right + Offset(-reach, -48),
-      'reload': Offset(right.dx - 8, max(40.0, y - 106))
+      'dash': right + Offset(-reach, -48 * size / 96),
+      'reload': Offset(right.dx - 8 * size / 96,
+          max(minReloadY, y - 106 * size / 96))
     };
     Offset point(String id) {
       final custom = positions[id];
       final raw = custom == null
           ? defaults[id]!
           : Offset(custom[0] * viewport.width, custom[1] * viewport.height);
-      final r = id == 'move' || id == 'aim' ? radius : 28.0;
+      final r = id == 'move' || id == 'aim' ? radius : buttonRadius;
       final logicalX = raw.dx.clamp(
           id == 'move' ? r + 8 : viewport.width / 2 + r,
           id == 'move' ? viewport.width / 2 - r : viewport.width - r - 8);
@@ -118,7 +125,7 @@ class ControlLayout {
         aim: point('aim'),
         dash: point('dash'),
         reload: point('reload'));
-    if (!geometry.separate(radius) && positions.isNotEmpty) {
+    if (!geometry.separate(radius, buttonRadius: buttonRadius) && positions.isNotEmpty) {
       geometry = copyWith(positions: const {}).geometry(viewport);
     }
     return geometry;
@@ -132,11 +139,11 @@ class ControlGeometry {
       required this.dash,
       required this.reload});
   final Offset movement, aim, dash, reload;
-  bool separate(double radius) =>
+  bool separate(double radius, {double buttonRadius = 28}) =>
       (movement - aim).distance >= radius * 2 + 8 &&
-      (dash - aim).distance >= radius + 30 &&
-      (reload - aim).distance >= radius + 30 &&
-      (dash - reload).distance >= 60 &&
-      (movement - dash).distance >= radius + 30 &&
-      (movement - reload).distance >= radius + 30;
+      (dash - aim).distance >= radius + buttonRadius + 2 &&
+      (reload - aim).distance >= radius + buttonRadius + 2 &&
+      (dash - reload).distance >= buttonRadius * 2 + 4 &&
+      (movement - dash).distance >= radius + buttonRadius + 2 &&
+      (movement - reload).distance >= radius + buttonRadius + 2;
 }

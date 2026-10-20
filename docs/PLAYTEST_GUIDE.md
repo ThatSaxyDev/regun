@@ -154,3 +154,8 @@ Listen from the menu through both arenas and Boss Rush. The menu should already 
 ### Close-range damage reward
 
 Compare each weapon against the same enemy type up close, at mid distance and near maximum range on both arenas. Shotgun has the largest close reward (+20%); Carbine/Revolver/Arc have smaller bonuses (+10/+12/+8%). Far damage retains 90/95/98/98% respectively. Expect a smooth change, with ranged weapons still useful. Check large bosses, upgraded magazines, Scattershot, piercing, Bank Shot, Arc chains and range VIII; approaching carries contact risk and must not erase the boss fight. Moving away after firing or bouncing back toward the player must not refresh close damage. Native kill breakpoints, long-run builds and challenge balance need human review.
+
+### Whole-cluster size and slightly stronger dash
+
+- Pause → Controls → **Control size**. Move the slider from minimum to maximum: both sticks, center knobs, Dash and Reload should scale together. Default size keeps the original 56px action targets; extremes give roughly 51–65px targets. Touch the outer edge of each enlarged button and confirm it responds. Check both aim hands, fixed/floating sticks, screen safe areas, custom placements, restart and relaunch. Larger controls must not overlap or leave the screen; invalid custom overlap uses a safe fallback.
+- Dash should travel about 12% faster/farther, with the same duration, cooldown and invincibility window. Test movement-aim-dash multi-touch, walls/columns, moving along arena edges, pausing during a dash and upgraded Quickstep/Afterimage. Judge the small increase in escape reach on the phone; automated checks do not establish physical comfort or difficulty.

@@ -1470,8 +1470,8 @@ class RegunGame extends FlameGame
     weaponJoystick.scale.setAll(controls.size / (180 * factor));
     boostButtonComponent.position.setFrom(point(geometry.dash));
     reloadButtonComponent.position.setFrom(point(geometry.reload));
-    boostButtonComponent.scale.setAll(56 / (112 * factor));
-    reloadButtonComponent.scale.setAll(56 / (112 * factor));
+    boostButtonComponent.scale.setAll(controls.buttonSize / (112 * factor));
+    reloadButtonComponent.scale.setAll(controls.buttonSize / (112 * factor));
   }
 
   bool damagePlayer({int amount = 1, String cause = 'The horde'}) {

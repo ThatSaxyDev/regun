@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/game.dart';
+import 'package:regun/models/control_layout.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,6 +41,17 @@ void main() {
     final factor = game.canvasSize.y / game.camera.viewport.virtualSize.y;
     final inset =
         (game.canvasSize - game.camera.viewport.virtualSize * factor) / 2;
+    for (final size in [88.0, 96.0, 112.0]) {
+      game.setControls(game.controls.copyWith(size: size));
+      for (final button in [game.boostButtonComponent, game.reloadButtonComponent]) {
+        expect(button.size.x * button.scale.x * factor,
+            closeTo(56 * size / 96, .001));
+      }
+      expect(game.movementJoystick.size.x * game.movementJoystick.scale.x * factor,
+          closeTo(size, .001));
+    }
+    expect(ControlLayout.fromJson(game.controls.toJson()).buttonSize,
+        closeTo(56 * 112 / 96, .001));
     Offset touch(PositionComponent component) =>
         (component.position * factor + inset).toOffset();
     final move =
@@ -60,12 +72,14 @@ void main() {
     expect(game.movementJoystick.relativeDelta.x, greaterThan(0));
     final before = game.myPlayer.position.clone();
     final dash =
-        await tester.startGesture(touch(game.boostButtonComponent), pointer: 3);
+        await tester.startGesture(touch(game.boostButtonComponent) +
+            Offset(game.controls.buttonSize / 2 - 2, 0), pointer: 3);
     expect(game.boostButtonComponent.tapped, isTrue);
     for (var i = 0; i < 3; i++) {
       game.update(1 / 60);
     }
-    expect(game.myPlayer.position.x - before.x, greaterThan(25));
+    expect(game.myPlayer.position.x - before.x, closeTo(1450 * .05, .01));
+    expect(game.boostButtonComponent.checkpoint()['duration'], 1.6);
     expect(game.movementJoystick.relativeDelta.x, greaterThan(0));
     await dash.up();
     await move.up();
@@ -86,6 +100,11 @@ void main() {
     await nextAim.up();
     game.resumeGame();
     expect(game.weaponJoystick.relativeDelta.isZero(), isTrue);
+    game.gameNotifier.decreaseBullets();
+    final reload = await tester.startGesture(touch(game.reloadButtonComponent) -
+        Offset(game.controls.buttonSize / 2 - 2, 0), pointer: 5);
+    expect(game.gameState.reloading, isTrue);
+    await reload.up();
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.takeException(), isNull);
