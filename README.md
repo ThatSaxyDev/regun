@@ -13,6 +13,8 @@ A mobile twin-stick survival shooter built with Flutter and Flame.
 
 The full functional-content build is available for mobile testing. Training exposes the entire roster without changing normal progression. Physical performance, interruption handling, comfort and balance remain device acceptance gates; see the current progress log for measured evidence.
 
+Requires Flutter **3.47.7+** / Dart **3.13+**. Combat audio uses `flutter_soloud` **5.2.1**, with iOS audio-session ownership in `AppDelegate` and native engine builds handled by Dart hooks.
+
 Use `make verify`, `make soak`, `make buildAPK`, and `make buildIOS`. Local Android candidates use debug signing until an upload keystore is configured.
 
 - [Sprite and arena art overhaul plan](docs/REGUN_ART_OVERHAUL_PLAN.md): proposed visual direction, full asset roster, animation/weapon pipeline, map authoring, production phases and acceptance gates.

@@ -1,4 +1,6 @@
 import 'dart:developer' as dev;
+import 'dart:async';
+
 import 'package:flame/flame.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -26,21 +28,17 @@ void main() async {
   Flame.device.fullScreen();
   Flame.device.setLandscape();
 
-  /// Initialize the player
-  await SoLoud.instance.init().then(
-    (_) {
-      Logger('main').info('Soloud player started');
-      SoLoud.instance.setVisualizationEnabled(false);
-      SoLoud.instance.setGlobalVolume(1);
-      SoLoud.instance.setMaxActiveVoiceCount(32);
-    },
-    onError: (Object e) {
-      Logger('main').severe('Soloud player starting error: $e');
-    },
-  );
-  runApp(
-    const ProviderScope(child: GameApp()),
-  );
+  try {
+    await SoLoud.instance.init();
+    SoLoud.instance.setVisualizationEnabled(false);
+    SoLoud.instance.setGlobalVolume(1);
+    SoLoud.instance.setMaxActiveVoiceCount(32);
+    await SoLoud.instance.startAudioDevice();
+    Logger('main').info('Soloud player and audio output started');
+  } catch (error) {
+    Logger('main').severe('Soloud player starting error: $error');
+  }
+  runApp(const ProviderScope(child: GameApp()));
 }
 
 class GameApp extends StatefulWidget {
@@ -50,9 +48,38 @@ class GameApp extends StatefulWidget {
   State<GameApp> createState() => _GameAppState();
 }
 
-class _GameAppState extends State<GameApp> {
+class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
+  StreamSubscription<AudioDeviceStartFailure>? _audioFailures;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _audioFailures = SoLoud.instance.audioDeviceStartFailures.listen((failure) {
+      Logger('audio').warning('Audio output failed to start: $failure');
+      unawaited(_resumeAudioOutput());
+    });
+  }
+
+  Future<void> _resumeAudioOutput() async {
+    if (!SoLoud.instance.isInitialized) return;
+    try {
+      // Restart the device without reinitializing or discarding loaded sounds.
+      await SoLoud.instance.startAudioDevice();
+    } catch (error) {
+      Logger('audio').warning('Audio output unavailable: $error');
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_resumeAudioOutput());
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_audioFailures?.cancel());
     SoLoud.instance.deinit();
     super.dispose();
   }

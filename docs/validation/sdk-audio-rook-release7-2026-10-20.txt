@@ -1,0 +1,17 @@
+SDK/audio/branding release validation — 2026-10-20
+Flutter 3.47.7 stable / Dart 3.13.5 / SoLoud 5.2.1.
+make verify: analyzer clean, 132 tests passed, four opt-in cases skipped.
+New startup-route widget test: 1 passed; final analyzer also clean.
+Phone native mixer/mute check: passed, see companion JSON.
+XCTest RunnerTests: 2 passed (launch playback category / foreground restoration).
+Critical adaptive icon radius .2926 < .3056, including 3% XML inset.
+Critical Android 12 splash radius .3114 < .3333.
+iOS store icon RGB opaque 1024x1024; source square/unmasked.
+Regular lib/main.dart release archive 66.3s / App Store export 28.3s.
+Phone release build 23.9s / install and launch 31.7s; process exit 0.
+IPA version 1.0.0+7, dev.kiishi.regun, store provisioning, get-task-allow false.
+Both flutter_soloud and flutter_soloud_plugin frameworks present.
+Physical listening, routing/interruption coverage, visual review and performance remain open.
+IPA: build/releases/Regun-1.0.0+7.ipa
+Bytes: 88919202
+SHA256: f588d3e13a7e50ba9d2d1cdda138fae66ee090216723c345737d3f3217e46370

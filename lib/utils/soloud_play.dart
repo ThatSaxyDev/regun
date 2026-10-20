@@ -28,7 +28,9 @@ class SoloudPlay {
   }
 
   Future<AudioSource> _source(String asset) => _sources.putIfAbsent(
-      asset, () => _soloud.loadAsset('assets/audio/$asset'));
+    asset,
+    () => _soloud.loadAsset('assets/audio/$asset'),
+  );
 
   Future<void> warmCombat(WeaponType weapon) async {
     try {
@@ -42,17 +44,19 @@ class SoloudPlay {
         'impact_poison.wav',
         if (weapon == WeaponType.shotgun) ...[
           'reload_shotgun_shell.wav',
-          'reload_shotgun_pump.wav'
+          'reload_shotgun_pump.wav',
         ] else
           for (var i = 0; i < 3; i++) 'reload_${weapon.name}_$i.wav',
       ];
-      await Future.wait(names.map((name) async {
-        try {
-          await _source(name);
-        } catch (_) {
-          _sources.remove(name);
-        }
-      }));
+      await Future.wait(
+        names.map((name) async {
+          try {
+            await _source(name);
+          } catch (_) {
+            _sources.remove(name);
+          }
+        }),
+      );
     } catch (_) {
       // Audio is optional when native initialization is unavailable.
     }
@@ -61,14 +65,16 @@ class SoloudPlay {
   Future<void> warmBoss(BossKind kind) async {
     try {
       if (!kind.expansion || !_soloud.isInitialized) return;
-      await Future.wait(['warn', 'hit', 'break'].map((cue) async {
-        final name = 'boss_${kind.name}_$cue.wav';
-        try {
-          await _source(name);
-        } catch (_) {
-          _sources.remove(name);
-        }
-      }));
+      await Future.wait(
+        ['warn', 'hit', 'break'].map((cue) async {
+          final name = 'boss_${kind.name}_$cue.wav';
+          try {
+            await _source(name);
+          } catch (_) {
+            _sources.remove(name);
+          }
+        }),
+      );
     } catch (_) {
       // Native audio may be unavailable in tests or after interruption.
     }
@@ -81,8 +87,8 @@ class SoloudPlay {
       final limit = assetPath.startsWith('impact_')
           ? 65
           : assetPath == 'hit.wav' || assetPath.startsWith('coin')
-              ? 45
-              : 20;
+          ? 45
+          : 20;
       if (now - (_lastPlayed[assetPath] ?? -1000) < limit) return;
       _lastPlayed[assetPath] = now;
       final source = await _source(assetPath);
@@ -90,17 +96,17 @@ class SoloudPlay {
         final gain = assetPath.startsWith('shot_')
             ? .72
             : assetPath == 'impact_arcCaster.wav'
-                ? .45
-                : assetPath.startsWith('impact_boss')
-                    ? .6
-                    : assetPath.startsWith('impact_')
-                        ? .25
-                        : assetPath.startsWith('reload_')
-                            ? .42
-                            : assetPath == 'hit.wav'
-                                ? .2
-                                : .5;
-        await _soloud.play(source, volume: _sfxVolume * gain);
+            ? .45
+            : assetPath.startsWith('impact_boss')
+            ? .6
+            : assetPath.startsWith('impact_')
+            ? .25
+            : assetPath.startsWith('reload_')
+            ? .42
+            : assetPath == 'hit.wav'
+            ? .2
+            : .5;
+        _soloud.play(source, volume: _sfxVolume * gain);
       }
     } catch (error) {
       _sources.remove(assetPath);
@@ -120,8 +126,11 @@ class SoloudPlay {
       final source = await _source(asset);
       if (request != _musicRequest || !_soloud.isInitialized) return;
       final old = _musicHandle;
-      _musicHandle = await _soloud.play(source,
-          volume: _musicVolume * 0.25, looping: true);
+      _musicHandle = _soloud.play(
+        source,
+        volume: _musicVolume * 0.25,
+        looping: true,
+      );
       if (old != null) await _soloud.stop(old);
     } catch (error) {
       if (_reportedFailures.add(asset)) {

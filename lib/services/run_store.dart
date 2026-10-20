@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -7,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 /// background write cannot resurrect a run after its results have settled.
 class RunStore {
   static final shared = RunStore();
-  RunStore({Directory? directory}) : _directory = directory;
+  RunStore({this._directory});
   Directory? _directory;
   Future<void> _pending = Future.value();
 
@@ -25,8 +26,9 @@ class RunStore {
     }
   }
 
-  Future<Map<String, dynamic>?> read(
-      {bool Function(Map<String, dynamic>)? validate}) async {
+  Future<Map<String, dynamic>?> read({
+    bool Function(Map<String, dynamic>)? validate,
+  }) async {
     await _pending;
     final file = await _file();
     if (file == null) return null;
@@ -93,8 +95,10 @@ class RunStore {
         }
 
         final temporary = File('${file.path}.tmp');
-        await temporary.writeAsString('{"schema":1,"settled":true}',
-            flush: true);
+        await temporary.writeAsString(
+          '{"schema":1,"settled":true}',
+          flush: true,
+        );
         await temporary.rename(file.path);
         final backup = File('${file.path}.bak');
         if (await backup.exists()) await backup.delete();
