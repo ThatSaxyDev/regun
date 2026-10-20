@@ -20,13 +20,24 @@ enum PixelGlyph {
   cross,
   shards,
   link,
-  back
+  back,
+  settings
 }
 
 /// Small code-native pixel symbols, shared by Flutter and Flame controls.
 void paintPixelGlyph(
     Canvas canvas, Rect bounds, PixelGlyph glyph, Color color) {
   final rows = switch (glyph) {
+    PixelGlyph.settings => const [
+        '00011000',
+        '01011010',
+        '11111111',
+        '01100110',
+        '01100110',
+        '11111111',
+        '01011010',
+        '00011000'
+      ],
     PixelGlyph.fire => const [
         '00010000',
         '00111000',

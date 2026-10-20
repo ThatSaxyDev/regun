@@ -1,3 +1,4 @@
+import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/widgets/app_update_gate.dart';
 import 'dart:math' as math;
 import 'package:regun/widgets/app_build_label.dart';
@@ -100,7 +101,8 @@ class _MenuViewState extends ConsumerState<MenuView> {
           backgroundColor: const Color(0xff141117),
           body: SafeArea(child: LayoutBuilder(builder: (context, constraints) {
             final inset = constraints.maxWidth < 650 ? 24.0 : 48.0;
-            return Center(
+            return Stack(children: [
+              Padding(padding: const EdgeInsets.only(top: 64), child: Center(
                 child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1040),
                     child: Padding(
@@ -166,7 +168,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                                       onTap: _ready
                                                           ? _play
                                                           : null),
-                                                  const SizedBox(height: 16),
+                                                  const SizedBox(height: 28),
                                                   ClickButton(
                                                       text: 'Training',
                                                       height: 44,
@@ -183,16 +185,6 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                                       onTap: _ready
                                                           ? () => _open(
                                                               const CollectionView())
-                                                          : null),
-                                                  const SizedBox(height: 8),
-                                                  ClickButton(
-                                                      text: 'Settings',
-                                                      height: 44,
-                                                      onTap: _ready
-                                                          ? () => _open(
-                                                              const SettingsView(
-                                                                  allowProgressReset:
-                                                                      true))
                                                           : null),
                                                   if (LocalPreferences
                                                           .shared.bestScore >
@@ -226,6 +218,17 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                       const AppBuildLabel()
                                     ]));
                               })),
-                        ]))));
+                        ]))))),
+              Positioned(
+                top: 8, right: 16,
+                child: Tooltip(message: 'Settings', child: ClickButton(
+                  key: const Key('home-settings'),
+                  text: 'Settings', glyph: PixelGlyph.settings, iconOnly: true,
+                  width: 52, height: 48,
+                  onTap: _ready ? () => _open(
+                      const SettingsView(allowProgressReset: true)) : null,
+                )),
+              ),
+            ]);
           }))));
 }

@@ -16,7 +16,8 @@ class ClickButton extends ConsumerStatefulWidget {
       this.buttonShadow,
       required this.text,
       this.isActive = true,
-      this.glyph});
+      this.glyph,
+      this.iconOnly = false});
 
   final VoidCallback? onTap;
   final double? width;
@@ -27,6 +28,7 @@ class ClickButton extends ConsumerStatefulWidget {
   final String text;
   final bool? isActive;
   final PixelGlyph? glyph;
+  final bool iconOnly;
 
   @override
   ConsumerState<ClickButton> createState() => _ClickButtonState();
@@ -71,11 +73,11 @@ class _ClickButtonState extends ConsumerState<ClickButton> {
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   if (widget.glyph != null) ...[
                     CustomPaint(
-                        size: const Size(16, 16),
+                        size: Size.square(widget.iconOnly ? 24 : 16),
                         painter: _GlyphPainter(widget.glyph!, accent)),
-                    const SizedBox(width: 12),
+                    if (!widget.iconOnly) const SizedBox(width: 12),
                   ],
-                  Text(widget.text.toUpperCase(),
+                  if (!widget.iconOnly) Text(widget.text.toUpperCase(),
                       style: TextStyle(
                         fontFamily: FontFam.pressStart,
                         fontSize: widget.fontSize ?? 10,

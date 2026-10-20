@@ -1,3 +1,4 @@
+import 'package:regun/views/controls_view.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -123,7 +124,8 @@ void main() {
         for (final page in [
           const CollectionView(),
           const LoadoutView(training: true),
-          const SettingsView()
+          const SettingsView(),
+          const ControlsView()
         ]) {
           await tester.pumpWidget(ProviderScope(
               overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],

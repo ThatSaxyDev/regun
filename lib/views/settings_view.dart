@@ -1,3 +1,5 @@
+import 'package:regun/models/control_layout.dart';
+import 'package:regun/views/controls_view.dart';
 import 'package:regun/widgets/menu_layout.dart';
 import 'package:regun/services/run_store.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +11,9 @@ import 'package:regun/widgets/click_button.dart';
 import 'package:regun/widgets/control_settings.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
-  const SettingsView({super.key, this.allowProgressReset = false});
+  const SettingsView({super.key, this.allowProgressReset = false, this.onControlsChanged});
   final bool allowProgressReset;
+  final ValueChanged<ControlLayout>? onControlsChanged;
   @override
   ConsumerState<SettingsView> createState() => _SettingsViewState();
 }
@@ -31,6 +34,13 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       maxWidth: 560,
       body: MenuScrollBody(
           child: Column(children: [
+        ClickButtonM(
+            text: 'Controls',
+            width: 200,
+            height: 48,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => ControlsView(onChanged: widget.onControlsChanged)))),
+        const SizedBox(height: 16),
         ControlSlider(
             label: 'Music',
             value: settings.musicVolume,

@@ -28,7 +28,7 @@ class ControlArranger extends StatelessWidget {
             color: const Color(0x880D0A10),
             child: Stack(children: [
               Positioned(
-                  top: 12,
+                  top: available.top + 12,
                   left: available.left + 12,
                   right: 24,
                   child: Row(children: [

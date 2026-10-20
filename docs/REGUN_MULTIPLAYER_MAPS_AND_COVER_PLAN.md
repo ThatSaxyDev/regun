@@ -6,6 +6,7 @@ Part of [the multiplayer plan](REGUN_MULTIPLAYER_PLAN.md). Working map names and
 ## 1. Scope and map separation
 
 - **Co-op:** the actual normal Breach/Foundry maps, normal survival loop, two or three total players. Keep their open arena identity, landmarks, hazards and boss space. Do not redesign them into tactical PvP corridors.
+- **Current Breach update:** its four pillar colliders and four decorative grates are removed and timed supply objectives are live in the working changes; Foundry solids/vents remain. Co-op inherits that updated regular map and supply loop, not the older four-column layout. Pods are temporary objectives, not new walls. See [the airdrop contract](AIRDROP_DESIGN.md) and the main plan's team-capture adaptation.
 - **Versus:** two complete dedicated maps at launch, with a third targeted after the first two pass. Default enemies On, optional Off, no player enemy-type selection.
 - **Formats:** **1v1, 2v2 and 3v3 are all required in this implementation pass**. PvP room capacity is two/four/six according to format, maximum three per team. Test 1v1 first as an engineering sequence, then complete four- and six-player geometry, networking and fairness before calling the pass complete. A shared art theme does not mean one geometry is balanced for every team size.
 - **Walls:** a new modular stone/iron wall and cover kit, integrated with authoritative movement/projectile geometry. Improved regular-arena wall appearance is an art-only pass unless a separate collision change is approved.
@@ -113,6 +114,8 @@ Prototype three different route structures, select two for full art/release, and
 
 `MapComponent` loads one `maptile.tmx` into rectangle groups. `ArenaGeometry` constrains actors against inflated rectangles and checks shot segments against rectangles. `ArenaScenery` draws sparse atlas props, simple perimeter bands and local-player-based prop fading. This is a valid regular-arena foundation but not yet a tactical wall system, multi-map loader or multiplayer occlusion contract.
 
+The latest source has an empty Breach obstacle group and retains Foundry's six solid structures. Supply pod/field/locator components render a timed Breach objective independently of `ArenaGeometry`; do not export their art as solid cover or restore deleted Breach columns while building the PvP kit. Wall/projectile regression scenarios use Foundry or a dedicated authored test layout now. Regular-arena visual improvements must preserve this current geometry.
+
 ### Required kit
 
 | Asset group | Pieces and purpose |
@@ -162,6 +165,8 @@ Player spawning requires two usable exits, no initial hostile line, fair travel 
 
 Measure AI pressure per side: target time, warnings near cover exits, damage taken, obstruction time and forced route changes. Equivalent sockets alone cannot establish fairness when opponents kite the same enemies. Cap per-route occupancy, delay unsafe arrivals and ensure AI never blocks all exits. Both enemy variants need overtime/draw tests. No normal survival drops or XP rewards should enter Versus without a separate competitive rule.
 
+Specifically, the new Breach airdrops do not become Versus objectives because enemies are On. PvP maps do not need supply sockets under this scope. Any later contested-supply design needs its own balanced placement, capture ownership, eligibility, crush/reward rules and map/format acceptance. For co-op, preserve the 220-unit capture field and its movement room when evaluating safe placements across two/three viewpoints; never place it inside new collision merely because the visual pod is small.
+
 ## 7. Map production and acceptance
 
 1. **Contract/blockout:** inventory current movement/ranges/falloff, author the three route graphs and collision footprints, and reserve team/AI socket variants. No polished art commitment yet.
@@ -181,7 +186,7 @@ Measure AI pressure per side: target time, warnings near cover exits, damage tak
 | Visuals | Dark art with readable actors, warnings and real cover; stable shadows/depth, no false gaps or invisible wall extensions |
 | Camera/HUD | Equivalent visible playfield; safe-area ping/score/health layout, no aspect-ratio advantage |
 | Performance | Culled/batched wall rendering, bounded AI/navigation and material effects; sustained physical-device evidence |
-| Co-op preservation | Same regular arena geometry and hazards; any perimeter-art improvement has unchanged collision unless reviewed separately |
+| Co-op preservation | Current pillar-free Breach with supplies, unchanged Foundry solids/vents; no solid pod footprint, no deleted columns restored, and perimeter art keeps geometry unchanged |
 
 A pathfinding success or screenshot does not prove a map is enjoyable. Include human tests of spawn pressure, camping, chase/escape, close-vs-ranged play, attention split between enemies and opponents, and touch aiming around cover. Record match count, side swaps, loadouts, network profile and sample uncertainty. Do not declare balance from a tiny 50% win-rate sample.
 

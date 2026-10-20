@@ -43,12 +43,15 @@ class AppUpdates {
   final DateTime Function() now;
   static const _snoozeKey = 'regun.update.snooze';
   static const _targetKey = 'regun.update.target';
+  static const _androidFirebaseAppId =
+      '1:225712394437:android:a774f7de7e22d0abd0e0ac';
   bool get enabled =>
       apiKey.trim().isNotEmpty &&
       !kIsWeb &&
       [TargetPlatform.iOS, TargetPlatform.android].contains(platform);
 
-  /// Only platform store listings or official iOS TestFlight invitations.
+  /// Only platform store listings, official iOS TestFlight invitations or
+  /// Firebase App Distribution tester links for this Android app.
   Uri? storeUri(String? value) {
     final uri = Uri.tryParse(value?.trim() ?? '');
     if (uri == null ||
@@ -68,11 +71,23 @@ class AppUpdates {
         RegExp(r'^/join/[A-Za-z0-9]{8}/?$').hasMatch(uri.path)) {
       return uri;
     }
-    if (platform == TargetPlatform.android &&
-        uri.host == 'play.google.com' &&
-        uri.path == '/store/apps/details' &&
-        uri.queryParameters['id'] == 'dev.kiishi.regun') {
-      return uri;
+    if (platform == TargetPlatform.android) {
+      if (uri.host == 'play.google.com' &&
+          uri.path == '/store/apps/details' &&
+          uri.queryParameters['id'] == 'dev.kiishi.regun') {
+        return uri;
+      }
+      final release = RegExp(
+              '^/testerapps/${RegExp.escape(_androidFirebaseAppId)}'
+              r'/releases/[A-Za-z0-9]+/?$')
+          .hasMatch(uri.path);
+      if (uri.host == 'appdistribution.firebase.google.com' && release) {
+        return uri;
+      }
+      if (uri.host == 'appdistribution.firebase.dev' &&
+          RegExp(r'^/i/[A-Za-z0-9_-]{6,}/?$').hasMatch(uri.path)) {
+        return uri;
+      }
     }
     return null;
   }

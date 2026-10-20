@@ -168,3 +168,9 @@ Compare each weapon against the same enemy type up close, at mid distance and ne
 - The enlarged field should give room to dodge. Inside lights it up; eight seconds fills the meter with quiet rising charge sounds. Leaving pauses progress while the 45s deadline continues. Complete it, choose one AIRDROP upgrade and confirm XP, level and next XP cost do not change. Reject duplicate cards or immediate repeated rewards.
 - Claim one, ignore one and leave one partially charged. Claimed pods stay open briefly after the picker; all must break down and disappear without persistent debris/hidden collision. Pause/background, recovery, upgrade selection and Continue freeze/resume the correct clocks. Try restarting/leaving during arrival/loading, and start Boss Rush: no drop or resource leak should survive.
 - Listen on speakers/headphones for a heavy landing without clipping or drowning out warnings; filling pulses must stop when outside and stay comfortable over repeated captures. Review standing-zone risk/reward on the phone. Rendered review sheets are `build/test-previews/supply-drops.png` and `supply-area.png`; native acceptance remains open.
+
+### Home settings and controls before a match
+
+- On Home, tap the top-right gear. It has no visible text; accessibility and long-press tooltip identify Settings. Re-Gun sits lower; Play is separated from Training.
+- Settings → Controls must work without starting a run. Change control size, aim hand, stick mode and calibration; Arrange, drag a control and return with Done/system Back. Relaunch/start a match and check saved placement/size.
+- Repeat through Pause → Controls and Pause → Settings → Controls. Changes through either path must immediately apply to the paused match. Check Reset, notched safe edges and larger text on smaller phones.

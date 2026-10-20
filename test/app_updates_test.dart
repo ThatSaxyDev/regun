@@ -127,6 +127,30 @@ void main() {
       expect(s.storeUri(url), isNull);
     }
   });
+  test('Firebase App Distribution tester links open on Android only',
+      () async {
+    const appId = '1:225712394437:android:a774f7de7e22d0abd0e0ac';
+    const share = 'https://appdistribution.firebase.google.com/testerapps/'
+        '$appId/releases/1ajb55gcj4t3o?utm_source=firebase-tools';
+    const invite = 'https://appdistribution.firebase.dev/i/AbC123_x';
+    final android = AppUpdates(platform: TargetPlatform.android);
+    expect(android.storeUri(share), isNotNull);
+    expect(android.storeUri(invite), isNotNull);
+    expect(AppUpdates(platform: TargetPlatform.iOS).storeUri(share), isNull);
+    for (final url in [
+      'http://appdistribution.firebase.google.com/testerapps/$appId/releases/1ajb55gcj4t3o',
+      'https://appdistribution.firebase.google.com.evil.com/testerapps/$appId/releases/1ajb55gcj4t3o',
+      'https://user@appdistribution.firebase.google.com/testerapps/$appId/releases/1ajb55gcj4t3o',
+      'https://appdistribution.firebase.google.com:8443/testerapps/$appId/releases/1ajb55gcj4t3o',
+      'https://appdistribution.firebase.google.com/testerapps/1:1:android:other/releases/1ajb55gcj4t3o',
+      'https://appdistribution.firebase.google.com/testerapps/$appId',
+      'https://appdistribution.firebase.dev/i/abc',
+      'https://appdistribution.firebase.dev/other/AbC123_x',
+      'https://appdistribution.firebase.dev.evil.com/i/AbC123_x'
+    ]) {
+      expect(android.storeUri(url), isNull);
+    }
+  });
   test('current, invalid config, offline, malformed and store failures',
       () async {
     expect(
