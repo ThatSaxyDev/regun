@@ -1,5 +1,5 @@
 import 'package:regun/components/weapons/weapon_impact.dart';
-import 'dart:math';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
@@ -16,7 +16,7 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
       this.cause = 'Ground strike',
       this.poison = false,
       this.ownerHealth})
-      : super(priority: 30000);
+      : super(priority: 9000);
   final double radius, warning, active;
   final int damage;
   final String cause;
@@ -57,27 +57,15 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
 
   @override
   void render(Canvas canvas) {
-    final live = age >= warning;
-    final color = poison ? const Color(0xffB2BB78) : const Color(0xffDD947A);
-    canvas.drawCircle(Offset.zero, radius,
-        Paint()..color = color.withValues(alpha: live ? 0.32 : 0.08));
-    final line = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = live ? 4 : 2;
-    canvas.drawCircle(Offset.zero, radius, line);
-    // Interrupted border and center marks make the warning readable without hue.
-    for (var i = 0; i < 12; i++) {
-      canvas.drawArc(Rect.fromCircle(center: Offset.zero, radius: radius - 8),
-          i * pi / 6, pi / 12, false, line);
-    }
-    if (!live) {
-      canvas.drawArc(
-          Rect.fromCircle(center: Offset.zero, radius: radius * 0.35),
-          -pi / 2,
-          (age / warning).clamp(0, 1) * pi * 2,
-          false,
-          line);
-    }
+    AttackVfx.disk(canvas, Offset.zero, radius,
+        warning: age < warning,
+        progress: age < warning
+            ? (age / warning).clamp(0, 1)
+            : ((age - warning) / active).clamp(0, 1),
+        material: poison
+            ? AttackMaterial.poison
+            : cause == 'Foundry vent'
+                ? AttackMaterial.ember
+                : AttackMaterial.stone);
   }
 }

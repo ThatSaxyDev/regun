@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
@@ -73,7 +74,7 @@ abstract class ExpansionBoss extends PositionComponent
   double get targetDistance => position.distanceTo(game.myPlayer.position);
   Vector2 get target {
     final point = game.myPlayer.position +
-        game.movementJoystick.relativeDelta * game.gameState.movementSpeed * .3;
+        game.movementJoystick.relativeDelta * game.gameState.movementSpeed * .7;
     game.constrainActor(point, 35);
     return point;
   }
@@ -108,14 +109,13 @@ abstract class ExpansionBoss extends PositionComponent
     _walk = clip([4, 5, 6, 7], .64, loop: true);
     _enragedIdle = clip([32, 33, 34, 35], 1.0, loop: true);
     body = SpriteAnimationComponent(
-        size: Vector2.all(kind == BossKind.sovereign ? 340 : 280),
-        position:
-            Vector2(100, 170 - .38 * (kind == BossKind.sovereign ? 340 : 280)),
+        size: Vector2.all(kind.spriteSize),
+        position: Vector2(100, 170 - .38 * kind.spriteSize),
         anchor: Anchor.center,
         animation: _idle);
     add(body);
     add(CircleHitbox(
-        radius: 65,
+        radius: kind.bodyRadius,
         position: size / 2,
         anchor: Anchor.center,
         collisionType: CollisionType.passive));
@@ -205,6 +205,12 @@ abstract class ExpansionBoss extends PositionComponent
       final attack = BossAttack(
           shape: cue.shape,
           owner: combatHealth,
+          material: switch (kind) {
+            BossKind.saint => AttackMaterial.glass,
+            BossKind.magistrate => AttackMaterial.chain,
+            BossKind.sovereign => AttackMaterial.ember,
+            _ => AttackMaterial.stone,
+          },
           warning: cue.warning,
           active: cue.active,
           delay: cue.delay,
@@ -303,8 +309,15 @@ abstract class ExpansionBoss extends PositionComponent
       case ExpansionPhase.approach:
         final before = position.clone();
         if (targetDistance > (kind == BossKind.sovereign ? 420 : 330)) {
-          game.moveActor(this, (game.myPlayer.position - position).normalized(),
-              kind == BossKind.sovereign ? 100 : 170, dt,
+          game.moveActor(
+              this,
+              (game.myPlayer.position - position).normalized(),
+              kind == BossKind.sovereign
+                  ? 100
+                  : kind == BossKind.saint
+                      ? 260
+                      : 240,
+              dt,
               radius: 75);
         }
         final walking = position.distanceToSquared(before) > .01;
@@ -317,7 +330,9 @@ abstract class ExpansionBoss extends PositionComponent
         if ((game.myPlayer.position.x - position.x).abs() > 25) {
           body.scale.x = game.myPlayer.position.x < position.x ? -1 : 1;
         }
-        if (clock >= .85 && beginMove()) clock = 0;
+        if (clock >= (kind == BossKind.saint ? .5 : .85) && beginMove()) {
+          clock = 0;
+        }
       case ExpansionPhase.warning:
         if (clock >= currentMove!.windup) {
           phase = ExpansionPhase.active;
@@ -356,30 +371,18 @@ abstract class ExpansionBoss extends PositionComponent
         Paint()..color = const Color(0x660B090E));
     if (phase == ExpansionPhase.arrival ||
         (phase == ExpansionPhase.recovery && _interrupted)) {
-      canvas.drawCircle(
-          center,
-          85,
-          Paint()
-            ..color = const Color(0xffE0C07C)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
+      AttackVfx.disk(canvas, center, 85,
+          warning: true, progress: (clock / 1.8).clamp(0, 1));
     }
     if (kind == BossKind.marshal &&
         currentMove?.brace == true &&
         [ExpansionPhase.warning, ExpansionPhase.active].contains(phase)) {
-      canvas.drawArc(
-          Rect.fromCircle(center: center, radius: 80),
-          atan2(facing.y, facing.x) - 1.1,
-          2.2,
-          false,
-          Paint()
-            ..color = const Color(0xffCAD5D5)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 6);
+      AttackVfx.armour(canvas, center, 80,
+          facing: atan2(facing.y, facing.x), full: false);
     }
+
     if (kind == BossKind.saint &&
-        phase == ExpansionPhase.active &&
-        currentMove?.pose == 2 &&
+        (phase == ExpansionPhase.warning || phase == ExpansionPhase.active) &&
         projectionPosition != null) {
       final sprite = RegunArt.shared.sprite('bosses/saint', 0);
       final offset = projectionPosition! - position;
@@ -398,37 +401,45 @@ class BellkeeperBoss extends ExpansionBoss {
   @override
   BossMove plan() {
     final delta = target - position, heading = atan2(delta.y, delta.x);
-    if (targetDistance < 360 && sequence % 3 == 1) {
+    if (targetDistance < 570 && sequence % 3 == 1) {
       return BossMove(
           'Clapper sentence',
           0,
           [
             AttackCue(
-                BossAttackShape.sweep(position, 300,
-                    angle: heading - 1.2, arc: 2.4),
-                warning: 1.15,
-                active: .8,
+                BossAttackShape.sweep(position, 540,
+                    angle: heading - 1.85,
+                    arc: 3.7,
+                    innerRadius: 180,
+                    width: 30),
+                warning: 1.05,
+                active: .7,
                 damage: 2)
           ],
           recovery: 1.8,
           prop: BossPropKind.bell,
           propPositions: [position + Vector2(105, 35)]);
     }
-    final reach = (delta.length + 260).clamp(500.0, 1150.0);
+    final reach = (delta.length * 1.5 + 550).clamp(1100.0, 3400.0);
+    final travel = reach / (enraged ? 1450 : 1200);
     return BossMove(
         'Broken toll',
         1,
         [
-          AttackCue(BossAttackShape.ring(position, reach, angle: heading + .7),
-              warning: 1.15, active: 2.0),
+          AttackCue(
+              BossAttackShape.ring(position, reach,
+                  angle: heading + .55, arc: 1.0, width: 34),
+              warning: 1.05,
+              active: travel),
           if (enraged || sequence > 0)
             AttackCue(
-                BossAttackShape.ring(position, reach, angle: heading - .7),
-                delay: 2.25,
-                warning: 1.1,
-                active: 1.8),
+                BossAttackShape.ring(position, reach,
+                    angle: heading - .55, arc: 1.0, width: 34),
+                delay: 1.15 + travel,
+                warning: 1.0,
+                active: travel * .9),
         ],
-        recovery: 2.0,
+        recovery: 1.4,
         prop: BossPropKind.bell,
         propPositions: [position + Vector2(105, 35)]);
   }
@@ -439,54 +450,57 @@ class MagistrateBoss extends ExpansionBoss {
       : super(BossKind.magistrate);
   @override
   BossMove plan() {
-    final aim = target, forward = (aim - position).normalized();
+    final velocity =
+        game.movementJoystick.relativeDelta * game.gameState.movementSpeed;
+    final aim = safePoint(game.myPlayer.position + velocity * .8);
+    final forward = (aim - position).normalized();
     final side = Vector2(-forward.y, forward.x);
-    final a = safePoint(aim + side * 210), b = safePoint(aim - side * 210);
-    if (sequence % 3 == 1) {
+    final a = safePoint(aim + forward * 600 + side * 30);
+    final b = safePoint(aim + forward * 570 - side * 140);
+    if (sequence % 3 == 1 && targetDistance < 750) {
       return BossMove(
-          'Draw the line',
+          'Reaping chain',
           1,
           [
             AttackCue(
-                BossAttackShape.sweep(
-                    position, (targetDistance + 140).clamp(350.0, 900.0),
-                    angle: atan2(forward.y, forward.x) - .9, arc: 1.8),
-                warning: 1.2,
-                active: 1.25,
-                damage: 2)
+                BossAttackShape.sweep(position,
+                    (position.distanceTo(aim) + 260).clamp(600.0, 1200.0),
+                    angle: atan2(forward.y, forward.x) - 1.5,
+                    arc: 3.0,
+                    innerRadius: 200,
+                    width: 35),
+                warning: .95,
+                active: .85,
+                damage: 2),
           ],
           prop: BossPropKind.clasp,
           propPositions: [a, b],
-          recovery: 1.8);
+          recovery: 1.25);
     }
     final crossed = sequence % 3 == 2;
     return BossMove(
         crossed ? 'Cross examination' : 'Writ of iron',
         crossed ? 2 : 0,
         [
+          AttackCue(BossAttackShape.line(path([position, a]), width: 34),
+              warning: .95, active: .5, damage: 2),
           AttackCue(
-              BossAttackShape.line(
-                  path([crossed ? a - forward * 180 : position, b]),
-                  width: 18),
-              warning: 1.2,
-              active: .45),
-          AttackCue(
-              BossAttackShape.line(
-                  path([crossed ? b - forward * 180 : position, a]),
-                  width: 18),
-              delay: .85,
-              warning: 1.1,
-              active: .45),
+              BossAttackShape.line(path([crossed ? b - side * 350 : a, b]),
+                  width: 34),
+              delay: .55,
+              warning: .95,
+              active: .5,
+              damage: 2),
           if (enraged)
             AttackCue(
-                BossAttackShape.circle(safePoint(aim + forward * 160), 100),
-                delay: 1.7,
-                warning: 1.0,
-                active: .3),
+                BossAttackShape.circle(safePoint(aim + forward * 170), 110),
+                delay: 1.2,
+                warning: .9,
+                active: .45),
         ],
         prop: BossPropKind.clasp,
         propPositions: [a, b],
-        recovery: 1.6);
+        recovery: 1.3);
   }
 }
 
@@ -495,59 +509,102 @@ class MirrorSaintBoss extends ExpansionBoss {
       : super(BossKind.saint);
   @override
   BossMove plan() {
-    final aim = target, forward = (aim - position).normalized();
-    final side = Vector2(-forward.y, forward.x);
-    final route = recentRoute.length >= 2
-        ? recentRoute.map((p) => p.clone()).toList()
-        : [aim - side * 160, aim, aim + side * 160];
+    final player = game.myPlayer.position.clone();
+    var travel =
+        game.movementJoystick.relativeDelta * game.gameState.movementSpeed;
+    if (travel.length < 30) travel = (player - position).normalized() * 160;
+    final forward = travel.normalized(), side = Vector2(-forward.y, forward.x);
+    final aim = safePoint(player + travel * .7);
+    final near =
+        recentRoute.isEmpty ? player - forward * 120 : recentRoute.last;
+    final mirror = safePoint(player - forward * 240 + side * 210);
     if (sequence % 3 == 0) {
+      projectionPosition = safePoint(near - side * 110);
       return BossMove(
-          'Recorded escape',
+          'Shatterwake',
           0,
           [
-            AttackCue(BossAttackShape.trace(path(route)),
-                warning: 1.15, active: 1.25)
-          ],
-          recovery: 1.6);
-    }
-    final mirror = safePoint(position + side * 250);
-    if (sequence % 3 == 2) {
-      projectionPosition = safePoint(position + side * 300);
-      return BossMove(
-          'False benediction',
-          2,
-          [
             AttackCue(
-                BossAttackShape.line(
-                    path([projectionPosition!, aim + forward * 200]),
-                    width: 16),
-                warning: 1.2,
-                active: .35),
+                BossAttackShape.trace(
+                    path([near, player, safePoint(player + travel * 1.9)]),
+                    width: 50),
+                warning: .85,
+                active: 1.0,
+                damage: 2),
+            AttackCue(BossAttackShape.circle(aim, 125),
+                delay: .45, warning: .85, active: .85),
             if (enraged)
-              AttackCue(BossAttackShape.trace(path(route)),
-                  delay: 1.4, warning: 1.1, active: 1.1),
+              AttackCue(
+                  BossAttackShape.circle(safePoint(aim + side * 220), 120),
+                  delay: 1.05,
+                  warning: .85,
+                  active: .7),
           ],
           prop: BossPropKind.mirror,
-          propPositions: [mirror],
-          recovery: 1.8);
+          propPositions: [projectionPosition!],
+          recovery: 1.05);
+    }
+    final other = safePoint(player + forward * 210 - side * 260);
+    projectionPosition = mirror;
+    if (sequence % 3 == 1) {
+      return BossMove(
+          'Splinter crossfire',
+          1,
+          [
+            AttackCue(
+                BossAttackShape.line(path([mirror, aim + side * 480]),
+                    width: 42),
+                warning: .9,
+                active: .45,
+                damage: 2),
+            AttackCue(
+                BossAttackShape.line(
+                    path(
+                        [other, safePoint(player + travel * 1.15 - side * 80)]),
+                    width: 42),
+                delay: .5,
+                warning: .9,
+                active: .45,
+                damage: 2),
+            if (enraged)
+              AttackCue(
+                  BossAttackShape.circle(safePoint(player + travel * 1.5), 110),
+                  delay: 1.0,
+                  warning: .9,
+                  active: .8),
+          ],
+          prop: BossPropKind.mirror,
+          propPositions: [mirror, other],
+          recovery: 1.05);
     }
     return BossMove(
-        'Split light',
-        1,
+        'False benediction',
+        2,
         [
           AttackCue(
+              BossAttackShape.line(path([position, aim + forward * 650]),
+                  width: 44),
+              warning: .85,
+              active: .5,
+              damage: 2),
+          AttackCue(
               BossAttackShape.line(
-                  path([position, mirror, aim + forward * 240]),
-                  width: 16),
-              warning: 1.2,
-              active: .6),
-          if (enraged)
-            AttackCue(BossAttackShape.trace(path(route)),
-                delay: 1.6, warning: 1.1, active: 1.1),
+                  path([mirror, safePoint(player + travel * 1.2)]),
+                  width: 44),
+              delay: .45,
+              warning: .85,
+              active: .5,
+              damage: 2),
+          AttackCue(
+              BossAttackShape.circle(
+                  safePoint(player + travel * 1.4), enraged ? 155 : 130),
+              delay: .9,
+              warning: .9,
+              active: .8),
         ],
         prop: BossPropKind.mirror,
         propPositions: [mirror],
-        recovery: 1.8);
+        recovery: 1.15);
   }
 }
 
@@ -559,19 +616,20 @@ class KilnSovereignBoss extends ExpansionBoss {
     final aim = target, forward = (aim - position).normalized();
     final side = Vector2(-forward.y, forward.x);
     final props = [position + side * 175, position - side * 175];
-    if (sequence % 3 == 2) {
+    if (sequence % 3 == 2 && targetDistance < 800) {
       return BossMove(
           'Furnace breath',
           1,
           [
             AttackCue(
                 BossAttackShape.sweep(
-                    position, (targetDistance + 220).clamp(450.0, 950.0),
-                    angle: atan2(forward.y, forward.x) - .8,
-                    arc: 1.6,
-                    width: 28),
-                warning: 1.25,
-                active: 1.8)
+                    position, (targetDistance + 360).clamp(650.0, 1400.0),
+                    angle: atan2(forward.y, forward.x) - 1.25,
+                    arc: 2.5,
+                    innerRadius: 250,
+                    width: 40),
+                warning: 1.2,
+                active: 1.2)
           ],
           prop: BossPropKind.valve,
           propPositions: props,
@@ -582,13 +640,13 @@ class KilnSovereignBoss extends ExpansionBoss {
           'Foundry foot',
           0,
           [
-            AttackCue(BossAttackShape.circle(aim, 130),
-                warning: 1.1, active: .35, damage: 2),
+            AttackCue(BossAttackShape.circle(aim, 180),
+                warning: 1.05, active: .35, damage: 2),
             if (enraged)
               AttackCue(
-                  BossAttackShape.circle(safePoint(aim + side * 190), 110),
+                  BossAttackShape.circle(safePoint(aim + side * 290), 155),
                   delay: .8,
-                  warning: 1.1,
+                  warning: 1.05,
                   active: .35,
                   damage: 2)
           ],
@@ -604,11 +662,16 @@ class KilnSovereignBoss extends ExpansionBoss {
             AttackCue(
                 BossAttackShape.circle(
                     safePoint(aim +
-                        side * ((i - 1) * 200) +
-                        forward * (i == 1 ? 140 : 0)),
-                    105),
-                delay: i * .5,
-                warning: 1.2,
+                        side *
+                            (i == 0
+                                ? 0
+                                : i == 1
+                                    ? 300
+                                    : -300) +
+                        forward * (i == 0 ? 0 : 220)),
+                    150),
+                delay: i * .45,
+                warning: 1.05,
                 active: 1.2),
         ],
         prop: BossPropKind.valve,
@@ -628,27 +691,33 @@ class LastMarshalBoss extends ExpansionBoss {
       return BossMove('Iron courtesy', 1, [], brace: true, recovery: 1.5);
     }
     if (sequence % 3 == 2) {
-      final blade = safePoint(aim + side * 150);
+      final blade = safePoint(aim + forward * 350 + side * 170);
       return BossMove(
           'Return to sender',
           2,
           [
-            AttackCue(BossAttackShape.line(path([position, blade]), width: 18),
+            AttackCue(BossAttackShape.line(path([position, blade]), width: 30),
                 warning: 1.1, active: .2),
             AttackCue(
-                BossAttackShape.sweep(position, 230,
-                    angle: atan2(forward.y, forward.x) - 1.0, arc: 2.0),
+                BossAttackShape.sweep(position, 430,
+                    angle: atan2(forward.y, forward.x) - 1.5,
+                    arc: 3.0,
+                    innerRadius: 180),
                 delay: .8,
                 warning: 1.0,
                 active: .5),
+            AttackCue(BossAttackShape.circle(blade, 140),
+                delay: .8, warning: 1.0, active: .65),
             if (enraged)
               AttackCue(
-                  BossAttackShape.sweep(position, 230,
-                      angle: atan2(forward.y, forward.x) + 1.0, arc: -2.0),
+                  BossAttackShape.sweep(position, 430,
+                      angle: atan2(forward.y, forward.x) + 1.5,
+                      arc: -3.0,
+                      innerRadius: 180),
                   delay: 1.6,
                   warning: 1.0,
                   active: .5),
-            AttackCue(BossAttackShape.line(path([blade, position]), width: 20),
+            AttackCue(BossAttackShape.line(path([blade, position]), width: 30),
                 delay: 2.4, warning: 1.05, active: .3, damage: 2),
           ],
           prop: BossPropKind.blade,
@@ -660,19 +729,19 @@ class LastMarshalBoss extends ExpansionBoss {
         0,
         [
           AttackCue(
-              BossAttackShape.line(path([position, aim + forward * 260]),
-                  width: 10),
-              warning: 1.0,
-              active: .16),
+              BossAttackShape.line(path([position, aim + forward * 900]),
+                  width: 24),
+              warning: .9,
+              active: .12),
           AttackCue(
               BossAttackShape.line(
-                  path([position, aim + forward * 260 + side * 80]),
-                  width: 10),
+                  path([position, aim + forward * 900 + side * 140]),
+                  width: 24),
               delay: .65,
-              warning: 1.0,
-              active: .16),
+              warning: .9,
+              active: .12),
         ],
-        recovery: 2.2);
+        recovery: 1.3);
   }
 }
 

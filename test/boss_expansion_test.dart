@@ -13,6 +13,10 @@ import 'package:regun/components/enemies/boss_attack.dart';
 import 'package:regun/components/enemies/boss_encounter.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/components/enemies/expansion_boss.dart';
+import 'package:regun/components/enemies/enemy_component.dart';
+import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/arena_enemy.dart';
+import 'package:regun/components/enemies/shadow_projectile.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/data/loadout.dart';
@@ -62,6 +66,11 @@ void main() {
     expect(sweep.hits(Vector2(300, 300), 1), isTrue);
     expect(sweep.hits(Vector2(-300, -300), 1), isFalse);
     expect(sweep.hits(Vector2(300, 300), .1), isFalse);
+    final annular = BossAttackShape.sweep(Vector2.zero(), 540,
+        angle: -1.85, arc: 3.7, innerRadius: 180, width: 30);
+    expect(annular.hits(Vector2(130, 0), 1), isFalse);
+    expect(annular.hits(Vector2(300, 0), 1), isTrue);
+    expect(annular.hits(Vector2(-300, 0), 1), isFalse);
     final trace = BossAttackShape.trace(
         [Vector2.zero(), Vector2(200, 0), Vector2(200, 200)]);
     expect(trace.hits(Vector2(100, 0), .3), isTrue);
@@ -141,6 +150,20 @@ void main() {
         await game.ready();
       });
 
+  Future<void> capture(WidgetTester tester, String name) async {
+    await tester.pump();
+    await tester.runAsync(() async {
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(const Key('boss-capture')));
+      final image = await boundary.toImage(pixelRatio: 2);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      await Directory('build/test-previews').create(recursive: true);
+      await File('build/test-previews/$name.png')
+          .writeAsBytes(data!.buffer.asUint8List());
+      image.dispose();
+    });
+  }
+
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
     for (final font in ['PressStart2P', 'Orbitron']) {
@@ -196,6 +219,7 @@ void main() {
       final actual =
           game.world.children.whereType<BossAttack>().first.shape.points;
       expect(actual, orderedEquals(locked));
+      await capture(tester, 'vfx-${kind.name}-warning');
       final elapsed = boss.clock;
       game.pauseGame();
       await tick(tester, game, 120);
@@ -222,6 +246,8 @@ void main() {
         await tick(tester, game, 1);
       }
       expect(boss.phase, ExpansionPhase.active);
+      await tick(tester, game, 6);
+      await capture(tester, 'vfx-${kind.name}-active');
       expect(boss.body.animation!.loop, isFalse);
       final lastRelease = boss.currentMove!.cues
           .map((cue) => cue.delay + cue.warning)
@@ -482,6 +508,216 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     }
   }, timeout: const Timeout(Duration(minutes: 3)));
+
+  testWidgets(
+      'Arc Caster clears three spaced targets and respects walls and proc bounds',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final game = await mount(tester,
+        loadout: const Loadout(training: true, weapon: WeaponType.arcCaster));
+    expect(game.gameState.maxBullets, 6);
+    expect(game.gameState.bulletSpeed, 1050);
+    final targets = [
+      for (var i = 0; i < 3; i++)
+        EnemyComponent(position: Vector2(170 + i * 150.0, 0))
+    ];
+    await tester.runAsync(() async {
+      await game.world.addAll(targets);
+      await game.ready();
+      game.weaponJoystick.delta.setValues(80, 0);
+      game.spawnShotgunBullets();
+      game.resetInput();
+      await game.ready();
+      for (var i = 0; i < 12; i++) {
+        game.update(1 / 60);
+        await game.ready();
+      }
+      game.resetInput();
+    });
+    expect(targets.every((e) => e.combatHealth.isDead), isTrue,
+        reason:
+            'A base discharge should kill three ordinary scorpions through its two jumps');
+    expect(game.gameState.noOfBullets, 5);
+    await capture(tester, 'vfx-arc-caster-chain');
+    final wall = game.geometry.obstacles.first;
+    final across = [
+      Enemy2Component(position: Vector2(wall.left - 50, wall.center.dy)),
+      Enemy2Component(position: Vector2(wall.right + 50, wall.center.dy))
+    ];
+    final chain = [
+      for (var i = 0; i < 4; i++)
+        Enemy2Component(position: Vector2(-650 + i * 150.0, 700))
+    ];
+    await tester.runAsync(() async {
+      await game.world.addAll([...across, ...chain]);
+      await game.ready();
+    });
+    game.combat.hit(across.first, .1);
+    expect(across.last.combatHealth.current, across.last.combatHealth.maximum,
+        reason: 'Chain lightning cannot pass through arena columns');
+    game.combat.hit(chain.first, 3);
+    expect(chain[1].combatHealth.current, closeTo(6 - 3 * .85, .001));
+    expect(chain[2].combatHealth.current, closeTo(6 - 3 * .85 * .85, .001));
+    expect(chain[3].combatHealth.current, 6,
+        reason: 'Base chains stop after two jumps and do not recursively proc');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  for (final kind in [BossKind.saint, BossKind.magistrate]) {
+    for (final dodge in [false, true]) {
+      testWidgets(
+          '${kind.name} threatens straight retreat and rewards a warned sidestep $dodge',
+          (tester) async {
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final game = await mount(tester, loadout: const Loadout());
+        game.myPlayer.position.setValues(-600, -1400);
+        late ExpansionBoss boss;
+        await tester.runAsync(() async {
+          game.spawnBoss(kind);
+          await game.ready();
+          boss = game.activeBoss! as ExpansionBoss;
+          boss.position.setValues(-1000, -1400);
+          game.movementJoystick.delta.setValues(80, 0);
+          var dodged = false;
+          for (var frame = 0; frame < 330; frame++) {
+            for (final actor in game.liveEnemies.toList()) {
+              if (!identical(actor, boss)) actor.removeFromParent();
+            }
+            if (dodge && !dodged && boss.phase == ExpansionPhase.warning) {
+              dodged = true;
+            }
+            // Drive a sustained intent each frame, matching a held pointer.
+            // Flame resets a directly assigned delta without a drag owner.
+            game.movementJoystick.delta
+                .setValues(dodged ? 0 : 80, dodged ? 80 : 0);
+            game.update(1 / 60);
+            if (frame % 6 == 0) await game.ready();
+          }
+        });
+        expect(boss.sequence, greaterThan(0));
+        if (dodge) {
+          expect(game.gameState.health, game.gameState.maxHealth);
+        } else {
+          expect(game.gameState.health, lessThan(game.gameState.maxHealth),
+              reason:
+                  'Constant movement along the predicted route must not neutralize the kit');
+        }
+        await tester.pumpWidget(const SizedBox());
+      });
+    }
+  }
+
+  testWidgets(
+      'regular enemy warnings and impacts use the same material effects',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final game = await mount(tester);
+    await tester.runAsync(() async {
+      game.startBossRush();
+      game.bossRushWait = 9999;
+      await game.ready();
+      await game.world.addAll([
+        ArenaEnemy(EnemyKind.runner, position: Vector2(-340, -90))
+          ..phase = 1
+          ..clock = .2,
+        ArenaEnemy(EnemyKind.shield, position: Vector2(-80, 130))
+          ..phase = 1
+          ..clock = .2,
+        ArenaEnemy(EnemyKind.burster, position: Vector2(260, -80))
+          ..phase = 1
+          ..clock = .2,
+        ArenaEnemy(EnemyKind.sentinel, position: Vector2(450, 100)),
+      ]);
+      game.addHostileArea(Vector2(-340, 170),
+          radius: 90, warning: .8, active: 2, cause: 'Sentinel');
+      game.addHostileArea(Vector2(210, 150),
+          radius: 90, warning: .8, active: 2, poison: true);
+      await game.ready();
+      game.update(.05);
+      await game.ready();
+    });
+    await capture(tester, 'vfx-regular-warning');
+    await tick(tester, game, 55);
+    await capture(tester, 'vfx-regular-impact');
+    await tester.pumpWidget(const SizedBox());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'all eight bosses threaten an open long-distance retreat in both phases',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final kind in BossKind.values) {
+      for (final enraged in [false, true]) {
+        final game = await mount(tester, loadout: const Loadout());
+        late PositionComponent boss;
+        await tester.runAsync(() async {
+          game.myPlayer.position.setValues(-800, -1400);
+          game.spawnBoss(kind);
+          await game.ready();
+          boss = game.activeBoss!;
+          boss.position.setValues(-1800, -1400);
+          if (enraged) {
+            (boss as CombatEnemy)
+                .takeDamage((boss as CombatEnemy).combatHealth.maximum * .51);
+          }
+          for (var frame = 0; frame < 450; frame++) {
+            for (final actor in game.liveEnemies.toList()) {
+              if (!identical(actor, boss)) actor.removeFromParent();
+            }
+            game.movementJoystick.delta.setValues(80, 0);
+            game.update(1 / 60);
+            if (frame % 6 == 0) await game.ready();
+            if (game.gameState.health < game.gameState.maxHealth) break;
+          }
+        });
+        expect(game.myPlayer.position.x, greaterThan(-500),
+            reason: 'A real retreat must be exercised');
+        expect(game.gameState.health, lessThan(game.gameState.maxHealth),
+            reason:
+                '${kind.name}, phase ${enraged ? 2 : 1}: open space must not neutralize attacks');
+        expect(game.map.bounds.rect.width, greaterThan(4000),
+            reason: 'The arena is never shrunk');
+        await tester.pumpWidget(const SizedBox());
+      }
+    }
+  }, timeout: const Timeout(Duration(minutes: 2)));
+
+  testWidgets('faster boss bolts cannot tunnel through a player or a shield',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final game = await mount(tester, loadout: const Loadout());
+    game.gameNotifier.advanceTime(1);
+    final shot = ShadowProjectile(
+        position: Vector2(-90, 0), direction: Vector2(1, 0), speed: 1150);
+    await tester.runAsync(() async {
+      await game.world.add(shot);
+      await game.ready();
+    });
+    shot.update(.16);
+    expect(game.gameState.health, game.gameState.maxHealth - 1);
+    expect(shot.isRemoving || shot.isRemoved, isTrue);
+    final snapshot = game.gameNotifier.checkpoint();
+    snapshot['state'] = game.gameState.copyWith(guard: true).toJson();
+    game.gameNotifier.restoreCheckpoint(snapshot);
+    game.resumeGame();
+    game.gameNotifier.advanceTime(1);
+    final guarded = ShadowProjectile(
+        position: Vector2(-90, 0), direction: Vector2(1, 0), speed: 1150);
+    await tester.runAsync(() async {
+      await game.world.add(guarded);
+      await game.ready();
+    });
+    guarded.update(.16);
+    expect(game.gameState.health, game.gameState.maxHealth - 1);
+    expect(game.gameState.guard, isFalse);
+    await tester.pumpWidget(const SizedBox());
+  });
 
   testWidgets('schema two restores a damaged pair without transient attacks',
       (tester) async {

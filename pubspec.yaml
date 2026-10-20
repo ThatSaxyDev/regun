@@ -1,7 +1,7 @@
 name: regun
 description: "Regun — a mobile twin-stick survival shooter."
 publish_to: "none"
-version: 1.0.0+7
+version: 1.0.0+9
 
 environment:
   sdk: ">=3.4.3 <4.0.0"
@@ -69,6 +69,7 @@ flutter:
     - assets/art/arenas/
     - assets/art/enemies/
     - assets/art/bosses/
+    - assets/art/effects/
     - assets/art/items/
     - assets/art/weapons/
 

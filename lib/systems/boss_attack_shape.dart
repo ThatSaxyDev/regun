@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/components.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
 
@@ -10,33 +11,40 @@ class BossAttackShape {
   BossAttackShape.circle(Vector2 center, this.radius)
       : kind = BossShapeKind.circle,
         points = [center.clone()],
+        innerRadius = 0,
         width = 14,
         angle = 0,
         arc = math.pi * 2;
   BossAttackShape.line(List<Vector2> path, {this.width = 18})
       : kind = BossShapeKind.line,
         points = path.map((p) => p.clone()).toList(),
+        innerRadius = 0,
         radius = 0,
         angle = 0,
         arc = 0;
   BossAttackShape.trace(List<Vector2> path, {this.width = 22})
       : kind = BossShapeKind.trace,
         points = path.map((p) => p.clone()).toList(),
+        innerRadius = 0,
         radius = 0,
         angle = 0,
         arc = 0;
   BossAttackShape.ring(Vector2 center, this.radius,
       {required this.angle, this.arc = 1.25, this.width = 18})
       : kind = BossShapeKind.ring,
-        points = [center.clone()];
+        points = [center.clone()],
+        innerRadius = 0;
   BossAttackShape.sweep(Vector2 center, this.radius,
-      {required this.angle, required this.arc, this.width = 22})
+      {required this.angle,
+      required this.arc,
+      this.width = 22,
+      this.innerRadius = 0})
       : kind = BossShapeKind.sweep,
         points = [center.clone()];
 
   final BossShapeKind kind;
   final List<Vector2> points;
-  final double radius, width, angle, arc;
+  final double radius, width, angle, arc, innerRadius;
 
   static double angularDifference(double a, double b) =>
       (a - b + math.pi) % (math.pi * 2) - math.pi;
@@ -72,6 +80,7 @@ class BossAttackShape {
       return distance >= radius * previous - width - body &&
           distance <= radius * progress + width + body;
     }
+    if (distance + body < innerRadius) return false;
     if (distance <= width + body) return true;
     if (distance > radius + width + body) return false;
     final midpoint = angle + arc * (previous + progress) / 2;
@@ -81,48 +90,87 @@ class BossAttackShape {
   }
 
   void render(Canvas canvas,
-      {required bool warning, required double progress, required Color color}) {
-    final ink = Paint()
-      ..color = color.withValues(alpha: warning ? .85 : 1)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = warning ? 2 : 5;
-    final fill = Paint()..color = color.withValues(alpha: warning ? .08 : .20);
+      {required bool warning,
+      required double progress,
+      required Color color,
+      double warningProgress = 0,
+      bool reducedMotion = false,
+      Vector2? warningFocus,
+      AttackMaterial material = AttackMaterial.stone}) {
     final center = points.first.toOffset();
+    final textureProgress = reducedMotion && !warning ? .35 : progress;
     if (kind == BossShapeKind.circle) {
-      canvas.drawCircle(center, radius, fill);
-      canvas.drawCircle(center, radius, ink);
-      canvas.drawLine(
-          center - const Offset(9, 0), center + const Offset(9, 0), ink);
-      canvas.drawLine(
-          center - const Offset(0, 9), center + const Offset(0, 9), ink);
+      AttackVfx.disk(canvas, center, radius,
+          warning: warning,
+          progress: warning ? warningProgress : textureProgress,
+          material: material);
     } else if (kind == BossShapeKind.ring) {
-      final r = warning ? radius : math.max(1.0, radius * progress);
-      canvas.drawArc(Rect.fromCircle(center: center, radius: r),
-          angle + arc / 2, math.pi * 2 - arc, false, ink);
-      // Gap borders are visible before the wave moves.
+      final r = warning
+          ? (warningFocus?.distanceTo(points.first) ?? radius)
+              .clamp(120.0, radius)
+          : math.max(1.0, radius * progress);
+      AttackVfx.wave(canvas, center, r, angle + arc / 2, math.pi * 2 - arc,
+          warning: warning,
+          progress: textureProgress,
+          material: material,
+          width: width);
       for (final edge in [angle - arc / 2, angle + arc / 2]) {
         final v = Offset(math.cos(edge), math.sin(edge));
-        canvas.drawLine(
-            center + v * 70, center + v * radius, ink..strokeWidth = 2);
+        AttackVfx.chip(canvas, center + v * r, 12, const Color(0xffD8CBA4));
       }
     } else if (kind == BossShapeKind.sweep) {
-      final rect = Rect.fromCircle(center: center, radius: radius);
-      canvas.drawArc(rect, math.min(angle, angle + arc), arc.abs(), false, ink);
-      final heading = warning ? angle : angle + arc * progress;
-      final end =
-          center + Offset(math.cos(heading), math.sin(heading)) * radius;
-      canvas.drawLine(center, end, ink..strokeWidth = warning ? 2 : 7);
+      if (warning) {
+        AttackVfx.wave(canvas, center, radius, angle, arc,
+            warning: true, progress: warningProgress, material: material);
+        AttackVfx.fan(canvas, center, radius, angle, arc,
+            warning: true,
+            progress: warningProgress,
+            material: material,
+            innerRadius: innerRadius);
+        for (final edge in [angle, angle + arc]) {
+          final end = center + Offset(math.cos(edge), math.sin(edge)) * radius;
+          AttackVfx.ribbon(
+              canvas,
+              center + Offset(math.cos(edge), math.sin(edge)) * innerRadius,
+              end,
+              material == AttackMaterial.chain && edge == angle ? width : 10,
+              warning: true,
+              progress: warningProgress,
+              material: material == AttackMaterial.chain && edge == angle
+                  ? material
+                  : AttackMaterial.stone);
+        }
+      } else {
+        final heading = angle + arc * progress;
+        final end =
+            center + Offset(math.cos(heading), math.sin(heading)) * radius;
+        AttackVfx.ribbon(
+            canvas,
+            center + Offset(math.cos(heading), math.sin(heading)) * innerRadius,
+            end,
+            width,
+            warning: false,
+            progress: textureProgress,
+            material: material);
+        AttackVfx.wave(canvas, center, radius, heading - .13, .26,
+            warning: false,
+            progress: textureProgress,
+            material: material,
+            width: width);
+      }
     } else {
       for (var i = 0; i + 1 < points.length; i++) {
         final active = kind != BossShapeKind.trace ||
             (progress >= i / (points.length - 1) &&
                 progress <= (i + 1) / (points.length - 1));
-        final start = points[i].toOffset(), end = points[i + 1].toOffset();
-        final segmentInk = Paint()
-          ..color = color.withValues(alpha: warning || !active ? .5 : 1)
-          ..strokeWidth = warning || !active ? 2 : width * 2;
-        canvas.drawLine(start, end, segmentInk);
-        canvas.drawCircle(end, 9, ink);
+        AttackVfx.ribbon(
+            canvas, points[i].toOffset(), points[i + 1].toOffset(), width,
+            spent: !warning &&
+                kind == BossShapeKind.trace &&
+                progress > (i + 1) / (points.length - 1),
+            warning: warning || !active,
+            progress: warning ? warningProgress : textureProgress,
+            material: material);
       }
     }
   }

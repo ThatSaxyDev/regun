@@ -1,3 +1,5 @@
+import 'package:regun/presentation/attack_vfx.dart';
+import 'package:regun/components/weapons/combat_effect.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -123,7 +125,10 @@ class ArenaEnemy extends PositionComponent
           if (distance < 150) game.damagePlayer(cause: kind.title);
           combatHealth.damage(
               combatHealth.maximum); // A self-detonation grants no kill reward.
-          game.addCombatEffectForKill(position, radius: 150);
+          game.addCombatEffect(CombatEffect(
+              position: position.clone(),
+              radius: 150,
+              material: AttackMaterial.ember));
           removeFromParent();
         }
       case EnemyKind.nest:
@@ -162,19 +167,19 @@ class ArenaEnemy extends PositionComponent
         (kind == EnemyKind.runner ||
             kind == EnemyKind.shield ||
             kind == EnemyKind.burster)) {
-      final r = kind == EnemyKind.burster
-          ? 150.0
-          : kind == EnemyKind.shield
-              ? 140.0
-              : 58.0;
-      canvas.drawCircle(center, r, Paint()..color = const Color(0x20DFA17A));
-      canvas.drawCircle(
-          center,
-          r,
-          Paint()
-            ..color = const Color(0xffDFA17A)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
+      if (kind == EnemyKind.runner) {
+        AttackVfx.ribbon(
+            canvas, center, center + (_committed * 105).toOffset(), 26,
+            warning: true, progress: (clock / .55).clamp(0, 1));
+      } else {
+        AttackVfx.disk(canvas, center, kind == EnemyKind.burster ? 150 : 140,
+            warning: true,
+            progress:
+                (clock / (kind == EnemyKind.burster ? .9 : .75)).clamp(0, 1),
+            material: kind == EnemyKind.burster
+                ? AttackMaterial.ember
+                : AttackMaterial.stone);
+      }
     }
     canvas.drawOval(
         Rect.fromCenter(

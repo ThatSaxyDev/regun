@@ -4,6 +4,7 @@ import json
 from PIL import Image
 
 CONFIG = {**{f'characters/{n}_run':(8,4,896) for n in ['rook','scrapper','warden']},**{f'characters/{n}_actions':(4,4,512) for n in ['rook','scrapper','warden']}, **{f'characters/{n}':(8,4,640) for n in ['rook','scrapper','warden']}, **{f'enemies/{n}':(4,2,640) for n in ['scorpion','mummy','ranged','runner','shield','burster','nest','sentinel']}, **{f'bosses/{n}':(8,5,896) for n in ['shadow','demon','queen']}, 'items/items':(4,2,512), 'weapons/arsenal':(4,2,768), 'arenas/props':(4,2,768)}
+CONFIG['effects/combat_materials'] = (6,4,512)
 manifest={}
 CONFIG.update({f'bosses/{name}': (8,5,640) for name in ['bellkeeper','magistrate','saint','sovereign','marshal']})
 for name,(cols,rows,decode) in CONFIG.items():

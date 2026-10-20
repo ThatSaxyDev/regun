@@ -1,6 +1,6 @@
 # Regun — what is in the build, how to test it, and what is unfinished
 
-Updated: 19 October 2026. This guide describes the implemented build, rather than everything we might eventually add. Use it as a testing notebook: check a box only after you have actually tried that item on the phone.
+Updated: 20 October 2026. This guide describes the implemented build, rather than everything we might eventually add. Use it as a testing notebook: check a box only after you have actually tried that item on the phone.
 
 ## 1. Start here
 
@@ -69,7 +69,7 @@ Default movement is left, aiming/firing is right. Holding an aim direction fires
 | Pump Shotgun | 5 | Three initial pellets, broad close-range spread. | 0.9 s for one missing shell; +0.7 s per additional missing shell. Empty five-shell reload: 3.7 s. | Spread is useful, shell timing feels right, ammo display matches animation/sounds. |
 | Carbine | 24 | Fast sustained fire with lighter individual hits. | 1.8 s | Consistent cadence, readable magazine swap/bolt action, no shotgun animation. |
 | Revolver | 6 | Slower heavy rounds with longer reach. | 2.1 s | Hits feel substantial, deliberate cadence, cylinder reload/ejection is distinct. |
-| Arc Caster | 4 | Energy projectiles with an innate nearby-target chain. | 2.4 s | Nearby enemies receive chain damage, recharge/vent presentation is distinct. |
+| Arc Caster | 6 | Three-damage bolts, two innate jumps retaining 85% damage per hop, 240-unit jump reach. | 2.4 s | Faster bolts, .75 s cadence, heavier electrical feedback; a base discharge clears three ordinary scorpions. |
 
 Reload times above are the unmodified starting values. Reload and magazine upgrades change them. The original shotgun Lottie and normal shell-sound schedule are preserved: an empty five-round reload cues at 0, 0.7, 1.4, 2.1, and 2.8 seconds, ending at 3.7 seconds.
 

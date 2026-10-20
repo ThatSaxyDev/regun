@@ -1,3 +1,4 @@
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
@@ -83,13 +84,21 @@ class BossWeakPoint extends PositionComponent
       ..color = const Color(0xffE5C27F)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
-    canvas.drawCircle(center, 25, Paint()..color = const Color(0xff29232D));
+    canvas.drawRect(
+        Rect.fromCenter(
+            center: center + const Offset(4, 8), width: 46, height: 42),
+        Paint()..color = const Color(0x99120F17));
+    canvas.drawRect(Rect.fromCenter(center: center, width: 42, height: 42),
+        Paint()..color = const Color(0xff302A30));
     switch (kind) {
       case BossPropKind.mirror:
-        canvas.drawRect(Rect.fromCenter(center: center, width: 28, height: 46),
-            Paint()..color = const Color(0xffB1C4C5));
-        canvas.drawLine(center + const Offset(-10, 17),
-            center + const Offset(8, -16), brass);
+        AttackVfx.shard(
+            canvas, center + const Offset(0, 15), 54, const Color(0xffA9C0C3),
+            lean: 8);
+        canvas.drawRect(
+            Rect.fromCenter(
+                center: center + const Offset(0, 18), width: 38, height: 8),
+            Paint()..color = const Color(0xff827361));
       case BossPropKind.valve:
         canvas.drawCircle(center, 18, brass);
         for (final end in [const Offset(18, 0), const Offset(0, 18)]) {
@@ -108,12 +117,15 @@ class BossWeakPoint extends PositionComponent
         canvas.drawLine(
             center + const Offset(-20, 6), center + const Offset(20, 6), brass);
       case BossPropKind.clasp:
-        canvas.drawRect(
-            Rect.fromCenter(center: center, width: 24, height: 24), brass);
-        canvas.drawLine(
-            center + const Offset(-19, 0), center + const Offset(19, 0), brass);
+        AttackVfx.anchor(canvas, center, -1.57, .85);
     }
-    canvas.drawArc(Rect.fromCircle(center: center, radius: 27), -1.57,
-        6.28 * combatHealth.fraction, false, brass..strokeWidth = 2);
+    for (var i = 0; i < 3; i++) {
+      canvas.drawRect(
+          Rect.fromLTWH(center.dx - 16 + i * 12, center.dy - 35, 9, 4),
+          Paint()
+            ..color = i < (combatHealth.fraction * 3).ceil()
+                ? const Color(0xffE5C27F)
+                : const Color(0xff302A30));
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/data/loadout.dart';
 import 'package:regun/utils/soloud_play.dart';
 
 class SilentAudio extends SoloudPlay {
@@ -23,6 +24,30 @@ void main() {
     notifier = container.read(gameNotifierProvider.notifier);
   });
   tearDown(() => container.dispose());
+
+  test(
+      'older Arc Caster runs receive the new base once without losing upgrades',
+      () {
+    notifier.resetRun(loadout: const Loadout(weapon: WeaponType.arcCaster));
+    final old = notifier.checkpoint()..remove('weaponBalance');
+    old['state'] = state()
+        .copyWith(
+            maxBullets: 8,
+            noOfBullets: 3,
+            bulletRange: 600,
+            baseProjectileSpeed: 650,
+            bulletSpeed: 850)
+        .toJson();
+    notifier.restoreCheckpoint(old);
+    expect(state().maxBullets, 10);
+    expect(state().noOfBullets, 5);
+    expect(state().bulletRange, 680);
+    expect(state().bulletSpeed, 1250);
+    final upgraded = notifier.checkpoint();
+    notifier.restoreCheckpoint(upgraded);
+    expect(state().maxBullets, 10);
+    expect(state().noOfBullets, 5);
+  });
 
   for (var missing = 1; missing <= 5; missing++) {
     test(

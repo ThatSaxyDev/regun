@@ -1,3 +1,4 @@
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/weapon_feel.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
 import 'package:regun/data/loadout.dart';
@@ -62,17 +63,17 @@ class BulletComponent extends PositionComponent
     final length = primary ? min(feel.trail, _travelled + 5) : 12.0;
     final ink = Paint()..strokeCap = StrokeCap.square;
     if (weapon == WeaponType.arcCaster && primary) {
-      final path = Path()
-        ..moveTo(center.dx - length, center.dy)
-        ..lineTo(center.dx - length * .6, center.dy - 3)
-        ..lineTo(center.dx - length * .25, center.dy + 3)
-        ..lineTo(center.dx, center.dy);
-      ink
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
-        ..color = feel.color.withValues(alpha: .65);
-      canvas.drawPath(path, ink);
-      canvas.drawCircle(center, 4, Paint()..color = const Color(0xffE7FFF3));
+      AttackVfx.lightning(canvas, center - Offset(length, 0), center, 1,
+          heavy: true);
+      AttackVfx.stroke(
+          canvas,
+          [
+            center + const Offset(-13, -8),
+            center,
+            center + const Offset(-13, 8)
+          ],
+          const Color(0xffDCE5C7),
+          3);
     } else {
       ink
         ..color = (primary ? feel.color : const Color(0xffB9D5C5))

@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -9,6 +10,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
       this.endpoint,
       this.remains,
       this.radius = 90,
+      this.material = AttackMaterial.stone,
       this.color = const Color(0xffE3BF83),
       this.duration = 0.25})
       : super(priority: 20010);
@@ -16,6 +18,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
   final Sprite? remains;
   final double radius, duration;
   final Color color;
+  final AttackMaterial material;
   double age = 0;
   @override
   void onRemove() {
@@ -42,24 +45,18 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
                 .withValues(alpha: (1 - age / duration).clamp(0, 1)));
       return;
     }
-    final paint = Paint()
-      ..color = color.withValues(alpha: (1 - age / duration).clamp(0, 1))
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
     if (endpoint != null) {
       final end = (endpoint! - position).toOffset();
-      final path = Path()
-        ..moveTo(0, 0)
-        ..lineTo(end.dx * 0.35, end.dy * 0.35 + 12)
-        ..lineTo(end.dx * 0.6, end.dy * 0.6 - 12)
-        ..lineTo(end.dx, end.dy);
-      canvas.drawPath(path, paint);
+      AttackVfx.lightning(
+          canvas, Offset.zero, end, (1 - age / duration).clamp(0, 1),
+          heavy: true);
     } else {
-      canvas.drawCircle(
-          Offset.zero,
-          radius *
-              (game.preferences.reducedMotion ? 1 : 0.5 + age / duration * 0.5),
-          paint);
+      AttackVfx.disk(canvas, Offset.zero, radius,
+          warning: false,
+          progress: game.preferences.reducedMotion
+              ? .35
+              : (age / duration).clamp(0, 1),
+          material: material);
     }
   }
 }
@@ -94,14 +91,9 @@ class BurningGround extends PositionComponent with HasGameReference<RegunGame> {
 
   @override
   void render(Canvas canvas) {
-    canvas.drawCircle(
-        Offset.zero, 90, Paint()..color = const Color(0x397E4635));
-    canvas.drawCircle(
-        Offset.zero,
-        85,
-        Paint()
-          ..color = const Color(0xffBE825A)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2);
+    AttackVfx.disk(canvas, Offset.zero, 90,
+        warning: false,
+        progress: (age / 2.5).clamp(0, 1),
+        material: AttackMaterial.ember);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:regun/models/combat_health.dart';
+import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,7 @@ class ShadowProjectile extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
+    if (isRemoving) return;
     if (ownerHealth?.isDead ?? false) {
       removeFromParent();
       return;
@@ -43,8 +45,16 @@ class ShadowProjectile extends PositionComponent
     final before = position.clone();
     position.addScaled(direction!, speed * dt);
     _distance += speed * dt;
+    if (BulletComponent.segmentDistanceSquared(
+                game.myPlayer.position, before, position) <=
+            39 * 39 &&
+        !game.segmentBlocked(before, game.myPlayer.position)) {
+      game.damagePlayer(cause: 'Shadow bolt');
+      removeFromParent();
+      return;
+    }
     if (game.segmentBlocked(before, position) ||
-        _distance > 1200 ||
+        _distance > 3200 ||
         !game.map.bounds.floor.contains(position.toOffset())) {
       removeFromParent();
     }
@@ -65,7 +75,7 @@ class ShadowProjectile extends PositionComponent
       ..lineTo(0, 11)
       ..close();
     canvas.drawPath(path, Paint()..color = const Color(0xffBD7397));
-    canvas.drawCircle(
-        const Offset(11, 11), 4, Paint()..color = const Color(0xffFFF0CD));
+    canvas.drawRect(const Rect.fromLTWH(7, 7, 8, 8),
+        Paint()..color = const Color(0xffFFF0CD));
   }
 }

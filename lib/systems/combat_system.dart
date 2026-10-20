@@ -1,4 +1,5 @@
 import 'package:regun/presentation/regun_art.dart';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -75,7 +76,7 @@ class CombatSystem {
           (innate ||
               game.random.nextDouble() < rank(PowerUp.staticCharge) * 0.12)) {
         _chainBudget--;
-        final count = (innate ? 1 : 0) +
+        final count = (innate ? 2 : 0) +
             rank(PowerUp.conductiveCore) +
             (state.fused('stormCircuit') ? 2 : 0);
         final visited = <PositionComponent>{enemy};
@@ -83,7 +84,7 @@ class CombatSystem {
         for (var i = 0; i < max(1, count); i++) {
           final target = game.nearestEnemy(source.position,
               excluding: visited,
-              range: 170 + rank(PowerUp.conductiveCore) * 55);
+              range: (innate ? 240 : 170) + rank(PowerUp.conductiveCore) * 55);
           if (target == null) break;
           visited.add(target);
           game.addCombatEffect(CombatEffect(
@@ -91,7 +92,7 @@ class CombatSystem {
               endpoint: target.position.clone(),
               color: const Color(0xffBCD7AE),
               duration: 0.16));
-          hit(target, amount * pow(0.65, i + 1), primary: false);
+          hit(target, amount * pow(innate ? .85 : .65, i + 1), primary: false);
           source = target;
         }
       }
@@ -152,8 +153,10 @@ class CombatSystem {
 
   void explode(Vector2 position,
       {required double radius, required double damage}) {
-    game.addCombatEffect(
-        CombatEffect(position: position.clone(), radius: radius));
+    game.addCombatEffect(CombatEffect(
+        position: position.clone(),
+        radius: radius,
+        material: AttackMaterial.ember));
     for (final target in game.liveEnemies.toList()) {
       if (target.position.distanceToSquared(position) < radius * radius) {
         hit(target, damage, primary: false);

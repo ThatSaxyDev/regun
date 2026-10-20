@@ -23,6 +23,6 @@ class WeaponFeel {
         WeaponType.revolver =>
           const WeaponFeel(Color(0xffFFC588), 44, .23, 9, .23, 36, 9, 52, 30),
         WeaponType.arcCaster =>
-          const WeaponFeel(Color(0xffA6E8D4), 54, .23, 4, .2, 24, 12, 28, 34),
+          const WeaponFeel(Color(0xffA6E8D4), 54, .23, 7, .22, 32, 18, 46, 44),
       };
 }

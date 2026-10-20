@@ -366,6 +366,20 @@ void main() {
       });
       expect(restored.liveEnemies, contains(actor));
       expect(actor.combatHealth.current, greaterThan(0));
+      // Earlier pickups can legitimately open another pending offer.
+      for (var picks = 0;
+          restored.gameState.gameplayState == GameplayState.powerup;
+          picks++) {
+        if (picks > 30) throw StateError('Unresolved offer');
+        final offer = restored.gameState;
+        if (offer.evolutionChoices.isNotEmpty) {
+          restored.gameNotifier
+              .fuse(offer.evolutionChoices.first, offerId: offer.offerId);
+        } else {
+          restored.gameNotifier
+              .applyPowerUp(offer.powerUpChoices.first, offerId: offer.offerId);
+        }
+      }
       actor.lastHitWasSecondary = true;
       expect(actor.takeDamage(10000), isTrue);
     }

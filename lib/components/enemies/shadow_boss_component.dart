@@ -4,6 +4,7 @@ import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/enemies/boss_encounter.dart';
 import 'package:regun/data/enemies.dart';
 import 'dart:math';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:regun/presentation/regun_art.dart';
@@ -73,12 +74,12 @@ class ShadowBossComponent extends PositionComponent
     }
     _body = SpriteAnimationComponent(
         animation: _idle,
-        size: Vector2.all(240),
-        position: Vector2(size.x * .5, size.y * .85 - .38 * 240),
+        size: Vector2.all(kind.spriteSize),
+        position: Vector2(size.x * .5, size.y * .85 - .38 * kind.spriteSize),
         anchor: Anchor.center);
     add(_body);
     add(CircleHitbox(
-        radius: 51,
+        radius: kind.bodyRadius,
         position: size / 2,
         anchor: Anchor.center,
         collisionType: CollisionType.passive));
@@ -103,21 +104,19 @@ class ShadowBossComponent extends PositionComponent
     if (!game.claimBossAttack(this)) return;
     final delta = game.myPlayer.position - position;
     final lead =
-        game.movementJoystick.relativeDelta * game.gameState.movementSpeed * .3;
-    if (lead.length > 110) lead.scale(110 / lead.length);
+        game.movementJoystick.relativeDelta * game.gameState.movementSpeed * .7;
+    if (lead.length > 230) lead.scale(230 / lead.length);
     _aim.setFrom((delta + lead).normalized());
     if (_aim.isZero()) _aim.setValues(1, 0);
     _dashStart.setFrom(position);
     _dashEnd
-        .setFrom(position + _aim * (delta.length + 500).clamp(550.0, 1100.0));
+        .setFrom(position + _aim * (delta.length + 800).clamp(850.0, 2200.0));
     game.constrainActor(_dashEnd, 80);
-    final next = delta.length > 650
-        ? ShadowPhase.dashWarning
-        : delta.length < 190 && _pattern % 3 == 2
-            ? ShadowPhase.strikeWarning
-            : _pattern.isOdd
-                ? ShadowPhase.dashWarning
-                : ShadowPhase.fanWarning;
+    final next = delta.length < 270 && _pattern % 3 == 2
+        ? ShadowPhase.strikeWarning
+        : _pattern % 3 == 1
+            ? ShadowPhase.dashWarning
+            : ShadowPhase.fanWarning;
     _pattern++;
     _body.scale.x = _aim.x < 0 ? -1 : 1;
     _enter(next);
@@ -139,17 +138,17 @@ class ShadowBossComponent extends PositionComponent
         _body.animation = distance > 190 ? _walk : _idle;
         if (distance > 190) {
           game.moveActor(this, (game.myPlayer.position - position).normalized(),
-              enraged ? 245 : 205, dt,
+              enraged ? 330 : 290, dt,
               radius: 80);
         }
-        if (_phaseTime >= (enraged ? .65 : 1.0)) _commitAttack();
+        if (_phaseTime >= (enraged ? .55 : .8)) _commitAttack();
       case ShadowPhase.fanWarning:
         if (_phaseTime >= (enraged ? .7 : .85)) _enter(ShadowPhase.fan);
       case ShadowPhase.fan:
         if (_volleys < (enraged ? 3 : 2) && _phaseTime >= _volleys * .22) {
           _volleys++;
           game.audio.play('enemy3projectile.wav');
-          final count = enraged ? 7 : 5;
+          final count = enraged ? 9 : 7;
           for (var i = 0; i < count; i++) {
             final direction = _aim.clone()
               ..rotate((i - (count - 1) / 2) * pi / 10 +
@@ -157,7 +156,7 @@ class ShadowBossComponent extends PositionComponent
             game.world.add(ShadowProjectile(
                 position: position.clone(),
                 direction: direction,
-                speed: enraged ? 560 : 500,
+                speed: enraged ? 1150 : 950,
                 ownerHealth: combatHealth));
           }
         }
@@ -169,7 +168,7 @@ class ShadowBossComponent extends PositionComponent
         game.moveTo(
             this,
             _dashStart +
-                (_dashEnd - _dashStart) * (_phaseTime / 0.52).clamp(0, 1),
+                (_dashEnd - _dashStart) * (_phaseTime / 0.48).clamp(0, 1),
             80);
         if (BulletComponent.segmentDistanceSquared(
                     game.myPlayer.position, before, position) <
@@ -177,7 +176,7 @@ class ShadowBossComponent extends PositionComponent
             !game.segmentBlocked(before, game.myPlayer.position)) {
           game.damagePlayer(cause: 'Shadow dash');
         }
-        if (_phaseTime >= 0.52) _enter(ShadowPhase.recovery);
+        if (_phaseTime >= 0.48) _enter(ShadowPhase.recovery);
       case ShadowPhase.strikeWarning:
         if (_phaseTime >= 0.9) _enter(ShadowPhase.strike);
       case ShadowPhase.strike:
@@ -185,8 +184,8 @@ class ShadowBossComponent extends PositionComponent
           _fired = true;
           game.audio.play('impact_boss.wav');
           game.addCombatEffect(
-              HeavyImpact(position: position.clone(), radius: 145));
-          if (distance <= 185 &&
+              HeavyImpact(position: position.clone(), radius: 225));
+          if (distance <= 270 &&
               !game.segmentBlocked(position, game.myPlayer.position)) {
             game.damagePlayer(cause: 'Shadow strike');
           }
@@ -211,39 +210,27 @@ class ShadowBossComponent extends PositionComponent
     if (phase == ShadowPhase.arrival ||
         phase == ShadowPhase.strikeWarning ||
         phase == ShadowPhase.strike) {
-      canvas.drawCircle(center, phase == ShadowPhase.arrival ? 85 : 185,
-          Paint()..color = const Color(0x35D38D80));
-      canvas.drawCircle(
-          center,
-          phase == ShadowPhase.arrival ? 85 : 185,
-          Paint()
-            ..color = const Color(0xffDDA581)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 3);
+      AttackVfx.disk(canvas, center, phase == ShadowPhase.arrival ? 100 : 270,
+          warning: phase != ShadowPhase.strike,
+          progress: (_phaseTime / .9).clamp(0, 1),
+          material: AttackMaterial.shadow);
     }
     if (phase == ShadowPhase.dashWarning) {
-      final endpoint = (_dashEnd - position + size / 2).toOffset();
-      canvas.drawLine(
-          center,
-          endpoint,
-          Paint()
-            ..color = const Color(0x45DDA581)
-            ..strokeWidth = 160);
-      canvas.drawLine(
-          center,
-          endpoint,
-          Paint()
-            ..color = const Color(0xffEBC899)
-            ..strokeWidth = 3);
+      AttackVfx.ribbon(
+          canvas, center, (_dashEnd - position + size / 2).toOffset(), 80,
+          warning: true,
+          progress: (_phaseTime / .9).clamp(0, 1),
+          material: AttackMaterial.shadow);
     }
     if (phase == ShadowPhase.fanWarning) {
-      final endpoint = (_aim * 200 + size / 2).toOffset();
-      canvas.drawLine(
-          center,
-          endpoint,
-          Paint()
-            ..color = const Color(0xffC782A3)
-            ..strokeWidth = 4);
+      final count = enraged ? 9 : 7;
+      for (var i = 0; i < count; i++) {
+        final dir = _aim.clone()..rotate((i - (count - 1) / 2) * pi / 10);
+        AttackVfx.ribbon(canvas, center, center + (dir * 2400).toOffset(), 3,
+            warning: true,
+            progress: (_phaseTime / .85).clamp(0, 1),
+            material: AttackMaterial.shadow);
+      }
     }
     super.render(canvas);
   }

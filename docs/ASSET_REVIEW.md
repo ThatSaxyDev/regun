@@ -32,3 +32,6 @@ No online account, ads, analytics or purchases are needed by the game. Unused Su
 
 
 Five additional boss atlases (40 poses each) are recorded in `art/source/BOSS_GENERATION_PROMPTS.md`; their source PNGs are copied unchanged. Fifteen boss warn/impact/break cues are original deterministic synthesis from `tool/generate_boss_audio.py`. The SHA-256 inventory includes all twenty files. Expansion atlases load only during their encounters and are released after death/exit, retaining the existing 32 MiB decoded texture ceiling for a pair. Visual and listening approval remain device review items.
+
+
+The combat presentation correction adds one unchanged generated transparent 24-frame atlas at `assets/art/effects/combat_materials.png`, with its built-in imagegen prompt in `art/source/COMBAT_VFX_PROMPT.md`. Arc Caster's original synthesized shot variants and impact were revised with `tool/generate_weapon_audio.py --only arcCaster`; the audio manifest and file hashes are current. Decoded eager art is about 29.80 MiB; the paired expansion-boss lifecycle test retains the 32 MiB ceiling. Frame crops, source alpha and rendered combat were inspected. Device visual/listening approval remains open.

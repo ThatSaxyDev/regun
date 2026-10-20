@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
@@ -35,14 +35,7 @@ class SpawnWarning extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    final paint = Paint()
-      ..color = const Color(0xffB4A17D)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawCircle(Offset.zero, 38, paint);
-    canvas.drawArc(Rect.fromCircle(center: Offset.zero, radius: 30), -pi / 2,
-        (elapsed / 0.8).clamp(0, 1) * pi * 2, false, paint);
-    canvas.drawLine(const Offset(-8, 0), const Offset(8, 0), paint);
-    canvas.drawLine(const Offset(0, -8), const Offset(0, 8), paint);
+    AttackVfx.disk(canvas, Offset.zero, 38,
+        warning: true, progress: (elapsed / .8).clamp(0, 1));
   }
 }

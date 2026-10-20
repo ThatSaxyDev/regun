@@ -2,7 +2,10 @@
 Only weapon/impact assets are written; music and UI files are untouched.
 """
 from pathlib import Path
-import csv, math, random, struct, wave
+import argparse, csv, math, random, struct, wave
+parser = argparse.ArgumentParser()
+parser.add_argument("--only", choices=["arcCaster"])
+args = parser.parse_args()
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'assets/audio'
 RATE = 44100
@@ -36,9 +39,11 @@ def render(name, duration, kind, seed=1):
             phase += 2*math.pi*(145+980*math.exp(-t*24))*pitch/RATE
             crackle = (max(0,math.sin(t*330))*high)*math.exp(-t*19)
             v = high*1.8*math.exp(-t*200)+crackle*1.4+low*3*math.exp(-t*16)
-            v += math.sin(phase)*.25*math.exp(-t*22)
+            v += math.sin(phase)*.3*math.exp(-t*16)
+            v += math.sin(2*math.pi*(72*t-35*t*t))*.7*math.exp(-t*13)
+            v += low*3*math.exp(-t*11)
         elif kind.startswith('impact'):
-            heavy = kind in ('impact_boss','impact_revolver','impact_shotgun')
+            heavy = kind in ('impact_boss','impact_revolver','impact_shotgun','impact_arcCaster')
             electric = kind in ('impact_arcCaster','impact_poison')
             phase += 2*math.pi*(55 if heavy else 220)*pitch/RATE
             v = noise*.8*math.exp(-t*(26 if heavy else 55))
@@ -68,17 +73,26 @@ def render(name, duration, kind, seed=1):
     rows.append([name,round(duration,3),round(max(abs(x) for x in samples),4),round(math.sqrt(sum(x*x for x in samples)/len(samples)),4),kind,seed])
 
 for weapon,duration in [('shotgun',.38),('carbine',.12),('revolver',.42),('arcCaster',.3)]:
+    if args.only and weapon != args.only: continue
     for variant in range(3): render(f'shot_{weapon}_{variant}.wav',duration,weapon,11+variant)
     render(f'impact_{weapon}.wav',.22 if weapon=='carbine' else .3,'impact_'+weapon,31)
     for cue in ([] if weapon=='shotgun' else range(3)):
         render(f'reload_{weapon}_{cue}.wav',.19 if weapon!='arcCaster' else .32,'reload_'+weapon,41+cue*2)
-render('reload_shotgun_shell.wav',.18,'reload_shotgun',45)
-render('reload_shotgun_pump.wav',.24,'pump',47)
-render('impact_boss.wav',.48,'impact_boss',53)
-render('impact_poison.wav',.32,'impact_poison',59)
-render('hurt_player.wav',.24,'impact_shotgun',61)
-render('impact_guard.wav',.2,'impact_arcCaster',67)
+if not args.only:
+    render('reload_shotgun_shell.wav',.18,'reload_shotgun',45)
+    render('reload_shotgun_pump.wav',.24,'pump',47)
+    render('impact_boss.wav',.48,'impact_boss',53)
+    render('impact_poison.wav',.32,'impact_poison',59)
+    render('hurt_player.wav',.24,'impact_shotgun',61)
+    render('impact_guard.wav',.2,'impact_arcCaster',67)
 (ROOT/'docs/art').mkdir(exist_ok=True)
-with (ROOT/'docs/art/WEAPON_AUDIO_MANIFEST.csv').open('w') as f:
-    writer=csv.writer(f);writer.writerow(['file','seconds','peak','rms','source_model','seed']);writer.writerows(rows)
-print(f'Wrote {len(rows)} mono PCM16 sounds at {RATE} Hz; music/UI unchanged.')
+written_count = len(rows)
+manifest_path = ROOT/'docs/art/WEAPON_AUDIO_MANIFEST.csv'
+if args.only and manifest_path.exists():
+    with manifest_path.open() as f:
+        old = list(csv.reader(f))[1:]
+    names = {row[0] for row in rows}
+    rows = [row for row in old if row[0] not in names] + rows
+with manifest_path.open('w', newline='') as f:
+    writer=csv.writer(f, lineterminator='\n');writer.writerow(['file','seconds','peak','rms','source_model','seed']);writer.writerows(rows)
+print(f'Wrote {written_count} mono PCM16 sounds at {RATE} Hz; music/UI unchanged.')

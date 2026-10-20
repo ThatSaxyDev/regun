@@ -1,5 +1,6 @@
 import 'package:regun/components/weapons/weapon_impact.dart';
 import 'dart:math';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -45,24 +46,24 @@ class PatternBoss extends PositionComponent
   double get warningDuration => enraged ? .8 : 1.0;
   double get activeDuration => _charge ? .65 : .8;
   double get zoneRadius => kind == BossKind.demon
-      ? 135
+      ? 180
       : pattern == 0
-          ? 120
-          : 105;
+          ? 170
+          : 145;
 
   @override
   Future<void> onLoad() async {
     initializeHealth(maximumHealth);
     add(CircleHitbox(
-        radius: 65,
+        radius: kind.bodyRadius,
         position: size / 2,
         anchor: Anchor.center,
         collisionType: CollisionType.passive));
     _walk = BossArt.walk(kind);
     _idle = BossArt.idle(kind);
     _body = SpriteAnimationComponent(
-        size: Vector2.all(300),
-        position: Vector2(size.x * .5, size.y * .85 - .38 * 300),
+        size: Vector2.all(kind.spriteSize),
+        position: Vector2(size.x * .5, size.y * .85 - .38 * kind.spriteSize),
         anchor: Anchor.center,
         animation: _idle);
     add(_body);
@@ -90,30 +91,30 @@ class PatternBoss extends PositionComponent
     pattern = kind == BossKind.demon
         ? (distance > 400
             ? 2
-            : distance < 230 && _sequence.isEven
+            : distance < 330 && _sequence.isEven
                 ? 0
                 : 1)
         : _sequence % 3;
     _sequence++;
     _origin.setFrom(position);
     final lead =
-        game.movementJoystick.relativeDelta * game.gameState.movementSpeed * .3;
-    if (lead.length > 110) lead.scale(110 / lead.length);
+        game.movementJoystick.relativeDelta * game.gameState.movementSpeed * .7;
+    if (lead.length > 240) lead.scale(240 / lead.length);
     _target.setFrom(game.myPlayer.position + lead);
     _direction.setFrom((_target - position).normalized());
     if (_direction.isZero()) _direction.setValues(1, 0);
     _zones.clear();
     if (_charge) {
       _target.setFrom(
-          position + _direction * (distance + 560).clamp(650.0, 1250.0));
+          position + _direction * (distance + 800).clamp(900.0, 2200.0));
       game.constrainActor(_target, 75);
     } else if (kind == BossKind.demon && pattern == 1 ||
         kind == BossKind.queen && pattern != 1) {
       final forward = lead.isZero() ? _direction : lead.normalized();
       final side = Vector2(-forward.y, forward.x);
       final offsets = kind == BossKind.queen && pattern == 2
-          ? [Vector2.zero(), forward * 190, if (enraged) side * 190]
-          : [Vector2.zero(), forward * 230, if (enraged) -side * 190];
+          ? [Vector2.zero(), forward * 280, if (enraged) side * 280]
+          : [Vector2.zero(), forward * 320, if (enraged) -side * 280];
       for (final offset in offsets) {
         final point = _target + offset;
         // Snapshot the exact constrained hit areas before showing their markers.
@@ -129,22 +130,34 @@ class PatternBoss extends PositionComponent
     game.audio.play('impact_boss.wav');
     if (kind == BossKind.demon && pattern == 0) {
       final delta = game.myPlayer.position - position;
-      if (delta.length < 220 &&
-          delta.normalized().dot(_direction) >= 0 &&
+      if (delta.length < 340 &&
+          delta.normalized().dot(_direction) >= cos(1.75) &&
           !game.segmentBlocked(position, game.myPlayer.position)) {
         game.damagePlayer(amount: 2, cause: 'Demon cleave');
       }
       game.addCombatEffect(
-          HeavyImpact(position: position.clone(), radius: 170));
+          HeavyImpact(position: position.clone(), radius: 260));
     } else if (kind == BossKind.queen && pattern == 1) {
       for (var i = 0; i < (enraged ? 4 : 3); i++) {
         game.spawnAdd(
             EnemyKind.runner, position + Vector2(cos(i * 2), sin(i * 2)) * 220);
       }
+      game.addHostileArea(
+          game.myPlayer.position +
+              game.movementJoystick.relativeDelta *
+                  game.gameState.movementSpeed *
+                  .7,
+          radius: 155,
+          warning: 1.05,
+          active: 1.3,
+          poison: true,
+          cause: 'Queen brood eruption',
+          ownerHealth: combatHealth);
       game.addCombatEffect(CombatEffect(
           position: position.clone(),
-          radius: 180,
+          radius: 220,
           color: const Color(0xffC7CA89),
+          material: AttackMaterial.poison,
           duration: .4));
     } else if (!_charge) {
       for (var i = 0; i < _zones.length; i++) {
@@ -186,8 +199,8 @@ class PatternBoss extends PositionComponent
               this,
               delta.normalized(),
               kind == BossKind.demon
-                  ? (enraged ? 245 : 205)
-                  : (enraged ? 220 : 185),
+                  ? (enraged ? 320 : 275)
+                  : (enraged ? 290 : 250),
               dt,
               radius: 75);
         }
@@ -226,43 +239,38 @@ class PatternBoss extends PositionComponent
         Rect.fromCenter(
             center: Offset(size.x * .5, size.y * .86), width: 160, height: 30),
         Paint()..color = const Color(0x650A0B0E));
-    final line = Paint()
-      ..color = const Color(0xffE1A17D)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    if (phase == PatternBossPhase.arrival) canvas.drawCircle(center, 110, line);
+    if (phase == PatternBossPhase.arrival) {
+      AttackVfx.disk(canvas, center, 110, warning: true, progress: clock / 1.5);
+    }
     if (phase == PatternBossPhase.warning || phase == PatternBossPhase.active) {
       final warning = phase == PatternBossPhase.warning;
-      final fill = Paint()..color = Color(warning ? 0x30D89875 : 0x60E6AC78);
+      final progress = warning
+          ? (clock / warningDuration).clamp(0.0, 1.0)
+          : (clock / activeDuration).clamp(0.0, 1.0);
       if (kind == BossKind.demon && pattern == 0) {
-        final start = atan2(_direction.y, _direction.x) - pi / 2;
-        final path = Path()
-          ..moveTo(center.dx, center.dy)
-          ..arcTo(
-              Rect.fromCircle(center: center, radius: 220), start, pi, false)
-          ..close();
-        canvas.drawPath(path, fill);
-        canvas.drawPath(path, line);
+        final start = atan2(_direction.y, _direction.x) - 1.75;
+        AttackVfx.fan(canvas, center, 340, start, 3.5,
+            warning: warning,
+            progress: progress,
+            material: AttackMaterial.ember);
       } else if (_charge) {
-        final end = (_target - position + size / 2).toOffset();
-        canvas.drawLine(
-            center,
-            end,
-            Paint()
-              ..color = fill.color
-              ..strokeWidth = 170);
-        canvas.drawLine(center, end, line);
+        AttackVfx.ribbon(
+            canvas, center, (_target - position + size / 2).toOffset(), 80,
+            warning: warning, progress: progress);
       } else if (kind == BossKind.queen && pattern == 1) {
-        canvas.drawCircle(center, 220, line);
+        AttackVfx.disk(canvas, center, 220,
+            warning: warning,
+            progress: progress,
+            material: AttackMaterial.poison);
       } else if (warning || !_committed) {
         for (final point in _zones) {
-          final target = (point - position + size / 2).toOffset();
-          canvas.drawCircle(target, zoneRadius, fill);
-          canvas.drawCircle(target, zoneRadius, line);
-          canvas.drawLine(
-              target - const Offset(12, 0), target + const Offset(12, 0), line);
-          canvas.drawLine(
-              target - const Offset(0, 12), target + const Offset(0, 12), line);
+          AttackVfx.disk(
+              canvas, (point - position + size / 2).toOffset(), zoneRadius,
+              warning: warning,
+              progress: progress,
+              material: kind == BossKind.queen && pattern == 2
+                  ? AttackMaterial.poison
+                  : AttackMaterial.stone);
         }
       }
     }

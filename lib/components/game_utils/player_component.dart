@@ -1,3 +1,4 @@
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/weapon_feel.dart';
 import 'package:regun/presentation/animation_playback.dart';
 import 'dart:math';
@@ -193,17 +194,20 @@ class PlayerComponent extends SpriteAnimationComponent
           Paint()..color = const Color(0xffD5BA75));
     }
     if (hurtFlash > 0) {
-      canvas.drawCircle(
-          (size / 2).toOffset(), 34, Paint()..color = const Color(0x55EBA49A));
+      for (final dx in [-1, 1]) {
+        AttackVfx.stroke(
+            canvas,
+            [
+              Offset(size.x / 2 + dx * 26, size.y / 2 - 13),
+              Offset(size.x / 2 + dx * 33, size.y / 2),
+              Offset(size.x / 2 + dx * 26, size.y / 2 + 13)
+            ],
+            const Color(0xffD7A69C),
+            4);
+      }
     }
     if (game.gameState.guard) {
-      canvas.drawCircle(
-          (size / 2).toOffset(),
-          35,
-          Paint()
-            ..color = const Color(0x997EABC0)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
+      AttackVfx.armour(canvas, (size / 2).toOffset(), 35);
     }
   }
 

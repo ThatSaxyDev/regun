@@ -60,6 +60,7 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   Map<String, dynamic> checkpoint() => {
+        'weaponBalance': 2,
         'state': state.toJson(),
         'offerRandom': _offerRandom.state,
         'guardElapsed': _guardElapsed,
@@ -72,7 +73,7 @@ class GameNotifier extends Notifier<GameState> {
       };
 
   void restoreCheckpoint(Map<String, dynamic> snapshot) {
-    final restored =
+    var restored =
         GameState.fromJson(Map<String, dynamic>.from(snapshot['state'] as Map));
     if (restored.health <= 0 ||
         restored.health > 10000 ||
@@ -84,6 +85,16 @@ class GameNotifier extends Notifier<GameState> {
         !restored.noOfCoinsToUpgrade.isFinite ||
         restored.xP < 0) {
       throw const FormatException('Invalid run state');
+    }
+    if (weapon == WeaponType.arcCaster && snapshot['weaponBalance'] != 2) {
+      restored = restored.copyWith(
+          maxBullets: min(100, restored.maxBullets + 2),
+          noOfBullets: restored.reloading
+              ? restored.noOfBullets
+              : min(100, restored.noOfBullets + 2),
+          bulletRange: restored.bulletRange + 80,
+          bulletSpeed: restored.bulletSpeed + 400,
+          baseProjectileSpeed: restored.baseProjectileSpeed + 400);
     }
     cancelPendingActions();
     _activeSeconds = (snapshot['activeSeconds'] as num).toDouble();

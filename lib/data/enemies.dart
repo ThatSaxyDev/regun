@@ -22,7 +22,7 @@ enum BossKind {
   magistrate('Chain Magistrate',
       'Read the chains. Break a clasp or leave the tightening line.'),
   saint('The Mirror Saint',
-      'Change your route. Watch the broken shoulder. Break the glass.'),
+      'Change your route. Dodge the glass. Break the mirrors.'),
   sovereign('Kiln Sovereign',
       'Read the vents. Break an exposed valve to open the core.'),
   marshal('The Last Marshal',
@@ -31,13 +31,24 @@ enum BossKind {
   const BossKind(this.title, this.description);
   final String title, description;
   bool get expansion => index >= BossKind.bellkeeper.index;
+
+  /// Render footprint grows with its authoritative body, not a root transform
+  /// that would also scale attack geometry and movement distances.
+  double get spriteSize => switch (this) {
+        shadow => 310,
+        demon => 360,
+        queen => 370,
+        sovereign => 410,
+        _ => 340,
+      };
+  double get bodyRadius => this == shadow ? 68 : 80;
   double get baseHealth => switch (this) {
         shadow => 140,
         demon => 230,
         queen => 300,
         bellkeeper => 260,
         magistrate => 280,
-        saint => 250,
+        saint => 300,
         sovereign => 340,
         marshal => 270,
       };

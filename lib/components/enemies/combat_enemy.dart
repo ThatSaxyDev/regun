@@ -1,3 +1,4 @@
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
@@ -128,17 +129,21 @@ mixin CombatEnemy
           Paint()..color = const Color(0xA6E99B64));
     }
     if (marked && !combatHealth.isDead) {
-      canvas.drawCircle(
-          (size / 2).toOffset(),
-          (size.x < size.y ? size.x : size.y) * 0.35,
-          Paint()
-            ..color = const Color(0xffE3C87D)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
+      final c = (size / 2).toOffset(), r = size.x * .3;
+      for (final sign in [-1, 1]) {
+        AttackVfx.stroke(
+            canvas,
+            [
+              c + Offset(sign * r, -8),
+              c + Offset(sign * r, -r),
+              c + Offset(sign * (r - 8), -r)
+            ],
+            const Color(0xffDAC18A),
+            3);
+      }
     }
     if (_flash > 0) {
-      canvas.drawCircle(
-          (size / 2).toOffset(), 16, Paint()..color = const Color(0x99F1C77C));
+      AttackVfx.chip(canvas, (size / 2).toOffset(), 9, const Color(0xffD5B88B));
     }
     if (!isBoss && !combatHealth.isDead && combatHealth.fraction < 1) {
       final width = size.x * 0.45;

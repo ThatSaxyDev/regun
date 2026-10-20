@@ -7,8 +7,8 @@ enum WeaponType {
       1800),
   revolver('Revolver', 'Heavy rounds. Cylinder reload.', 6, 0.65, 3, 800, 1150,
       2100),
-  arcCaster('Arc Caster', 'Chain lightning. Energy recharge.', 4, 0.9, 2, 480,
-      650, 2400);
+  arcCaster('Arc Caster', 'Heavy bolts. Two chain jumps.', 6, 0.75, 3, 560,
+      1050, 2400);
 
   const WeaponType(this.title, this.description, this.capacity, this.cadence,
       this.damage, this.range, this.speed, this.reloadMs);

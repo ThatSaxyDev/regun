@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/weapons/combat_effect.dart';
@@ -41,7 +42,8 @@ class WeaponImpact extends CombatEffect {
         ..lineTo(radius, 0);
       ink.style = PaintingStyle.stroke;
       canvas.drawPath(path, ink);
-      canvas.drawCircle(Offset.zero, radius * .7, ink..strokeWidth = 1.5);
+      AttackVfx.lightning(canvas, Offset(-radius, 0), Offset(radius, 0), 1 - t,
+          heavy: true);
     } else if (weapon == WeaponType.revolver) {
       canvas.drawLine(Offset(-radius * .8, 0), Offset(radius * .6, 0),
           ink..strokeWidth = 4);
@@ -63,20 +65,12 @@ class HeavyImpact extends CombatEffect {
   void render(Canvas canvas) {
     final t = (age / duration).clamp(0.0, 1.0);
     final r = radius * (game.preferences.reducedMotion ? .75 : .5 + t * .5);
-    final ink = Paint()
-      ..color = (poison ? const Color(0xffB6C87D) : const Color(0xffE6AA7B))
-          .withValues(alpha: (1 - t) * .8)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3 * (1 - t) + 1;
-    canvas.drawCircle(Offset.zero, r, ink);
-    for (var i = 0; i < 7; i++) {
-      final a = i * pi * 2 / 7;
-      final d = Offset(cos(a), sin(a));
-      final p = Path()
-        ..moveTo(d.dx * r * .3, d.dy * r * .3)
-        ..lineTo(d.dx * r * .65 - d.dy * 6, d.dy * r * .65 + d.dx * 6)
-        ..lineTo(d.dx * r, d.dy * r);
-      canvas.drawPath(p, ink);
-    }
+    canvas.save();
+    canvas.scale(1 - t * .12);
+    AttackVfx.disk(canvas, Offset.zero, r,
+        warning: false,
+        progress: t,
+        material: poison ? AttackMaterial.poison : AttackMaterial.ember);
+    canvas.restore();
   }
 }

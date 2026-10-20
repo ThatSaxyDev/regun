@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
+import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/models/combat_health.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/systems/boss_attack_shape.dart';
@@ -12,20 +13,23 @@ class BossAttack extends PositionComponent with HasGameReference<RegunGame> {
       required this.warning,
       required this.active,
       this.delay = 0,
+      this.material = AttackMaterial.stone,
       this.damage = 1,
       this.cause = 'Boss strike',
       this.color = const Color(0xffDDA46E),
       this.sound = 'impact_boss.wav',
       this.onImpact})
-      : super(priority: 28000);
+      : super(priority: 9000);
   final BossAttackShape shape;
   final CombatHealth owner;
   final double warning, active, delay;
   final int damage;
   final String cause, sound;
   final Color color;
+  final AttackMaterial material;
   final VoidCallback? onImpact;
   double age = 0;
+  Vector2? _warningFocus;
   bool _hit = false, _sounded = false;
   double get remaining =>
       (delay + warning + active - age).clamp(0, double.infinity);
@@ -33,6 +37,7 @@ class BossAttack extends PositionComponent with HasGameReference<RegunGame> {
 
   @override
   Future<void> onLoad() async {
+    _warningFocus = game.myPlayer.position.clone();
     if (!game.registerBossAttack(this)) removeFromParent();
   }
 
@@ -70,6 +75,12 @@ class BossAttack extends PositionComponent with HasGameReference<RegunGame> {
   void render(Canvas canvas) {
     if (age < delay) return;
     shape.render(canvas,
-        warning: age < delay + warning, progress: progress, color: color);
+        warning: age < delay + warning,
+        progress: progress,
+        color: color,
+        warningFocus: _warningFocus,
+        reducedMotion: game.preferences.reducedMotion,
+        warningProgress: ((age - delay) / warning).clamp(0, 1),
+        material: material);
   }
 }

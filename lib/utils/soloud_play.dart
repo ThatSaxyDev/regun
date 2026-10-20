@@ -89,15 +89,17 @@ class SoloudPlay {
       if (_soloud.isInitialized) {
         final gain = assetPath.startsWith('shot_')
             ? .72
-            : assetPath.startsWith('impact_boss')
-                ? .6
-                : assetPath.startsWith('impact_')
-                    ? .25
-                    : assetPath.startsWith('reload_')
-                        ? .42
-                        : assetPath == 'hit.wav'
-                            ? .2
-                            : .5;
+            : assetPath == 'impact_arcCaster.wav'
+                ? .45
+                : assetPath.startsWith('impact_boss')
+                    ? .6
+                    : assetPath.startsWith('impact_')
+                        ? .25
+                        : assetPath.startsWith('reload_')
+                            ? .42
+                            : assetPath == 'hit.wav'
+                                ? .2
+                                : .5;
         await _soloud.play(source, volume: _sfxVolume * gain);
       }
     } catch (error) {

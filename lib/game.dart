@@ -164,6 +164,7 @@ class RegunGame extends FlameGame
       final end = proposed.clone();
       geometry.constrain(end, 35);
       final start = result.last;
+      if (start.distanceToSquared(end) < .01) continue;
       if (segmentBlocked(start, end)) {
         var lo = 0.0, hi = 1.0;
         for (var i = 0; i < 12; i++) {
@@ -184,8 +185,7 @@ class RegunGame extends FlameGame
   }
 
   bool bossMoveHasEscape(List<AttackCue> cues) {
-    // Validate each activation window. Delayed echoes/crossings are separate
-    // beats, not an imaginary simultaneous wall made from their whole history.
+    // Delayed echoes are separate beats, not simultaneous walls.
     for (final cue in cues) {
       final time = cue.delay + cue.warning;
       final overlapping = cues
@@ -201,7 +201,7 @@ class RegunGame extends FlameGame
     final budget = gameState.movementSpeed * warning * .85;
     final origin = myPlayer.position;
     // Connected search through floor and current body occupancy. Candidate
-    // points must avoid the full active beat and existing floor hazards.
+    // points must avoid the active beat and existing floor hazards.
     final queue = <Vector2>[origin.clone()];
     final seen = <(int, int)>{(0, 0)};
     final distances = <(int, int), double>{(0, 0): 0};
@@ -355,7 +355,7 @@ class RegunGame extends FlameGame
   double enemyRadius(PositionComponent enemy) => enemy is BossWeakPoint
       ? 26
       : enemy is BossEncounter
-          ? 65
+          ? (enemy as BossEncounter).kind.bodyRadius
           : min(enemy.size.x, enemy.size.y) * 0.3;
   bool segmentBlocked(Vector2 start, Vector2 end) =>
       geometry.blocked(start, end);
@@ -364,7 +364,7 @@ class RegunGame extends FlameGame
   final enemyTactics = EnemyTactics();
   final crowdOccupancy = CrowdOccupancy();
   double crowdRadius(PositionComponent actor) => actor is BossEncounter
-      ? 65
+      ? (actor as BossEncounter).kind.bodyRadius
       : (min(actor.size.x, actor.size.y) * .45).clamp(30.0, 52.0);
 
   bool reserveEnemySpace(PositionComponent actor,
@@ -1098,7 +1098,7 @@ class RegunGame extends FlameGame
         gameState.gameplayState != GameplayState.playing) {
       return;
     }
-    final position = myPlayer.position + Vector2(companion ? -450 : 450, -65);
+    final position = myPlayer.position + Vector2(companion ? -450 : 450, 10);
     constrainActor(position, 110);
     _bossWasHit = false;
     final scaling = bossRush ? 0.0 : 180 * pow(director.cycle - 1, 1.3);

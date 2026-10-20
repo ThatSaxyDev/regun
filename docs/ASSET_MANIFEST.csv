@@ -19,6 +19,7 @@ assets/art/characters/scrapper_run.png,0bc0858403f24807267289cbabb7476d3db491f7a
 assets/art/characters/warden.png,d5b63fb1e1b9499493380d438efae5be5e9915393ce21d95b56f7aadc1da2d32,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/characters/warden_actions.png,999523b503f59de9f60f8f71e9028c4d86288c253aaeebf432e94350cd1266b9,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/characters/warden_run.png,6ed63f84375ebf82274e0b7abfded00ecb5e254d234c61dcc6a3db36f03ede68,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Full-body animation candidate; inspect motion and frame anatomy
+assets/art/effects/combat_materials.png,47773b247c169d02581c2fe041cf314eaec147782816fc6f416024ebaf672c5a,AI-assisted raster: built-in imagegen; art/source/COMBAT_VFX_PROMPT.md,Integrated combat candidate; creator/device review
 assets/art/enemies/burster.png,b59655ef5deb7a88bfa8ec6685cbe007292bc88de972b2df4e16263c37cd4734,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/enemies/mummy.png,6caa550ac52d4497abdfbbdb9a4fca35ad05d68f3ee7a2fda7b19d684cbba0f0,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/enemies/nest.png,7884ba81b2bfbdad07dc13c4fcb5208eeaea14c50f29825d7e36970303683a85,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
@@ -28,7 +29,7 @@ assets/art/enemies/scorpion.png,e068464b2c6d9c20e0b7dc82a8be856da12aeaff564469fd
 assets/art/enemies/sentinel.png,77913d5115b64eb8a3522ab5fdf1cf911544473952e485a4a68d258e03dd73e1,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/enemies/shield.png,bfab473f3b08576480dfd3150563fbb6101e3c4bbf36d03353426fd51d850ac7,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/art/items/items.png,c24615838306c331e2c9fd00a835c0d3aa0154f645a3f89c4b7cf77a33cc3c18,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
-assets/art/manifest.json,cedf835a00e085dcaf9b23315aa3033b3c290058774eefc520a3521cc64765e9,Generated crop metadata: tool/inspect_art.py,Integrated art; creator/device review
+assets/art/manifest.json,0f51cc412e1be23f860c3c52ce7e51cbd0b70a63a395586805f25f1a3b4c7437,Generated crop metadata: tool/inspect_art.py,Integrated art; creator/device review
 assets/art/weapons/arsenal.png,5795b70768b6639a75766170ee0326c29781994198b44cc2960bd35eff75ccea,AI-assisted raster: image_gen.imagegen; art/source/GENERATION_PROMPTS.md,Integrated art; creator/device review
 assets/audio/boss.wav,117cbaaa278705cca89db4fd8c1c4350ae182aba0c6a1f603c3427200eb29d91,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
 assets/audio/boss_bellkeeper_break.wav,52058afc7ad050d52b62e53a9e170d0c063c00b0e41041179f31dfad7b08706d,Original deterministic synthesis; tool/generate_boss_audio.py,Integrated candidate; creator/device review
@@ -61,15 +62,15 @@ assets/audio/music_breach.wav,de3615b911f3f7d3f823d127ace5e89e082acbe3013cb912e3
 assets/audio/music_foundry.wav,5e2df9f987a3499fe6859ae9376ca1ead75dff2cdf4e84dc736bbded59f5e6b8,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
 assets/audio/music_menu.wav,792559543bfd9f98c869d121c3e06db88d7a941430c6116f4594ab4c1ef43978,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
 assets/audio/reloadSound.mp3,c09b4b20ef9785ec65f8a3185451a62981f442441a81b5a992f01ec111266149,Inherited project asset,Confirm provenance and license
-assets/audio/reload_arcCaster_0.wav,02e2b718ded783e2c090253f5c5d86f1935f6b345c61c79678ceb240dfd66372,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
-assets/audio/reload_arcCaster_1.wav,5b4fe8093b310b826c4d455973edd3269ac81c6fb169fedaf265fb6d09f20590,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
-assets/audio/reload_arcCaster_2.wav,2fab3e3d40dd1f0f77ec114859a6d49b4449bb9b27d3f79c2c3ba4d1509b7e33,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
-assets/audio/reload_carbine_0.wav,8993abefcecc9ddb667f14a128e501bee5969bbee890aafd86ae15a7f09c9a24,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
-assets/audio/reload_carbine_1.wav,b0e478439e9b2e4931530f1a005690a4ca62c4b4d7c281cefcd167e5a4d93e03,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
-assets/audio/reload_carbine_2.wav,75231a8dda956018fa5397fbe386cef9d8d9bb2dee0a35ed68d039fafb2ec193,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
-assets/audio/reload_revolver_0.wav,8993abefcecc9ddb667f14a128e501bee5969bbee890aafd86ae15a7f09c9a24,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
-assets/audio/reload_revolver_1.wav,b0e478439e9b2e4931530f1a005690a4ca62c4b4d7c281cefcd167e5a4d93e03,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
-assets/audio/reload_revolver_2.wav,75231a8dda956018fa5397fbe386cef9d8d9bb2dee0a35ed68d039fafb2ec193,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_arcCaster_0.wav,f2612d2ff9f9afb527bb16331ae9ce9ceaca6ff5468b624b42da01e3405e2bd5,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_arcCaster_1.wav,ba348af8ef5e2ada0eb649d745d4fa4fff7319b275a06ba341c07bc259307aa8,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_arcCaster_2.wav,2431c9f2603a3a1a42dd93fb55111ca2358483b00b7349e7b5efa14f3cf89ffa,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_carbine_0.wav,1da76c9b8b7be0a14d6d1351189ab61fe36a59cbf54e89b19c269a315d380173,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_carbine_1.wav,4ff5f09d16512961e9523f61202157755c6ff9ad5909c0fa14d1beb712c62638,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_carbine_2.wav,450fa42a293787ab976b7110752eea5709193d696cb02dc4e5414ed54cd5394f,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_revolver_0.wav,1da76c9b8b7be0a14d6d1351189ab61fe36a59cbf54e89b19c269a315d380173,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_revolver_1.wav,4ff5f09d16512961e9523f61202157755c6ff9ad5909c0fa14d1beb712c62638,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
+assets/audio/reload_revolver_2.wav,450fa42a293787ab976b7110752eea5709193d696cb02dc4e5414ed54cd5394f,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
 assets/audio/shoot.wav,3a6b3be078df1812b2b2124b26e647a6bab80aeab3e5f4d98cdee054cd4c8089,Inherited project asset,Confirm provenance and license
 assets/audio/shoot_arcCaster.wav,15ab6d9946dd440eda5ee4d70420d00df277d693f058ddd2799823b7307814fb,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
 assets/audio/shoot_carbine.wav,bb540e093b9052dc06d3944131b4cd2406dc49009c4736ccab339599d5c203d1,Original synthesis: tool/generate_audio.py,Hardware mix / creator approval
