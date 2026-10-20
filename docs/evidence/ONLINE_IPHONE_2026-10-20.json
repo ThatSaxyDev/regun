@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "startedAtUtc": "2026-10-20T19:00:43.967956Z",
+  "platform": "ios",
+  "checks": [
+    "coop-room-movement-ping-reconnect",
+    "versus-1v1",
+    "versus-2v2",
+    "versus-3v3"
+  ]
+}

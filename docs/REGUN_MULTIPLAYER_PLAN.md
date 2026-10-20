@@ -1,11 +1,13 @@
 # Regun multiplayer plan: co-op and competitive PvP
 
 **Date:** 20 October 2026  
-**Status:** proposal for review; multiplayer is not implemented.  
+**Status:** implementation in progress; backend and Flutter room/movement foundations exist. Full multiplayer combat is not implemented.
 **Requested scope:** online co-op **and** competitive PvP, using SpacetimeDB with TypeScript as the preferred server language.  
 **First platforms:** native iOS and Android. Desktop/web can support development clients; production support needs its own acceptance pass.
 
 **Revision:** updated after the creator's mode/map clarification and a fresh code review on 20 October 2026. Co-op is normal survival with friends, up to **three total players**, on regular arenas. PvP includes **1v1, 2v2 and 3v3 in this implementation pass**, capped at six total/three per team. PvP defaults to **Versus with enemies**; **Versus without enemies** is optional. Players do not select enemy types. Two to three dedicated PvP maps, modular walls/cover and a top-of-screen ping display are explicit deliverables. These requirements supersede the earlier two-player-only co-op/open-ended four-player expansion proposal. Detailed layouts and cover contracts are in [the multiplayer maps and cover plan](REGUN_MULTIPLAYER_MAPS_AND_COVER_PLAN.md).
+
+**Flutter connection slice, 20 October 2026:** Online now exposes private create/join lobbies, three-total-player co-op room capacity, 1v1/2v2/3v3 Versus rooms, readiness/teams/enemies choice, shared authoritative movement/dash, per-player application RTT and bounded reconnect. Dart 1.3.0 successfully connects to the deployed 2.12.0 module; an iPhone release test passed co-op movement/ping/reconnect and all three PvP room formats. See [connection-test instructions, evidence and remaining gates](MULTIPLAYER_CONNECTION_TEST.md). This is an explicitly marked test; M1 native/release acceptance and M3+ gameplay/map deliveries are still open.
 
 ## 1. Recommended direction
 
@@ -180,7 +182,7 @@ MINE/
 
 The backend's `README.md` and `docs/IMPLEMENTATION_STATUS.md` distinguish implemented foundations from planned paths. Generated wire bindings come from the pinned SDK/schema toolchain. Separate application contracts must not duplicate that generator's serialization logic.
 
-**Initial implementation, 20 October 2026:** the sibling backend builds/publishes locally on SpacetimeDB 2.12.0 and passes pure-rule plus non-owner TypeScript WebSocket checks for room privacy, three-player co-op/six-player PvP limits, all three PvP team formats, lobby authority, scheduled movement, stale input, connection replacement, true reconnect and application RTT. This is a movement/transport foundation: no combat, AI, supplies, production maps or Flutter networking is implemented. Native Dart/iOS/Android compatibility remains open, so M1 is not marked complete. The `network_lab` geometry is an internal fixture and does not satisfy the tactical-map scope.
+**Initial backend implementation, 20 October 2026 (historical snapshot; see Flutter update above):** the sibling backend builds/publishes locally on SpacetimeDB 2.12.0 and passes pure-rule plus non-owner TypeScript WebSocket checks for room privacy, three-player co-op/six-player PvP limits, all three PvP team formats, lobby authority, scheduled movement, stale input, connection replacement, true reconnect and application RTT. That backend-only snapshot had no Flutter networking. The Flutter slice above now connects to it; combat, AI, supplies and production maps remain unimplemented, and M1 stays open until its complete native/release matrix passes. The `network_lab` geometry is an internal fixture and does not satisfy the tactical-map scope.
 
 ## 5. Native Flutter compatibility gate
 

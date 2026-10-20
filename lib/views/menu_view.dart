@@ -15,6 +15,7 @@ import 'package:regun/views/base_view.dart';
 import 'package:regun/views/loadout_view.dart';
 import 'package:regun/views/collection_view.dart';
 import 'package:regun/views/settings_view.dart';
+import 'package:regun/views/online_view.dart';
 import 'package:regun/widgets/click_button.dart';
 import 'package:regun/widgets/home_artwork.dart';
 
@@ -167,6 +168,13 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                                       height: 48,
                                                       onTap: _ready
                                                           ? _play
+                                                          : null),
+                                                  const SizedBox(height: 8),
+                                                  ClickButton(
+                                                      text: 'Online',
+                                                      height: 44,
+                                                      onTap: _ready
+                                                          ? () => _open(const OnlineView())
                                                           : null),
                                                   const SizedBox(height: 28),
                                                   ClickButton(

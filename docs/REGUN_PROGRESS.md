@@ -578,3 +578,7 @@ Validation: analyzer clean; **167 tests passed**, four opt-in cases skipped. The
 Home now has a dedicated icon-only Settings button at the safe top-right edge, with a pixel gear, accessible name and tooltip. Re-Gun/menu content sits lower and Play has a larger gap before Training. Settings → Controls opens the same editor as Pause → Controls without mounting a run: all six sliders, stick mode, aim hand, Arrange and Reset are available. Changes save to the existing device preference and are read by the next run. Opening Controls through in-match Settings also applies changes to the paused game immediately. Arrange respects safe edges and system Back returns to the editor.
 
 Validation: analyzer clean; 168 tests passed, four opt-in simulations skipped. The home-to-settings-to-controls regression changes size, drags placement and verifies persisted values after service recreation. Compact/notched/portrait/large-text menu checks now include Controls; rendered home reviewed at phone size. Release identity remains 1.0.0+7.
+
+## Online connection slice (20 October 2026)
+
+The separate SpacetimeDB server now has a Flutter client entry through Online. Room creation/join, supported team sizes, readiness, host start, movement/dash, per-player application RTT and reconnect are connected. This isolated movement test does not run combat, enemies, supplies, progression or profile rewards. See [MULTIPLAYER_CONNECTION_TEST.md](MULTIPLAYER_CONNECTION_TEST.md) for usage, pinned protocol adaptations, verification and outstanding native/full-game acceptance.
