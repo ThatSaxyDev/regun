@@ -93,7 +93,7 @@ void main() {
     expect(map.bounds.rect, const Rect.fromLTWH(-2256, -2256, 4512, 4512));
     for (final arena in ArenaType.values) {
       final solids = map.obstacles(arena);
-      expect(solids, isNotEmpty);
+      expect(solids.length, arena == ArenaType.breach ? 0 : 6);
       final geometry = ArenaGeometry(map.bounds, obstacles: solids);
       for (final solid in solids) {
         final savedPosition = Vector2(solid.center.dx, solid.center.dy);

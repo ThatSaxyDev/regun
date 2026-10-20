@@ -330,6 +330,26 @@ void main() {
     expect(state().noOfBullets, 0);
   });
 
+  test('supply reward is unique, separate from XP, and respects prompt grace', () {
+    notifier.increaseXP(7);
+    final cost = state().noOfCoinsToUpgrade;
+    expect(notifier.offerSupplyUpgrade(), isTrue);
+    expect(notifier.supplyOffer, isTrue);
+    expect(state().powerUpChoices.toSet().length, state().powerUpChoices.length);
+    expect(state().xP, 7);
+    expect(state().currentLevel, 1);
+    expect(state().noOfCoinsToUpgrade, cost);
+    notifier.restoreCheckpoint(notifier.checkpoint());
+    notifier.playGame();
+    expect(notifier.supplyOffer, isTrue);
+    notifier.applyPowerUp(state().powerUpChoices.first, offerId: state().offerId);
+    expect(notifier.offerSupplyUpgrade(), isFalse);
+    notifier.advanceTime(4);
+    notifier.increaseXP();
+    expect(state().currentLevel, 2);
+    expect(notifier.supplyOffer, isFalse);
+  });
+
   test('XP upgrades at exactly eight pickups and freezes one choice set', () {
     for (var i = 0; i < 8; i++) {
       notifier.increaseXP();

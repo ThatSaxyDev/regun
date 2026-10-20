@@ -1,4 +1,5 @@
 import 'package:regun/data/loadout.dart';
+import 'package:regun/systems/supply_drops.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
@@ -13,6 +14,9 @@ class RunCheckpoint {
         return false;
       }
       Loadout.fromJson(Map<String, dynamic>.from(map['loadout'] as Map));
+      if (map.containsKey('supplyDrops')) {
+        SupplyDrops().restore(Map<String, dynamic>.from(map['supplyDrops'] as Map));
+      }
       final state =
           GameState.fromJson(Map<String, dynamic>.from(map['state'] as Map));
       if (state.health <= 0 ||

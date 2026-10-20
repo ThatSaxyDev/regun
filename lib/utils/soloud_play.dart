@@ -63,6 +63,15 @@ class SoloudPlay {
     }
   }
 
+  Future<void> warmSupply() async {
+    if (!_soloud.isInitialized) return;
+    for (final name in ['land', 'incoming', 'break', 'claim',
+        for (var i = 0; i < 8; i++) 'charge_$i']) {
+      try { await _source('supply_$name.wav'); }
+      catch (_) { _sources.remove('supply_$name.wav'); }
+    }
+  }
+
   Future<void> warmBoss(BossKind kind) async {
     try {
       if (!kind.expansion || !_soloud.isInitialized) return;
@@ -96,7 +105,10 @@ class SoloudPlay {
       _lastPlayed[assetPath] = now;
       final source = await _source(assetPath);
       if (_soloud.isInitialized) {
-        final gain = assetPath == 'enemy3projectile.wav'
+        final gain = assetPath == 'supply_land.wav' ? .8
+            : assetPath.startsWith('supply_charge_') ? .16
+            : assetPath.startsWith('supply_') ? .4
+            : assetPath == 'enemy3projectile.wav'
             ? .30
             : assetPath.startsWith('shot_')
             ? .72

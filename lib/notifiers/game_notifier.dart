@@ -17,6 +17,7 @@ class GameNotifier extends Notifier<GameState> {
   int _reloadCue = 0;
   double _nextReloadSoundMs = 700;
   bool _reloadTactical = false;
+  bool supplyOffer = false;
   bool get reloadTactical => state.reloading && _reloadTactical;
   double _invincibilityMs = 0;
   double _hurtCooldownMs = 0;
@@ -56,6 +57,7 @@ class GameNotifier extends Notifier<GameState> {
 
   void cancelPendingActions() {
     _choiceGrace = 0;
+    supplyOffer = false;
     _quickRefillMs = -1;
     quickRefillProgress.value = -1;
     _reloadDurationMs = 0;
@@ -79,6 +81,7 @@ class GameNotifier extends Notifier<GameState> {
         'guardElapsed': _guardElapsed,
         'reloadCue': _reloadCue,
         'reloadTactical': _reloadTactical,
+        'supplyOffer': supplyOffer,
         'activeSeconds': _activeSeconds,
         'reloadElapsedMs': _reloadElapsedMs,
         'reloadDurationMs': _reloadDurationMs,
@@ -157,6 +160,7 @@ class GameNotifier extends Notifier<GameState> {
     }
     _reloadTactical = weapon == WeaponType.carbine &&
         (snapshot['reloadTactical'] == true || oldPlan?['tactical'] == true);
+    supplyOffer = snapshot['supplyOffer'] == true && restored.powerUpChoices.isNotEmpty;
     _reloadCue = snapshot['reloadCue'] as int? ?? 0;
     reloadProgress.value = _reloadDurationMs > 0
         ? (_reloadElapsedMs / _reloadDurationMs).clamp(0, 1)
@@ -391,6 +395,7 @@ class GameNotifier extends Notifier<GameState> {
         state.xP < state.noOfCoinsToUpgrade.floor()) {
       return;
     }
+    supplyOffer = false;
     final choices = _rollOffers();
     state = state.copyWith(
       xP: max(0, state.xP - state.noOfCoinsToUpgrade.floor()),
@@ -400,6 +405,17 @@ class GameNotifier extends Notifier<GameState> {
       gameplayState: GameplayState.powerup,
       powerUpChoices: List.unmodifiable(choices.take(3)),
     );
+  }
+
+  /// Earned by holding a supply field, rather than funded by XP. The same
+  /// rank/bans/unique-choice rules and prompt grace still apply.
+  bool offerSupplyUpgrade() {
+    if (state.gameplayState != GameplayState.playing || _choiceGrace > 0) return false;
+    supplyOffer = true;
+    state = state.copyWith(offerId: state.offerId + 1,
+        gameplayState: GameplayState.powerup,
+        powerUpChoices: List.unmodifiable(_rollOffers()), evolutionChoices: const []);
+    return true;
   }
 
   void applyPowerUp(PowerUp powerUp, {int? offerId}) {
@@ -459,6 +475,7 @@ class GameNotifier extends Notifier<GameState> {
         gameplayState: GameplayState.playing,
         powerUpChoices: const [],
         evolutionChoices: const []);
+    supplyOffer = false;
     _choiceGrace = 4;
   }
 
@@ -534,6 +551,7 @@ class GameNotifier extends Notifier<GameState> {
         evolutionChoices: const [],
         powerUpChoices: const [],
         gameplayState: GameplayState.playing);
+    supplyOffer = false;
     _choiceGrace = 4;
   }
 

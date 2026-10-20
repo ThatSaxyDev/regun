@@ -12,7 +12,7 @@ def read(path):
         assert (f.getnchannels(),f.getsampwidth(),f.getframerate()) == (1,2,RATE), path
         return [n/32768 for n in struct.unpack('<'+'h'*f.getnframes(),f.readframes(f.getnframes()))]
 
-names = sorted({p for pattern in ('shot_*.wav','impact_*.wav','hurt_player.wav','enemy3projectile.wav','boss_*_*.wav')
+names = sorted({p for pattern in ('shot_*.wav','impact_*.wav','hurt_player.wav','enemy3projectile.wav','boss_*_*.wav','supply_*.wav')
                 for p in (ROOT/'assets/audio').glob(pattern)})
 with (OUT/'combat_audio.csv').open('w') as f:
     w = csv.writer(f)
@@ -48,6 +48,9 @@ for boss in ['bellkeeper','magistrate']:
     add(f'boss_{boss}_hit.wav',15.4,.5)
 for start in [2, 2.1, 2.3, 2.5, 4.6, 4.9, 15, 15.2, 15.5]:
     add('enemy3projectile.wav', start, .30)
+add('supply_land.wav', 14.8, .8)
+add('supply_charge_3.wav', 5.5, .16)
+add('supply_claim.wav', 8.4, .4)
 peak = max(map(abs,mix))
 assert peak < 1, ('Representative mix clips',peak)
 with wave.open(str(OUT/'combat_mix.wav'),'wb') as f:

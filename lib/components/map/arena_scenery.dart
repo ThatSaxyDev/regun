@@ -54,22 +54,6 @@ class ArenaScenery extends PositionComponent with HasGameReference<RegunGame> {
         sprite.render(canvas,
             position: vent - Vector2(90, 42), size: Vector2(180, 84));
       }
-    } else {
-      final vents = [
-        Vector2(-350, 140),
-        Vector2(350, -140),
-        Vector2(-1350, -1000),
-        Vector2(1350, 1000)
-      ];
-      for (final v in vents) {
-        if (visible.inflate(150).contains(v.toOffset())) {
-          RegunArt.shared.rawSprite('arenas/props', 5).render(canvas,
-              position: v - Vector2(70, 30),
-              size: Vector2(140, 60),
-              overridePaint: Paint()
-                ..color = const Color(0xffFFFFFF).withValues(alpha: .65));
-        }
-      }
     }
     // Quiet edge architecture is entirely inside the walkable-world bounds.
     final wall = Paint()..color = const Color(0xff171F22);

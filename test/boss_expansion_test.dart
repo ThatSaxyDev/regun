@@ -519,7 +519,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final game = await mount(tester,
-        loadout: const Loadout(training: true, weapon: WeaponType.arcCaster));
+        loadout: const Loadout(training: true, weapon: WeaponType.arcCaster, arena: ArenaType.foundry));
     expect(game.gameState.maxBullets, 6);
     expect(game.gameState.bulletSpeed, 1050);
     final targets = [
@@ -546,12 +546,12 @@ void main() {
     await capture(tester, 'vfx-arc-caster-chain');
     final wall = game.geometry.obstacles.first;
     final across = [
-      Enemy2Component(position: Vector2(wall.left - 50, wall.center.dy)),
-      Enemy2Component(position: Vector2(wall.right + 50, wall.center.dy))
+      Enemy2Component(position: Vector2(wall.center.dx, wall.top - 55)),
+      Enemy2Component(position: Vector2(wall.center.dx, wall.bottom + 55))
     ];
     final chain = [
       for (var i = 0; i < 4; i++)
-        Enemy2Component(position: Vector2(-650 + i * 150.0, 700))
+        Enemy2Component(position: Vector2(-350 + i * 150.0, 700))
     ];
     await tester.runAsync(() async {
       await game.world.addAll([...across, ...chain]);

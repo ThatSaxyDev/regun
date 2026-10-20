@@ -20,6 +20,8 @@ import 'package:regun/components/enemies/boss_encounter.dart';
 import 'package:regun/components/enemies/demon_boss_component.dart';
 import 'package:regun/components/enemies/hostile_area.dart';
 import 'package:regun/components/map/arena_scenery.dart';
+import 'package:regun/components/map/supply_drop_view.dart';
+import 'package:regun/systems/supply_drops.dart';
 import 'package:regun/systems/arena_geometry.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/data/loadout.dart';
@@ -555,6 +557,31 @@ class RegunGame extends FlameGame
   bool _enemy3Unlocked = false;
   bool _started = false;
   bool disposed = false;
+  final supplyDrops = SupplyDrops();
+  bool _supplyArtWanted = false, _supplyArtHeld = false, _supplyArtLoading = false;
+  void _syncSupplyArt(bool wanted) {
+    _supplyArtWanted = wanted && !disposed;
+    const atlases = ['arenas/supply_pod', 'effects/landing_dust'];
+    if (!_supplyArtWanted) {
+      if (_supplyArtHeld && !_supplyArtLoading) {
+        for (final atlas in atlases) { RegunArt.shared.release(atlas); }
+        _supplyArtHeld = false;
+      }
+      return;
+    }
+    if (_supplyArtHeld || _supplyArtLoading) return;
+    _supplyArtHeld = _supplyArtLoading = true;
+    Future.wait(atlases.map(RegunArt.shared.acquire)).then((_) {
+      _supplyArtLoading = false;
+      if (!_supplyArtWanted || disposed) _syncSupplyArt(false);
+    }, onError: (Object error) {
+      _supplyArtLoading = false;
+      supplyDrops.drop = null;
+      supplyDrops.nextIn = 3;
+      _syncSupplyArt(false);
+      debugPrint('Supply art unavailable: $error');
+    });
+  }
 
   static const maxEnemies = 120;
   static const maxCoins = 80;
@@ -589,6 +616,7 @@ class RegunGame extends FlameGame
       reloadButtonComponent,
       damageFeedback,
       EntranceVeil(),
+      if (loadout.arena == ArenaType.breach) SupplyDropLocator(),
     ]);
   }
 
@@ -598,6 +626,7 @@ class RegunGame extends FlameGame
     gameNotifier = ref.read(gameNotifierProvider.notifier);
     audio.configure(music: preferences.musicVolume, sfx: preferences.sfxVolume);
     unawaited(audio.warmCombat(loadout.weapon));
+    if (loadout.arena == ArenaType.breach) unawaited(audio.warmSupply());
     unawaited(audio.playMusic(loadout.arena.name));
     _phaseSubscription = ref.listenManual(
       gameNotifierProvider.select((state) => state.gameplayState),
@@ -678,6 +707,8 @@ class RegunGame extends FlameGame
     combat = CombatSystem(this);
     _fireCooldown = 0;
     _ventClock = 0;
+    supplyDrops.reset(random.state ^ 0x51a7);
+    _syncSupplyArt(false);
     defeatedBosses.clear();
     noHitBosses.clear();
     encounteredEnemies.clear();
@@ -688,6 +719,7 @@ class RegunGame extends FlameGame
     world.addAll([
       DroneVisual(),
       ArenaScenery(),
+      if (loadout.arena == ArenaType.breach) ...[SupplyDropField(), SupplyDropBody()],
     ]);
     _started = true;
     _updateCamera();
@@ -730,6 +762,7 @@ class RegunGame extends FlameGame
       'dash': boostButtonComponent.checkpoint(),
       'droneClock': combat.droneClock,
       'ventClock': _ventClock,
+      'supplyDrops': supplyDrops.toJson(),
       'player': [myPlayer.position.x, myPlayer.position.y],
       'lastMovement': [myPlayer.lastMovement.x, myPlayer.lastMovement.y],
       'aim': [myPlayer.aimDirection.x, myPlayer.aimDirection.y],
@@ -949,6 +982,15 @@ class RegunGame extends FlameGame
       }
       _breachCharged = snapshot['breachCharged'] == true;
       _bossWasHit = snapshot['bossWasHit'] == true;
+      if (snapshot['supplyDrops'] case final Map supply) {
+        supplyDrops.restore(Map<String, dynamic>.from(supply));
+        final drop = supplyDrops.drop;
+        if (drop != null && (!map.bounds.floor.deflate(SupplyDrop.radius).contains(drop.position) ||
+            geometry.obstacles.any((r) => r.inflate(SupplyDrop.radius).contains(drop.position)))) {
+          throw const FormatException('Invalid supply placement');
+        }
+      }
+      _syncSupplyArt(supplyDrops.drop != null && !bossRush);
       gameNotifier.restoreCheckpoint(snapshot);
       _updateCamera();
       revision.value++;
@@ -1162,6 +1204,8 @@ class RegunGame extends FlameGame
       shot.removeFromParent();
     }
     bossRush = true;
+    supplyDrops.reset(random.state ^ 0x51a7);
+    _syncSupplyArt(false);
     bossRushRound = 0;
     bossRushWait = .5;
     _rushBag.clear();
@@ -1407,8 +1451,63 @@ class RegunGame extends FlameGame
         revision.value++;
       }
     }
+    if (gameState.gameplayState == GameplayState.playing &&
+        loadout.arena == ArenaType.breach && !bossRush && !_supplyArtLoading) {
+      supplyDrops.advance(dt, player: myPlayer.position.toOffset(),
+          pickPosition: _pickSupplyPosition, onLand: landSupplyDrop,
+          onReward: () {
+            final granted = gameNotifier.offerSupplyUpgrade();
+            if (granted) audio.play('supply_claim.wav');
+            return granted;
+          },
+          onCharge: (step) => audio.play('supply_charge_$step.wav'),
+          onWarning: () => audio.play('supply_incoming.wav'),
+          onBreak: () => audio.play('supply_break.wav'));
+    }
+    _syncSupplyArt(supplyDrops.drop != null && !bossRush);
     _updateCamera();
     layoutControls();
+  }
+
+  void practiceSupplyDrop() {
+    if (!loadout.training || loadout.arena != ArenaType.breach) return;
+    _retirePracticeBosses();
+    bossRush = false;
+    supplyDrops.reset(random.state ^ 0x51a7);
+    supplyDrops.nextIn = 0;
+    resumeGame();
+    resetInput();
+    revision.value++;
+  }
+
+  Offset? _pickSupplyPosition() {
+    final area = camera.visibleWorldRect.intersect(map.bounds.floor)
+        .deflate(SupplyDrop.radius + 35);
+    if (area.width <= 0 || area.height <= 0) return null;
+    for (var i = 0; i < 30; i++) {
+      final spot = Offset(area.left + random.nextDouble()*area.width,
+          area.top + random.nextDouble()*area.height);
+      if ((spot - myPlayer.position.toOffset()).distance < 260 ||
+          (supplyDrops.previous != null && (spot - supplyDrops.previous!).distance < 350) ||
+          geometry.obstacles.any((r) => r.inflate(SupplyDrop.radius+20).contains(spot))) { continue; }
+      return spot;
+    }
+    return null;
+  }
+
+  /// Only the landing transition calls this. Ordinary deaths still use the
+  /// normal damage/reward path; bosses keep their encounter and lose only 3%.
+  void landSupplyDrop(Offset position) {
+    audio.play('supply_land.wav');
+    final center = Vector2(position.dx, position.dy);
+    for (final target in liveEnemies.toList()) {
+      final enemy = target as CombatEnemy;
+      final radius = SupplyDrop.impactRadius + enemyRadius(target);
+      if (target.position.distanceToSquared(center) > radius*radius ||
+          segmentBlocked(center, target.position)) { continue; }
+      hitEnemy(target, enemy.isBoss ? enemy.combatHealth.maximum*.03
+          : enemy.combatHealth.current, primary: false);
+    }
   }
 
   @override
@@ -1564,6 +1663,7 @@ class RegunGame extends FlameGame
   @override
   void onRemove() {
     disposed = true;
+    _syncSupplyArt(false);
     for (final boss in world.children.whereType<ExpansionBoss>()) {
       boss.releaseArt();
     }

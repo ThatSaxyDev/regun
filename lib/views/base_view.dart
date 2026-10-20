@@ -585,6 +585,13 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
               style: TextStyle(
                   fontFamily: FontFam.orbitron, fontSize: 11, color: _muted)),
           const SizedBox(height: 24),
+          if (widget.loadout.arena == ArenaType.breach) ...[
+            _practiceGroup('SUPPLY PRACTICE', [
+              ClickButton(text: 'Call airdrop', height: 48,
+                  onTap: _myGame.practiceSupplyDrop),
+            ]),
+            const SizedBox(height: 24),
+          ],
           _practiceGroup('RANDOM BOSS RUSH', [
             ClickButton(
                 text: 'Start rush', height: 48, onTap: _myGame.startBossRush),
@@ -740,10 +747,10 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
 
   Widget _upgradePicker(GameState state) => _overlay(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-        _heading(state.evolutionChoices.isNotEmpty ? 'FUSE' : 'UPGRADE',
+        _heading(state.evolutionChoices.isNotEmpty ? 'FUSE' : _myGame.gameNotifier.supplyOffer ? 'AIRDROP' : 'UPGRADE',
             subtitle: state.evolutionChoices.isNotEmpty
                 ? null
-                : 'Level ${state.currentLevel}'),
+                : _myGame.gameNotifier.supplyOffer ? 'Supply secured' : 'Level ${state.currentLevel}'),
         const SizedBox(height: 16),
         Wrap(
             spacing: 12,

@@ -48,7 +48,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
           overrides: [soloudPlayProvider.overrideWithValue(_Audio())],
           child: const MaterialApp(
-              home: BaseView(loadout: Loadout(training: true)))));
+              home: BaseView(loadout: Loadout(training: true, arena: ArenaType.foundry)))));
       game = tester
           .widget<RiverpodAwareGameWidget>(find.byType(RiverpodAwareGameWidget))
           .game! as RegunGame;
