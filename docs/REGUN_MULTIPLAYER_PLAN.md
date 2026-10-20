@@ -5,11 +5,13 @@
 **Requested scope:** online co-op **and** competitive PvP, using SpacetimeDB with TypeScript as the preferred server language.  
 **First platforms:** native iOS and Android. Desktop/web can support development clients; production support needs its own acceptance pass.
 
+**Revision:** updated after the creator's mode/map clarification and a fresh code review on 20 October 2026. Co-op is normal survival with friends, up to **three total players**, on regular arenas. PvP includes **1v1, 2v2 and 3v3 in this implementation pass**, capped at six total/three per team. PvP defaults to **Versus with enemies**; **Versus without enemies** is optional. Players do not select enemy types. Two to three dedicated PvP maps, modular walls/cover and a top-of-screen ping display are explicit deliverables. These requirements supersede the earlier two-player-only co-op/open-ended four-player expansion proposal. Detailed layouts and cover contracts are in [the multiplayer maps and cover plan](REGUN_MULTIPLAYER_MAPS_AND_COVER_PLAN.md).
+
 ## 1. Recommended direction
 
 Keep Flutter/Flame for the game client. Build an authoritative TypeScript simulation inside SpacetimeDB. Share networking, movement, weapons, collision, identity and match lifecycle across both modes, then supply separate co-op and PvP rules.
 
-Start with a small two-device foundation, deliver private two-player co-op and private 1v1 duels, and open ranked PvP only after combat fairness, population and operations pass explicit gates. Competitive combat is part of this plan from the beginning; a public ladder is a later release gate, not a prerequisite for playing private duels.
+Start with a small two-device transport test, then deliver co-op for two or three total players and Versus in **1v1, 2v2 and 3v3 in this implementation pass**. Co-op rooms cap at three total; PvP rooms cap at six, with three per team. Enemies are On by default in every PvP format; an optional enemies-off variant shares the foundation. Deliver tested map variants for each supported team size rather than merely adding spawn points. Open ranked PvP only after fairness, population and operations pass explicit gates; ranked is not a prerequisite for private matches.
 
 The critical first uncertainty is native Dart integration. SpacetimeDB officially supports TypeScript server modules, but its official client list does not include Dart. A community client must be tested against an exact server version before committing the gameplay migration. If it fails, test an official TypeScript SDK gateway; changing the Flutter client is not the default solution.
 
@@ -17,8 +19,10 @@ The existing offline game remains available. Multiplayer does not require comple
 
 ### What success means
 
-- Two friends can create/join a private room, choose loadouts, complete a co-op run, recover from a short disconnect and receive one correct result each.
-- Two opponents can play a fair private duel with server-owned movement, ammo, damage and outcomes, followed by a rematch.
+- A player and one or two friends can create/join a private room, choose loadouts and a regular arena, complete normal survival together, recover from a short disconnect and receive one correct result each.
+- Two, four or six participants can play 1v1, 2v2 or 3v3 Versus with server-controlled enemy arrivals by default, optionally turn enemies off before starting, and receive correct team outcomes/rematches under both variants.
+- PvP has two complete, distinct cover-based maps at release, with a third targeted only if it passes the same gates. No open survival map is substituted for these deliverables.
+- Every player's connection is visible at the top in milliseconds, with good/fair/poor states distinguishable without color alone.
 - Online controls retain Regun's touch layout and weapon identity, with acceptable responsiveness on real iPhones and Android phones in intended regions.
 - Ranked matchmaking, when enabled, uses trusted online results, equal competitive access and documented disconnect/rating rules.
 - Solo saves, progression, reloads, slow-motion upgrade selection, training and presentation continue to work.
@@ -27,7 +31,11 @@ The existing offline game remains available. Multiplayer does not require comple
 
 This plan extends [the complete-game blueprint](REGUN_COMPLETE_GAME_PLAN.md), [the progress log](REGUN_PROGRESS.md), [the playtest guide](PLAYTEST_GUIDE.md) and [the earlier backend plan](REGUN_MONETIZATION_AND_BACKEND_PLAN.md). Where the earlier plan proposed Rust first or deferred all PvP, this proposal evaluates TypeScript first and includes both modes. It does not claim their implementation or acceptance.
 
-The audited application is `1.0.0+11`, with four weapons, three survivors, two arenas, eight enemy roles, eight bosses, thirty upgrade families and six fusions. These are reusable content and presentation foundations, not network-ready simulation contracts.
+The refreshed audit is release **`1.0.0+7`**, retaining later gameplay changes despite historical +8–+12 labels. Flutter is **3.47.7**, Dart **3.13.5**, and SoLoud is pinned to **5.2.1**. There are four weapons, three survivors, two regular arenas, eight enemy roles, eight bosses, thirty upgrade families now reaching VIII, and six fusions. These are reusable foundations, not network-ready simulation contracts.
+
+Preserve the latest contracts: XP curve marker 3 (8,18,35,59,…), funded offers with four active seconds of prompt grace and no immediate chained screens; explicit banked fusion cores; Carbine-only tactical manual reload; full reload commitment for the other weapons; three base shotgun pellets; bounded Carbine heading; cumulative-distance `WeaponBallistics`; 1450 dash speed; whole-cluster control sizing; recorded audio and native session recovery. See [XP progression](XP_PROGRESSION.md), [distance damage](WEAPON_RANGE_BALANCE.md), the latest progress/playtest notes and AGENTS.md. These must enter the shared fixture inventory rather than porting obsolete prototype values.
+
+At review start, the working tree was clean, including untracked files; latest commit was `4c908d8` (control sizing/dash). The existing plan was already committed in `9edaad3`. No pending baseline changes needed a commit. `make verify` passed: analyzer clean, **159 tests passed, four opt-in skips**. These checks establish the local baseline, not native multiplayer performance or physical approval.
 
 | Current area | Observed coupling | Required change |
 |---|---|---|
@@ -41,23 +49,25 @@ The audited application is `1.0.0+11`, with four weapons, three survivors, two a
 | Bosses/attack geometry | Actor components own attacks and presentation timing | Server attack state/timelines; client art uses the same committed geometry and timing |
 | `RunStore`/checkpoints | Local solo schema 1/2; serializes one run and transient-state recovery | Preserve solo format; online resume attaches to a server match, never uploads a trusted world |
 | Profile/settlement | Local earned progression and once-only run settlement | Separate online match ledger and authoritative rewards from unverified local results |
+| Maps and scenery | One Tiled source, rectangular obstacle groups, sparse prop art and simple painted perimeter bands; `ArenaScenery` fades props against `myPlayer` only | Add separately versioned PvP map definitions, modular wall art, cover/material semantics, multiplayer occlusion and navigation; retain regular arena layouts for co-op |
 
 There is no multiplayer dependency or implementation in the audited app. The local CLI reports SpacetimeDB **2.12.0**; that is an installed candidate, not a verified server/client compatibility matrix.
 
 ## 3. Product scope and proposed rules
 
-All rules below are proposed defaults. Confirm or adjust them before their dependent milestone; they are not silently approved by this document.
+Player counts, regular co-op arenas, the default PvP enemy setting, no enemy-type selector, dedicated PvP maps and ping HUD are creator requirements. Numeric timing, scoring, AI roster and balancing below remain proposed defaults to test.
 
 ### Co-op survival
 
 | Decision | Proposed first-release rule |
 |---|---|
-| Players | Two; preserve identifiers/contracts that permit four later, without claiming four-player balance |
+| Players | Two or three total, including the room creator; room capacity is three, not host plus three friends |
+| Maps and loop | The same Breach/Foundry maps and normal survival loop as solo; do not route co-op into the dedicated Versus maps |
 | Entry | Private invite code, readiness and a shared countdown; public co-op queue later |
 | Starting content | Rook, shotgun, Breach and a small enemy subset for the slice; expand to the full current roster before claiming full co-op support |
 | Friendly fire | Off; collision rules explicitly distinguish teammates from enemies |
 | XP | Shared team XP; each player gets a personal build/offer pool; one pickup credits the team once |
-| Upgrades | Queue level-ups and resolve at server-controlled safe breaks; both players see a synchronized 0.1× presentation, with reload/input/damage gated |
+| Upgrades | Preserve funded personal choices; test synchronized safe 0.1× choice windows for all connected players, with reload/input/damage gated; preserve active-time prompt grace and subsequent-pickup gating |
 | Picker timeout | Initial experiment: 15 seconds of real server time, then a documented valid fallback; never run this deadline on the slowed combat clock |
 | Death | Downed state with a revive interaction; initial experiment: three-second hold, damage interrupts, twenty-second bleed-out |
 | Defeat/re-entry | All players downed means defeat; a bled-out player spectates and may return at an earned checkpoint/boss break if the teammate survives |
@@ -65,7 +75,9 @@ All rules below are proposed defaults. Confirm or adjust them before their depen
 | Pause | A local menu does not pause a live teammate; unanimous pause only in safe intermissions |
 | Rewards | Server settlement once per participant/match; reconnect retrieves the same result |
 
-Safe breaks need actual pacing support: stop reinforcements, finish or retire hostile attacks under a defined rule, then enter selection. Do not wait indefinitely for an enemy to die before offering upgrades. Preserve XP overflow and stacked choices. If this cadence damages survival pacing, compare a timed individual-choice prototype before locking the mode; do not implement two incompatible upgrade systems by accident.
+Co-op must feel like normal survival with friends, including its arena hazards, boss rhythm and earned builds; do not convert it into unrelated wave rooms. Any safe selection transition needs pacing support: stop reinforcements, finish or retire hostile attacks under a defined rule, then enter selection without waiting indefinitely for a kill. Preserve XP overflow, four active seconds of grace and a subsequent pickup before another funded ordinary prompt; do not drain overflow as a chain of screens. In shared XP, each player's credited eligibility/offer remains explicit. Bank fusion cores and request real recipes separately. If synchronized selection materially changes the normal loop, compare a bounded individual-choice prototype and review it before locking the policy.
+
+Two- and three-player tuning is measured separately: shared XP is not tripled per pickup, health/spawn growth is bounded, and the director considers all living players' occupancy/visible regions. Document split-team leash/rejoin behavior and boss target switching. Do not add impassable PvP walls to normal arenas as a side effect of this work.
 
 Disconnected players stay vulnerable under a declared policy; a disconnect must not become a dodge. Co-op initially permits reconnects, not arbitrary late joins. If only one player remains past grace, offer a clearly marked solo finish or end the match according to the chosen reward rules. Never silently replace a partner with a bot.
 
@@ -73,9 +85,13 @@ Disconnected players stay vulnerable under a declared policy; a disconnect must 
 
 | Decision | Proposed first-release rule |
 |---|---|
-| Format | Private 1v1 round-based duel; first to three round wins |
+| Format | 1v1, 2v2 and 3v3 all in this pass; proposed scoring baseline is round-based, first team to three round wins |
+| PvP room capacity | Maximum six total, three per team; selected format sets capacity to two/four/six; launch only with equal ready teams |
+| Team rules | Explicit lobby slots/teams; teammates do not damage each other; elimination and round wins are team-owned, not awarded to the last individual kill |
+| Enemies | **On by default**: normal Versus with enemies entering under a server preset. Optional **Without enemies** is chosen in the room before readiness |
+| Enemy selection | No enemy-type/pack/difficulty composer; the server-owned versioned ruleset chooses arrivals, roles and pacing |
 | Round pacing | Initial experiment: 90-second cap, then a clearly warned overtime rule; define the tie outcome explicitly |
-| Arena | Small authored, symmetric duel layout derived from Regun's art; neither survival arena is assumed competitively fair |
+| Arena | Two to three dedicated dark tactical maps with hard cover, distinct routes and tested 1v1/team-size variants; no open survival-arena shortcut |
 | Loadouts | Equal baseline survivor; first slice uses mirrored shotgun, then all four weapons after dedicated PvP tuning |
 | Access | Competitive legal equipment available equally, independent of solo unlocks or purchases |
 | Builds | No survival RNG upgrades, fusions, guards or proc chains until deliberately designed and balanced for PvP |
@@ -86,6 +102,18 @@ Disconnected players stay vulnerable under a declared policy; a disconnect must 
 | Disconnect | Initial 30-second reconnect grace; no global pause or immunity; ranked abandonment may forfeit under published rules |
 | Rewards | No rating for private matches; cosmetic/progression rewards must resist repeated farming |
 | Ranked | Public launch only after the later ranked acceptance gate |
+
+“Private” describes who can join; it does not imply enemies are absent. Lobby copy is **Versus** with a custom **Enemies: On / Off** selector, initially On. All members see the chosen variant, map and team size. A change clears readiness; lock it at countdown. Rematches retain the agreed variant, while a newly created room defaults to On. Public admissions include variant in the ruleset key; never silently mix them or pool their ratings without independent balance evidence.
+
+Team selection, moves between slots, room capacity and equal-team readiness are server-validated. An eliminated PvP participant spectates permitted teammate views until the next round; co-op's downed/revive mechanic is not inherited automatically. A team with one living member continues; the round ends when one entire team is eliminated, with explicit trade/draw resolution. A disconnected player uses the same grace/abandonment policy, while remaining teammates continue; do not instantly forfeit the whole team because one client blipped. Define surrender voting, permanent departure, cancelled pre-start matches and any ranked rating adjustment before public release. Matchmaking includes team size and party composition, preventing a three-player party from being admitted to 1v1 or assigned silently across opposing teams.
+
+#### Versus with enemies: fair PvPvE rules
+
+AI is a neutral hostile faction, opposed to both players/teams. Propose a fixed, tested normal-enemy roster for the first slice, excluding bosses, nests and persistent hazard generators until map safety is demonstrated. This is developer tuning, not a player selector. Reuse committed attacks and material cues, with bounded population/attack budgets separate from survival. Enemy eliminations do not replace defeating the opposing player/team as the win condition.
+
+Spawn from authored paired arrival sockets away from spawn shelters, immediate cover exits and occupied warning areas. Use seeded schedules and symmetric arrival opportunities, then inspect whether targeting and navigation create unequal actual pressure. Validate safety for **every** player/team, not just the nearest actor; skip/defer invalid arrivals rather than forcing them through walls. Targets are chosen by server rules with commitment/hysteresis, no preference for room creator or account identity. AI must not permanently seal a lane or body-block the only exit. Do not guarantee identical damage merely from mirrored spawn counts.
+
+Proposed round outcome: the last living player/team wins even when AI caused the final death; simultaneous full elimination is a draw, with bounded overtime/rematch handling. AI kills grant no competitive XP, upgrade rolls, healing, ammo or rating by default, preventing a hidden PvE farming advantage. Health loss, kill attribution and the score show whether the source was an opponent or AI. Reset AI/attacks between rounds. Test kiting a pack toward an opponent, camping a spawn, deliberate AI suicide, wall traps, double elimination and 30-second reconnect abuse. These rules require a separate PvPvE balance pass from enemies-off combat.
 
 Choose spawn points, sightlines and cover through playtests. Prevent first-shot spawn advantage, repeat spawn trapping and camera-edge ambush asymmetry. Test left/right and top/bottom starting sides. Overtime must be readable and independently tuned; it must not introduce an untested damaging floor effect as a shortcut.
 
@@ -159,8 +187,8 @@ If the direct client fails materially, run a bounded gateway comparison: Flutter
 | Record | Purpose and important constraints |
 |---|---|
 | Online player/account | Stable authenticated identity, display name, linking/deletion state; separate from local profile ID |
-| Room/member | Mode, capacity, invite lookup, leader, readiness, allowed loadout and expiry; atomic join prevents overfill |
-| Match | Region, ruleset/content/protocol versions, seed, authoritative tick, phase and terminal result |
+| Room/member | Co-op/Versus, capacity (co-op max three), team size, enemy variant (Versus default On), map variant, leader, readiness and expiry; atomic join prevents overfill |
+| Match | Region, ruleset/content/protocol/map versions, enemy preset/seed, authoritative tick, phase and terminal result; configuration immutable after start |
 | Participant | Account-to-slot binding, team, connection generation, grace deadline and abandonment state |
 | Player actor | Transform, aim, health, ammo, dash/reload/status timelines and current life/round |
 | Latest input/action receipt | Accepted sequence, bounded movement/aim and deduplicated dash/reload/choice requests |
@@ -171,6 +199,7 @@ If the direct client fails materially, run a bounded gateway comparison: Flutter
 | Match result/reward ledger | Unique match/participant/ruleset settlement; retry returns the existing result |
 | Rating update | Unique rated result plus algorithm/season version; correction history, no client rating writes |
 | Schedule/cleanup | One active loop per match/allocation, expected generation and expiry; stale callbacks cannot advance replacements |
+| Connection quality | Per-participant connection generation, timestamped RTT sample/summary and freshness; authorized match visibility, bounded update rate, no client-selected RTT values |
 
 Use private backing tables and identity-authorized views/operations for member-only state. Determine the exact access mechanism during the compatibility gate. Public combat data should contain only information deliberately safe for anyone to read; do not rely on an honest client's match filter. Do not replicate hidden opponents/offscreen information if the competitive rules promise it is secret. Invite codes are rate-limited discovery aids, not account credentials.
 
@@ -224,15 +253,15 @@ Compare this baseline at 50/100/200 ms RTT. If it produces unacceptable disadvan
 
 ### Replication and bandwidth
 
-Subscribe only to authorized match state. Co-op encounters must consider both players' relevant areas; individual camera culling must not stop the server simulation. Separate persistent actor state from short-lived shot/impact/attack events. Reconstruct decorative particles locally. Projectile events include IDs, owner, origin, direction, speed/range and spawn tick; snapshots retain enough active damaging projectiles/attacks for late rejoin.
+Subscribe only to authorized match state. Co-op encounters must consider all three players' relevant areas and PvP up to six participants; individual camera culling must not stop the server simulation. Separate persistent actor state from short-lived shot/impact/attack events. Reconstruct decorative particles locally. Projectile events include IDs, owner, origin, direction, speed/range and spawn tick; snapshots retain enough active damaging projectiles/attacks for late rejoin.
 
 Apply a transaction's changes coherently before rendering a frame. Give transient events monotonic IDs and bounded retention; reconnect takes a fresh snapshot and a valid event cursor, without replaying old explosions or missing still-active hazards. Never delete a damaging attack merely because a client culled its visual.
 
 ## 8. Shared contracts and content port
 
-Extract numeric tuning from Flutter enums into a reviewed, versioned source with generated Dart/TypeScript outputs. Preserve stable IDs across releases; names and translated labels are not wire IDs. Export world bounds, obstacle geometry and hazard footprints from the authoritative arena layout. The server must not try to run Flame or depend on sprite dimensions for collision.
+Extract numeric tuning from Flutter enums into a reviewed, versioned source with generated Dart/TypeScript outputs. Preserve stable IDs across releases; names and translated labels are not wire IDs. Export world bounds, obstacle geometry and hazard footprints from the authoritative arena layout. Add map/mode/team-size compatibility, spawn and AI-arrival sockets, route labels and cover semantics from the same authored source; see [the map/cover specification](REGUN_MULTIPLAYER_MAPS_AND_COVER_PLAN.md). Do not overload the solo `ArenaType`/`Loadout` save enum with incompatible online maps. The server must not try to run Flame or depend on sprite dimensions for collision.
 
-Cross-language fixtures cover movement at walls/corners, dash distance/immunity, body occupancy, swept projectiles, pellet once-only damage, pierce/ricochet, reload timings, RNG, XP overflow, proc ceilings and attack geometry. Match expected outcomes/tolerances, not identical rendering. TypeScript numbers, Dart doubles and integer IDs require explicit limits/serialization; avoid accidental precision loss or different RNG behavior.
+Cross-language fixtures cover movement at walls/corners/seams, dash distance/immunity, body occupancy, swept projectiles, pellet once-only damage, cumulative-distance falloff, pierce/ricochet, Carbine-only tactical reload, full reload commitment, VIII/effective-rank distinctions, XP curve/grace, explicit fusion cores, RNG, proc ceilings and attack geometry. Match expected outcomes/tolerances, not identical rendering. TypeScript numbers, Dart doubles and integer IDs require explicit limits/serialization; avoid accidental precision loss or different RNG behavior.
 
 Port incrementally:
 
@@ -242,17 +271,45 @@ Port incrementally:
 4. Full enemy roles, elite/director logic and both arenas.
 5. Boss timelines/weak points/phases, then all eight bosses and the full build roster.
 
-Enemy targeting must consider eligible living teammates, target hysteresis and readable commitment. Spawn safety covers both players; distance/visible population limits use the relevant union rather than doubling budgets blindly. Preserve separate living occupancy/pending spawn reservations, boss priority, actor-based movement and emergency caps. Revalidate the escape budget for attacks threatening two positions at once; solo escape tests do not prove co-op safety.
+Enemy targeting must consider eligible living teammates, target hysteresis and readable commitment. Spawn safety covers all players; distance/visible population limits use the relevant union rather than multiplying budgets blindly. Preserve separate living occupancy/pending spawn reservations, boss priority, actor-based movement and emergency caps. Revalidate escape budgets for attacks threatening all three co-op positions; solo escape tests do not prove co-op safety.
 
 ## 9. Co-op and PvP presentation
 
 Keep the custom charcoal/brass pixel UI, brief player copy, mirrored control clusters and dash/reload under the aiming thumb. Reuse material `AttackVfx`, grounded actors, directional poses and weapon art. No generic Material switches or geometric placeholder attacks in the finished mode.
 
-Add Online → Co-op / Duel, create/join, invite copy, readiness, connection status, teammate health/downed/revive indicators, PvP score/countdown, reconnect, result and rematch flows. Keep offline Play/Continue available. Early development modes stay behind an internal flag until functional; no broken public menu entries.
+Add Online → Co-op / Versus, create/join, invite copy, readiness, connection status, teammate health/downed/revive indicators, PvP score/countdown, reconnect, result and rematch flows. Co-op shows regular arena choice and up to three player slots. Versus shows dedicated map, team-size preset and **Enemies: On / Off**, On by default, with no enemy-type picker. Keep offline Play/Continue available. Early development modes stay behind an internal flag until functional; no broken public menu entries.
 
 Warnings carry server activation times and committed geometry. A client receiving a warning late must resynchronize; it cannot gain extra local immunity by delaying presentation. Define a severe-desync policy so a match does not continue deceptively. Initial fresh load/rejoin uses a readiness/protection rule, not the training world's global freeze.
 
 Preserve planted warnings, attack impact clips/recovery, texture leases and disposal guards. Online hit flashes, weapon recoil and sound cues must survive reconciliation without duplication. Reduced Motion and audio preferences remain local. Co-op landing/revive does not pause everyone; any invulnerability is server-owned. The shotgun retains its normal timing and original Lottie. PvP balancing must not overwrite solo values.
+
+### Dedicated map and wall production
+
+[The companion map plan](REGUN_MULTIPLAYER_MAPS_AND_COVER_PLAN.md) is part of this scope, not an optional art wishlist. Build two complete PvP maps (Ossuary Cross and Ironworks Relay, working names), with a third (Ashen Cloister) targeted after those pass. Each release map has cover/route variation and **playable, tested 1v1, 2v2 and 3v3 variants in this pass**, paired spawn/AI sockets and independent fairness acceptance. Prototype all three layouts before committing final art, then prioritize the two strongest. Co-op retains the actual regular maps.
+
+Upgrade the current simple perimeter treatment into a modular wall/cover kit: stone and iron straights, inner/outer corners, ends, T-junctions, damaged appearances, columns, barriers and machinery. Hard cover blocks actor movement **and** shots; decorative debris is explicitly nonblocking. Readable tops/footprints, join geometry, shadows and occlusion matter as much as texture quality. Destructible walls, height-based shooting and doors are later mechanics, not implicit promises from the art.
+
+### Top-of-screen player ping
+
+Display a compact connection chip beside each player's top HUD identity: for example `YOU 42 ms`, `ROOK 95 ms`. Show both opponents in 1v1, all three co-op participants, and grouped team rows for 2v2/3v3, including all six participants. Keep local ping continuously visible; do not move all remote values into a hidden scoreboard. Layout uses safe areas, preserves health/ammo/score and stays clear of the aiming controls. Provide scalable layouts and short stable player labels; show full names in the room/scoreboard.
+
+| State | Initial display rule | Example |
+|---|---|---|
+| Good | RTT <80 ms; subdued green | `42 ms` + good signal glyph |
+| Fair | RTT 80–150 ms inclusive; amber | `95 ms` + fair signal glyph |
+| Poor | RTT >150 ms; warm red | `186 ms` + poor signal glyph |
+| Unavailable/stale | No valid recent sample; neutral gray | `— ms` + pending/stale glyph |
+| Disconnected | Confirmed connection loss | `OFFLINE` + broken-link glyph |
+
+Thresholds are proposed Regun tuning, not an industry standard or proof that 149 ms feels fair. Use numbers plus distinct glyphs; color is additional information. No blinking/flashing. Apply brief threshold hysteresis so 79/80 ms does not flicker. Preserve the underlying numeric sample and show a separate instability cue for jitter/stalls rather than calling all low-ping links good.
+
+Measure round-trip time to the **actual match endpoint**, using a supported transport ping/pong API when available. Otherwise use an authenticated nonce echo sampled around once per second, timed with a monotonic local clock and returned outside the combat tick if the runtime permits. A reducer echo includes queue/processing delay: label/document it as application RTT and record tick/queue health separately; never advertise it as pure network latency or halve it as one-way ping. For a gateway, distinguish client-to-gateway from the full authoritative path and disclose which is shown.
+
+Use a short rolling median/EWMA and update text around once per second. Track variance and missed probes separately. Initial stale budget: three seconds without a fresh response; actual disconnect follows session liveness, not one failed probe. Reset samples on reconnect/region/connection generation changes. Remote chips use server-observed/validated connection summaries; never broadcast a player-supplied arbitrary `pingMs`. If transport lacks server-side measurement, design an authenticated bounded challenge/ack exchange, document the application-delay bias and retain `— ms` until supported rather than fabricating remote values. Diagnostic ping must not grant authority, immunity or rating advantages.
+
+Riot's network analysis distinguishes RTT from buffering/jitter and processing delay; a ping chip alone cannot diagnose every hitch. Expose details in a developer overlay while keeping player copy brief. [Gameplay consistency analysis](https://playvalorant.com/en-us/news/game-updates/valorant-gameplay-consistency-update/)
+
+Acceptance covers 42/95/186 ms examples and threshold boundaries, no-response/stale/offline, rapid jitter, background/rejoin, route disposal, three-player co-op and live four/six-player PvP HUDs at enlarged text. Verify displayed values under injected delay, confirm probes do not amplify match writes, and retain honest unavailable states when remote telemetry cannot be measured.
 
 ## 10. Identity, rewards, safety and competitive integrity
 
@@ -282,18 +339,19 @@ Milestones are dependency-based deliverables, not a claim that multiplayer can b
 
 | Milestone | Deliverable | Exit evidence |
 |---|---|---|
-| M0 — Approve scope/contracts | Mode rules, architecture decision, threat model, preserved solo baseline, content/version inventory | Agreed decisions; current verification recorded; no gameplay migration yet |
+| M0 — Approve scope/contracts | Updated three-player co-op/default-enemy Versus scope, architecture, threat model, current balance fixtures and map briefs | Review baseline recorded (159 passing/four opt-in skips); proposed scoring/upgrade rules distinguished from creator requirements |
 | M1 — Native compatibility | Pinned TS module, Dart client/generator or measured gateway, identity/access, schedule and reconnect spike | iOS + Android release evidence, access rejection tests, written go/no-go and exact versions |
-| M2 — Shared movement room | Private two-player room, readiness/loading, movement/aim/dash, prediction/interpolation, teardown | Two real devices; corner/body tests; no stale input, leaked callbacks or cross-room state |
+| M2 — Shared movement room | Two-device baseline, then co-op three-slot and PvP two/four/six-slot rooms with team assignment; readiness/loading, prediction/interpolation, ping and teardown | Up to six connected clients, equal-team start checks; corner/body/ping tests; no stale input, leaks or cross-room state |
 | M3 — Authoritative combat | Shotgun first, then four weapons; health, projectile sweeps, reloads, death and result foundation | Simulation/reducer tests and latency matrix; no client-authored damage or duplicated shots |
-| M4 — Private PvP alpha | Duel arena, equal loadouts, rounds/ties/overtime, reconnect/forfeit, rematch | Human attacker/defender fairness review; camera/access parity; no private rating grants |
-| M5 — Co-op vertical slice | Basic enemies, director, shared XP, personal builds, safe upgrade break, downed/revive, one boss | Two players complete a representative run and recover through interruption/result retry |
-| M6 — Full co-op content | All current survivors/weapons/enemies/bosses/arenas/build families/fusions and challenge policy | Coverage ledger; cross-language fixtures; crowd/attack fairness and real-device long sessions |
+| M3A — Map and cover prototype | Three route blockouts, playable 1v1/2v2/3v3 layouts, wall/cover schema and stone/iron art slice; settle minimum two map selection | Two/four/six-player reachability, sightlines, spawns, body/dash/cover and weapon-range evidence; no premature final art |
+| M4 — Private Versus alpha | 1v1 then 2v2/3v3 within this milestone, enemies **On by default**, optional Off, server AI preset, covered map, team rounds/reconnect/rematch | All three formats × both variants; no type picker; six-client fairness/camera review; AI cannot trap exits or farm score |
+| M5 — Co-op vertical slice | Normal Breach loop with two/three players, director, shared XP, funded personal builds, downed/revive and one boss | Both party sizes finish representative runs; no immediate overflow screens; interruption/result retry works |
+| M6 — Full content and PvP map pack | Full co-op roster/builds on regular arenas; two finished PvP maps with 1v1/2v2/3v3 variants and wall kit; third subject to acceptance | Physical three-player co-op and six-player PvP; each map × team size × enemy variant passes fairness/art/collision; third not claimed until complete |
 | M7 — Public online beta | Recoverable accounts, casual admission, regions, reports, operations, load caps and durable rewards | Security/load/recovery evidence; privacy flows; regional device/network acceptance |
-| M8 — Ranked PvP | Settled hit policy, competitive balance, matchmaking/rating, placements/season policy and anti-abuse review | Sufficient population; trusted idempotent rating; acceptable waits/latency and adjudication |
-| M9 — Release and expansion | Staged rollout, rollback rehearsal, support docs and accepted telemetry | Release checklist signed off; then evaluate four-player co-op, 2v2 or additional formats |
+| M8 — Ranked PvP | Settled hit policy, map/variant balance, matchmaking/rating, placements/season policy and anti-abuse review | Sufficient population; trusted idempotent rating; explicit enemy-variant queue/rating policy; acceptable waits/latency |
+| M9 — Release | Staged rollout, rollback, support docs; deliver accepted co-op up to three and PvP 1v1/2v2/3v3 up to six in this pass | Full map/format/variant matrix, six-client load/fairness evidence and clean recovery; no deferred team modes presented as completed scope |
 
-M4 and M5 can share completed infrastructure but each needs its own acceptance. The proposed review order gets a small duel playable before the large AI/content port. This does not make co-op optional. Four-player co-op, 2v2, spectators and tournaments remain later scope.
+M3A follows the current combat/range fixture inventory and must precede PvP fairness sign-off. M4 and M5 share infrastructure and basic AI, but each has independent acceptance. An enemies-off combat harness can be used internally during M3; it does not satisfy the default enemies-on Versus alpha. Two complete PvP maps and all three formats (1v1/2v2/3v3) are required in this pass; the third map is a stated stretch deliverable. Testing 1v1 first is an implementation sequence, not permission to defer 2v2/3v3. Four-player co-op, spectators and tournaments are outside this scope.
 
 ## 13. Verification and acceptance matrix
 
@@ -305,8 +363,10 @@ M4 and M5 can share completed infrastructure but each needs its own acceptance. 
 | Client lifecycle | Route enter/exit, restart, callback disposal, token restore/link, readiness failure, app update mismatch and background input reset |
 | Network | 50/100/200 ms RTT; asymmetric delay/jitter; underlying packet loss and retransmission stalls; disconnect/reconnect; Wi-Fi/cellular switch |
 | Transport correctness | WebSockets preserve order within a connection; test stale application callbacks/retries across reconnects rather than assuming UDP-style wire reordering |
-| Co-op | Far-apart players, target switching, teammate pickups/revives, safe spawn union, stacked upgrades, boss phases, two downed, disconnect during every critical phase |
-| PvP | Both spawn sides, 30/60/120 Hz rendering, aspect ratios, aim assist, corners/cover, trade kills, dash boundaries, overtime, forfeit/rejoin and repeated rematches |
+| Co-op | Two/three players on both regular arenas; far-apart targets, shared pickup conservation, funded/grace-gated offers, explicit cores, boss phases, two downed/third alive, all downed and critical-phase disconnect |
+| PvP | All 1v1/2v2/3v3 formats × enemies On/Off × both release maps; equal teams, friendly-fire exclusion, last teammate alive, AI/trade attribution, full-team elimination, overtime, camera parity, dash/reconnect and six-client load |
+| Maps/walls | Route connectivity/rotation times, clearances for bodies and packs, spawn isolation, shared map hash, projectile/Arc/ricochet corner rules, art footprint/occlusion, no hidden passage advantage |
+| Ping HUD | Per-player RTT, good/fair/poor boundaries, instability/stale/offline, reconnect reset, remote provenance, safe areas and enlarged text in three/six-player layouts |
 | Integrity | Duplicate reward/rating settlement, restarted server, delayed finalization, account double-session, private-state reads, farming/collusion scenarios |
 | Performance | Real release clients during dense co-op and PvP; multi-match server load, gateway overhead if used, sustained memory/bandwidth and frame times |
 | Operations | Drained deploy, stale schedules, restart recovery/void outcome, backup restore, incompatible schema rollback, overload admission and service outage messaging |
@@ -332,14 +392,17 @@ These are reviewable budgets, not achieved results. Ratify them after M1–M3 me
 | Community Dart SDK falls behind server protocol | Pin/test early; compare official-SDK gateway; stop the migration if neither passes native acceptance |
 | Ported TS gameplay diverges from solo | Shared numeric data, stable IDs and fixtures; retain mode-specific values explicitly |
 | PvP feels unfair under latency | Measure early duel; settle hit policy, competitive geometry, tick rate and regional admission before ranked |
-| Co-op doubles visual/crowd pressure | Team-aware director and VFX budgets; preserve escape space rather than doubling enemies |
+| Co-op grows to three viewpoints/builds | Team-aware director and VFX budgets; preserve escape space rather than multiplying enemies by player count |
+| PvPvE decides outcomes through unfair AI | Neutral preset, seeded safe arrivals, lane budgets and measured targeting/side pressure; independently test enemies-off |
+| Tactical maps become mazes or ranged camp sites | Purposeful connected lanes, measured travel/sightline distances, wall kit/geometry parity and map-specific weapon tests |
+| Ping display misrepresents connection quality | Measured endpoint RTT, declared processing bias, jitter/stale states, no fabricated remote values |
 | Upgrade/pause design harms flow | Prototype synchronized safe breaks; preserve solo semantics; review pacing before full content port |
 | Shared database saturates across matches | Measure transactional contention/load; allocation/sharding plan and admission caps |
 | Reconnect grants advantage or corrupts rewards | Connection/life generations, no generic replay, authoritative recovery and idempotent ledgers |
-| Public PvP has too few players | Private/casual first; visible waits, limited regions/hours if appropriate; defer ranked rather than fake opponents |
+| Public PvP has too few players across three formats/two variants | Deliver private 1v1/2v2/3v3 this pass; constrain public queue availability transparently if needed, defer ranked rather than fake opponents or silently change formats |
 | Scope expands into commerce/social infrastructure | Keep purchases, ads, trading, voice/chat and guilds outside this release |
 
-Before implementation, review: co-op/PvP formats, upgrade/downed rules, progression/reward separation and whether the proposed private-duel-before-full-co-op review order is preferred. Technology choices remain conditional on M1; tick rates, grace periods and balance numbers remain experiments until tested.
+Creator direction is already captured: three-player co-op on regular maps; default enemies-on Versus with optional Off and no enemy selector; 1v1/2v2/3v3 up to six players **in this pass**, dedicated covered maps and top HUD ping. Remaining review decisions are scoring/overtime, PvPvE roster and rewards, co-op upgrade/downed details, final map themes/layouts and release order. Technology choices remain conditional on M1; rates, timeouts and balance values remain experiments.
 
 ## 15. First implementation packet after plan approval
 
@@ -355,10 +418,14 @@ Primary sources checked for this planning pass:
 2. [SpacetimeDB official client list](https://spacetimedb.com/docs/clients/): Rust, C#, TypeScript and Unreal are listed; Dart is absent from that list.
 3. [SpacetimeDB functions](https://spacetimedb.com/docs/functions/): transactional reducers, external-effect procedures and read-only views have different roles.
 4. [Reducer documentation](https://spacetimedb.com/docs/functions/reducers/): schema/reducer patterns and execution context; exact scheduling API still needs a compiled spike against the selected release.
-5. [Community Dart package](https://pub.dev/packages/spacetimedb): retrieved version 1.3.0 advertises SpacetimeDB v2, binding generation and offline mutation replay. These are maintainer claims; native compatibility is unverified here.
+5. [Community Dart package](https://pub.dev/packages/spacetimedb): retrieved version 1.3.0 in the earlier pass advertised SpacetimeDB v2, binding generation and offline mutation replay. Recheck the package at M1; those claims do not establish native compatibility.
+6. [Riot: The Birth of Ascent](https://playvalorant.com/en-gb/news/dev/the-birth-of-ascent/): three-lane design, iterative geometry tests, route orientation and legibility; useful process guidance, not a top-down shooter template.
+7. [Riot: The Creation of Split](https://playvalorant.com/en-us/news/dev/the-creation-of-split/): playtest-driven revisions to positions and combat focus.
+8. [Supercell: Mystery at the Hub patch notes](https://supercell.com/en/games/brawlstars/blog/release-notes/mysteryatthehub-patch-notes/): indestructible walls and deliberately distinct Duels maps; demonstrates relevant top-down design tradeoffs without proving Regun balance.
+9. [Riot: Gameplay Consistency Update](https://playvalorant.com/en-us/news/game-updates/valorant-gameplay-consistency-update/): RTT, jitter and buffering are different contributors to responsiveness.
 
 The retrieved vendor documentation displays a **2.0.0** version label while the locally installed CLI reports **2.12.0**. Do not infer exact API compatibility from these pages. Research caches are ignored local files under `.firecrawl/regun-multiplayer-*`; the public links above are the durable references.
 
 Repository evidence: `lib/game.dart`, `lib/notifiers/game_notifier.dart`, `lib/components/game_utils/player_component.dart`, `lib/components/weapons/bullet_component.dart`, `lib/components/movement/boost_component.dart`, `lib/systems/combat_system.dart`, `lib/systems/encounter_director.dart`, `lib/systems/arena_geometry.dart`, `lib/systems/boss_encounter_runtime.dart`, `lib/services/run_store.dart`, `lib/data/loadout.dart`, `pubspec.yaml` and the existing tests.
 
-No gameplay code or dependencies were changed for this plan. No network simulation, build, server load test or physical-device multiplayer validation was performed. The rules, architecture, budgets and milestone order above are recommendations for review.
+No gameplay code or dependencies were changed for this revision. The refreshed baseline ran `make verify` (159 passing, four opt-in skips; analyzer clean). No multiplayer network simulation, native build/install, server load test or physical-device multiplayer validation was performed. Creator requirements are separated above from proposed rules, layouts, budgets and milestone order.
