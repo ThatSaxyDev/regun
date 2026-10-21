@@ -25,6 +25,17 @@ void main() {
       expect(ShelterVoltage.at(8.6), lessThan(.1));
       expect(ShelterVoltage.at(14), inInclusiveRange(.48, .7));
       expect(ShelterVoltage.at(24), ShelterVoltage.at(0));
+      // Any five-second demo must include visible voltage variation, even
+      // if the recording starts between the deeper brownouts.
+      for (var start = 0; start < 240; start++) {
+        final values = List.generate(
+          51,
+          (i) => ShelterVoltage.at((start + i) / 10),
+        );
+        final low = values.reduce((a, b) => a < b ? a : b);
+        final high = values.reduce((a, b) => a > b ? a : b);
+        expect(high - low, greaterThan(.35));
+      }
       for (var step = 1; step <= 2400; step++) {
         final value = ShelterVoltage.at(step / 100);
         expect(value, inInclusiveRange(.08, .96));
@@ -46,7 +57,7 @@ void main() {
       appName: 'Regun',
       packageName: 'dev.kiishi.regun',
       version: '1.0.0',
-      buildNumber: '7',
+      buildNumber: '8',
       buildSignature: '',
     );
     await tester.runAsync(() async {
@@ -158,6 +169,100 @@ void main() {
     expect(settings, 8);
     expect(continueCount, 3);
   });
+
+  testWidgets(
+    'release Online stays gray and opens only coming soon; toggle restores play',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      var online = 0;
+      Widget home({double scale = 1}) => ProviderScope(
+        overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+        child: MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(scale)),
+            child: RepaintBoundary(
+              key: const Key('online-preview'),
+              child: child!,
+            ),
+          ),
+          home: Scaffold(
+            body: HomeMenu(
+              ready: true,
+              reducedMotion: true,
+              onPlay: () {},
+              onOnline: () => online++,
+              onTraining: () {},
+              onCollection: () {},
+              onSettings: () {},
+            ),
+          ),
+        ),
+      );
+      for (final size in [const Size(844, 390), const Size(568, 320)]) {
+        tester.view.physicalSize = size;
+        await tester.pumpWidget(home(scale: size.width < 600 ? 1.5 : 1));
+        await tester.pumpAndSettle();
+        final label = tester.widget<Text>(find.text('ONLINE'));
+        expect(label.style!.color, const Color(0xff99979c));
+        await tester.tap(find.text('ONLINE'));
+        await tester.pumpAndSettle();
+        expect(find.byType(Dialog), findsOneWidget);
+        expect(
+          find.text('Co-op and versus are on the way. Stay tuned.'),
+          findsOneWidget,
+        );
+        expect(online, 0);
+        if (size.width == 844) {
+          await tester.runAsync(() async {
+            final image = await tester
+                .renderObject<RenderRepaintBoundary>(
+                  find.byKey(const Key('online-preview')),
+                )
+                .toImage();
+            final bytes = await image.toByteData(
+              format: ui.ImageByteFormat.png,
+            );
+            await File('build/test-previews/online-coming-soon.png')
+                .writeAsBytes(bytes!.buffer.asUint8List());
+            image.dispose();
+          });
+        }
+        await tester.ensureVisible(find.text('GOT IT'));
+        await tester.tap(find.text('GOT IT'));
+        await tester.pumpAndSettle();
+        expect(find.byType(Dialog), findsNothing);
+        expect(tester.takeException(), isNull);
+      }
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+          child: MaterialApp(
+            home: Scaffold(
+              body: HomeMenu(
+                ready: true,
+                reducedMotion: true,
+                onlineAvailable: true,
+                onPlay: () {},
+                onOnline: () => online++,
+                onTraining: () {},
+                onCollection: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ONLINE'));
+      expect(online, 1);
+      expect(find.text('CO-OP / VERSUS'), findsOneWidget);
+      expect(find.byType(Dialog), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   testWidgets('animated home can switch to reduced motion and dispose', (
     tester,

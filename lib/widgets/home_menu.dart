@@ -4,6 +4,9 @@ import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/utils/soloud_play.dart';
 
+import 'package:regun/config/release_features.dart';
+
+import 'online_coming_soon.dart';
 import 'app_build_label.dart';
 import 'home_artwork.dart';
 
@@ -20,8 +23,9 @@ class HomeMenu extends StatelessWidget {
     required this.onSettings,
     this.onContinue,
     this.bestScore = 0,
+    this.onlineAvailable = ReleaseFeatures.onlinePlay,
   });
-  final bool ready, reducedMotion;
+  final bool ready, reducedMotion, onlineAvailable;
   final int bestScore;
   final VoidCallback onPlay, onOnline, onTraining, onCollection, onSettings;
   final VoidCallback? onContinue;
@@ -88,8 +92,13 @@ class HomeMenu extends StatelessWidget {
             const SizedBox(height: 10),
             _HomeAction(
               label: 'Online',
-              detail: 'CO-OP / VERSUS',
-              onTap: ready ? onOnline : null,
+              detail: onlineAvailable ? 'CO-OP / VERSUS' : 'COMING SOON',
+              muted: !onlineAvailable,
+              onTap: !ready
+                  ? null
+                  : onlineAvailable
+                  ? onOnline
+                  : () => showOnlineComingSoon(context),
             ),
             SizedBox(height: compact ? 10 : 22),
             Row(
@@ -213,11 +222,12 @@ class _HomeAction extends ConsumerStatefulWidget {
     this.primary = false,
     this.utility = false,
     this.gear = false,
+    this.muted = false,
   });
   final String label;
   final String? detail;
   final VoidCallback? onTap;
-  final bool primary, utility, gear;
+  final bool primary, utility, gear, muted;
   @override
   ConsumerState<_HomeAction> createState() => _HomeActionState();
 }
@@ -234,14 +244,16 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
-    final ink = widget.primary || widget.gear
+    final ink = widget.muted
+        ? const Color(0xff99979c)
+        : widget.primary || widget.gear
         ? const Color(0xffedd2a1)
         : const Color(0xffd4c9b7);
     final scale = MediaQuery.textScalerOf(context).scale(12) / 12;
     return Semantics(
       button: true,
       enabled: enabled,
-      label: widget.label,
+      label: widget.muted ? '${widget.label}, coming soon' : widget.label,
       child: Tooltip(
         message: widget.gear ? widget.label : '',
         child: Material(
@@ -263,7 +275,7 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
                 primary: widget.primary,
                 utility: widget.utility,
                 pressed: _pressed,
-                enabled: enabled,
+                enabled: enabled && !widget.muted,
               ),
               child: Container(
                 constraints: BoxConstraints(
@@ -369,6 +381,8 @@ class _HomePlate extends CustomPainter {
       paint
         ..color = pressed
             ? const Color(0xff211b20)
+            : !enabled
+            ? const Color(0xff242327)
             : primary
             ? const Color(0xff49382e)
             : utility

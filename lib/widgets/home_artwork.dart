@@ -117,23 +117,29 @@ class _ShelterAtmosphere extends CustomPainter {
         ],
       ).createShader(const Rect.fromLTWH(770, 220, 410, 430));
     canvas.drawRect(const Rect.fromLTWH(770, 220, 410, 430), light);
-    // Follow the painted underside of the slanted shade, not a floating glow.
-    canvas.drawPath(
-      Path()..addPolygon(const [
-        Offset(901, 354),
-        Offset(950, 338),
-        Offset(974, 350),
-        Offset(922, 370),
-      ], true),
+    // Feather into the painted bulb: an opaque polygon here reads as a
+    // gray card when power falls. Leave the original pixel texture visible.
+    canvas.save();
+    canvas.translate(937, 354);
+    canvas.rotate(-.28);
+    canvas.scale(1, .36);
+    const bulb = Rect.fromLTWH(-62, -62, 124, 124);
+    canvas.drawCircle(
+      Offset.zero,
+      62,
       Paint()
-        ..color = Color.lerp(
-          const Color(0xff25201c),
-          const Color(0xffffe5ac),
-          intensity,
-        )!.withValues(alpha: .72),
+        ..shader = RadialGradient(
+          stops: const [0, .45, 1],
+          colors: [
+            const Color(0xff09080c).withValues(alpha: (1 - intensity) * .9),
+            const Color(0xff09080c).withValues(alpha: (1 - intensity) * .7),
+            Colors.transparent,
+          ],
+        ).createShader(bulb),
     );
+    canvas.restore();
     final random = math.Random(91);
-    for (var i = 0; i < 38; i++) {
+    for (var i = 0; i < 54; i++) {
       final progress = (random.nextDouble() + clock.value) % 1;
       final x = 320 + random.nextDouble() * 1130 + math.sin(t + i) * 14;
       final y = 910 - progress * 760;
@@ -143,15 +149,25 @@ class _ShelterAtmosphere extends CustomPainter {
           ..color = const Color(0xffe1bf87).withValues(
             alpha:
                 math.sin(progress * math.pi) *
-                (x > 760 && x < 1120 ? .30 : .14),
+                (x > 760 && x < 1120 ? .38 : .20),
           ),
       );
     }
     // A few falling hot flecks from the damaged cable at the upper right.
     // Short, separated events, never a shower across the survivor or controls.
     if (!reducedMotion) {
-      for (var i = 0; i < 3; i++) {
-        final age = (clock.value * 24 - (3.1 + i * 7.3)) % 24;
+      for (final start in const [
+        .9,
+        3.1,
+        5.8,
+        8.5,
+        11.2,
+        14.6,
+        17.3,
+        20.4,
+        23.1,
+      ]) {
+        final age = (clock.value * 24 - start) % 24;
         if (age > .7) continue;
         for (var j = 0; j < 3; j++) {
           final life = (age - j * .075) / .5;
@@ -198,26 +214,52 @@ class ShelterVoltage {
     (.86, .58),
     (1.08, .36),
     (1.4, .94),
-    (3.8, .86),
+    (2.0, .91),
+    (2.22, .49),
+    (2.46, .72),
+    (2.7, .58),
+    (3.0, .93),
+    (3.5, .91),
+    (3.75, .22),
+    (3.98, .25),
     (4.2, .55),
     (4.8, .63),
     (5.15, .92),
+    (6.0, .91),
+    (6.24, .4),
+    (6.5, .68),
+    (6.82, .92),
     (8.1, .86),
     (8.3, .09),
     (8.78, .08),
     (9.05, .42),
     (9.32, .26),
     (9.7, .96),
+    (10.8, .91),
+    (11.05, .35),
+    (11.35, .55),
+    (11.65, .92),
     (13.4, .89),
     (13.75, .48),
     (14.5, .7),
     (15.0, .93),
+    (16.1, .91),
+    (16.34, .3),
+    (16.68, .65),
+    (16.95, .93),
+    (18.0, .89),
+    (18.25, .47),
+    (18.55, .91),
     (19.1, .88),
     (19.36, .18),
     (19.7, .13),
     (20.05, .65),
     (20.4, .46),
     (20.85, .92),
+    (21.8, .91),
+    (22.05, .38),
+    (22.35, .6),
+    (22.7, .93),
     (24, .88),
   ];
 
