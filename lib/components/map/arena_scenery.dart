@@ -1,9 +1,11 @@
 import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/presentation/regun_art.dart';
+import 'package:regun/presentation/wall_art.dart';
 
 /// Sparse authored landmarks and grounded props, sharing the actual collision
 /// layout. Static prop depth is compared to the actors' ground/foot positions.
@@ -33,7 +35,7 @@ class ArenaScenery extends PositionComponent with HasGameReference<RegunGame> {
     for (final point in [
       Offset.zero,
       const Offset(-1300, 1000),
-      const Offset(1250, -1100)
+      const Offset(1250, -1100),
     ]) {
       if (!visible.inflate(300).contains(point)) continue;
       final ring = Rect.fromCircle(center: point, radius: 230);
@@ -41,46 +43,46 @@ class ArenaScenery extends PositionComponent with HasGameReference<RegunGame> {
         canvas.drawArc(ring, i * pi / 4, .5, false, stencil);
       }
       for (final side in [-1.0, 1.0]) {
-        canvas.drawLine(point + Offset(side * 280, -70),
-            point + Offset(side * 460, -70), stencil);
-        canvas.drawLine(point + Offset(side * 280, 70),
-            point + Offset(side * 460, 70), stencil);
+        canvas.drawLine(
+          point + Offset(side * 280, -70),
+          point + Offset(side * 460, -70),
+          stencil,
+        );
+        canvas.drawLine(
+          point + Offset(side * 280, 70),
+          point + Offset(side * 460, 70),
+          stencil,
+        );
       }
     }
     if (foundry) {
       for (final vent in game.map.vents) {
         if (!visible.inflate(150).contains(vent.toOffset())) continue;
         final sprite = RegunArt.shared.rawSprite('arenas/props', 5);
-        sprite.render(canvas,
-            position: vent - Vector2(90, 42), size: Vector2(180, 84));
+        sprite.render(
+          canvas,
+          position: vent - Vector2(90, 42),
+          size: Vector2(180, 84),
+        );
       }
     }
-    // Quiet edge architecture is entirely inside the walkable-world bounds.
-    final wall = Paint()..color = const Color(0xff171F22);
-    canvas.drawRect(
-        Rect.fromLTWH(floor.left, floor.top, floor.width, 34), wall);
-    canvas.drawRect(
-        Rect.fromLTWH(floor.left, floor.bottom - 24, floor.width, 24), wall);
-    canvas.drawRect(
-        Rect.fromLTWH(floor.left, floor.top, 24, floor.height), wall);
-    canvas.drawRect(
-        Rect.fromLTWH(floor.right - 24, floor.top, 24, floor.height), wall);
-    final rim = Paint()
-      ..color = const Color(0xff68716B)
-      ..strokeWidth = 4;
-    canvas.drawLine(floor.topLeft + const Offset(24, 34),
-        floor.topRight + const Offset(-24, 34), rim);
+    // Same existing 24px edge trim and collision bounds, now with material faces.
+    WallArt.perimeter(canvas, floor, iron: foundry, inside: true);
     // A few low debris piles, never tall scenery with invisible collision.
     for (final point in [
       const Offset(-900, 450),
       const Offset(900, -450),
       const Offset(-1600, -1500),
-      const Offset(1600, 1500)
+      const Offset(1600, 1500),
     ]) {
       if (visible.inflate(90).contains(point)) {
-        RegunArt.shared.rawSprite('arenas/props', 7).render(canvas,
-            position: Vector2(point.dx - 45, point.dy - 20),
-            size: Vector2(90, 40));
+        RegunArt.shared
+            .rawSprite('arenas/props', 7)
+            .render(
+              canvas,
+              position: Vector2(point.dx - 45, point.dy - 20),
+              size: Vector2(90, 40),
+            );
       }
     }
     canvas.restore();
@@ -89,9 +91,10 @@ class ArenaScenery extends PositionComponent with HasGameReference<RegunGame> {
 
 class _ArenaProp extends PositionComponent with HasGameReference<RegunGame> {
   _ArenaProp(this.footprint, this.frame)
-      : super(
-            position: Vector2(footprint.center.dx, footprint.bottom),
-            priority: 10000 + footprint.bottom.round());
+    : super(
+        position: Vector2(footprint.center.dx, footprint.bottom),
+        priority: 10000 + footprint.bottom.round(),
+      );
   final Rect footprint;
   final int frame;
   @override
@@ -101,24 +104,35 @@ class _ArenaProp extends PositionComponent with HasGameReference<RegunGame> {
     final width = footprint.width * 1.25;
     final height = width * sprite.srcSize.y / sprite.srcSize.x;
     canvas.drawOval(
-        Rect.fromCenter(
-            center: const Offset(8, -10),
-            width: width + 20,
-            height: footprint.height * .65),
-        Paint()..color = const Color(0x750A1114));
-    final body = Rect.fromLTWH(footprint.center.dx - width / 2,
-        footprint.bottom - height, width, height);
+      Rect.fromCenter(
+        center: const Offset(8, -10),
+        width: width + 20,
+        height: footprint.height * .65,
+      ),
+      Paint()..color = const Color(0x750A1114),
+    );
+    final body = Rect.fromLTWH(
+      footprint.center.dx - width / 2,
+      footprint.bottom - height,
+      width,
+      height,
+    );
     final player = game.myPlayer;
     final obscures =
         player.position.y + player.size.y * .38 < footprint.bottom &&
-            body.overlaps(Rect.fromCenter(
-                center: player.position.toOffset(),
-                width: player.size.x * .65,
-                height: player.size.y * .8));
-    sprite.render(canvas,
-        position: Vector2(-width / 2, -height),
-        size: Vector2(width, height),
-        overridePaint: Paint()
-          ..color = Colors.white.withValues(alpha: obscures ? .4 : 1));
+        body.overlaps(
+          Rect.fromCenter(
+            center: player.position.toOffset(),
+            width: player.size.x * .65,
+            height: player.size.y * .8,
+          ),
+        );
+    sprite.render(
+      canvas,
+      position: Vector2(-width / 2, -height),
+      size: Vector2(width, height),
+      overridePaint: Paint()
+        ..color = Colors.white.withValues(alpha: obscures ? .4 : 1),
+    );
   }
 }

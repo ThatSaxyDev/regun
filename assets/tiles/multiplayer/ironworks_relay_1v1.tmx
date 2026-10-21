@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="55" height="38" tilewidth="32" tileheight="32" infinite="0">
+  <properties>
+    <property name="mapId" value="ironworks_relay_1v1" />
+    <property name="title" value="Ironworks Relay" />
+    <property name="teamSize" value="1" />
+    <property name="contentVersion" value="1" />
+    <property name="material" value="iron" />
+    <property name="stage" value="playtest" />
+  </properties>
+  <objectgroup name="solids">
+    <object id="1" x="290.0" y="473.0" width="80" height="270" />
+    <object id="2" x="530.0" y="308.0" width="220" height="90" />
+    <object id="3" x="790.0" y="398.0" width="175" height="90" />
+    <object id="4" x="455.0" y="933.0" width="165" height="85" />
+    <object id="5" x="850.0" y="118.0" width="180" height="80" />
+    <object id="6" x="1390.0" y="473.0" width="80" height="270" />
+    <object id="7" x="1010.0" y="818.0" width="220" height="90" />
+    <object id="8" x="795.0" y="728.0" width="175" height="90" />
+    <object id="9" x="1140.0" y="198.0" width="165" height="85" />
+    <object id="10" x="730.0" y="1018.0" width="180" height="80" />
+  </objectgroup>
+  <objectgroup name="team_0">
+    <object id="11" x="145.0" y="608.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="team_1">
+    <object id="12" x="1615.0" y="608.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="ai_sockets">
+    <object id="13" x="175.0" y="150.0" width="0.0" height="0.0" />
+    <object id="14" x="1585.0" y="1066.0" width="0.0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="routes">
+    <object id="15" x="880.0" y="608.0" width="0" height="0" />
+    <object id="16" x="880.0" y="316.0" width="0" height="0" />
+    <object id="17" x="880.0" y="900.0" width="0" height="0" />
+  </objectgroup>
+</map>

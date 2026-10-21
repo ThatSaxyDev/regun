@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="50" height="35" tilewidth="32" tileheight="32" infinite="0">
+  <properties>
+    <property name="mapId" value="ossuary_cross_1v1" />
+    <property name="title" value="Ossuary Cross" />
+    <property name="teamSize" value="1" />
+    <property name="contentVersion" value="1" />
+    <property name="material" value="stone" />
+    <property name="stage" value="playtest" />
+  </properties>
+  <objectgroup name="solids">
+    <object id="1" x="285.0" y="440.0" width="70" height="240" />
+    <object id="2" x="490.0" y="190.0" width="210" height="80" />
+    <object id="3" x="555.0" y="655.0" width="150" height="80" />
+    <object id="4" x="755.0" y="110.0" width="130" height="60" />
+    <object id="5" x="1245.0" y="440.0" width="70" height="240" />
+    <object id="6" x="900.0" y="850.0" width="210" height="80" />
+    <object id="7" x="895.0" y="385.0" width="150" height="80" />
+    <object id="8" x="715.0" y="950.0" width="130" height="60" />
+  </objectgroup>
+  <objectgroup name="team_0">
+    <object id="9" x="140.0" y="560.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="team_1">
+    <object id="10" x="1460.0" y="560.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="ai_sockets">
+    <object id="11" x="175.0" y="150.0" width="0.0" height="0.0" />
+    <object id="12" x="1425.0" y="970.0" width="0.0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="routes">
+    <object id="13" x="800.0" y="560.0" width="0" height="0" />
+    <object id="14" x="800.0" y="291.0" width="0" height="0" />
+    <object id="15" x="800.0" y="829.0" width="0" height="0" />
+  </objectgroup>
+</map>

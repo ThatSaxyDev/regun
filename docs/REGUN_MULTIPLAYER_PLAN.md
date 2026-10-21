@@ -1,7 +1,7 @@
 # Regun multiplayer plan: co-op and competitive PvP
 
 **Date:** 20 October 2026  
-**Status:** implementation in progress; backend and Flutter room/movement foundations exist. Full multiplayer combat is not implemented.
+**Status (21 October):** private-room combat, co-op survival and all three PvP formats are implemented in the client and sibling server. See [implementation progress](MULTIPLAYER_IMPLEMENTATION_PROGRESS.md) and [test/deploy guide](MULTIPLAYER_TEST_AND_DEPLOY.md) for verified behavior and remaining hands-on gates. The proposal below retains the broader public/ranked roadmap; those are not enabled by the private-room pass.
 **Requested scope:** online co-op **and** competitive PvP, using SpacetimeDB with TypeScript as the preferred server language.  
 **First platforms:** native iOS and Android. Desktop/web can support development clients; production support needs its own acceptance pass.
 

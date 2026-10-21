@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="66" height="46" tilewidth="32" tileheight="32" infinite="0">
+  <properties>
+    <property name="mapId" value="ossuary_cross_3v3" />
+    <property name="title" value="Ossuary Cross" />
+    <property name="teamSize" value="3" />
+    <property name="contentVersion" value="1" />
+    <property name="material" value="stone" />
+    <property name="stage" value="playtest" />
+  </properties>
+  <objectgroup name="solids">
+    <object id="1" x="321.0" y="561.0" width="80" height="350" />
+    <object id="2" x="591.0" y="246.0" width="285" height="90" />
+    <object id="3" x="721.0" y="881.0" width="215" height="90" />
+    <object id="4" x="1071.0" y="131.0" width="195" height="80" />
+    <object id="5" x="546.0" y="1086.0" width="170" height="90" />
+    <object id="6" x="981.0" y="541.0" width="120" height="80" />
+    <object id="7" x="1711.0" y="561.0" width="80" height="350" />
+    <object id="8" x="1236.0" y="1136.0" width="285" height="90" />
+    <object id="9" x="1176.0" y="501.0" width="215" height="90" />
+    <object id="10" x="846.0" y="1261.0" width="195" height="80" />
+    <object id="11" x="1396.0" y="296.0" width="170" height="90" />
+    <object id="12" x="1011.0" y="851.0" width="120" height="80" />
+  </objectgroup>
+  <objectgroup name="team_0">
+    <object id="13" x="171.0" y="611.0" width="0" height="0.0" />
+    <object id="14" x="171.0" y="736.0" width="0" height="0.0" />
+    <object id="15" x="171.0" y="861.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="team_1">
+    <object id="16" x="1941.0" y="861.0" width="0" height="0.0" />
+    <object id="17" x="1941.0" y="736.0" width="0" height="0.0" />
+    <object id="18" x="1941.0" y="611.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="ai_sockets">
+    <object id="19" x="175.0" y="150.0" width="0.0" height="0.0" />
+    <object id="20" x="1937.0" y="1322.0" width="0.0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="routes">
+    <object id="21" x="1056.0" y="736.0" width="0" height="0" />
+    <object id="22" x="1056.0" y="383.0" width="0" height="0" />
+    <object id="23" x="1056.0" y="1089.0" width="0" height="0" />
+  </objectgroup>
+</map>

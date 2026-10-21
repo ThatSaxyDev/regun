@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="60" height="43" tilewidth="32" tileheight="32" infinite="0">
+  <properties>
+    <property name="mapId" value="ashen_cloister_2v2" />
+    <property name="title" value="Ashen Cloister" />
+    <property name="teamSize" value="2" />
+    <property name="contentVersion" value="1" />
+    <property name="material" value="stone" />
+    <property name="stage" value="candidate" />
+  </properties>
+  <objectgroup name="solids">
+    <object id="1" x="305.0" y="543.0" width="80" height="290" />
+    <object id="2" x="770.0" y="428.0" width="380" height="140" />
+    <object id="3" x="540.0" y="293.0" width="265" height="85" />
+    <object id="4" x="950.0" y="128.0" width="190" height="90" />
+    <object id="5" x="470.0" y="1003.0" width="110" height="125" />
+    <object id="6" x="1535.0" y="543.0" width="80" height="290" />
+    <object id="7" x="770.0" y="808.0" width="380" height="140" />
+    <object id="8" x="1115.0" y="998.0" width="265" height="85" />
+    <object id="9" x="780.0" y="1158.0" width="190" height="90" />
+    <object id="10" x="1340.0" y="248.0" width="110" height="125" />
+  </objectgroup>
+  <objectgroup name="team_0">
+    <object id="11" x="145.0" y="633.0" width="0" height="0.0" />
+    <object id="12" x="145.0" y="743.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="team_1">
+    <object id="13" x="1775.0" y="743.0" width="0" height="0.0" />
+    <object id="14" x="1775.0" y="633.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="ai_sockets">
+    <object id="15" x="175.0" y="150.0" width="0.0" height="0.0" />
+    <object id="16" x="1745.0" y="1226.0" width="0.0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="routes">
+    <object id="17" x="960.0" y="688.0" width="0" height="0" />
+    <object id="18" x="960.0" y="358.0" width="0" height="0" />
+    <object id="19" x="960.0" y="1018.0" width="0" height="0" />
+  </objectgroup>
+</map>

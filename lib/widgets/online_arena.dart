@@ -1,4 +1,19 @@
 import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:regun/data/loadout.dart';
+import 'package:regun/data/enemies.dart';
+import 'package:regun/components/enemies/enemy_3_projectile.dart';
+import 'package:regun/presentation/weapon_feel.dart';
+import 'package:regun/presentation/attack_vfx.dart';
+import 'package:regun/components/weapons/weapon_art.dart';
+import 'package:regun/utils/soloud_play.dart';
+import 'package:regun/widgets/online_combat_hud.dart';
+import 'package:regun/widgets/online_match_menu.dart';
+import 'package:regun/widgets/online_objectives.dart';
+import 'package:regun/presentation/online_world.dart';
+import 'package:regun/presentation/wall_art.dart';
+
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -11,38 +26,154 @@ import 'package:regun/multiplayer/geometry.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/utils/constants.dart';
-import 'package:regun/widgets/online_player_label.dart';
+import 'package:regun/widgets/online_roster.dart';
 import 'package:regun/widgets/click_button.dart';
 
 /// Deliberately separate from RegunGame: no local director, health, checkpoint,
 /// profile rewards or combat may run while the authoritative port is incomplete.
-class OnlineArena extends StatefulWidget {
+class OnlineArena extends ConsumerStatefulWidget {
   const OnlineArena({super.key, required this.session});
   final OnlineSession session;
   @override
-  State<OnlineArena> createState() => _OnlineArenaState();
+  ConsumerState<OnlineArena> createState() => _OnlineArenaState();
 }
 
-class _OnlineArenaState extends State<OnlineArena>
+class _OnlineArenaState extends ConsumerState<OnlineArena>
     with SingleTickerProviderStateMixin {
   late final Ticker ticker;
+  late SoloudPlay audio;
   final Map<int, String> pointers = {};
   final Map<String, Offset> origins = {}, knobs = {}, displayed = {};
   final Set<LogicalKeyboardKey> keys = {};
   bool artReady = false;
+  late final OnlineArtLeases leases = OnlineArtLeases(
+    () => mounted ? setState(() {}) : null,
+  );
+  bool _controlled = false;
+  String? _generation;
+  final Map<String, int> _shots = {},
+      _reloads = {},
+      _damage = {},
+      _reloadPhase = {};
+  final Map<String, double> shotTimes = {}, hurtTimes = {};
+  final Set<String> _warmed = {};
+  final Map<String, bool> _wasReloading = {};
+  final Map<String, double> _damageTotals = {};
+  double lostHp = 0, damageAt = -10;
+  final Map<String, String> _worldCues = {};
+  String? _music;
+  int? _offerCue;
+  void _sceneCues() {
+    final audio = ref.read(soloudPlayProvider);
+    if (_warmed.add('supply')) unawaited(audio.warmSupply());
+    for (final e in session.scene.where(
+      (e) => e.kind == 'enemy' && e.data['boss'] == true,
+    )) {
+      final kind = BossKind.values.byName(e.data['kind'] as String);
+      if (_warmed.add('boss_${kind.name}')) unawaited(audio.warmBoss(kind));
+    }
+    if (!session.connected) return;
+    final boss = session.scene.any(
+      (e) =>
+          e.kind == 'enemy' && e.data['boss'] == true && e.number('health') > 0,
+    );
+    final theme = boss
+        ? 'boss'
+        : session.room?.mapId == 'foundry' ||
+              session.room?.mapId.startsWith('ironworks') == true
+        ? 'foundry'
+        : 'breach';
+    if (_music != theme) {
+      _music = theme;
+      unawaited(audio.playMusic(theme));
+    }
+    final offer = session.gun?.offerId;
+    if (offer != _offerCue) {
+      if (_offerCue != null && session.gun!.offers.isNotEmpty) {
+        unawaited(
+          audio.play(
+            session.gun!.progress['source'] == 'fusion'
+                ? 'fusion.wav'
+                : 'level.wav',
+          ),
+        );
+      }
+      _offerCue = offer;
+    }
+    for (final entity in session.scene) {
+      final d = entity.data;
+      final cue = entity.kind == 'supply'
+          ? '${d['phase']}:${(entity.number('capture') / 1).floor()}'
+          : entity.kind == 'enemy'
+          ? '${d['bossPhase'] ?? d['phase']}:${d['attackName']}:${entity.number('health') <= 0}'
+          : '';
+      final old = _worldCues[entity.key];
+      _worldCues[entity.key] = cue;
+      final me = session.me;
+      if (old == null ||
+          old == cue ||
+          me == null ||
+          Offset(entity.x - me.x, entity.y - me.y).distance > 900) {
+        continue;
+      }
+      if (entity.kind == 'supply') {
+        if (d['phase'] == 'active') {
+          unawaited(audio.play('supply_land.wav'));
+        } else if (d['phase'] == 'opened') {
+          unawaited(audio.play('supply_claim.wav'));
+        } else if (d['phase'] == 'breaking') {
+          unawaited(audio.play('supply_break.wav'));
+        } else if (d['phase'] == 'warning') {
+          unawaited(audio.play('supply_incoming.wav'));
+        }
+        if (entity.number('capture') > 0 && d['phase'] == 'active') {
+          unawaited(
+            audio.play(
+              'supply_charge_${entity.number('capture').floor().clamp(0, 7)}.wav',
+            ),
+          );
+        }
+      } else if (entity.kind == 'enemy') {
+        final kind = BossKind.values
+            .where((b) => b.name == d['kind'])
+            .firstOrNull;
+        if (kind?.expansion == true) {
+          if (d['bossPhase'] == 'warning') {
+            unawaited(audio.play('boss_${kind!.name}_warn.wav'));
+          } else if (d['bossPhase'] == 'active') {
+            unawaited(audio.play('boss_${kind!.name}_hit.wav'));
+          } else if (d['interrupted'] == true) {
+            unawaited(audio.play('boss_${kind!.name}_break.wav'));
+          }
+        } else if (d['kind'] == 'ranged' &&
+            d['phase'] == 0 &&
+            old.startsWith('1:')) {
+          unawaited(audio.play('enemy3projectile.wav'));
+        }
+      }
+    }
+    _worldCues.removeWhere((key, _) => !session.scene.any((e) => e.key == key));
+  }
+
   double seconds = 0;
   Duration last = Duration.zero;
   OnlineSession get session => widget.session;
   @override
   void initState() {
     super.initState();
+    audio = ref.read(soloudPlayProvider);
     RegunArt.shared.load().then((_) {
       if (mounted) setState(() => artReady = true);
     });
     ticker = createTicker((elapsed) {
       final dt = ((elapsed - last).inMicroseconds / 1000000).clamp(0.0, .1);
       last = elapsed;
-      seconds += dt;
+      seconds += dt * (session.match?.phase == 'choice' ? .1 : 1);
+      if (_controlled && !session.controlsEnabled) clear();
+      _controlled = session.controlsEnabled;
+      _combatCues();
+      _sceneCues();
+      if (artReady) leases.update(session.scene);
       for (final member in session.members) {
         final id = member.identity.toHexString;
         final target = Offset(member.x, member.y);
@@ -59,6 +190,111 @@ class _OnlineArenaState extends State<OnlineArena>
     })..start();
   }
 
+  void _combatCues() {
+    final connection =
+        '${session.me?.generation}:${session.room?.id}:${session.connected}';
+    if (connection != _generation) {
+      _generation = connection;
+      _worldCues.clear();
+      _offerCue = null;
+      _shots.clear();
+      _reloads.clear();
+      _damage.clear();
+      _damageTotals.clear();
+      _reloadPhase.clear();
+      _wasReloading.clear();
+      shotTimes.clear();
+      hurtTimes.clear();
+    }
+    for (final entry in session.fighters.entries) {
+      final key = entry.key, gun = entry.value;
+      final weapon = WeaponType.values.firstWhere((w) => w.name == gun.weapon);
+      final audio = ref.read(soloudPlayProvider);
+      if (_warmed.add(gun.weapon)) unawaited(audio.warmCombat(weapon));
+      final previous = _shots[key];
+      _shots[key] = gun.shots;
+      final member = session.members
+          .where((m) => m.identity.toHexString == key)
+          .firstOrNull;
+      final audible =
+          member != null &&
+          session.me != null &&
+          math.sqrt(
+                math.pow(member.x - session.me!.x, 2) +
+                    math.pow(member.y - session.me!.y, 2),
+              ) <
+              850;
+      if (previous != null && gun.shots > previous) {
+        shotTimes[key] = seconds;
+        if (audible) {
+          unawaited(audio.play('shot_${gun.weapon}_${gun.shots % 3}.wav'));
+        }
+      }
+      final total = _damageTotals[key];
+      _damageTotals[key] = gun.damageTotal;
+      final damage = _damage[key];
+      _damage[key] = gun.damageSerial;
+      if (damage != null && gun.damageSerial > damage) {
+        hurtTimes[key] = seconds;
+        if (key == session.identity) {
+          lostHp = total == null ? gun.lastDamage : gun.damageTotal - total;
+          damageAt = seconds;
+          if (LocalPreferences.shared.haptics) {
+            unawaited(HapticFeedback.lightImpact());
+          }
+          unawaited(
+            audio.play(gun.health <= 0 ? 'gameov.wav' : 'hurt_player.wav'),
+          );
+        }
+      }
+      final wasReloading = _wasReloading[key] ?? false;
+      _wasReloading[key] = gun.reloading;
+      if (audible &&
+          wasReloading &&
+          !gun.reloading &&
+          gun.weapon == 'shotgun' &&
+          gun.ammo == gun.capacity) {
+        unawaited(audio.play('reload_shotgun_pump.wav'));
+      }
+      final reload = _reloads[key];
+      _reloads[key] = gun.reloadSerial;
+      final elapsed = gun.reloadDuration - gun.reloadRemaining;
+      final phase = gun.weapon == 'shotgun'
+          ? (elapsed / .7).floor()
+          : elapsed >= gun.reloadDuration * .82
+          ? 2
+          : elapsed >= gun.reloadDuration * .42
+          ? 1
+          : 0;
+      final previousPhase = _reloadPhase[key];
+      _reloadPhase[key] = phase;
+      if (audible && gun.reloading && reload != null) {
+        if (gun.reloadSerial > reload) {
+          unawaited(
+            audio.play(
+              gun.weapon == 'shotgun'
+                  ? 'reload_shotgun_shell.wav'
+                  : 'reload_${gun.weapon}_0.wav',
+            ),
+          );
+        } else if (previousPhase != null &&
+            phase > previousPhase &&
+            !(gun.weapon == 'carbine' &&
+                gun.data['reloadTactical'] == true &&
+                phase == 2) &&
+            (gun.weapon != 'shotgun' || phase < gun.capacity - gun.ammo)) {
+          unawaited(
+            audio.play(
+              gun.weapon == 'shotgun'
+                  ? 'reload_shotgun_shell.wav'
+                  : 'reload_${gun.weapon}_$phase.wav',
+            ),
+          );
+        }
+      }
+    }
+  }
+
   void clear() {
     pointers.clear();
     origins.clear();
@@ -70,7 +306,9 @@ class _OnlineArenaState extends State<OnlineArena>
   @override
   void dispose() {
     ticker.dispose();
+    leases.dispose();
     clear();
+    unawaited(audio.playMusic('menu'));
     super.dispose();
   }
 
@@ -110,7 +348,7 @@ class _OnlineArenaState extends State<OnlineArena>
           final radius = controls.size / 2;
           void update(PointerEvent event) {
             final id = pointers[event.pointer];
-            if (id == null || id == 'dash') return;
+            if (id == null || id == 'dash' || id == 'reload') return;
             var delta =
                 (event.localPosition - origins[id]!) /
                 radius *
@@ -122,14 +360,21 @@ class _OnlineArenaState extends State<OnlineArena>
               session.moveX = delta.dx;
               session.moveY = delta.dy;
             } else if (delta != Offset.zero) {
+              session.firing = session.match != null;
               session.aimX = delta.dx / delta.distance;
               session.aimY = delta.dy / delta.distance;
+            } else {
+              session.firing = false;
             }
           }
 
           void release(PointerEvent event) {
             final id = pointers.remove(event.pointer);
-            if (id == 'move') session.neutral();
+            if (id == 'move') {
+              session.moveX = 0;
+              session.moveY = 0;
+            }
+            if (id == 'aim') session.firing = false;
             if (id != null) {
               knobs.remove(id);
               origins.remove(id);
@@ -142,6 +387,13 @@ class _OnlineArenaState extends State<OnlineArena>
               if (!focused) clear();
             },
             onKeyEvent: (_, event) {
+              if (event is KeyDownEvent &&
+                  event.logicalKey == LogicalKeyboardKey.escape) {
+                clear();
+                setState(() => session.menuOpen = !session.menuOpen);
+                return KeyEventResult.handled;
+              }
+              if (session.menuOpen) return KeyEventResult.handled;
               if (event is KeyDownEvent) {
                 keys.add(event.logicalKey);
                 if (event.logicalKey == LogicalKeyboardKey.space) {
@@ -149,6 +401,13 @@ class _OnlineArenaState extends State<OnlineArena>
                 }
               } else if (event is KeyUpEvent) {
                 keys.remove(event.logicalKey);
+              }
+              if (event is KeyDownEvent &&
+                  event.logicalKey == LogicalKeyboardKey.keyR) {
+                session.reload();
+              }
+              if (event.logicalKey == LogicalKeyboardKey.keyF) {
+                session.firing = event is! KeyUpEvent;
               }
               keyboard();
               return KeyEventResult.handled;
@@ -158,12 +417,19 @@ class _OnlineArenaState extends State<OnlineArena>
                 Positioned.fill(
                   child: Listener(
                     onPointerDown: (event) {
-                      if (!session.connected) return;
+                      if (!session.controlsEnabled) return;
                       final p = event.localPosition;
                       if ((p - geometry.dash).distance <
                           controls.buttonSize / 2) {
                         pointers[event.pointer] = 'dash';
                         session.dash();
+                        return;
+                      }
+                      if (session.match != null &&
+                          (p - geometry.reload).distance <
+                              controls.buttonSize / 2) {
+                        pointers[event.pointer] = 'reload';
+                        session.reload();
                         return;
                       }
                       for (final id in ['move', 'aim']) {
@@ -189,6 +455,8 @@ class _OnlineArenaState extends State<OnlineArena>
                         positions: displayed,
                         seconds: seconds,
                         artReady: artReady,
+                        shotTimes: shotTimes,
+                        hurtTimes: hurtTimes,
                       ),
                     ),
                   ),
@@ -197,29 +465,7 @@ class _OnlineArenaState extends State<OnlineArena>
                   left: 12,
                   right: 12,
                   top: 8,
-                  child: IgnorePointer(
-                    child: Wrap(
-                      spacing: 12,
-                      runSpacing: 5,
-                      children: [
-                        for (final member in session.members)
-                          SizedBox(
-                            width: (size.width - 48) / 3,
-                            child: OnlinePlayerLabel(
-                              compact: true,
-                              member: member,
-                              age: session.pingAge(member),
-                              online: session.connected,
-                              suffix:
-                                  member.identity.toHexString ==
-                                      session.identity
-                                  ? ' | You'
-                                  : '',
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                  child: OnlineRoster(session: session),
                 ),
                 Positioned(
                   left: (size.width - 116) / 2,
@@ -227,13 +473,13 @@ class _OnlineArenaState extends State<OnlineArena>
                   child: SizedBox(
                     width: 116,
                     child: ClickButton(
-                      text: 'Leave',
+                      text: 'Menu',
                       height: 44,
                       fontSize: 11,
                       onTap: session.connected && !session.busy
                           ? () {
                               clear();
-                              unawaited(session.leave());
+                              setState(() => session.menuOpen = true);
                             }
                           : null,
                     ),
@@ -253,7 +499,9 @@ class _OnlineArenaState extends State<OnlineArena>
                       !session.compatible
                           ? session.error
                           : session.connected
-                          ? 'MOVEMENT TEST | No combat | WASD / sticks | Space / Dash'
+                          ? session.match == null
+                                ? 'MOVEMENT TEST | No combat | WASD / sticks | Space / Dash'
+                                : '${session.room?.mode == 'versus' ? 'Round ${session.match!.round} | ${session.match!.wins[0]} - ${session.match!.wins[1]} | ${session.match!.overtime ? 'OVERTIME ${(105 - session.match!.seconds).ceil()}' : '${(90 - session.match!.seconds).ceil()}s'}' : 'Co-op'} | Aim to fire | R reload'
                           : '${session.status} | Movement paused',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
@@ -325,7 +573,66 @@ class _OnlineArenaState extends State<OnlineArena>
                     ),
                   ),
                 ),
-                if (!session.connected)
+                if (session.match != null) ...[
+                  Positioned(
+                    left: geometry.reload.dx - controls.buttonSize / 2,
+                    top: geometry.reload.dy - controls.buttonSize / 2,
+                    child: SizedBox(
+                      width: controls.buttonSize,
+                      height: controls.buttonSize,
+                      child: ClickButton(
+                        text: 'RELOAD',
+                        fontSize: 8,
+                        onTap: session.controlsEnabled ? session.reload : null,
+                      ),
+                    ),
+                  ),
+                  OnlineObjectives(session: session),
+                  OnlineCombatHud(session: session),
+                ],
+                if (seconds - damageAt < .5)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            colors: [
+                              Colors.transparent,
+                              const Color(0xffA54F42).withValues(
+                                alpha: (1 - (seconds - damageAt) / .5) * .35,
+                              ),
+                            ],
+                            stops: const [.65, 1],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (seconds - damageAt < .5)
+                  Positioned(
+                    top: 110,
+                    left: 16,
+                    child: IgnorePointer(
+                      child: Text(
+                        '-${lostHp.toStringAsFixed(1)} HP',
+                        style: const TextStyle(
+                          fontFamily: FontFam.orbitron,
+                          color: Color(0xffEEA68D),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (session.menuOpen)
+                  Positioned.fill(
+                    child: OnlineMatchMenu(
+                      session: session,
+                      resume: () {
+                        clear();
+                        setState(() => session.menuOpen = false);
+                      },
+                    ),
+                  ),
+                if (!session.connected && !session.menuOpen)
                   Center(
                     child: SizedBox(
                       width: 240,
@@ -350,20 +657,33 @@ class _ArenaPainter extends CustomPainter {
     required this.positions,
     required this.seconds,
     required this.artReady,
+    required this.shotTimes,
+    required this.hurtTimes,
   });
   final OnlineSession session;
   final Map<String, Offset> positions;
   final double seconds;
   final bool artReady;
+  final Map<String, double> shotTimes, hurtTimes;
   @override
   void paint(Canvas canvas, Size size) {
     final mine = session.me;
-    final center =
-        positions[session.identity] ?? Offset(mine?.x ?? 0, mine?.y ?? 0);
+    final teammate = session.members
+        .where(
+          (m) =>
+              m.team == mine?.team &&
+              (session.fighters[m.identity.toHexString]?.health ?? 0) > 0,
+        )
+        .firstOrNull;
+    final anchor = (session.gun?.health ?? 1) > 0
+        ? session.identity
+        : teammate?.identity.toHexString ?? session.identity;
+    final center = positions[anchor] ?? Offset(mine?.x ?? 0, mine?.y ?? 0);
     final scale = math.min(size.width / 1500, size.height / 700);
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.scale(scale);
+    canvas.clipRect(const Rect.fromLTWH(-750, -350, 1500, 700));
     final geometry =
         onlineGeometry[session.room?.mapId] ?? onlineGeometry['network_lab']!;
     Rect rectOf(List<num> r) => Rect.fromLTRB(
@@ -378,13 +698,8 @@ class _ArenaPainter extends CustomPainter {
         ? (lo + hi) / 2
         : value.clamp(lo + half, hi - half).toDouble();
     canvas.translate(
-      -cameraAxis(center.dx, bounds.left, bounds.right, size.width / scale / 2),
-      -cameraAxis(
-        center.dy,
-        bounds.top,
-        bounds.bottom,
-        size.height / scale / 2,
-      ),
+      -cameraAxis(center.dx, bounds.left, bounds.right, 750),
+      -cameraAxis(center.dy, bounds.top, bounds.bottom, 350),
     );
 
     canvas.drawRect(bounds, Paint()..color = const Color(0xff252B25));
@@ -433,21 +748,58 @@ class _ArenaPainter extends CustomPainter {
         Paint()..color = const Color(0x750A1114),
       );
       if (artReady) {
-        final sprite = RegunArt.shared.rawSprite('arenas/props', 4);
-        final width = rect.width * 1.25;
-        final height = width * sprite.srcSize.y / sprite.srcSize.x;
-        sprite.render(
+        WallArt.paint(
           canvas,
-          position: Vector2(rect.center.dx - width / 2, rect.bottom - height),
-          size: Vector2(width, height),
-          overridePaint: Paint()..color = const Color(0x99FFFFFF),
+          rect,
+          iron:
+              geometry['material'] == 'iron' ||
+              session.room?.mapId == 'foundry',
+          actors: positions.values,
         );
       }
     }
+    if (artReady) {
+      for (final e in session.scene.where((e) => e.kind != 'enemy')) {
+        OnlineWorldArt.floor(
+          canvas,
+          e,
+          foundry: session.room?.mapId == 'foundry',
+          reducedMotion: LocalPreferences.shared.reducedMotion,
+        );
+      }
+    }
+    final enemies = session.scene.where((e) => e.kind == 'enemy').toList()
+      ..sort((a, b) => a.y.compareTo(b.y));
+    var enemyIndex = 0;
+    void drawEnemy() {
+      OnlineWorldArt.enemy(
+        canvas,
+        enemies[enemyIndex++],
+        foundry: session.room?.mapId == 'foundry',
+        reducedMotion: LocalPreferences.shared.reducedMotion,
+      );
+    }
+
+    if (artReady) {
+      WallArt.perimeter(
+        canvas,
+        bounds,
+        iron:
+            geometry['material'] == 'iron' || session.room?.mapId == 'foundry',
+      );
+    }
     final sorted = session.members.toList()..sort((a, b) => a.y.compareTo(b.y));
     for (final member in sorted) {
+      while (artReady &&
+          enemyIndex < enemies.length &&
+          enemies[enemyIndex].y < member.y) {
+        drawEnemy();
+      }
       final p =
           positions[member.identity.toHexString] ?? Offset(member.x, member.y);
+      final key = member.identity.toHexString, gun = session.fighters[key];
+      final hurt = seconds - (hurtTimes[key] ?? -10) < .32;
+      final shotAge = seconds - (shotTimes[key] ?? -10);
       final color = member.team == 0
           ? const Color(0xffA9C990)
           : const Color(0xffD7A3B7);
@@ -464,22 +816,73 @@ class _ArenaPainter extends CustomPainter {
           ..color = color,
       );
       if (artReady) {
-        final moving = member.moveX != 0 || member.moveY != 0;
+        final moving =
+            (member.moveX != 0 || member.moveY != 0) && (gun?.health ?? 1) > 0;
+        final survivor = gun?.survivor ?? 'rook';
+        final dead = gun != null && gun.health <= 0;
         final frame = moving ? (seconds * 12).floor() % 8 : 0;
         final facing = member.aimX.abs() > member.aimY.abs()
             ? (member.aimX < 0 ? 2 : 0)
             : (member.aimY > 0 ? 1 : 3);
         RegunArt.shared
             .sprite(
-              moving ? 'characters/rook_run' : 'characters/rook',
-              facing * 8 + frame,
+              dead
+                  ? 'characters/${survivor}_actions'
+                  : moving
+                  ? 'characters/${survivor}_run'
+                  : 'characters/$survivor',
+              dead ? facing * 4 + 3 : facing * 8 + frame,
             )
             .render(
               canvas,
               position: Vector2(p.dx, p.dy),
               size: Vector2.all(100),
               anchor: Anchor.center,
+              overridePaint: Paint()
+                ..colorFilter = hurt
+                    ? const ColorFilter.mode(
+                        Color(0xffDD826C),
+                        BlendMode.modulate,
+                      )
+                    : null,
             );
+        if (gun != null && !dead) {
+          final weapon = WeaponType.values.firstWhere(
+            (w) => w.name == gun.weapon,
+          );
+          canvas.save();
+          canvas.translate(p.dx, p.dy + 6);
+          canvas.rotate(math.atan2(member.aimY, member.aimX));
+          paintWeapon(
+            canvas,
+            weapon,
+            reload: gun.reloading ? gun.reloadProgress : -1,
+            reloadShells: gun.capacity - gun.ammo,
+            tactical: gun.data['reloadTactical'] == true,
+            recoil: (1 - shotAge / WeaponFeel.of(weapon).recovery).clamp(0, 1),
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+          );
+          if (shotAge < .045 && !LocalPreferences.shared.reducedMotion) {
+            final feel = WeaponFeel.of(weapon);
+            AttackVfx.chip(canvas, Offset(feel.muzzle + 8, 0), 14, feel.color);
+          }
+          canvas.restore();
+        }
+      }
+      if (gun != null) {
+        canvas.drawRect(
+          Rect.fromLTWH(p.dx - 32, p.dy - 48, 64, 5),
+          Paint()..color = const Color(0xff302332),
+        );
+        canvas.drawRect(
+          Rect.fromLTWH(
+            p.dx - 32,
+            p.dy - 48,
+            64 * (gun.health / gun.maxHealth).clamp(0, 1),
+            5,
+          ),
+          Paint()..color = color,
+        );
       }
       final text = TextPainter(
         text: TextSpan(
@@ -493,6 +896,70 @@ class _ArenaPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       )..layout();
       text.paint(canvas, p + Offset(-text.width / 2, -65));
+    }
+    while (artReady && enemyIndex < enemies.length) {
+      drawEnemy();
+    }
+    for (final round in session.projectiles) {
+      final weapon = WeaponType.values.firstWhere(
+            (w) => w.name == round.weapon,
+          ),
+          feel = WeaponFeel.of(weapon),
+          draw = WeaponFeel.round(weapon);
+      canvas.save();
+      canvas.translate(round.x, round.y);
+      canvas.rotate(math.atan2(round.dy, round.dx));
+      if (round.data['hostile'] == true) {
+        if (round.speed <= 400) {
+          Enemy3Projectile.paintDart(canvas);
+        } else {
+          canvas.drawPath(
+            Path()
+              ..moveTo(11, 0)
+              ..lineTo(0, 11)
+              ..lineTo(-11, 0)
+              ..lineTo(0, -11)
+              ..close(),
+            Paint()..color = const Color(0xffBD7397),
+          );
+          canvas.drawRect(
+            const Rect.fromLTWH(-4, -4, 8, 8),
+            Paint()..color = const Color(0xffFFF0CD),
+          );
+        }
+      } else if (weapon == WeaponType.arcCaster) {
+        AttackVfx.lightning(
+          canvas,
+          const Offset(-22, 0),
+          const Offset(5, 0),
+          1,
+          heavy: true,
+        );
+      } else {
+        canvas.drawRect(
+          Rect.fromLTWH(
+            -draw.length,
+            -draw.thickness / 2,
+            draw.length,
+            draw.thickness,
+          ),
+          Paint()
+            ..color = feel.color
+            ..isAntiAlias = false,
+        );
+        canvas.drawRect(
+          Rect.fromLTWH(
+            -draw.length * .4,
+            -draw.thickness * .22,
+            draw.length * .6,
+            draw.thickness * .44,
+          ),
+          Paint()
+            ..color = const Color(0xffFFF1CF)
+            ..isAntiAlias = false,
+        );
+      }
+      canvas.restore();
     }
     canvas.restore();
   }

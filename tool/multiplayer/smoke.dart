@@ -46,7 +46,7 @@ Future<void> verifyVersus(int size) async {
     }
     await until(() => host.canStart, 'balanced PvP readiness');
     await host.start();
-    await until(() => players.every((p) => p.active), 'PvP active');
+    await until(() => players.every((p) => p.controlsEnabled), 'PvP active');
     for (final player in players.reversed) {
       await player.leave();
     }
@@ -78,7 +78,7 @@ Future<void> main() async {
     await b.ready();
     await until(() => a.canStart, 'ready');
     await a.start();
-    await until(() => a.active && b.active, 'active');
+    await until(() => a.controlsEnabled && b.controlsEnabled, 'active');
     final startX = a.me!.x;
     a.moveX = 1;
     await until(() => a.me!.x > startX + 60, 'authoritative movement');
@@ -117,7 +117,7 @@ Future<void> main() async {
     await b.ready();
     await until(() => a.canStart, 'second readiness');
     await a.start();
-    await until(() => a.active && b.active, 'second active');
+    await until(() => a.controlsEnabled && b.controlsEnabled, 'second active');
     await Future<void>.delayed(const Duration(milliseconds: 300));
     if (a.me!.dashSeq != Int64.ZERO) {
       throw StateError('Dash replayed across rooms');

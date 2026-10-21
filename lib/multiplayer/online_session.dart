@@ -1,4 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import 'combat_state.dart';
+import 'identity_key.dart';
+
 import 'dart:math' as math;
 
 import 'package:spacetimedb/spacetimedb.dart';
@@ -6,18 +13,56 @@ import 'package:spacetimedb/spacetimedb.dart';
 import 'generated/client.dart';
 import 'generated/member.dart';
 import 'generated/room.dart';
+import 'generated/online_account.dart';
+import 'generated/online_result.dart';
 import 'geometry.dart';
 
-/// No disk token/cache and no offline mutation replay. An identity lasts for
-/// this app process; reopening Online can resume within the server grace.
+/// No offline mutation replay. Native startup installs secure durable storage;
+/// standalone tests inject an isolated memory token store.
 class OnlineSession {
   OnlineSession({AuthTokenStore? tokens}) : tokens = tokens ?? appTokens;
-  static final appTokens = InMemoryTokenStore();
+  static AuthTokenStore appTokens = InMemoryTokenStore();
+  static Future<void> Function()? prepareAssets;
+  bool _assetsReady = false;
   static const host = String.fromEnvironment(
     'REGUN_SERVER_HOST',
     defaultValue: 'regunserver.kiishi.space',
   );
+  static const database = String.fromEnvironment(
+    'REGUN_DATABASE',
+    defaultValue: 'regun',
+  );
+  static const tls = bool.fromEnvironment(
+    'REGUN_SERVER_TLS',
+    defaultValue: true,
+  );
   final AuthTokenStore tokens;
+  bool combatAvailable = false, _attaching = false, _combatSending = false;
+  OnlineMatch? match;
+  Map<String, OnlineGun> fighters = {};
+  List<OnlineRound> projectiles = [];
+  List<OnlineEntity> scene = [];
+  OnlineAccount? account;
+  List<OnlineResult> results = [];
+  OnlineResult? get result => results
+      .where((r) => r.matchId.toString() == match?.data['matchId'])
+      .firstOrNull;
+  bool menuOpen = false;
+  String reviveTarget = "";
+  OnlineGun? get gun => fighters[identity];
+  bool firing = false;
+  int _combatSeq = 0, _reloadSeq = 0;
+  bool get controlsEnabled =>
+      connected &&
+      !suspended &&
+      !menuOpen &&
+      me?.expired != true &&
+      active &&
+      compatible &&
+      (match == null ||
+          (match!.version == 1 &&
+              match!.phase == 'active' &&
+              (gun?.health ?? 0) > 0));
   final changes = StreamController<void>.broadcast();
   SpacetimeDbClient? _client;
   final List<StreamSubscription<dynamic>> _listeners = [];
@@ -45,7 +90,7 @@ class OnlineSession {
   bool get compatible =>
       room == null ||
       (room!.protocol == 1 &&
-          room!.geometryHash == geometryHash &&
+          room!.geometryHash == (geometryHashes[room!.mapId] ?? geometryHash) &&
           onlineGeometry.containsKey(room!.mapId));
   bool get active => room?.phase == 'active';
   bool get canStart {
@@ -54,6 +99,13 @@ class OnlineSession {
       return false;
     }
     if (members.any((m) => !m.connected || !m.ready || m.expired)) return false;
+    if (match != null &&
+        (match!.version != 1 ||
+            members.any(
+              (m) => fighters[m.identity.toHexString]?.enabled != true,
+            ))) {
+      return false;
+    }
     return r.mode == 'coop' ||
         (members.length == r.capacity &&
             members.where((m) => m.team == 0).length == r.teamSize &&
@@ -74,10 +126,40 @@ class OnlineSession {
     SpacetimeDbClient? fresh;
     try {
       await _clearClient();
+      if (!tls &&
+          ![
+            'localhost',
+            '127.0.0.1',
+            '10.0.2.2',
+          ].contains(host.split(':').first)) {
+        throw StateError('TLS is required for remote servers');
+      }
+      // Schema capability detection preserves the deployed movement-only service.
+      final schema = await http
+          .get(
+            Uri.parse(
+              '${tls ? 'https' : 'http'}://$host/v1/database/$database/schema?version=9',
+            ),
+          )
+          .timeout(const Duration(seconds: 6));
+      if (schema.statusCode != 200) {
+        throw StateError('Server schema unavailable');
+      }
+      final schemaJson = jsonDecode(schema.body) as Map<String, dynamic>;
+      combatAvailable = (schemaJson['misc_exports'] as List? ?? []).any(
+        (v) =>
+            v is Map && v['View'] is Map && v['View']['name'] == 'room_combat',
+      );
+      if (combatAvailable && !_assetsReady) {
+        status = 'Preparing arena…';
+        _notify();
+        await prepareAssets?.call().timeout(const Duration(seconds: 20));
+        _assetsReady = true;
+      }
       fresh = await SpacetimeDbClient.connect(
         host: host,
-        database: 'regun',
-        ssl: true,
+        database: database,
+        ssl: tls,
         authStorage: tokens,
         config: const ConnectionConfig(
           autoReconnect: false,
@@ -88,6 +170,14 @@ class OnlineSession {
           'SELECT * FROM my_room',
           'SELECT * FROM room_members',
           'SELECT * FROM my_probe',
+          if (combatAvailable) ...[
+            'SELECT * FROM room_combat',
+            'SELECT * FROM room_fighters',
+            'SELECT * FROM room_projectiles',
+            'SELECT * FROM room_scene',
+            'SELECT * FROM my_online_account',
+            'SELECT * FROM my_online_results',
+          ],
         ],
       );
       if (_closed || epoch != _epoch || suspended) {
@@ -112,6 +202,14 @@ class OnlineSession {
       watch(fresh.myRoom);
       watch(fresh.roomMembers);
       watch(fresh.myProbe);
+      if (combatAvailable) {
+        watch(fresh.roomCombat);
+        watch(fresh.roomFighters);
+        watch(fresh.roomProjectiles);
+        watch(fresh.roomScene);
+        watch(fresh.myOnlineAccount);
+        watch(fresh.myOnlineResults);
+      }
       _listeners.add(
         fresh.connection.connectionStatus.listen((s) {
           if (s != ConnectionStatus.connected) _lost();
@@ -160,6 +258,29 @@ class OnlineSession {
     _pingSamples.removeWhere(
       (key, _) => !members.any((m) => m.identity.toHexString == key),
     );
+    if (combatAvailable) {
+      account = client.myOnlineAccount.iter().firstOrNull;
+      results = client.myOnlineResults.iter().toList()
+        ..sort((a, b) => b.matchId.compareTo(a.matchId));
+      final meta = client.roomCombat.iter().firstOrNull;
+      match = meta == null ? null : OnlineMatch(combatObject(meta.data));
+      fighters = {
+        for (final f in client.roomFighters.iter())
+          identityKeyFromCanonical(f.key): OnlineGun(
+            identityKeyFromCanonical(f.key),
+            combatObject(f.data),
+            enabled: f.enabled,
+          ),
+      };
+      scene = [
+        for (final row in client.roomScene.iter())
+          OnlineEntity(row.id.toString(), row.kind, combatObject(row.data)),
+      ];
+      projectiles = [
+        for (final p in client.roomProjectiles.iter())
+          OnlineRound(p.id.toString(), combatObject(p.data)),
+      ];
+    }
     final mine = me;
     if (mine != null &&
         (mine.generation != _generation || mine.roomId != _inputRoom)) {
@@ -167,8 +288,30 @@ class OnlineSession {
       _generation = mine.generation;
       _seq = mine.seq.toInt();
       _dash = mine.dashSeq.toInt();
+      final fighter = combatAvailable
+          ? client.roomFighters
+                .iter()
+                .where((f) => identityKeyFromCanonical(f.key) == identity)
+                .firstOrNull
+          : null;
+      _combatSeq = fighter?.inputSeq.toInt() ?? 0;
+      _reloadSeq = fighter?.reloadSeq.toInt() ?? 0;
       neutral();
     }
+    if (combatAvailable &&
+        connected &&
+        match != null &&
+        match!.version == 1 &&
+        mine != null &&
+        gun?.enabled != true &&
+        !_attaching) {
+      _attaching = true;
+      unawaited(
+        _quiet(() => client.reducers.attachCombat(version: 1))
+            .whenComplete(() => _attaching = false),
+      );
+    }
+    if (match != null && !controlsEnabled) neutral();
     final probe = client.myProbe.iter().firstOrNull;
     if (connected && probe != null && probe.pending && probe.probe != _ack) {
       _ack = probe.probe;
@@ -182,12 +325,31 @@ class OnlineSession {
   void neutral() {
     moveX = 0;
     moveY = 0;
+    firing = false;
+    reviveTarget = "";
   }
 
   void dash() {
-    if (connected && active && !suspended) _dash++;
+    if (controlsEnabled) _dash++;
   }
 
+  void reload() {
+    if (controlsEnabled && match != null) _reloadSeq++;
+  }
+
+  Future<void> chooseLoadout(String weapon, String survivor) => command(
+    (c) => c.reducers.chooseLoadout(weapon: weapon, survivor: survivor),
+  );
+  Future<void> chooseUpgrade(String choice) => command(
+    (c) => c.reducers.chooseUpgrade(offerid: gun!.offerId, choice: choice),
+  );
+  Future<void> rerollUpgrade() =>
+      command((c) => c.reducers.rerollUpgrade(offerid: gun!.offerId));
+  Future<void> banUpgrade(String choice) => command(
+    (c) => c.reducers.banUpgrade(offerid: gun!.offerId, choice: choice),
+  );
+  Future<void> openFusion() => command((c) => c.reducers.openFusion());
+  Future<void> rematch() => command((c) => c.reducers.rematch());
   void _tick() {
     if (!connected || suspended || _closed) return;
     if (++_pulse % 40 == 0 &&
@@ -202,7 +364,34 @@ class OnlineSession {
     }
     final mine = me, r = room;
     if (_pulse % 20 == 0) _notify();
-    if (!compatible || !active || mine == null || r == null || _sending) return;
+    if (!controlsEnabled || mine == null || r == null || _sending) return;
+    if (match != null && !_combatSending && gun?.enabled == true) {
+      _combatSending = true;
+      unawaited(
+        _quiet(
+          () => _client!.reducers.combatInput(
+            roomid: r.id,
+            generation: mine.generation,
+            seq: Int64(++_combatSeq),
+            reloadseq: Int64(_reloadSeq),
+            firing: firing,
+          ),
+        ).whenComplete(() => _combatSending = false),
+      );
+    }
+    if (reviveTarget.isNotEmpty && _pulse % 2 == 0) {
+      final target = identityKeyFromCanonical(reviveTarget);
+      unawaited(
+        _quiet(
+          () => _client!.reducers.reviveInput(
+            roomid: r.id,
+            generation: mine.generation,
+            target: target,
+            holding: true,
+          ),
+        ),
+      );
+    }
     _sending = true;
     final length = math.max(1.0, math.sqrt(moveX * moveX + moveY * moveY));
     unawaited(
@@ -300,15 +489,21 @@ class OnlineSession {
     required String mode,
     required int teamSize,
     required String map,
-  }) => command(
-    (c) => c.reducers.createRoom(
-      mode: mode,
-      teamsize: teamSize,
-      mapid: map,
-      name: name.trim(),
-      protocol: 1,
-    ),
-  );
+  }) async {
+    await command(
+      (c) => c.reducers.createRoom(
+        mode: mode,
+        teamsize: teamSize,
+        mapid: map,
+        name: name.trim(),
+        protocol: 1,
+      ),
+    );
+    if (combatAvailable && room != null && owner && error.isEmpty) {
+      await command((c) => c.reducers.enableCombat());
+    }
+  }
+
   Future<void> join(String code, String name) => command(
     (c) => c.reducers.joinRoom(
       code: code.trim().toUpperCase(),

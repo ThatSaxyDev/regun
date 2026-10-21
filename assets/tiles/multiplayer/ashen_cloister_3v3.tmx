@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="68" height="48" tilewidth="32" tileheight="32" infinite="0">
+  <properties>
+    <property name="mapId" value="ashen_cloister_3v3" />
+    <property name="title" value="Ashen Cloister" />
+    <property name="teamSize" value="3" />
+    <property name="contentVersion" value="1" />
+    <property name="material" value="stone" />
+    <property name="stage" value="candidate" />
+  </properties>
+  <objectgroup name="solids">
+    <object id="1" x="323.0" y="593.0" width="85" height="350" />
+    <object id="2" x="863.0" y="468.0" width="450" height="140" />
+    <object id="3" x="608.0" y="323.0" width="300" height="95" />
+    <object id="4" x="1083.0" y="148.0" width="225" height="95" />
+    <object id="5" x="523.0" y="1118.0" width="120" height="145" />
+    <object id="6" x="1348.0" y="498.0" width="110" height="100" />
+    <object id="7" x="1768.0" y="593.0" width="85" height="350" />
+    <object id="8" x="863.0" y="928.0" width="450" height="140" />
+    <object id="9" x="1268.0" y="1118.0" width="300" height="95" />
+    <object id="10" x="868.0" y="1293.0" width="225" height="95" />
+    <object id="11" x="1533.0" y="273.0" width="120" height="145" />
+    <object id="12" x="718.0" y="938.0" width="110" height="100" />
+  </objectgroup>
+  <objectgroup name="team_0">
+    <object id="13" x="158.0" y="643.0" width="0" height="0.0" />
+    <object id="14" x="158.0" y="768.0" width="0" height="0.0" />
+    <object id="15" x="158.0" y="893.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="team_1">
+    <object id="16" x="2018.0" y="893.0" width="0" height="0.0" />
+    <object id="17" x="2018.0" y="768.0" width="0" height="0.0" />
+    <object id="18" x="2018.0" y="643.0" width="0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="ai_sockets">
+    <object id="19" x="175.0" y="150.0" width="0.0" height="0.0" />
+    <object id="20" x="2001.0" y="1386.0" width="0.0" height="0.0" />
+  </objectgroup>
+  <objectgroup name="routes">
+    <object id="21" x="1088.0" y="768.0" width="0" height="0" />
+    <object id="22" x="1088.0" y="399.0" width="0" height="0" />
+    <object id="23" x="1088.0" y="1137.0" width="0" height="0" />
+  </objectgroup>
+</map>

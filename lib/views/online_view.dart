@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:regun/data/loadout.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:regun/multiplayer/online_session.dart';
@@ -21,7 +23,7 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
   final name = TextEditingController(text: 'Rook');
   final code = TextEditingController();
   StreamSubscription<void>? listener;
-  String mode = 'coop', map = 'breach';
+  String mode = 'coop', map = 'breach', versusMap = 'ossuary_cross';
   int teamSize = 1;
   @override
   void initState() {
@@ -106,7 +108,7 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
     final room = session.room;
     final enabled = session.connected && !session.busy;
     return MenuPage(
-      title: 'Online | connection test',
+      title: session.combatAvailable ? 'Online' : 'Online | connection test',
       body: MenuScrollBody(
         child: DefaultTextStyle(
           style: const TextStyle(
@@ -126,8 +128,10 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Private rooms and movement only. Shooting, enemies and rewards are still being connected.',
+              Text(
+                session.combatAvailable
+                    ? 'Survive with friends or compete in teams.'
+                    : 'Private rooms and movement only. Shooting, enemies and rewards are still being connected.',
               ),
               if (session.error.isNotEmpty)
                 Padding(
@@ -143,6 +147,14 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
               ],
               const SizedBox(height: 20),
               if (room == null) ...[
+                Text(
+                  'Guest on this device | ${session.account?.matches ?? 0} matches | ${session.account?.scrap ?? 0} online scrap',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xffAD9162),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 field(name, 'Player name', 20),
                 const SizedBox(height: 16),
                 choices([
@@ -170,7 +182,7 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
                     ),
                   ]),
                 ] else ...[
-                  const Text('Enemies On by default | internal test arena'),
+                  const Text('Enemies On by default | first to three rounds'),
                   const SizedBox(height: 10),
                   choices([
                     for (final size in [1, 2, 3])
@@ -179,6 +191,19 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
                         () => setState(() => teamSize = size),
                       ),
                   ]),
+                  if (session.combatAvailable) ...[
+                    const SizedBox(height: 12),
+                    choices([
+                      for (final entry in const {
+                        'ossuary_cross': 'Ossuary Cross',
+                        'ironworks_relay': 'Ironworks Relay',
+                      }.entries)
+                        (
+                          '${entry.value}${versusMap == entry.key ? ' [x]' : ''}',
+                          () => setState(() => versusMap = entry.key),
+                        ),
+                    ]),
+                  ],
                 ],
                 const SizedBox(height: 16),
                 button(
@@ -189,7 +214,11 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
                             name: name.text,
                             mode: mode,
                             teamSize: mode == 'coop' ? 0 : teamSize,
-                            map: mode == 'coop' ? map : 'network_lab',
+                            map: mode == 'coop'
+                                ? map
+                                : session.combatAvailable
+                                ? '${versusMap}_${teamSize}v$teamSize'
+                                : 'network_lab',
                           ),
                         )
                       : null,
@@ -244,6 +273,41 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
                           ' | ${member.ready ? 'Ready' : 'Not ready'}',
                     ),
                   ),
+                if (session.match != null) ...[
+                  const SizedBox(height: 12),
+                  const Text('Weapon'),
+                  const SizedBox(height: 8),
+                  choices([
+                    for (final weapon in WeaponType.values)
+                      (
+                        '${weapon.title}${session.gun?.weapon == weapon.name ? ' [x]' : ''}',
+                        () => unawaited(
+                          session.chooseLoadout(
+                            weapon.name,
+                            session.gun?.survivor ?? 'rook',
+                          ),
+                        ),
+                      ),
+                  ]),
+                  if (room.mode == 'coop') ...[
+                    const SizedBox(height: 12),
+                    const Text('Survivor'),
+                    const SizedBox(height: 8),
+                    choices([
+                      for (final survivor in CharacterType.values)
+                        (
+                          '${survivor.title}${session.gun?.survivor == survivor.name ? ' [x]' : ''}',
+                          () => unawaited(
+                            session.chooseLoadout(
+                              session.gun?.weapon ?? 'shotgun',
+                              survivor.name,
+                            ),
+                          ),
+                        ),
+                    ]),
+                  ],
+                  const SizedBox(height: 12),
+                ],
                 if (room.mode == 'versus') ...[
                   choices([
                     for (final team in [0, 1])
@@ -269,7 +333,9 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
                 const SizedBox(height: 12),
                 if (session.owner)
                   button(
-                    'Start movement test',
+                    session.match == null
+                        ? 'Start movement test'
+                        : 'Start match',
                     enabled && session.canStart
                         ? () => unawaited(session.start())
                         : null,

@@ -46,6 +46,60 @@ class Reducers {
     );
   }
 
+  /// Call the attach_combat reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> attachCombat({
+    required int version,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU32(version);
+
+    return await _reducerCaller.call(
+      'attach_combat',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the ban_upgrade reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> banUpgrade({
+    required int offerid,
+    required String choice,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU32(offerid);
+    encoder.writeString(choice);
+
+    return await _reducerCaller.call(
+      'ban_upgrade',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
   /// Call the begin_probe reducer
   ///
   /// Returns [TransactionResult] with execution metadata:
@@ -65,6 +119,34 @@ class Reducers {
 
     return await _reducerCaller.call(
       'begin_probe',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the choose_loadout reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> chooseLoadout({
+    required String weapon,
+    required String survivor,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeString(weapon);
+    encoder.writeString(survivor);
+
+    return await _reducerCaller.call(
+      'choose_loadout',
       encoder.toBytes(),
       optimisticChanges: optimisticChanges,
     );
@@ -91,6 +173,68 @@ class Reducers {
 
     return await _reducerCaller.call(
       'choose_team',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the choose_upgrade reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> chooseUpgrade({
+    required int offerid,
+    required String choice,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU32(offerid);
+    encoder.writeString(choice);
+
+    return await _reducerCaller.call(
+      'choose_upgrade',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the combat_input reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> combatInput({
+    required Int64 roomid,
+    required Int64 generation,
+    required Int64 seq,
+    required Int64 reloadseq,
+    required bool firing,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+    encoder.writeU64(seq);
+    encoder.writeU64(reloadseq);
+    encoder.writeBool(firing);
+
+    return await _reducerCaller.call(
+      'combat_input',
       encoder.toBytes(),
       optimisticChanges: optimisticChanges,
     );
@@ -156,6 +300,30 @@ class Reducers {
     );
   }
 
+  /// Call the enable_combat reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> enableCombat({
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+
+    return await _reducerCaller.call(
+      'enable_combat',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
   /// Call the join_room reducer
   ///
   /// Returns [TransactionResult] with execution metadata:
@@ -205,6 +373,112 @@ class Reducers {
 
     return await _reducerCaller.call(
       'leave_room',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the open_fusion reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> openFusion({
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+
+    return await _reducerCaller.call(
+      'open_fusion',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the rematch reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> rematch({
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+
+    return await _reducerCaller.call(
+      'rematch',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the reroll_upgrade reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> rerollUpgrade({
+    required int offerid,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU32(offerid);
+
+    return await _reducerCaller.call(
+      'reroll_upgrade',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the revive_input reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> reviveInput({
+    required Int64 roomid,
+    required Int64 generation,
+    required String target,
+    required bool holding,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+    encoder.writeString(target);
+    encoder.writeBool(holding);
+
+    return await _reducerCaller.call(
+      'revive_input',
       encoder.toBytes(),
       optimisticChanges: optimisticChanges,
     );
@@ -317,6 +591,40 @@ class Reducers {
     });
   }
 
+  StreamSubscription<void> onAttachCombat(
+    void Function(EventContext ctx, int version) callback,
+  ) {
+    return _reducerEmitter.on('attach_combat').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! AttachCombatArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.version);
+    });
+  }
+
+  StreamSubscription<void> onBanUpgrade(
+    void Function(EventContext ctx, int offerid, String choice) callback,
+  ) {
+    return _reducerEmitter.on('ban_upgrade').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! BanUpgradeArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.offerid, args.choice);
+    });
+  }
+
   StreamSubscription<void> onBeginProbe(
     void Function(EventContext ctx) callback,
   ) {
@@ -334,6 +642,23 @@ class Reducers {
     });
   }
 
+  StreamSubscription<void> onChooseLoadout(
+    void Function(EventContext ctx, String weapon, String survivor) callback,
+  ) {
+    return _reducerEmitter.on('choose_loadout').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! ChooseLoadoutArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.weapon, args.survivor);
+    });
+  }
+
   StreamSubscription<void> onChooseTeam(
     void Function(EventContext ctx, int team) callback,
   ) {
@@ -348,6 +673,55 @@ class Reducers {
 
       // Extract fields from strongly-typed object - NO CASTING
       callback(ctx, args.team);
+    });
+  }
+
+  StreamSubscription<void> onChooseUpgrade(
+    void Function(EventContext ctx, int offerid, String choice) callback,
+  ) {
+    return _reducerEmitter.on('choose_upgrade').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! ChooseUpgradeArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.offerid, args.choice);
+    });
+  }
+
+  StreamSubscription<void> onCombatInput(
+    void Function(
+      EventContext ctx,
+      Int64 roomid,
+      Int64 generation,
+      Int64 seq,
+      Int64 reloadseq,
+      bool firing,
+    )
+    callback,
+  ) {
+    return _reducerEmitter.on('combat_input').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! CombatInputArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(
+        ctx,
+        args.roomid,
+        args.generation,
+        args.seq,
+        args.reloadseq,
+        args.firing,
+      );
     });
   }
 
@@ -400,6 +774,23 @@ class Reducers {
     });
   }
 
+  StreamSubscription<void> onEnableCombat(
+    void Function(EventContext ctx) callback,
+  ) {
+    return _reducerEmitter.on('enable_combat').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! EnableCombatArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx);
+    });
+  }
+
   StreamSubscription<void> onJoinRoom(
     void Function(EventContext ctx, String code, String name, int protocol)
     callback,
@@ -432,6 +823,79 @@ class Reducers {
 
       // Extract fields from strongly-typed object - NO CASTING
       callback(ctx);
+    });
+  }
+
+  StreamSubscription<void> onOpenFusion(
+    void Function(EventContext ctx) callback,
+  ) {
+    return _reducerEmitter.on('open_fusion').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! OpenFusionArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx);
+    });
+  }
+
+  StreamSubscription<void> onRematch(void Function(EventContext ctx) callback) {
+    return _reducerEmitter.on('rematch').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! RematchArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx);
+    });
+  }
+
+  StreamSubscription<void> onRerollUpgrade(
+    void Function(EventContext ctx, int offerid) callback,
+  ) {
+    return _reducerEmitter.on('reroll_upgrade').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! RerollUpgradeArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.offerid);
+    });
+  }
+
+  StreamSubscription<void> onReviveInput(
+    void Function(
+      EventContext ctx,
+      Int64 roomid,
+      Int64 generation,
+      String target,
+      bool holding,
+    )
+    callback,
+  ) {
+    return _reducerEmitter.on('revive_input').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! ReviveInputArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.roomid, args.generation, args.target, args.holding);
     });
   }
 

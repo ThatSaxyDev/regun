@@ -8,6 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:logging/logging.dart';
 import 'package:regun/views/flame_splash_view.dart';
+import 'package:regun/multiplayer/online_session.dart';
+import 'package:regun/presentation/regun_art.dart';
+import 'package:regun/multiplayer/secure_online_tokens.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -25,6 +28,8 @@ void main() async {
     );
   });
   WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb) OnlineSession.appTokens = SecureOnlineTokens();
+  OnlineSession.prepareAssets = () => RegunArt.shared.load();
   Flame.device.fullScreen();
   Flame.device.setLandscape();
 

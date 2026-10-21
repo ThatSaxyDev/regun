@@ -7,9 +7,16 @@ import 'package:spacetimedb/spacetimedb.dart';
 
 import 'reducers.dart';
 import 'reducer_args.dart';
+import 'fighter.dart';
+import 'match_combat.dart';
 import 'member.dart';
+import 'online_account.dart';
+import 'online_result.dart';
+import 'projectile.dart';
 import 'room.dart';
+import 'scene.dart';
 import 'probe_reply.dart';
+import 'scene_view.dart';
 
 class SpacetimeDbClient {
   final SpacetimeDbConnection connection;
@@ -61,12 +68,52 @@ class SpacetimeDbClient {
   Stream<MutationSyncResult> get onMutationSyncResult =>
       subscriptions.onMutationSyncResult;
 
+  TableCache<Fighter> get fighter {
+    return subscriptions.cache.getTableByTypedName<Fighter>('fighter');
+  }
+
+  TableCache<MatchCombat> get matchCombat {
+    return subscriptions.cache.getTableByTypedName<MatchCombat>('match_combat');
+  }
+
   TableCache<Member> get member {
     return subscriptions.cache.getTableByTypedName<Member>('member');
   }
 
+  TableCache<OnlineAccount> get onlineAccount {
+    return subscriptions.cache.getTableByTypedName<OnlineAccount>(
+      'online_account',
+    );
+  }
+
+  TableCache<OnlineResult> get onlineResult {
+    return subscriptions.cache.getTableByTypedName<OnlineResult>(
+      'online_result',
+    );
+  }
+
+  TableCache<Projectile> get projectile {
+    return subscriptions.cache.getTableByTypedName<Projectile>('projectile');
+  }
+
   TableCache<Room> get room {
     return subscriptions.cache.getTableByTypedName<Room>('room');
+  }
+
+  TableCache<Scene> get scene {
+    return subscriptions.cache.getTableByTypedName<Scene>('scene');
+  }
+
+  TableCache<OnlineAccount> get myOnlineAccount {
+    return subscriptions.cache.getTableByTypedName<OnlineAccount>(
+      'my_online_account',
+    );
+  }
+
+  TableCache<OnlineResult> get myOnlineResults {
+    return subscriptions.cache.getTableByTypedName<OnlineResult>(
+      'my_online_results',
+    );
   }
 
   TableCache<ProbeReply> get myProbe {
@@ -77,8 +124,26 @@ class SpacetimeDbClient {
     return subscriptions.cache.getTableByTypedName<Room>('my_room');
   }
 
+  TableCache<MatchCombat> get roomCombat {
+    return subscriptions.cache.getTableByTypedName<MatchCombat>('room_combat');
+  }
+
+  TableCache<Fighter> get roomFighters {
+    return subscriptions.cache.getTableByTypedName<Fighter>('room_fighters');
+  }
+
   TableCache<Member> get roomMembers {
     return subscriptions.cache.getTableByTypedName<Member>('room_members');
+  }
+
+  TableCache<Projectile> get roomProjectiles {
+    return subscriptions.cache.getTableByTypedName<Projectile>(
+      'room_projectiles',
+    );
+  }
+
+  TableCache<SceneView> get roomScene {
+    return subscriptions.cache.getTableByTypedName<SceneView>('room_scene');
   }
 
   SpacetimeDbClient._({
@@ -124,21 +189,66 @@ class SpacetimeDbClient {
     );
 
     // Auto-register table decoders
+    subscriptionManager.cache.registerDecoder<Fighter>(
+      'fighter',
+      FighterDecoder(),
+    );
+    subscriptionManager.cache.registerDecoder<MatchCombat>(
+      'match_combat',
+      MatchCombatDecoder(),
+    );
     subscriptionManager.cache.registerDecoder<Member>(
       'member',
       MemberDecoder(),
     );
+    subscriptionManager.cache.registerDecoder<OnlineAccount>(
+      'online_account',
+      OnlineAccountDecoder(),
+    );
+    subscriptionManager.cache.registerDecoder<OnlineResult>(
+      'online_result',
+      OnlineResultDecoder(),
+    );
+    subscriptionManager.cache.registerDecoder<Projectile>(
+      'projectile',
+      ProjectileDecoder(),
+    );
     subscriptionManager.cache.registerDecoder<Room>('room', RoomDecoder());
+    subscriptionManager.cache.registerDecoder<Scene>('scene', SceneDecoder());
 
     // Auto-register view decoders
+    subscriptionManager.cache.registerDecoder<OnlineAccount>(
+      'my_online_account',
+      OnlineAccountDecoder(),
+    );
+    subscriptionManager.cache.registerDecoder<OnlineResult>(
+      'my_online_results',
+      OnlineResultDecoder(),
+    );
     subscriptionManager.cache.registerDecoder<ProbeReply>(
       'my_probe',
       ProbeReplyDecoder(),
     );
     subscriptionManager.cache.registerDecoder<Room>('my_room', RoomDecoder());
+    subscriptionManager.cache.registerDecoder<MatchCombat>(
+      'room_combat',
+      MatchCombatDecoder(),
+    );
+    subscriptionManager.cache.registerDecoder<Fighter>(
+      'room_fighters',
+      FighterDecoder(),
+    );
     subscriptionManager.cache.registerDecoder<Member>(
       'room_members',
       MemberDecoder(),
+    );
+    subscriptionManager.cache.registerDecoder<Projectile>(
+      'room_projectiles',
+      ProjectileDecoder(),
+    );
+    subscriptionManager.cache.registerDecoder<SceneView>(
+      'room_scene',
+      SceneViewDecoder(),
     );
 
     // Auto-register reducer argument decoders
@@ -147,12 +257,32 @@ class SpacetimeDbClient {
       AcknowledgeProbeArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
+      'attach_combat',
+      AttachCombatArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'ban_upgrade',
+      BanUpgradeArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
       'begin_probe',
       BeginProbeArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
+      'choose_loadout',
+      ChooseLoadoutArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
       'choose_team',
       ChooseTeamArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'choose_upgrade',
+      ChooseUpgradeArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'combat_input',
+      CombatInputArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
       'configure_room',
@@ -163,12 +293,32 @@ class SpacetimeDbClient {
       CreateRoomArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
+      'enable_combat',
+      EnableCombatArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
       'join_room',
       JoinRoomArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
       'leave_room',
       LeaveRoomArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'open_fusion',
+      OpenFusionArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'rematch',
+      RematchArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'reroll_upgrade',
+      RerollUpgradeArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'revive_input',
+      ReviveInputArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
       'set_ready',

@@ -11,14 +11,26 @@ import 'package:spacetimedb/src/codegen/dart_generator.dart';
 Future<void> main() async {
   final response = await http.get(
     Uri.parse(
-      'https://regunserver.kiishi.space/v1/database/regun/schema?version=9',
+      Platform.environment['REGUN_SCHEMA_URL'] ??
+          'https://regunserver.kiishi.space/v1/database/regun/schema?version=9',
     ),
   );
   if (response.statusCode != 200) throw StateError('Schema unavailable');
   final raw = jsonDecode(response.body) as Map<String, dynamic>;
   // Only row shapes required by the three public views, and callable reducers.
   raw['tables'] = (raw['tables'] as List)
-      .where((t) => ['room', 'member'].contains(t['name']))
+      .where(
+        (t) => [
+          'room',
+          'member',
+          'fighter',
+          'match_combat',
+          'projectile',
+          'scene',
+          'online_account',
+          'online_result',
+        ].contains(t['name']),
+      )
       .toList();
   raw['reducers'] = (raw['reducers'] as List)
       .where(
@@ -35,6 +47,12 @@ Future<void> main() async {
       'return 0; // Identity-scoped singleton view.',
     ),
   );
+  final scene = File('lib/multiplayer/generated/scene_view.dart');
+  if (scene.existsSync()) {
+    await scene.writeAsString(
+      (await scene.readAsString()).replaceAll('return null;', 'return row.id;'),
+    );
+  }
   final client = File('lib/multiplayer/generated/client.dart');
   await client.writeAsString(
     (await client.readAsString()).replaceAll(

@@ -1,6 +1,6 @@
 # Regun multiplayer maps, walls and engagement design
 
-**20 October 2026 — planning specification; no new maps or assets implemented.**  
+**21 October 2026 — implemented private-test pack.** Ossuary Cross and Ironworks Relay each have independent 1v1/2v2/3v3 Tiled variants, server/client exports, spawns, AI sockets and stone/iron cover. Ashen Cloister has three candidate blockouts and is not selectable. Navigation/geometry and connected-format tests pass; human map balance remains open. See [the delivery/test notes](MULTIPLAYER_TEST_AND_DEPLOY.md). The sections below preserve the design specification, rather than claiming every proposed measurement has human approval.
 Part of [the multiplayer plan](REGUN_MULTIPLAYER_PLAN.md). Working map names and measurements below are proposals; player counts and mode boundaries follow the creator's direction.
 
 ## 1. Scope and map separation

@@ -582,3 +582,10 @@ Validation: analyzer clean; 168 tests passed, four opt-in simulations skipped. T
 ## Online connection slice (20 October 2026)
 
 The separate SpacetimeDB server now has a Flutter client entry through Online. Room creation/join, supported team sizes, readiness, host start, movement/dash, per-player application RTT and reconnect are connected. This isolated movement test does not run combat, enemies, supplies, progression or profile rewards. See [MULTIPLAYER_CONNECTION_TEST.md](MULTIPLAYER_CONNECTION_TEST.md) for usage, pinned protocol adaptations, verification and outstanding native/full-game acceptance.
+
+
+## Private multiplayer implementation — 21 October 2026
+
+Authoritative co-op survival and unrated Versus now live in the independent sibling TypeScript SpacetimeDB module and native Flutter Online flow. Co-op uses the normal Breach/Foundry with two or three total players, complete rosters, shared funded XP/personal VIII builds and explicit cores, downed/revive and timed Breach supplies. Versus supports 1v1/2v2/3v3 on two authored covered maps, default neutral enemies On / optional Off, equal weapon access, rounds/overtime/forfeits and results/rematch. The third map remains a candidate. Secure native guest identity and a separate once-only online ledger preserve offline profiles. The creator-approved movement remains server-authoritative with display interpolation; no speculative hit/rewind claims.
+
+See [the test/deploy guide](MULTIPLAYER_TEST_AND_DEPLOY.md) and [implementation ledger](MULTIPLAYER_IMPLEMENTATION_PROGRESS.md). Server: 67 tests/build and connected combat, both maps/all formats, two-player Breach and three-player Foundry passed. Native simulator storage/combat/reconnect passed. Client analyzer and 180 tests pass with four opt-in skips. Cross-language weapon/boss/survivor/XP fixtures pass; local ordered 100/200ms delay smoke passes. Regular art/Boss Rush retains its 32MiB decoded-art gate; optional higher-resolution online walls are leased only by Online. No VPS deployment or physical combat performance/balance approval is inferred from these checks. Version remains 1.0.0+7.
