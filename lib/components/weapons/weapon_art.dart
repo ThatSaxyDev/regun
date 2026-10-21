@@ -47,16 +47,17 @@ void paintWeapon(Canvas canvas, WeaponType type,
   switch (type) {
     case WeaponType.shotgun:
       final shells = max(1, reloadShells);
-      final duration = 900 + 700 * (shells - 1);
+      final duration = ShotgunReload.durationFor(shells);
+      const interval = ShotgunReload.shellIntervalMs;
       final elapsed = p * duration;
-      final insert = ((elapsed % 700) / 210).clamp(0.0, 1.0);
-      final finish = ((elapsed - shells * 700) / 200).clamp(0.0, 1.0);
+      final insert = ((elapsed % interval) / (interval * .3)).clamp(0.0, 1.0);
+      final finish = ((elapsed - shells * interval) / 200).clamp(0.0, 1.0);
       final pump = movingReload
           ? pulse(finish, 0, .4, 1) * 7
           : loading || reducedMotion ? 0.0 : recoil * 6;
       part.render(canvas,
           position: Vector2(8 - pump, -1), size: Vector2(19, 6));
-      if (movingReload && elapsed < shells * 700 && insert < 1) {
+      if (movingReload && elapsed < shells * interval && insert < 1) {
         final y = 16 * (1 - Curves.easeOutCubic.transform(insert)) + 3;
         canvas.drawRect(Rect.fromLTWH(-3, y, 7, 4),
             Paint()..color = const Color(0xffC56E50));

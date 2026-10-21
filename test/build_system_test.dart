@@ -50,7 +50,7 @@ void main() {
       notifier.decreaseBullets();
       notifier.decreaseBullets();
       notifier.reloadBullets();
-      final duration = weapon == WeaponType.shotgun ? 1600 : weapon.reloadMs;
+      final duration = weapon == WeaponType.shotgun ? 1400 : weapon.reloadMs;
       notifier.advanceTime((duration - 1) / 1000);
       expect(state().reloading, isTrue);
       notifier.advanceTime(0.001);

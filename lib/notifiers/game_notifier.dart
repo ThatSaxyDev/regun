@@ -15,7 +15,7 @@ class GameNotifier extends Notifier<GameState> {
   double _reloadDurationMs = 0;
   int _reloadSoundsLeft = 0;
   int _reloadCue = 0;
-  double _nextReloadSoundMs = 700;
+  double _nextReloadSoundMs = ShotgunReload.shellIntervalMs.toDouble();
   bool _reloadTactical = false;
   bool supplyOffer = false;
   bool get reloadTactical => state.reloading && _reloadTactical;
@@ -64,7 +64,7 @@ class GameNotifier extends Notifier<GameState> {
     _reloadElapsedMs = 0;
     _reloadTactical = false;
     _reloadSoundsLeft = 0;
-    _nextReloadSoundMs = 700;
+    _nextReloadSoundMs = ShotgunReload.shellIntervalMs.toDouble();
     _invincibilityMs = 0;
     _hurtCooldownMs = 0;
     _activeSeconds = 0;
@@ -76,6 +76,7 @@ class GameNotifier extends Notifier<GameState> {
         'xpCurve': 3,
         'choiceGrace': _choiceGrace,
         'weaponBalance': 2,
+        'shotgunReloadBalance': 1,
         'state': state.toJson(),
         'offerRandom': _offerRandom.state,
         'guardElapsed': _guardElapsed,
@@ -158,6 +159,21 @@ class GameNotifier extends Notifier<GameState> {
         }
       }
     }
+    // Preserve completion and already-consumed cues when continuing a run
+    // recorded before the faster base shotgun reload. Arc migration is separate.
+    if (weapon == WeaponType.shotgun &&
+        snapshot['shotgunReloadBalance'] != 1 && restored.reloading &&
+        _reloadDurationMs > 0) {
+      final missing = restored.maxBullets - restored.noOfBullets;
+      final normal = reloadDurationFor(min(missing, weapon.capacity));
+      if (normal > 0) {
+        final progress = (_reloadElapsedMs / _reloadDurationMs).clamp(0.0, 1.0);
+        final duration = restored.fastReload ? min(restored.fastReloadTime, normal) : normal;
+        _reloadDurationMs = duration.toDouble();
+        _reloadElapsedMs = progress * _reloadDurationMs;
+        _nextReloadSoundMs *= ShotgunReload.shellIntervalMs / 700;
+      }
+    }
     _reloadTactical = weapon == WeaponType.carbine &&
         (snapshot['reloadTactical'] == true || oldPlan?['tactical'] == true);
     supplyOffer = snapshot['supplyOffer'] == true && restored.powerUpChoices.isNotEmpty;
@@ -170,9 +186,9 @@ class GameNotifier extends Notifier<GameState> {
         gameplayState: GameplayState.paused, triggerSprintInvincibility: false);
   }
 
-  /// Original shotgun timing: first shell 900 ms, each additional shell 700 ms.
+  /// Faster base shell reload; larger magazines still use the five-shell cap.
   static int reloadDurationFor(int missingShells) =>
-      missingShells <= 0 ? 0 : 900 + 700 * (missingShells - 1);
+      ShotgunReload.durationFor(missingShells);
 
   void reloadBullets({bool manual = false}) {
     if (state.gameplayState != GameplayState.playing ||
@@ -207,7 +223,7 @@ class GameNotifier extends Notifier<GameState> {
     _reloadSoundsLeft =
         weapon == WeaponType.shotgun && !state.fastReload ? missing - 1 : 0;
     reloadProgress.value = 0;
-    _nextReloadSoundMs = 700;
+    _nextReloadSoundMs = ShotgunReload.shellIntervalMs.toDouble();
     state = state.copyWith(reloading: true);
     ref.read(soloudPlayProvider).play(weapon == WeaponType.shotgun
         ? 'reload_shotgun_shell.wav'
@@ -270,7 +286,7 @@ class GameNotifier extends Notifier<GameState> {
     while (_reloadSoundsLeft > 0 && _reloadElapsedMs >= _nextReloadSoundMs) {
       ref.read(soloudPlayProvider).play('reload_shotgun_shell.wav');
       _reloadSoundsLeft--;
-      _nextReloadSoundMs += 700;
+      _nextReloadSoundMs += ShotgunReload.shellIntervalMs;
     }
     if (weapon == WeaponType.shotgun &&
         _reloadCue == 0 &&

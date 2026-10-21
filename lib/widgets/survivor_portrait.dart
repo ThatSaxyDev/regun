@@ -17,26 +17,34 @@ class SurvivorPortrait extends StatelessWidget {
   const SurvivorPortrait(
       {super.key,
       this.character = CharacterType.rook,
-      this.style = 'standard'});
+      this.style = 'standard',
+      this.maxArtSize = 110});
   final CharacterType character;
   final String style;
+  final double maxArtSize;
   @override
-  Widget build(BuildContext context) => FutureBuilder<void>(
-      future: RegunArt.shared.load(),
-      builder: (context, state) => state.connectionState == ConnectionState.done
-          ? CustomPaint(painter: _Portrait(character, style))
-          : const SizedBox.shrink());
+  Widget build(BuildContext context) {
+    if (RegunArt.shared.contains('characters/${character.name}')) {
+      return CustomPaint(painter: _Portrait(character, style, maxArtSize));
+    }
+    return FutureBuilder<void>(future: RegunArt.shared.load(),
+        builder: (context, state) => state.connectionState == ConnectionState.done
+            ? CustomPaint(painter: _Portrait(character, style, maxArtSize))
+            : const SizedBox.shrink());
+  }
+
 }
 
 class _Portrait extends CustomPainter {
-  const _Portrait(this.character, this.style);
+  const _Portrait(this.character, this.style, this.maxArtSize);
   final CharacterType character;
   final String style;
+  final double maxArtSize;
   @override
   void paint(Canvas canvas, Size size) {
-    final edge = size.height.clamp(0.0, 110.0);
+    final edge = size.shortestSide.clamp(0.0, maxArtSize);
     canvas.save();
-    canvas.translate((size.width - edge) / 2, 0);
+    canvas.translate((size.width - edge) / 2, (size.height - edge) / 2);
     final paint = Paint()..filterQuality = FilterQuality.none;
     final tint = survivorTint(style);
     if (tint != null) {
@@ -74,5 +82,6 @@ class _Portrait extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _Portrait old) =>
-      old.character != character || old.style != style;
+      old.character != character || old.style != style ||
+      old.maxArtSize != maxArtSize;
 }

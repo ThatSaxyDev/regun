@@ -183,3 +183,10 @@ Compare each weapon against the same enemy type up close, at mid distance and ne
 - Review the original iron breach illustration, contrast, motion comfort and thumb reach on hardware. Automated layout/simulator screenshots do not establish physical comfort or performance.
 
 The final home art is now **Rook's shelter**, replacing the rejected iron breach. Check visible localized flicker in the hanging work lamp and responding bench warmth, small mug steam and dust; the menu and cool background must stay steady. Reduced Motion holds the whole scene still. Confirm the characterful pixel texture survives phone-size scaling.
+
+### Loadout preparation and shotgun assistance (21 October 2026)
+
+- In Loadout and Training, change survivor, weapon and arena in any order. Scroll an active catalog; its tabs, assembled kit, summary and Start must remain visible. Switch back to a previous catalog and confirm its equipped item is in view. Normal locks still apply; Training exposes all gear.
+- Review the compact landscape, notched, portrait and large-text arrangements. Additions to a catalog should not turn the screen back into a scrolling stack of sections.
+- Compare the shotgun's new 1.2 base damage per pellet and 3.2s five-shell reload in regular play. One-shell reload is .8s; three-shell reload is 2s. Confirm held fire waits for full reload, shell sounds/mechanism stay aligned, pause freezes the clock and Continue retains progress. Review standard enemies, elites, bosses, Scattershot and VIII builds; this remains a balance candidate.
+- Deploy the matching sibling server through Dokploy before comparing co-op/Versus shotgun balance. Local smoke success is not evidence of the public deployment or WAN/physical performance.

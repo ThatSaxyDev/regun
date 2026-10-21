@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 enum WeaponType {
   shotgun(
-      'Pump Shotgun', 'Wide spread. Shell reload.', 5, 0.35, 1, 420, 700, 3700),
+      'Pump Shotgun', 'Wide spread. Shell reload.', 5, 0.35, 1.2, 420, 700, 3200),
   carbine('Carbine', 'Sustained fire. Magazine swap.', 24, 0.1, 0.762, 650, 950,
       1800),
   revolver('Revolver', 'Heavy rounds. Cylinder reload.', 6, 0.65, 3, 800, 1150,
@@ -15,6 +15,14 @@ enum WeaponType {
   final String title, description;
   final int capacity, range, reloadMs;
   final double cadence, damage, speed;
+}
+
+/// Shell cadence shared by the reload clock and visible shotgun mechanism.
+class ShotgunReload {
+  static const firstShellMs = 800;
+  static const shellIntervalMs = 600;
+  static int durationFor(int missingShells) => missingShells <= 0
+      ? 0 : firstShellMs + shellIntervalMs * (missingShells - 1);
 }
 
 enum CharacterType {

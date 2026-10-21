@@ -81,3 +81,7 @@ Put weapon-compatible power-up examples below the main detail, with a route to t
 6. **Release:** unique/eligible offers; save/Continue and old-profile migrations; pause/background/restart during charge, loop, return and detonation; no offline catch-up attacks; short and long soaks; native build and physical comfort/performance/audio review. A successful install or headless test does not establish human balance approval.
 
 Keep the release identity at 1.0.0+7 until the creator requests a version change. Implementation of this proposal is the next task after review; this document does not claim the new arsenal/loadout/power-ups already exist.
+
+### Implementation note — 21 October 2026
+
+The current four-weapon/three-survivor roster now has a pinned Survivor/Weapon/Arena catalog interface with persistent kit preview and Start. This navigation improvement is implemented independently of the proposed new weapons/loadout systems above; those proposals remain unimplemented. The creator separately requested the current shotgun's 1.2 base pellet damage and 3.2-second base reload candidate.

@@ -18,3 +18,7 @@ A smooth monotonic curve connects each pair. The shotgun has the strongest incen
 Only primary weapon projectiles apply this multiplier. Chains inherit the adjusted primary hit and apply their existing retention once; secondary bullets, drones, mines, burn and explosions do not receive another proximity multiplier. No proc budgets or upgrade caps are increased.
 
 Regression checks cover all four curves, bounded monotonic damage, band continuity, first-contact distance, actual target health at near/mid/far distances under small and large simulation steps, piercing, ricochets, unchanged secondary damage and maximum range. Native close-range risk/reward, enemy kill breakpoints and long-run power-up combinations remain for playtest review. Automated simulations establish correctness/bounds, not a guarantee of subjective balance.
+
+## Shotgun base assistance — 21 October 2026
+
+The creator requested a stronger base shotgun alongside a shorter base reload. Each pellet is now 1.2 damage (20% higher); the distance curve above is unchanged. Three connected close pellets therefore deal 4.32 before defenses/upgrades, versus 3.6 previously. One through five missing shells reload in .8/1.4/2.0/2.6/3.2 seconds. Full-reload commitment, three pellets, cadence, range, speed, spread and knockback remain. `ShotgunReload` centralizes the revised shell timing for the clock and weapon mechanism; the original HUD Lottie is retained. Shared TypeScript fixtures use the same damage and timing. Treat physical risk/reward and late-build balance as pending creator review.

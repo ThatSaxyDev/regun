@@ -4,10 +4,10 @@
     "shotgun": {
       "capacity": 5,
       "cadence": 0.35,
-      "damage": 1,
+      "damage": 1.2,
       "range": 420,
       "speed": 700,
-      "reload": 3.7,
+      "reload": 3.2,
       "muzzle": 43.84,
       "bands": [
         120,
@@ -130,5 +130,9 @@
       340,
       80
     ]
-  }
+  },
+  "shotgunReload": [
+    0.8,
+    0.6
+  ]
 }

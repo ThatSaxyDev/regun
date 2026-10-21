@@ -431,7 +431,7 @@ void main() {
           await tester.runAsync(() => practice.ready());
           expect(
               practice.world.children.whereType<BulletComponent>().first.damage,
-              closeTo(3.7, 0.001));
+              closeTo(4.44, 0.001));
         case 'hunterSwarm':
           practice.combat.update(1.1);
           expect(first.combatHealth.current, lessThan(2));

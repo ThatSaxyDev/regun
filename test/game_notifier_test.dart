@@ -86,10 +86,10 @@ void main() {
       notifier.decreaseBullets();
     }
     notifier.reloadBullets();
-    notifier.advanceTime(3.699);
+    notifier.advanceTime(3.199);
     expect(state().reloading, isTrue);
     notifier.advanceTime(.001);
-    expect(state().noOfBullets, 7); // Bigger tube no longer adds 1.4 seconds.
+    expect(state().noOfBullets, 7); // Bigger tubes retain the new 3.2-second base cap.
     grant(PowerUp.maxBulletsIncrease);
     notifier
         .decreaseBullets(); // Firing can interrupt the cosmetic cue immediately.
@@ -236,8 +236,10 @@ void main() {
           ? GameNotifier.reloadDurationFor(weapon.capacity) : weapon.reloadMs;
       final old = notifier.checkpoint();
       old['state'] = state().copyWith(noOfBullets: 1, reloading: true).toJson();
-      old['reloadDurationMs'] = duration * .85;
-      old['reloadElapsedMs'] = duration * .85 * .42;
+      if (weapon == WeaponType.shotgun) old.remove('shotgunReloadBalance');
+      final originalDuration = weapon == WeaponType.shotgun ? 3700 : duration;
+      old['reloadDurationMs'] = originalDuration * .85;
+      old['reloadElapsedMs'] = originalDuration * .85 * .42;
       old['reloadPlan'] = {'startAmmo': 0, 'missing': weapon.capacity,
         'loaded': 1, 'tactical': true, 'closeElapsedMs': 40,
         'closeDurationMs': 100, 'closeStartProgress': .42};
@@ -269,13 +271,13 @@ void main() {
 
   for (var missing = 1; missing <= 5; missing++) {
     test(
-        'preserves shotgun timing and shell sounds for $missing missing shells',
+        'uses assisted shotgun timing and matching shell sounds for $missing missing shells',
         () {
       for (var i = 0; i < missing; i++) {
         notifier.decreaseBullets();
       }
       notifier.reloadBullets();
-      final duration = 900 + 700 * (missing - 1);
+      final duration = 800 + 600 * (missing - 1);
       // Duplicate requests do not restart the reload or play extra sounds.
       notifier.reloadBullets();
       notifier.advanceTime((duration - 1) / 1000);
@@ -502,10 +504,39 @@ void main() {
     });
   }
 
+  test('old shotgun reloads migrate progress and pending cues exactly once', () {
+    for (var i = 0; i < 5; i++) {
+      notifier.decreaseBullets();
+    }
+    notifier.reloadBullets();
+    notifier.advanceTime(.96);
+    final old = notifier.checkpoint()..remove('shotgunReloadBalance');
+    old['reloadDurationMs'] = 3700.0;
+    old['reloadElapsedMs'] = 1110.0;
+    old['nextReloadSoundMs'] = 1400.0;
+    final sounds = audio.reloadSounds;
+    notifier.restoreCheckpoint(old);
+    expect(notifier.reloadProgress.value, closeTo(.3, 1e-9));
+    expect(notifier.checkpoint()['reloadDurationMs'], 3200);
+    expect(audio.reloadSounds, sounds);
+    final current = notifier.checkpoint();
+    notifier.restoreCheckpoint(current);
+    expect(notifier.checkpoint()['reloadDurationMs'], 3200);
+    expect(notifier.reloadProgress.value, closeTo(.3, 1e-9));
+    notifier.playGame();
+    notifier.advanceTime(.24);
+    expect(audio.reloadSounds, sounds + 1);
+    expect(state().noOfBullets, 0);
+    notifier.advanceTime(2);
+    expect(state().reloading, isFalse);
+    expect(state().noOfBullets, 5);
+  });
+
   test('fast reload never slows down a partial shotgun reload', () {
     notifier.fastReload();
     notifier.decreaseBullets();
     notifier.reloadBullets();
+    expect(notifier.checkpoint()['reloadDurationMs'], 800);
     notifier.advanceTime(0.9);
     expect(state().reloading, isFalse);
   });

@@ -36,6 +36,8 @@ void main() {
         b.farMultiplier,
       ], s['bands']);
     }
+    expect([ShotgunReload.firstShellMs / 1000, ShotgunReload.shellIntervalMs / 1000],
+        fixture['shotgunReload']);
     for (final c in CharacterType.values) {
       expect([c.health, c.speed, c.damage], fixture['survivors'][c.name]);
     }
