@@ -33,7 +33,7 @@ class ArenaEnemy extends PositionComponent
   final _shieldDirection = Vector2(1, 0);
   double _lungeDistance = 105, _lungeDuration = .3;
   static const lungeSpeed = 1050.0;
-  static const lungeWarning = .55;
+  static const lungeWarning = .75;
   @override
   int get xpReward => (kind == EnemyKind.nest ? 4 : 2) * (elite ? 3 : 1);
   @override
@@ -91,7 +91,11 @@ class ArenaEnemy extends PositionComponent
       case EnemyKind.runner:
         if (phase == 0) {
           game.moveActor(this, approach, 105, dt);
-          if (distance < 620 && clock > 1.2) {
+          if (distance < 480 && clock > 1.2 && !game.segmentBlocked(position, game.myPlayer.position) &&
+              !game.liveEnemies.whereType<ArenaEnemy>().any((other) =>
+                other != this && other.kind == EnemyKind.runner &&
+                other.position.distanceToSquared(position) < 700 * 700 &&
+                (other.phase == 1 || other.phase == 2 || (other.phase == 3 && other.clock < .35)))) {
             phase = 1;
             clock = 0;
             final aim = game.myPlayer.position.clone();
@@ -106,7 +110,7 @@ class ArenaEnemy extends PositionComponent
             final delta = aim - position;
             _committed.setFrom(delta.normalized());
             if (_committed.isZero()) _committed.setValues(1, 0);
-            _lungeDistance = (delta.length + 60).clamp(240, 680);
+            _lungeDistance = (delta.length + 40).clamp(180, 520);
             final speedScale =
                 (1 + math.min(.5, (game.director.cycle - 1) * .08)) *
                 (elite ? 1.15 : 1);
@@ -128,7 +132,7 @@ class ArenaEnemy extends PositionComponent
             phase = 3;
             clock = 0;
           }
-        } else if (phase == 3 && clock >= 0.8) {
+        } else if (phase == 3 && clock >= 1.4) {
           phase = 0;
           clock = 0;
         }
@@ -236,7 +240,9 @@ class ArenaEnemy extends PositionComponent
           : (direction.x > 0 ? 0 : 3);
     }
     canvas.save();
-    if (!directional && game.myPlayer.position.x < position.x) {
+    final facingLeft = kind == EnemyKind.runner && (phase == 1 || phase == 2)
+        ? _committed.x < 0 : game.myPlayer.position.x < position.x;
+    if (!directional && facingLeft) {
       canvas.translate(size.x, 0);
       canvas.scale(-1, 1);
     }

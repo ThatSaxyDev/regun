@@ -209,22 +209,22 @@ class AttackVfx {
     if (delta.distance < 1) return;
     final length = delta.distance;
     final heading = math.atan2(delta.dy, delta.dx);
-    final count = (length / 100).ceil().clamp(2, 7);
+    final count = (length / 64).ceil().clamp(3, 9);
     for (var i = 0; i <= count; i++) {
       final point = start + delta * (i / count);
       canvas.save();
       canvas.translate(point.dx, point.dy);
       canvas.rotate(heading);
-      stamp(canvas, 5, const Offset(4, 7), 38,
-          height: 14, alpha: .35 + progress * .18, grading: ambient);
+      stamp(canvas, 5, const Offset(4, 7), 54,
+          height: 26, alpha: .68 + progress * .18, grading: ambient);
       for (final side in [-1, 1]) {
         for (var claw = 0; claw < 3; claw++) {
-          final y = side * (6.0 + claw * 4);
-          final marks = [Offset(-10.0 + claw * 2, y),
-            Offset(-1, y - side * 2), Offset(7.0 - claw, y - side * 1)];
-          stroke(canvas, marks, const Color(0x99100F0E), 5);
+          final y = side * (9.0 + claw * 5);
+          final marks = [Offset(-17.0 + claw * 4, y + side * 3),
+            Offset(-4.0 + claw, y), Offset(13.0 - claw * 3, y - side * 3)];
+          stroke(canvas, marks, const Color(0xe6100F0E), 8);
           stroke(canvas, marks,
-              Color.fromRGBO(151, 140, 112, .4 + progress * .3), 2);
+              Color.fromRGBO(216, 183, 134, .76 + progress * .2), 3);
         }
       }
       canvas.restore();

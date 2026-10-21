@@ -756,7 +756,7 @@ void main() {
     expect(signatures.length, greaterThanOrEqualTo(4));
   });
 
-  testWidgets('Skitter leaps farther with direct and predicted locked attacks',
+  testWidgets('Skitter keeps shorter with direct and predicted locked attacks',
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -767,13 +767,13 @@ void main() {
         game.myPlayer.position.setValues(-300, -1400);
         game.movementJoystick.delta.setValues(0, 80);
         game.random.state = seed;
-        final runner = ArenaEnemy(EnemyKind.runner, elite: seed.isEven, position: Vector2(-800, -1400))
+        final runner = ArenaEnemy(EnemyKind.runner, elite: seed.isEven, position: Vector2(-740, -1400))
           ..clock = 1.21;
         await game.world.add(runner);
         await game.ready();
         runner.update(0);
-        expect(runner.phase, 1, reason: 'Commit from 500 units away');
-        runner.update(.55);
+        expect(runner.phase, 1, reason: 'Commit from 440 units away');
+        runner.update(.75);
         expect(runner.phase, 2);
         // Change direction after commitment: the attack must not home in.
         game.movementJoystick.delta.setValues(0, -80);
@@ -787,8 +787,8 @@ void main() {
         expect(next.distanceTo(heading), lessThan(.001));
         runner.update(1);
         expect(runner.phase, 3);
-        expect(runner.position.distanceTo(start), greaterThan(450));
-        expect(runner.position.distanceTo(start), lessThanOrEqualTo(681));
+        expect(runner.position.distanceTo(start), greaterThan(400));
+        expect(runner.position.distanceTo(start), lessThanOrEqualTo(521));
         runner.removeFromParent();
         await game.ready();
       }
@@ -796,12 +796,12 @@ void main() {
       game.myPlayer.position.setValues(-300, -1400);
       game.setTrainingDamage(true);
       game.random.state = 2; // Direct attack.
-      final runner = ArenaEnemy(EnemyKind.runner, position: Vector2(-800, -1400))
+      final runner = ArenaEnemy(EnemyKind.runner, position: Vector2(-740, -1400))
         ..clock = 1.21;
       await game.world.add(runner);
       await game.ready();
       runner.update(0);
-      runner.update(.55);
+      runner.update(.75);
       final health = game.gameState.health;
       runner.update(1); // A coarse step must still hit across the player's body.
       expect(game.gameState.health, health - 1);
@@ -809,17 +809,17 @@ void main() {
       await game.ready();
       // A long leap still cannot cross another enemy's occupied body.
       final blocker = Enemy2Component(position: Vector2(-500, -1400));
-      final blocked = ArenaEnemy(EnemyKind.runner, position: Vector2(-800, -1400))
+      final blocked = ArenaEnemy(EnemyKind.runner, position: Vector2(-740, -1400))
         ..clock = 1.21;
       await game.world.addAll([blocker, blocked]);
       await game.ready();
       game.random.state = 2;
-      blocked.update(0); blocked.update(.55); blocked.update(1);
+      blocked.update(0); blocked.update(.75); blocked.update(1);
       expect(blocked.position.x, lessThan(blocker.position.x - 75));
       blocker.removeFromParent(); blocked.removeFromParent();
       await game.ready();
       game.myPlayer.position.setValues(220, 90);
-      final preview = ArenaEnemy(EnemyKind.runner, position: Vector2(-340, 90))
+      final preview = ArenaEnemy(EnemyKind.runner, position: Vector2(-220, 90))
         ..clock = 1.21;
       await game.world.add(preview);
       await game.ready();

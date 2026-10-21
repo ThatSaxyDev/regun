@@ -237,14 +237,28 @@ void main() {
       runner.clock = 1.3;
       runner.update(0);
       expect(runner.phase, 1);
+      final waitingRunner = ArenaEnemy(EnemyKind.runner, position: Vector2(200, 180));
+      await game.world.add(waitingRunner);
+      await game.ready();
+      waitingRunner.clock=2;
+      waitingRunner.update(0);
+      expect(waitingRunner.phase,0,reason:'Nearby jumps must wait their turn');
+      runner.update(.6);
+      expect(runner.phase,1,reason:'A visible warning lasts the full .75 seconds');
       game.myPlayer.position.setValues(0, 300);
-      runner.update(.56);
+      runner.update(.16);
       expect(runner.phase, 2);
       final launch = runner.position.clone();
       runner.update(.1);
       expect(runner.position.x, lessThan(launch.x));
       expect(runner.position.y, closeTo(launch.y, .001),
           reason: 'Committed lunge must remain dodgeable');
+      runner.update(1);
+      expect(runner.phase,3);
+      runner.update(1.3);
+      expect(runner.phase,3,reason:'Landing must create a punish window');
+      runner.update(.11);
+      expect(runner.phase,0);
       for (final enemy in game.liveEnemies.toList()) {
         enemy.removeFromParent();
       }
