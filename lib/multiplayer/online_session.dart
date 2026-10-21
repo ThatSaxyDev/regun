@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'dart:async';
 import 'dart:convert';
 
@@ -37,7 +38,7 @@ class OnlineSession {
     defaultValue: true,
   );
   final AuthTokenStore tokens;
-  bool grenadesAvailable = false;
+  bool grenadesAvailable = false, grenadeAimingAvailable = false;
   bool combatAvailable = false, _attaching = false, _combatSending = false;
   OnlineMatch? match;
   Map<String, OnlineGun> fighters = {};
@@ -147,6 +148,9 @@ class OnlineSession {
         throw StateError('Server schema unavailable');
       }
       final schemaJson = jsonDecode(schema.body) as Map<String, dynamic>;
+      grenadeAimingAvailable = (schemaJson['reducers'] as List? ?? []).any(
+        (v) => v is Map && v['name'] == 'aim_grenade',
+      );
       grenadesAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'throw_grenade',
       );
@@ -305,8 +309,10 @@ class OnlineSession {
       neutral();
     }
     // A reconnect can deliver the member view before the fighter snapshot.
-    _grenadeSeq = math.max(_grenadeSeq,
-        int.tryParse(gun?.data['grenadeSeq'] as String? ?? '0') ?? 0);
+    _grenadeSeq = math.max(
+      _grenadeSeq,
+      int.tryParse(gun?.data['grenadeSeq'] as String? ?? '0') ?? 0,
+    );
     if (combatAvailable &&
         connected &&
         match != null &&
@@ -346,7 +352,10 @@ class OnlineSession {
     if (controlsEnabled && match != null) _reloadSeq++;
   }
 
-  void throwGrenade() {
+  Offset get quickGrenadeDirection => moveX * moveX + moveY * moveY > .0036
+      ? Offset(moveX, moveY)
+      : Offset(aimX, aimY);
+  void throwGrenade({Offset? aim, double power = 1}) {
     if (!controlsEnabled ||
         !grenadesAvailable ||
         room == null ||
@@ -357,11 +366,30 @@ class OnlineSession {
     }
     unawaited(
       _quiet(
-        () => _client!.reducers.throwGrenade(
-          roomid: room!.id,
-          generation: me!.generation,
-          seq: Int64(++_grenadeSeq),
-        ),
+        () => grenadeAimingAvailable
+            ? _client!.reducers.aimGrenade(
+                roomid: room!.id,
+                generation: me!.generation,
+                seq: Int64(++_grenadeSeq),
+                aimx:
+                    (aim ?? quickGrenadeDirection).dx /
+                    (aim ?? quickGrenadeDirection).distance.clamp(
+                      .001,
+                      double.infinity,
+                    ),
+                aimy:
+                    (aim ?? quickGrenadeDirection).dy /
+                    (aim ?? quickGrenadeDirection).distance.clamp(
+                      .001,
+                      double.infinity,
+                    ),
+                power: power.clamp(.4, 1),
+              )
+            : _client!.reducers.throwGrenade(
+                roomid: room!.id,
+                generation: me!.generation,
+                seq: Int64(++_grenadeSeq),
+              ),
       ),
     );
   }

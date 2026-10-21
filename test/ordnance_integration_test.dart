@@ -1,3 +1,5 @@
+import 'package:flutter/rendering.dart';
+
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -114,7 +116,9 @@ void main() {
         expect(game.grenades.charges, 0);
         expect(game.world.children.whereType<GrenadeComponent>().length, 2);
         game.resumeGame();
-        for (var i = 0; i < 100; i++) { game.update(1 / 60); }
+        for (var i = 0; i < 100; i++) {
+          game.update(1 / 60);
+        }
         await game.ready();
         expect(game.world.children.whereType<GrenadeComponent>(), isEmpty);
         expect(audio.sounds.where((s) => s == 'blast.wav').length, 2);
@@ -194,6 +198,126 @@ void main() {
         await tester.pumpWidget(const SizedBox.shrink());
         expect(tester.takeException(), isNull);
       });
+    },
+  );
+  testWidgets(
+    'grenade drag aims independently, releases once and cancels safely',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      late RegunGame game;
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [soloudPlayProvider.overrideWithValue(_Audio())],
+            child: const MaterialApp(
+              home: RepaintBoundary(
+                key: Key('grenade-aim-preview'),
+                child: BaseView(loadout: Loadout(training: true)),
+              ),
+            ),
+          ),
+        );
+        game =
+            tester
+                    .widget<RiverpodAwareGameWidget>(
+                      find.byType(RiverpodAwareGameWidget),
+                    )
+                    .game!
+                as RegunGame;
+        await game.loaded;
+        await tester.pump();
+        await game.ready();
+        game.update(2);
+        game.update(1 / 60);
+        await tester.pump();
+      });
+      final factor = game.canvasSize.y / game.camera.viewport.virtualSize.y;
+      final inset =
+          (game.canvasSize - game.camera.viewport.virtualSize * factor) / 2;
+      final button = (game.grenadeButtonComponent.position * factor + inset)
+          .toOffset();
+      game.movementJoystick.delta.setValues(70, 0);
+      final gesture = await tester.startGesture(button, pointer: 51);
+      expect(
+        game.grenades.charges,
+        2,
+        reason: 'Holding must not throw or start recharge',
+      );
+      await gesture.moveBy(const Offset(-45, 0));
+      await gesture.moveBy(const Offset(-15, 0));
+      expect(game.grenadeButtonComponent.aim.direction!.dx, lessThan(-.99));
+      expect(game.grenades.charges, 2);
+      final secondTouch=await tester.startGesture(button,pointer:55);
+      await secondTouch.moveBy(const Offset(0,-30));await secondTouch.cancel();
+      expect(game.grenadeButtonComponent.aim.active,isTrue,reason:'Other fingers cannot cancel an existing throw');
+      expect(game.weaponJoystick.relativeDelta.isZero(), isTrue);
+      expect(game.movementJoystick.relativeDelta.x, greaterThan(0));
+      await tester.pump();
+      await tester.runAsync(() async {
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(const Key('grenade-aim-preview')),
+        );
+        final image = await boundary.toImage(pixelRatio: 2);
+        final data = (await image.toByteData(format: ui.ImageByteFormat.png))!;
+        await Directory('build/test-previews').create(recursive: true);
+        await File('build/test-previews/grenade-aim.png')
+            .writeAsBytes(data.buffer.asUint8List());
+        image.dispose();
+      });
+      await gesture.up();
+      await tester.runAsync(() async {
+        game.update(0);
+        await game.ready();
+      });
+      final shot = game.world.children.whereType<GrenadeComponent>().single;
+      expect(
+        shot.flight.velocity.dx,
+        lessThan(0),
+        reason: 'Run forward while throwing backward',
+      );
+      game.update(.3);
+      final cancel = await tester.startGesture(button, pointer: 52);
+      await cancel.moveBy(const Offset(-40, 0));
+      await cancel.moveBy(const Offset(40, 0));
+      await cancel.up();
+      expect(
+        game.grenades.charges,
+        1,
+        reason: 'Returning dragged control to center cancels',
+      );
+      final paused = await tester.startGesture(button, pointer: 53);
+      await paused.moveBy(const Offset(0, -45));
+      game.pauseGame();
+      await paused.up();
+      expect(game.grenades.charges, 1);
+      expect(game.grenadeButtonComponent.aim.active, isFalse);
+      game.resumeGame();
+      final interrupted = await tester.startGesture(button, pointer: 54);
+      await interrupted.moveBy(const Offset(-35, 0));
+      await interrupted.cancel();
+      expect(game.grenades.charges, 1);
+      expect(game.grenadeButtonComponent.aim.active, isFalse);
+      game.movementJoystick.delta.setValues(0, 70);
+      await tester.tapAt(button);
+      await tester.runAsync(() async {
+        game.update(0);
+        await game.ready();
+      });
+      final throws = game.world.children.whereType<GrenadeComponent>().toList();
+      expect(throws.length, 2);
+      expect(
+        throws.last.flight.velocity.dy,
+        greaterThan(0),
+        reason: 'Quick throw follows movement',
+      );
+      expect(throws.last.flight.velocity.dx, closeTo(0, .001));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(tester.takeException(), isNull);
     },
   );
 }

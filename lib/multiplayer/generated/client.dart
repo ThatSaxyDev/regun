@@ -257,6 +257,10 @@ class SpacetimeDbClient {
       AcknowledgeProbeArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
+      'aim_grenade',
+      AimGrenadeArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
       'attach_combat',
       AttachCombatArgsDecoder(),
     );

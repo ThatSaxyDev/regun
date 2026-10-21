@@ -24,6 +24,50 @@ class AcknowledgeProbeArgsDecoder
   }
 }
 
+/// Arguments for the aim_grenade reducer
+class AimGrenadeArgs {
+  final Int64 roomid;
+  final Int64 generation;
+  final Int64 seq;
+  final double aimx;
+  final double aimy;
+  final double power;
+  AimGrenadeArgs({
+    required this.roomid,
+    required this.generation,
+    required this.seq,
+    required this.aimx,
+    required this.aimy,
+    required this.power,
+  });
+}
+
+/// Decoder for aim_grenade reducer arguments
+class AimGrenadeArgsDecoder implements ReducerArgDecoder<AimGrenadeArgs> {
+  @override
+  AimGrenadeArgs? decode(BsatnDecoder decoder) {
+    try {
+      final roomid = decoder.readU64();
+      final generation = decoder.readU64();
+      final seq = decoder.readU64();
+      final aimx = decoder.readF64();
+      final aimy = decoder.readF64();
+      final power = decoder.readF64();
+
+      return AimGrenadeArgs(
+        roomid: roomid,
+        generation: generation,
+        seq: seq,
+        aimx: aimx,
+        aimy: aimy,
+        power: power,
+      );
+    } catch (e) {
+      return null; // Deserialization failed
+    }
+  }
+}
+
 /// Arguments for the attach_combat reducer
 class AttachCombatArgs {
   final int version;

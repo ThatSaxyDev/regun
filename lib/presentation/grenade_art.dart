@@ -1,3 +1,4 @@
+import 'package:regun/systems/grenades.dart';
 import 'package:flame/components.dart' show Vector2, Anchor;
 import 'package:flutter/material.dart';
 import 'package:regun/presentation/regun_art.dart';
@@ -32,12 +33,15 @@ class GrenadeButtonPainter extends CustomPainter {
     required this.charges,
     required this.progress,
     required this.remaining,
+    this.aim,
+    this.cancelled = false,
     this.pressed = false,
     this.opacity = 1,
   });
+  final Offset? aim;
   final int charges;
   final double progress, remaining, opacity;
-  final bool pressed;
+  final bool pressed, cancelled;
   @override
   void paint(Canvas canvas, Size size) {
     canvas.saveLayer(
@@ -69,7 +73,11 @@ class GrenadeButtonPainter extends CustomPainter {
         ..strokeWidth = 2,
     );
     if (available) {
-      paintGrenade(canvas, Offset(56, pressed ? 45 : 42), 43);
+      paintGrenade(
+        canvas,
+        Offset(56, pressed ? 45 : 42) + (aim ?? Offset.zero) * 13,
+        43,
+      );
     } else {
       canvas.saveLayer(
         const Rect.fromLTWH(32, 16, 48, 45),
@@ -93,7 +101,17 @@ class GrenadeButtonPainter extends CustomPainter {
         );
       }
     }
-    _text(canvas, 'THROW', 16, ink, 96);
+    _text(
+      canvas,
+      cancelled
+          ? 'CANCEL'
+          : pressed && aim != null
+          ? 'RELEASE'
+          : 'THROW',
+      pressed ? 12 : 16,
+      ink,
+      96,
+    );
     canvas.restore();
   }
 
@@ -115,6 +133,8 @@ class GrenadeButtonPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(GrenadeButtonPainter old) =>
+      old.cancelled != cancelled ||
+      old.aim != aim ||
       old.charges != charges ||
       old.progress != progress ||
       old.remaining.ceil() != remaining.ceil() ||
@@ -122,45 +142,117 @@ class GrenadeButtonPainter extends CustomPainter {
       old.opacity != opacity;
 }
 
-class GrenadeTapButton extends StatefulWidget {
-  const GrenadeTapButton({
+/// Pointer capture remains with the ordnance control outside its touch bounds.
+class GrenadeAimButton extends StatefulWidget {
+  const GrenadeAimButton({
     super.key,
     required this.size,
     required this.charges,
     required this.progress,
     required this.remaining,
     required this.opacity,
-    this.onTap,
+    required this.input,
+    required this.onChanged,
+    this.onThrow,
   });
   final double size, progress, remaining, opacity;
   final int charges;
-  final VoidCallback? onTap;
+  final GrenadeAim input;
+  final VoidCallback onChanged;
+  final void Function(Offset?, double)? onThrow;
   @override
-  State<GrenadeTapButton> createState() => _GrenadeTapButtonState();
+  State<GrenadeAimButton> createState() => _GrenadeAimButtonState();
 }
 
-class _GrenadeTapButtonState extends State<GrenadeTapButton> {
-  bool pressed = false;
+class _GrenadeAimButtonState extends State<GrenadeAimButton> {
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  void didUpdateWidget(covariant GrenadeAimButton old) {
+    super.didUpdateWidget(old);
+    if (widget.onThrow == null) widget.input.cancel();
+  }
+
+  @override
+  void dispose() {
+    widget.input.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Listener(
     behavior: HitTestBehavior.opaque,
-    onTapDown: widget.onTap == null
-        ? null
-        : (_) {
-            setState(() => pressed = true);
-            widget.onTap!();
-          },
-    onTapUp: (_) => setState(() => pressed = false),
-    onTapCancel: () => setState(() => pressed = false),
+    onPointerDown: (e) {
+      if (widget.onThrow != null && widget.charges > 0) {
+        widget.input.begin(e.pointer, e.position);
+        widget.onChanged();
+      }
+    },
+    onPointerMove: (e) {
+      widget.input.move(e.pointer, e.position);
+      widget.onChanged();
+    },
+    onPointerUp: (e) {
+      if (widget.input.pointer != e.pointer) return;
+      if (!widget.input.cancelled) {
+        widget.onThrow?.call(
+          widget.input.direction,
+          widget.input.power(widget.size * .85),
+        );
+      }
+      widget.input.cancel();
+      widget.onChanged();
+    },
+    onPointerCancel: (e) {
+      if (widget.input.pointer == e.pointer) {
+        widget.input.cancel();
+        widget.onChanged();
+      }
+    },
     child: CustomPaint(
       size: Size.square(widget.size),
       painter: GrenadeButtonPainter(
         charges: widget.charges,
         progress: widget.progress,
         remaining: widget.remaining,
-        pressed: pressed && widget.charges > 0,
         opacity: widget.opacity,
+        pressed: widget.input.active,
+        cancelled: widget.input.cancelled,
+        aim: widget.input.direction,
       ),
     ),
   );
+}
+
+void paintGrenadeTrajectory(
+  Canvas canvas,
+  List<GrenadePreviewPoint> points, {
+  bool reducedMotion = false,
+}) {
+  if (points.isEmpty) return;
+  final ink = Paint()
+    ..color = const Color(0xbccbbb9c)
+    ..isAntiAlias = false;
+  Offset? last;
+  for (final sample in points) {
+    final p = sample.ground - Offset(0, reducedMotion ? 0 : sample.height);
+    if (last != null && (p - last).distance < 23) continue;
+    canvas.drawRect(
+      Rect.fromCenter(center: p + const Offset(0, 2), width: 7, height: 7),
+      Paint()..color = const Color(0xb3101112),
+    );
+    canvas.drawRect(Rect.fromCenter(center: p, width: 4, height: 4), ink);
+    last = p;
+  }
+  final end = points.last.ground;
+  // Compact ground brackets mark the contact/fuse position, not a damage promise.
+  for (final x in [-1.0, 1.0]) {
+    for (final y in [-1.0, 1.0]) {
+      final p = end + Offset(x * 16, y * 12);
+      canvas.drawRect(Rect.fromCenter(center: p, width: 9, height: 3), ink);
+      canvas.drawRect(
+        Rect.fromCenter(center: p + Offset(x * 3, y * -3), width: 3, height: 8),
+        ink,
+      );
+    }
+  }
+  paintGrenade(canvas, end, 18);
 }

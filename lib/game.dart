@@ -582,28 +582,37 @@ class RegunGame extends FlameGame
   final grenades = GrenadeInventory();
   double get grenadeRecharge =>
       GrenadeSpec.recharge(gameState.effectRank(PowerUp.grenadeRecharge));
-  bool throwGrenade() {
+  Vector2 get quickGrenadeDirection {
+    final movement = movementJoystick.relativeDelta;
+    return movement.isZero()
+        ? myPlayer.aimDirection.clone()
+        : movement.normalized();
+  }
+
+  GrenadeFlight grenadeFlight(Vector2 direction, double power) {
+    direction = direction.normalized();
+    if (direction.isZero()) direction.setValues(1, 0);
+    final start = myPlayer.position + direction * 36;
+    if (geometry.obstacles.any((r) =>
+        ArenaGeometry.crosses(myPlayer.position, start, r.inflate(8)))) {
+      start.setFrom(myPlayer.position);
+    }
+    constrainActor(start, 8);
+    return GrenadeFlight(start.toOffset(),
+        direction.toOffset() * GrenadeSpec.speed * power.clamp(.4, 1));
+  }
+
+  bool throwGrenade({Vector2? aim, double power = 1}) {
     if (gameState.gameplayState != GameplayState.playing ||
         playerEntrance.active ||
         world.children.whereType<GrenadeComponent>().length >= 4 ||
         !grenades.spend(grenadeRecharge)) {
       return false;
     }
-    final direction = weaponJoystick.relativeDelta.isZero()
-        ? myPlayer.aimDirection.clone()
-        : weaponJoystick.relativeDelta.normalized();
-    if (direction.isZero()) direction.setValues(1, 0);
-    final start = myPlayer.position + direction * 36;
-    if(geometry.obstacles.any((r)=>ArenaGeometry.crosses(myPlayer.position,start,r.inflate(8)))) {
-      start.setFrom(myPlayer.position);
-    }
-    constrainActor(start, 8);
+    final direction = aim ?? quickGrenadeDirection;
     world.add(
       GrenadeComponent(
-        GrenadeFlight(
-          start.toOffset(),
-          direction.toOffset() * GrenadeSpec.speed,
-        ),
+        grenadeFlight(direction,power),
         damage: GrenadeSpec.damage(gameState.effectRank(PowerUp.grenadeDamage)),
         blastRadius: GrenadeSpec.radius(
           gameState.effectRank(PowerUp.grenadeRadius),
@@ -815,6 +824,7 @@ class RegunGame extends FlameGame
     boostButtonComponent.reset();
     world.add(myPlayer = PlayerComponent(position: Vector2.zero()));
     world.addAll([
+      GrenadeAimPreview(),
       DroneVisual(),
       ArenaScenery(),
       if (loadout.arena == ArenaType.breach) ...[
@@ -1872,6 +1882,7 @@ class RegunGame extends FlameGame
   void gameOver() => gameNotifier.gameOver();
 
   void resetInput() {
+    grenadeButtonComponent.cancelAim();
     movementJoystick.onDragStop();
     movementJoystick.delta.setZero();
     weaponJoystick.onDragStop();

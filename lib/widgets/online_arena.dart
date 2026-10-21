@@ -1,3 +1,6 @@
+import 'package:regun/systems/grenades.dart';
+import 'package:regun/systems/arena_geometry.dart';
+
 import 'dart:async';
 
 import 'package:regun/presentation/grenade_art.dart';
@@ -44,6 +47,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     with SingleTickerProviderStateMixin {
   late final Ticker ticker;
   late SoloudPlay audio;
+  final grenadeAim = GrenadeAim();
   final Map<int, String> pointers = {};
   final Map<String, Offset> origins = {}, knobs = {}, displayed = {};
   final Set<LogicalKeyboardKey> keys = {};
@@ -205,6 +209,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     final connection =
         '${session.me?.generation}:${session.room?.id}:${session.connected}';
     if (connection != _generation) {
+      grenadeAim.cancel();
       _generation = connection;
       _worldCues.clear();
       _offerCue = null;
@@ -307,6 +312,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   }
 
   void clear() {
+    grenadeAim.cancel();
     pointers.clear();
     origins.clear();
     knobs.clear();
@@ -359,7 +365,10 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           final radius = controls.size / 2;
           void update(PointerEvent event) {
             final id = pointers[event.pointer];
-            if (id == null || id == 'dash' || id == 'reload' || id == 'grenade') {
+            if (id == null ||
+                id == 'dash' ||
+                id == 'reload' ||
+                id == 'grenade') {
               return;
             }
             var delta =
@@ -453,7 +462,6 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                           (p - geometry.grenade).distance <
                               controls.buttonSize / 2) {
                         pointers[event.pointer] = 'grenade';
-                        session.throwGrenade();
                         return;
                       }
                       for (final id in ['move', 'aim']) {
@@ -481,6 +489,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         artReady: artReady,
                         shotTimes: shotTimes,
                         hurtTimes: hurtTimes,
+                        grenadeAim: grenadeAim,
                       ),
                     ),
                   ),
@@ -615,13 +624,15 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     left: geometry.grenade.dx - controls.buttonSize / 2,
                     top: geometry.grenade.dy - controls.buttonSize / 2,
                     child: Semantics(
-                      label: 'Throw grenade',
+                      label: 'Hold and drag to aim grenade; release to throw',
                       button: true,
                       enabled:
                           session.controlsEnabled &&
                           session.grenadesAvailable &&
                           (session.gun?.grenadeCharges ?? 0) > 0,
-                      child: GrenadeTapButton(
+                      child: GrenadeAimButton(
+                        input: grenadeAim,
+                        onChanged: () => mounted ? setState(() {}) : null,
                         size: controls.buttonSize,
                         charges: session.grenadesAvailable
                             ? session.gun?.grenadeCharges ?? 0
@@ -629,9 +640,14 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         progress: session.gun?.grenadeProgress ?? 0,
                         remaining: session.gun?.grenadeRemaining ?? 0,
                         opacity: controls.opacity,
-                        onTap:
-                            session.controlsEnabled && session.grenadesAvailable
-                            ? session.throwGrenade
+                        onThrow:
+                            session.controlsEnabled &&
+                                session.grenadeAimingAvailable &&
+                                (session.gun?.grenadeCooldown ?? 0) <= 0
+                            ? (direction, power) => session.throwGrenade(
+                                aim: direction,
+                                power: power,
+                              )
                             : null,
                       ),
                     ),
@@ -708,8 +724,10 @@ class _ArenaPainter extends CustomPainter {
     required this.artReady,
     required this.shotTimes,
     required this.hurtTimes,
+    required this.grenadeAim,
   });
   final OnlineSession session;
+  final GrenadeAim grenadeAim;
   final Map<String, Offset> positions;
   final double seconds;
   final bool artReady;
@@ -1032,6 +1050,76 @@ class _ArenaPainter extends CustomPainter {
         );
       }
       canvas.restore();
+    }
+
+    if (grenadeAim.active &&
+        !grenadeAim.cancelled &&
+        session.controlsEnabled &&
+        mine != null) {
+      final direction = grenadeAim.direction ?? session.quickGrenadeDirection;
+      final start = Offset(mine.x, mine.y),
+          d = direction.distance < .001
+              ? const Offset(1, 0)
+              : direction / direction.distance;
+      final obstacles = (geometry['obstacles'] as List)
+          .map((r) => rectOf((r as List).cast<num>()))
+          .toList();
+      bool blocked(Offset a, Offset b) =>
+          !bounds.deflate(8).contains(b) ||
+          obstacles.any(
+            (r) => ArenaGeometry.crosses(
+              Vector2(a.dx, a.dy),
+              Vector2(b.dx, b.dy),
+              r.inflate(8),
+            ),
+          );
+      var origin = start + d * 36;
+      if (blocked(start, origin)) origin = start;
+      final flight = GrenadeFlight(
+        origin,
+        d *
+            GrenadeSpec.speed *
+            grenadeAim.power(LocalPreferences.shared.controls.buttonSize * .85),
+      );
+      final targets = <(Offset, double)>[
+        for (final e in session.scene.where(
+          (e) =>
+              e.kind == 'enemy' &&
+              e.number('health') > 0 &&
+              e.number('spawning') <= 0,
+        ))
+          (Offset(e.x, e.y), e.number('radius', 30) + 8),
+        for (final e in session.scene.where(
+          (e) =>
+              e.kind == 'enemy' &&
+              e.number('health') > 0 &&
+              e.number('spawning') <= 0,
+        ))
+          for (final p
+              in (e.data['weakPoints'] as List? ?? []).whereType<Map>())
+            if ((p['health'] as num? ?? 0) > 0)
+              (
+                Offset((p['x'] as num).toDouble(), (p['y'] as num).toDouble()),
+                34,
+              ),
+        if (session.room?.mode == 'versus')
+          for (final m in session.members.where(
+            (m) =>
+                m.team != mine.team &&
+                (session.fighters[m.identity.toHexString]?.health ?? 0) > 0,
+          ))
+            (Offset(m.x, m.y), 38),
+      ];
+      paintGrenadeTrajectory(
+        canvas,
+        grenadePreview(
+          flight,
+          blocked: blocked,
+          contact: (a, b) =>
+              targets.any((t) => grenadeSegmentContact(a, b, t.$1, t.$2)),
+        ),
+        reducedMotion: LocalPreferences.shared.reducedMotion,
+      );
     }
     canvas.restore();
   }

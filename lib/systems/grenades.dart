@@ -157,3 +157,69 @@ class GrenadeFlight {
       ..spin = n('spin');
   }
 }
+
+/// One independent thumb gesture. Returning a deliberate drag to center cancels.
+class GrenadeAim {
+  int? pointer;
+  Offset origin = Offset.zero, delta = Offset.zero;
+  bool dragged = false;
+  bool get active => pointer != null;
+  bool get cancelled => dragged && delta.distance < 8;
+  bool begin(int id, Offset point) {
+    if (active) return false;
+    pointer = id;
+    origin = point;
+    delta = Offset.zero;
+    dragged = false;
+    return true;
+  }
+
+  void move(int id, Offset point) {
+    if (pointer != id) return;
+    delta = point - origin;
+    if (delta.distance >= 8) dragged = true;
+  }
+
+  Offset? get direction => delta.distance < 8 ? null : delta / delta.distance;
+  double power(double radius) => direction == null
+      ? 1
+      : (.4 + .6 * ((delta.distance - 8) / radius).clamp(0, 1));
+  void cancel() {
+    pointer = null;
+    delta = Offset.zero;
+    dragged = false;
+  }
+}
+
+class GrenadePreviewPoint {
+  const GrenadePreviewPoint(this.ground, this.height);
+  final Offset ground;
+  final double height;
+}
+
+List<GrenadePreviewPoint> grenadePreview(
+  GrenadeFlight flight, {
+  required bool Function(Offset, Offset) blocked,
+  required bool Function(Offset, Offset) contact,
+}) {
+  final points = <GrenadePreviewPoint>[
+    GrenadePreviewPoint(flight.position, flight.height),
+  ];
+  for (var i = 0; i < 168 && !flight.spent; i++) {
+    flight.advance(1 / 120, blocked: blocked, contact: contact);
+    if (i % 4 == 0 || flight.spent) {
+      points.add(GrenadePreviewPoint(flight.position, flight.height));
+    }
+  }
+  return points;
+}
+
+bool grenadeSegmentContact(Offset a, Offset b, Offset point, double radius) {
+  final d = b - a;
+  final t = d.distanceSquared < 1e-9
+      ? 0.0
+      : (((point.dx - a.dx) * d.dx + (point.dy - a.dy) * d.dy) /
+                d.distanceSquared)
+            .clamp(0, 1);
+  return (point - (a + d * t.toDouble())).distance <= radius;
+}

@@ -46,6 +46,42 @@ class Reducers {
     );
   }
 
+  /// Call the aim_grenade reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> aimGrenade({
+    required Int64 roomid,
+    required Int64 generation,
+    required Int64 seq,
+    required double aimx,
+    required double aimy,
+    required double power,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+    encoder.writeU64(seq);
+    encoder.writeF64(aimx);
+    encoder.writeF64(aimy);
+    encoder.writeF64(power);
+
+    return await _reducerCaller.call(
+      'aim_grenade',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
   /// Call the attach_combat reducer
   ///
   /// Returns [TransactionResult] with execution metadata:
@@ -618,6 +654,40 @@ class Reducers {
 
       // Extract fields from strongly-typed object - NO CASTING
       callback(ctx, args.probe);
+    });
+  }
+
+  StreamSubscription<void> onAimGrenade(
+    void Function(
+      EventContext ctx,
+      Int64 roomid,
+      Int64 generation,
+      Int64 seq,
+      double aimx,
+      double aimy,
+      double power,
+    )
+    callback,
+  ) {
+    return _reducerEmitter.on('aim_grenade').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! AimGrenadeArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(
+        ctx,
+        args.roomid,
+        args.generation,
+        args.seq,
+        args.aimx,
+        args.aimy,
+        args.power,
+      );
     });
   }
 
