@@ -216,15 +216,15 @@ class AttackVfx {
       canvas.translate(point.dx, point.dy);
       canvas.rotate(heading);
       stamp(canvas, 5, const Offset(4, 7), 54,
-          height: 26, alpha: .68 + progress * .18, grading: ambient);
+          height: 26, alpha: .54 + progress * .16, grading: ambient);
       for (final side in [-1, 1]) {
         for (var claw = 0; claw < 3; claw++) {
           final y = side * (9.0 + claw * 5);
           final marks = [Offset(-17.0 + claw * 4, y + side * 3),
             Offset(-4.0 + claw, y), Offset(13.0 - claw * 3, y - side * 3)];
-          stroke(canvas, marks, const Color(0xe6100F0E), 8);
+          stroke(canvas, marks, const Color(0xb3100F0E), 7);
           stroke(canvas, marks,
-              Color.fromRGBO(216, 183, 134, .76 + progress * .2), 3);
+              Color.fromRGBO(190, 174, 146, .66 + progress * .18), 3);
         }
       }
       canvas.restore();

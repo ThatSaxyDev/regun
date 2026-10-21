@@ -27,7 +27,7 @@ void main(){
    var bright=0;
    for(var yy=y-28;yy<y+28;yy++){ for(var x=30;x<510;x++){
     final i=(yy*640+x)*4;
-    if(bytes.getUint8(i)>135 && bytes.getUint8(i+1)>110)bright++;
+    if(bytes.getUint8(i)>115 && bytes.getUint8(i+1)>105)bright++;
    }
    }
    expect(bright,greaterThan(500));
