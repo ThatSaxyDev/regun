@@ -1,3 +1,5 @@
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:regun/widgets/menu_layout.dart';
 import 'package:regun/widgets/survivor_portrait.dart';
 import 'package:flutter/material.dart';
@@ -95,12 +97,43 @@ class _CollectionViewState extends State<CollectionView> {
               _ => [
                   _card(
                       'REGUN',
-                      'Created with Flutter and Flame.\nGameplay code, pixel UI, AI-assisted artwork and synthesized audio are part of this project.\nNo accounts, ads, or online services are required.\nVersion 1.0.0',
-                      constraints.maxWidth)
+                      'Gameplay code, pixel UI, AI-assisted artwork and synthesized audio are part of this project.\nNo accounts or ads are required.\nVersion 1.0.0',
+                      constraints.maxWidth,
+                      attribution: Semantics(
+                          link: true,
+                          child: InkWell(
+                              onTap: _openCreatorSite,
+                              child: ConstrainedBox(
+                                  constraints: const BoxConstraints(minHeight: 48),
+                                  child: const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 8),
+                                      child: Text(
+                                          'Created with Flutter and Flame by Dedeke David',
+                                          style: TextStyle(
+                                              fontFamily: FontFam.orbitron,
+                                              fontSize: 11,
+                                              height: 1.7,
+                                              color: Color(0xffDEB97B),
+                                              decoration: TextDecoration.underline,
+                                              decorationColor: Color(0xffDEB97B))))))))
                 ],
             };
             return MenuCardGrid(maxColumns: tab == 5 ? 1 : 3, children: cards);
           })));
+  Future<void> _openCreatorSite() async {
+    var opened = false;
+    try {
+      opened = await launchUrl(Uri.parse('https://kiishi.space'),
+          mode: LaunchMode.externalApplication);
+    } on PlatformException {
+      // Keep Credits usable if the device cannot open a browser.
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open kiishi.space.')));
+    }
+  }
+
   String _progress(String id) => switch (id) {
         'scrapper' => '${profile.totalKills} / 500 KILLS',
         'scorpionCharm' => '${profile.scorpionKills} / 1000',
@@ -110,7 +143,7 @@ class _CollectionViewState extends State<CollectionView> {
         _ => 'IN PROGRESS',
       };
   Widget _card(String title, String body, double width,
-          {String? badge, Widget? action}) =>
+          {String? badge, Widget? action, Widget? attribution}) =>
       Container(
           key: ValueKey('collection-card-$title'),
           width: width,
@@ -135,6 +168,7 @@ class _CollectionViewState extends State<CollectionView> {
                     height: 1.6,
                     color: Color(0xffE5DDD1))),
             const SizedBox(height: 12),
+            if (attribution != null) attribution,
             Text(body,
                 style: const TextStyle(
                     fontFamily: FontFam.orbitron,

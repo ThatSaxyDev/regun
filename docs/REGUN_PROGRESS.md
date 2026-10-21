@@ -607,3 +607,11 @@ The creator rejected the iron breach's sterile vector treatment and approved a t
 The packaged 1536×1024 plate is `assets/art/arenas/home_hideout_v2.png`; generation method, references and exact prompt are recorded in `art/source/menu/HOME_HIDEOUT.md`. A rendered-pixel regression verifies change in the actual lamp and bench, no change in the distant shelter, and identical frames under Reduced Motion. The creator's illustration approval does not replace review of the animated result on hardware.
 
 Validation of the shelter correction: analyzer clean; **183 tests passed**, four opt-in simulations skipped. Signed release 1.0.0+7 built, packaged plate SHA-256 verified and installed/launched on the paired iPhone 12. A fresh debug simulator build was installed/launched on the open iPhone 17. Both use the configured public multiplayer endpoint, allowing them to address the same rooms. Installation/launch and automated light checks do not establish the creator's physical animation/comfort approval.
+
+## Home button finish and creator credits — 21 October 2026
+
+Home actions now share Regun's stepped `controlPlate` geometry: recessed warm iron faces, caught top lips, brass rims/pins, sparse surface scuffs and a depressed touch state. Continue/Play priority comes from warmer iron and brass rather than a flat cream slab; utility actions and Settings use the same construction. The approved Rook shelter, localized flickering lamp, five-action layout and accessibility behavior remain.
+
+Collection → Credits now shows a tappable, underlined “Created with Flutter and Flame by Dedeke David” attribution opening `https://kiishi.space` in the external browser, with a 48px minimum touch target and a brief failure message if opening fails. The notice reads “No accounts or ads are required.” Analyzer clean; all 183 tests pass (four opt-in skips), and the compact/enlarged-text Collection/menu checks pass after the link touch-target refinement. Visual preference remains for creator review.
+
+Rebuilt and installed/launched the button/credits refinement on the paired iPhone (signed release 1.0.0+7) and open iPhone 17 simulator (debug). Both continue to use the same public multiplayer configuration. The accepted shelter plate and flicker regression are unchanged.

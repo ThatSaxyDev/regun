@@ -204,7 +204,7 @@ class HomeMenu extends StatelessWidget {
   );
 }
 
-class _HomeAction extends ConsumerWidget {
+class _HomeAction extends ConsumerStatefulWidget {
   const _HomeAction({
     super.key,
     required this.label,
@@ -218,94 +218,112 @@ class _HomeAction extends ConsumerWidget {
   final String? detail;
   final VoidCallback? onTap;
   final bool primary, utility, gear;
+  @override
+  ConsumerState<_HomeAction> createState() => _HomeActionState();
+}
+
+class _HomeActionState extends ConsumerState<_HomeAction> {
+  bool _pressed = false;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ink = primary ? const Color(0xff182024) : const Color(0xffe3dbc9);
+  void didUpdateWidget(_HomeAction oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.onTap == null) _pressed = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.onTap != null;
+    final ink = widget.primary || widget.gear
+        ? const Color(0xffedd2a1)
+        : const Color(0xffd4c9b7);
     final scale = MediaQuery.textScalerOf(context).scale(12) / 12;
     return Semantics(
       button: true,
-      enabled: onTap != null,
-      label: label,
+      enabled: enabled,
+      label: widget.label,
       child: Tooltip(
-        message: gear ? label : '',
+        message: widget.gear ? widget.label : '',
         child: Material(
-          color: utility
-              ? Colors.transparent
-              : primary
-              ? const Color(0xffd1b17b)
-              : const Color(0xff30292f),
+          color: Colors.transparent,
           child: InkWell(
-            onTap: onTap == null
+            onTap: !enabled
                 ? null
                 : () {
                     ref.read(soloudPlayProvider).play('click.mp3');
-                    onTap!();
+                    widget.onTap!();
                   },
-            splashColor: ink.withValues(alpha: .12),
-            child: Container(
-              constraints: BoxConstraints(minHeight: utility ? 48 : 54),
-              width: gear ? 48 : null,
-              padding: EdgeInsets.symmetric(
-                horizontal: utility ? 4 : 16,
-                vertical: 12,
+            onTapDown: !enabled ? null : (_) => setState(() => _pressed = true),
+            onTapUp: (_) => setState(() => _pressed = false),
+            onTapCancel: () => setState(() => _pressed = false),
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            child: CustomPaint(
+              painter: _HomePlate(
+                primary: widget.primary,
+                utility: widget.utility,
+                pressed: _pressed,
+                enabled: enabled,
               ),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: primary
-                        ? const Color(0xfff1d4a3)
-                        : const Color(0xff655651),
-                    width: primary ? 3 : 1,
+              child: Container(
+                constraints: BoxConstraints(
+                  minHeight: widget.utility ? 48 : 54,
+                ),
+                width: widget.gear ? 48 : null,
+                padding: EdgeInsets.symmetric(
+                  horizontal: widget.utility ? 12 : 20,
+                  vertical: 12,
+                ),
+                child: Transform.translate(
+                  offset: Offset(0, _pressed ? 1 : -1),
+                  child: Opacity(
+                    opacity: enabled ? 1 : .4,
+                    child: widget.gear
+                        ? Center(
+                            child: CustomPaint(
+                              size: const Size(22, 22),
+                              painter: _SettingsGlyph(ink),
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: widget.utility
+                                ? MainAxisAlignment.center
+                                : MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  widget.label.toUpperCase(),
+                                  textAlign: widget.utility
+                                      ? TextAlign.center
+                                      : TextAlign.left,
+                                  style: TextStyle(
+                                    fontFamily: widget.utility
+                                        ? FontFam.orbitron
+                                        : FontFam.pressStart,
+                                    fontSize: widget.utility ? 11 : 10,
+                                    height: 1.5,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: .5,
+                                    color: ink,
+                                  ),
+                                ),
+                              ),
+                              if (widget.detail != null && scale <= 1.25) ...[
+                                const SizedBox(width: 12),
+                                Text(
+                                  widget.detail!,
+                                  style: TextStyle(
+                                    fontFamily: FontFam.orbitron,
+                                    fontSize: 8,
+                                    letterSpacing: .6,
+                                    color: ink.withValues(alpha: .6),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                   ),
                 ),
-              ),
-              child: Opacity(
-                opacity: onTap == null ? .4 : 1,
-                child: gear
-                    ? Center(
-                        child: CustomPaint(
-                          size: const Size(22, 22),
-                          painter: _SettingsGlyph(ink),
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: utility
-                            ? MainAxisAlignment.center
-                            : MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              label.toUpperCase(),
-                              textAlign: utility
-                                  ? TextAlign.center
-                                  : TextAlign.left,
-                              style: TextStyle(
-                                fontFamily: utility
-                                    ? FontFam.orbitron
-                                    : FontFam.pressStart,
-                                fontSize: utility ? 11 : 10,
-                                height: 1.5,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: .5,
-                                color: ink,
-                              ),
-                            ),
-                          ),
-                          if (detail != null && scale <= 1.25) ...[
-                            const SizedBox(width: 12),
-                            Text(
-                              detail!,
-                              style: TextStyle(
-                                fontFamily: FontFam.orbitron,
-                                fontSize: 8,
-                                letterSpacing: .6,
-                                color: ink.withValues(alpha: .6),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
               ),
             ),
           ),
@@ -313,6 +331,95 @@ class _HomeAction extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The same stepped iron construction as Regun's in-game controls, with a
+/// recessed face, worn highlights and brass fasteners rather than flat slabs.
+class _HomePlate extends CustomPainter {
+  const _HomePlate({
+    required this.primary,
+    required this.utility,
+    required this.pressed,
+    required this.enabled,
+  });
+  final bool primary, utility, pressed, enabled;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final face = Rect.fromLTWH(
+      1,
+      pressed ? 3 : 0,
+      size.width - 2,
+      size.height - 4,
+    );
+    final paint = Paint()..isAntiAlias = false;
+    final rim = primary ? const Color(0xffbd9762) : const Color(0xff71604f);
+    canvas.drawPath(
+      controlPlate(face.shift(const Offset(0, 4))),
+      paint..color = const Color(0xff0c0a0e),
+    );
+    canvas.drawPath(controlPlate(face), paint..color = const Color(0xff141116));
+    canvas.drawPath(
+      controlPlate(face.deflate(1)),
+      paint..color = rim.withValues(alpha: enabled ? 1 : .35),
+    );
+    final inner = face.deflate(3);
+    canvas.drawPath(
+      controlPlate(inner, cut: 4),
+      paint
+        ..color = pressed
+            ? const Color(0xff211b20)
+            : primary
+            ? const Color(0xff49382e)
+            : utility
+            ? const Color(0xff252027)
+            : const Color(0xff30272e),
+    );
+    canvas.save();
+    canvas.clipPath(controlPlate(inner, cut: 4));
+    // A recessed lower edge, a caught top lip and short breaks in the finish.
+    canvas.drawRect(
+      Rect.fromLTWH(inner.left, inner.bottom - 4, inner.width, 4),
+      paint..color = const Color(0xff191419),
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(inner.left + 5, inner.top, inner.width - 10, 1),
+      paint
+        ..color = primary ? const Color(0xff896c4e) : const Color(0xff57474a),
+    );
+    for (var i = 0; i < (size.width / 5).floor(); i++) {
+      final x = inner.left + (i * 37 % inner.width);
+      final y = inner.top + (i * 17 % inner.height);
+      canvas.drawRect(
+        Rect.fromLTWH(x, y, i % 4 == 0 ? 3 : 1, 1),
+        paint
+          ..color = i.isEven
+              ? const Color(0x146f6157)
+              : const Color(0x220b090d),
+      );
+    }
+    if (primary) {
+      canvas.drawRect(
+        Rect.fromLTWH(inner.left + 4, inner.top + 10, 2, inner.height - 20),
+        paint..color = const Color(0xffc39b61),
+      );
+    }
+    canvas.restore();
+    // Tiny square pins sit in the rim; they don't compete with button labels.
+    for (final x in [face.left + 7, face.right - 9]) {
+      canvas.drawRect(
+        Rect.fromLTWH(x, face.center.dy - 1, 2, 2),
+        paint..color = rim.withValues(alpha: enabled ? .9 : .3),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_HomePlate oldDelegate) =>
+      oldDelegate.primary != primary ||
+      oldDelegate.utility != utility ||
+      oldDelegate.pressed != pressed ||
+      oldDelegate.enabled != enabled;
 }
 
 class _SettingsGlyph extends CustomPainter {
