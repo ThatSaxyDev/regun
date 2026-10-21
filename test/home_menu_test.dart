@@ -17,6 +17,25 @@ class _Quiet extends SoloudPlay {
 }
 
 void main() {
+  test(
+    'shelter voltage has unequal brownouts, recovery and seamless looping',
+    () {
+      expect(ShelterVoltage.at(.5), lessThan(.2));
+      expect(ShelterVoltage.at(2), greaterThan(.85));
+      expect(ShelterVoltage.at(8.6), lessThan(.1));
+      expect(ShelterVoltage.at(14), inInclusiveRange(.48, .7));
+      expect(ShelterVoltage.at(24), ShelterVoltage.at(0));
+      for (var step = 1; step <= 2400; step++) {
+        final value = ShelterVoltage.at(step / 100);
+        expect(value, inInclusiveRange(.08, .96));
+        expect(
+          (value - ShelterVoltage.at((step - 1) / 100)).abs(),
+          lessThan(.08),
+        );
+      }
+    },
+  );
+
   testWidgets('five home actions and settings fit safe landscape edges', (
     tester,
   ) async {
@@ -166,7 +185,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
   testWidgets(
-    'work lamp visibly flickers locally and reduced motion holds it steady',
+    'brownout dims bulb and bench while reduced motion holds shelter steady',
     (tester) async {
       const capture = Key('lamp-capture');
       Widget scene(bool reduced) => MaterialApp(
@@ -204,9 +223,23 @@ void main() {
         return result;
       }
 
+      Future<void> save(String name) async {
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(capture),
+        );
+        final image = await boundary.toImage();
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        await File('build/test-previews/shelter-$name.png')
+            .create(recursive: true)
+            .then((f) => f.writeAsBytes(bytes!.buffer.asUint8List()));
+        image.dispose();
+      }
+
+      await tester.runAsync(() => save('bright'));
       final first = await tester.runAsync(pixels);
       await tester.pump(const Duration(milliseconds: 500));
       final second = await tester.runAsync(pixels);
+      await tester.runAsync(() => save('brownout'));
       double difference(Rect region) {
         var sum = 0;
         var count = 0;
@@ -237,8 +270,11 @@ void main() {
         0,
         reason: 'The dark shelter outside the lamp pool stays steady.',
       );
+      await tester.pump(const Duration(milliseconds: 2700));
+      await tester.runAsync(() => save('sparks'));
       await tester.pumpWidget(scene(true));
       await tester.pumpAndSettle();
+      await tester.runAsync(() => save('steady'));
       final still = await tester.runAsync(pixels);
       await tester.pump(const Duration(seconds: 2));
       expect(await tester.runAsync(pixels), still);

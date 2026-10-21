@@ -55,7 +55,9 @@ class _HomeArtworkState extends State<HomeArtwork>
             RepaintBoundary(child: child),
             if (frame != null || synchronous)
               RepaintBoundary(
-                child: CustomPaint(painter: _ShelterAtmosphere(_clock)),
+                child: CustomPaint(
+                  painter: _ShelterAtmosphere(_clock, widget.reducedMotion),
+                ),
               ),
           ],
         ),
@@ -65,7 +67,8 @@ class _HomeArtworkState extends State<HomeArtwork>
 }
 
 class _ShelterAtmosphere extends CustomPainter {
-  _ShelterAtmosphere(this.clock) : super(repaint: clock);
+  _ShelterAtmosphere(this.clock, this.reducedMotion) : super(repaint: clock);
+  final bool reducedMotion;
   final Animation<double> clock;
 
   @override
@@ -80,33 +83,40 @@ class _ShelterAtmosphere extends CustomPainter {
     canvas.scale(scale);
     final t = clock.value * math.pi * 2;
     final paint = Paint()..isAntiAlias = false;
-    // Uneven filament flutter and occasional short dips. Only the work lamp
-    // and its warm pool change; the cool shelter and all UI remain steady.
-    final flutter =
-        .74 +
-        .13 * math.sin(t * 17) +
-        .08 * math.sin(t * 31 + .7) +
-        .05 * math.sin(t * 53);
-    final dip = math.pow(math.max(0, math.sin(t * 11 + .4)), 12) * .38;
-    final intensity = (flutter - dip).clamp(.25, 1.0);
+    // Keep the ruined surroundings underexposed. Preserve the lamp's warm
+    // working area instead of laying a uniform dark wash over the painting.
+    const shelter = Rect.fromLTWH(0, 0, 1536, 1024);
+    canvas.drawRect(
+      shelter,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(.28, -.08),
+          radius: .8,
+          stops: [0, .38, 1],
+          colors: [Color(0x14080910), Color(0x38080910), Color(0x85080910)],
+        ).createShader(shelter),
+    );
+    // Long, uneven brownouts with a staggered recovery, rather than a
+    // periodic breathing glow. All reflected light shares the same voltage.
+    final intensity = reducedMotion ? .85 : ShelterVoltage.at(clock.value * 24);
     final shade = Paint()
       ..shader = RadialGradient(
-        center: const Alignment(-.18, -.35),
-        radius: .9,
+        center: const Alignment(0, -.12),
+        radius: .78,
         colors: [
-          const Color(0xff160c12).withValues(alpha: (1 - intensity) * .38),
+          const Color(0xff100f16).withValues(alpha: (1 - intensity) * .84),
           Colors.transparent,
         ],
-      ).createShader(const Rect.fromLTWH(685, 145, 600, 650));
-    canvas.drawRect(const Rect.fromLTWH(685, 145, 600, 650), shade);
+      ).createShader(const Rect.fromLTWH(630, 120, 850, 810));
+    canvas.drawRect(const Rect.fromLTWH(630, 120, 850, 810), shade);
     final light = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xffffbc69).withValues(alpha: .03 + intensity * .09),
+          const Color(0xffffbc69).withValues(alpha: .015 + intensity * .18),
           Colors.transparent,
         ],
-      ).createShader(const Rect.fromLTWH(805, 230, 300, 300));
-    canvas.drawRect(const Rect.fromLTWH(805, 230, 300, 300), light);
+      ).createShader(const Rect.fromLTWH(770, 220, 410, 430));
+    canvas.drawRect(const Rect.fromLTWH(770, 220, 410, 430), light);
     // Follow the painted underside of the slanted shade, not a floating glow.
     canvas.drawPath(
       Path()..addPolygon(const [
@@ -116,20 +126,46 @@ class _ShelterAtmosphere extends CustomPainter {
         Offset(922, 370),
       ], true),
       Paint()
-        ..color = const Color(0xffffdda1)
-            .withValues(alpha: .08 + intensity * .43),
+        ..color = Color.lerp(
+          const Color(0xff25201c),
+          const Color(0xffffe5ac),
+          intensity,
+        )!.withValues(alpha: .72),
     );
     final random = math.Random(91);
-    for (var i = 0; i < 18; i++) {
+    for (var i = 0; i < 38; i++) {
       final progress = (random.nextDouble() + clock.value) % 1;
-      final x = 755 + random.nextDouble() * 370 + math.sin(t + i) * 9;
-      final y = 720 - progress * 440;
+      final x = 320 + random.nextDouble() * 1130 + math.sin(t + i) * 14;
+      final y = 910 - progress * 760;
       canvas.drawRect(
-        Rect.fromLTWH(x, y, 2, 2),
+        Rect.fromLTWH(x, y, i % 5 == 0 ? 3 : 2, 2),
         paint
-          ..color = const Color(0xffe1bf87)
-              .withValues(alpha: math.sin(progress * math.pi) * .22),
+          ..color = const Color(0xffe1bf87).withValues(
+            alpha:
+                math.sin(progress * math.pi) *
+                (x > 760 && x < 1120 ? .30 : .14),
+          ),
       );
+    }
+    // A few falling hot flecks from the damaged cable at the upper right.
+    // Short, separated events, never a shower across the survivor or controls.
+    if (!reducedMotion) {
+      for (var i = 0; i < 3; i++) {
+        final age = (clock.value * 24 - (3.1 + i * 7.3)) % 24;
+        if (age > .7) continue;
+        for (var j = 0; j < 3; j++) {
+          final life = (age - j * .075) / .5;
+          if (life < 0 || life > 1) continue;
+          final x = 1390 + (j - 1) * life * 24;
+          final y = 270 + life * 32 + life * life * 48;
+          canvas.drawRect(
+            Rect.fromLTWH(x, y, 2, 3),
+            paint
+              ..color = const Color(0xffffcb83)
+                  .withValues(alpha: (1 - life) * .72),
+          );
+        }
+      }
     }
     // Stepped wisps from the enamel mug; silhouettes and props stay planted.
     for (var i = 0; i < 3; i++) {
@@ -148,5 +184,53 @@ class _ShelterAtmosphere extends CustomPainter {
 
   @override
   bool shouldRepaint(_ShelterAtmosphere oldDelegate) =>
-      oldDelegate.clock != clock;
+      oldDelegate.clock != clock || oldDelegate.reducedMotion != reducedMotion;
+}
+
+/// Voltage envelopes are continuous at the loop boundary and between holds.
+/// Dips last long enough to read as failing power rather than rapid flashing.
+class ShelterVoltage {
+  static const _knots = <(double, double)>[
+    (0, .88),
+    (.22, .9),
+    (.40, .14),
+    (.68, .12),
+    (.86, .58),
+    (1.08, .36),
+    (1.4, .94),
+    (3.8, .86),
+    (4.2, .55),
+    (4.8, .63),
+    (5.15, .92),
+    (8.1, .86),
+    (8.3, .09),
+    (8.78, .08),
+    (9.05, .42),
+    (9.32, .26),
+    (9.7, .96),
+    (13.4, .89),
+    (13.75, .48),
+    (14.5, .7),
+    (15.0, .93),
+    (19.1, .88),
+    (19.36, .18),
+    (19.7, .13),
+    (20.05, .65),
+    (20.4, .46),
+    (20.85, .92),
+    (24, .88),
+  ];
+
+  static double at(double seconds) {
+    final time = seconds % 24;
+    for (var i = 1; i < _knots.length; i++) {
+      final (end, high) = _knots[i];
+      if (time > end) continue;
+      final (start, low) = _knots[i - 1];
+      final u = (time - start) / (end - start);
+      final eased = u * u * (3 - 2 * u);
+      return low + (high - low) * eased;
+    }
+    return .88;
+  }
 }

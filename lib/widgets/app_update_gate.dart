@@ -100,24 +100,30 @@ class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
       canPop: _prompt == null,
       child: Stack(fit: StackFit.expand, children: [
         ExcludeFocus(
-            excluding: _prompt != null || _checking,
+            excluding: _prompt != null,
             child: ExcludeSemantics(
-                excluding: _prompt != null || _checking,
+                excluding: _prompt != null,
                 child: IgnorePointer(
-                    ignoring: _prompt != null || _checking,
+                    ignoring: _prompt != null,
                     child: widget.child))),
         if (_prompt == null && _checking)
           const Positioned(
               left: 0,
               right: 0,
               bottom: 12,
-              child: SafeArea(
-                  child: Text('Checking for updates…',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontFamily: FontFam.orbitron,
-                          fontSize: 10,
-                          color: Color(0xffB8A78F))))),
+              child: IgnorePointer(
+                  child: SafeArea(
+                      child: Material(
+                          type: MaterialType.transparency,
+                          child: Text('Checking for updates…',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  inherit: false,
+                                  decoration: TextDecoration.none,
+                                  height: 1.3,
+                                  fontFamily: FontFam.orbitron,
+                                  fontSize: 10,
+                                  color: Color(0xffB8A78F))))))),
         if (_prompt != null) ...[
           const ModalBarrier(dismissible: false, color: Color(0xD9100D14)),
           SafeArea(

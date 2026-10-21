@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -37,9 +38,11 @@ class Quiet extends SoloudPlay {
 class FakeUpdates extends AppUpdates {
   FakeUpdates() : super(apiKey: 'test', platform: TargetPlatform.iOS);
   VersionCheckResult result = optional;
+  Completer<VersionCheckResult>? pending;
   bool fail = false, opened = false, snoozed = false;
   @override
   Future<VersionCheckResult> check() async {
+    if (pending != null) return pending!.future;
     if (fail) throw StateError('offline');
     return result;
   }
@@ -218,6 +221,61 @@ void main() {
                               child: TextButton(
                                   onPressed: () {},
                                   child: const Text('PLAY'))))))));
+  testWidgets('pending startup and resume checks allow taps through status',
+      (tester) async {
+    final service = FakeUpdates()..pending = Completer<VersionCheckResult>();
+    var taps = 0;
+    final focus = FocusNode();
+    addTearDown(focus.dispose);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [appUpdatesProvider.overrideWithValue(service)],
+      child: MaterialApp(home: AppUpdateGate(child: Scaffold(
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => taps++,
+          child: Center(child: TextButton(
+            focusNode: focus,
+            onPressed: () => taps++,
+            child: const Text('PLAY'),
+          )),
+        ),
+      ))),
+    ));
+    await tester.pump();
+    Future<void> verifyPending() async {
+      expect(find.text('Checking for updates…'), findsOneWidget);
+      final status = tester.renderObject<RenderParagraph>(
+          find.text('Checking for updates…'));
+      expect(status.text.style!.decoration, TextDecoration.none);
+      await tester.tap(find.text('PLAY'));
+      await tester.tapAt(tester.getCenter(find.text('Checking for updates…')));
+      focus.requestFocus();
+      await tester.pump();
+      expect(focus.hasFocus, isTrue);
+      final excluded = tester.widget<ExcludeSemantics>(find.descendant(
+        of: find.byType(AppUpdateGate), matching: find.byType(ExcludeSemantics),
+      ).first);
+      expect(excluded.excluding, isFalse);
+    }
+    await verifyPending();
+    expect(taps, 2);
+    service.pending!.complete(VersionCheckResult.noUpdateRequired);
+    await tester.pumpAndSettle();
+    service.pending = Completer<VersionCheckResult>();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await verifyPending();
+    expect(taps, 4);
+    service.pending!.completeError(StateError('offline'));
+    await tester.pumpAndSettle();
+    expect(find.text('Checking for updates…'), findsNothing);
+    await tester.tap(find.text('PLAY'));
+    expect(taps, 5);
+    await tester.pumpWidget(const SizedBox());
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
       'optional later; forced back blocked; failure preserves required gate; policy withdrawal unlocks',
       (tester) async {
