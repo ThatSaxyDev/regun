@@ -128,7 +128,7 @@ class HomeMenu extends StatelessWidget {
       return Stack(
         fit: StackFit.expand,
         children: [
-          const ColoredBox(color: Color(0xff10191b)),
+          const ColoredBox(color: Color(0xff171319)),
           Positioned.fill(
             left: portrait ? -160 : box.maxWidth * .25,
             bottom: portrait ? box.maxHeight * .38 : 0,
@@ -141,10 +141,10 @@ class HomeMenu extends StatelessWidget {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    const Color(0xff101719),
-                    const Color(0xff101719).withValues(alpha: .97),
-                    const Color(0xff101719).withValues(alpha: .1),
-                    const Color(0xff101719).withValues(alpha: .05),
+                    const Color(0xff171319),
+                    const Color(0xff171319).withValues(alpha: .97),
+                    const Color(0xff171319).withValues(alpha: .1),
+                    const Color(0xff171319).withValues(alpha: .05),
                   ],
                   stops: const [0, .30, .65, 1],
                 ),
@@ -182,7 +182,7 @@ class HomeMenu extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        bestScore > 0 ? 'BEST  $bestScore' : 'FIELD TERMINAL',
+                        bestScore > 0 ? 'BEST  $bestScore' : '',
                         style: const TextStyle(
                           fontFamily: FontFam.orbitron,
                           fontSize: 8,
@@ -234,7 +234,7 @@ class _HomeAction extends ConsumerWidget {
               ? Colors.transparent
               : primary
               ? const Color(0xffd1b17b)
-              : const Color(0xff263336),
+              : const Color(0xff30292f),
           child: InkWell(
             onTap: onTap == null
                 ? null
@@ -255,7 +255,7 @@ class _HomeAction extends ConsumerWidget {
                   bottom: BorderSide(
                     color: primary
                         ? const Color(0xfff1d4a3)
-                        : const Color(0xff566361),
+                        : const Color(0xff655651),
                     width: primary ? 3 : 1,
                   ),
                 ),

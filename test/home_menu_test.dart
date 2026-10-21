@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/widgets/home_menu.dart';
+import 'package:regun/widgets/home_artwork.dart';
 
 class _Quiet extends SoloudPlay {
   @override
@@ -78,6 +79,12 @@ void main() {
                 ),
               ),
             ),
+          ),
+        );
+        await tester.runAsync(
+          () => precacheImage(
+            const AssetImage('assets/art/arenas/home_hideout_v2.png'),
+            tester.element(find.byType(HomeArtwork)),
           ),
         );
         await tester.pumpAndSettle();
@@ -158,4 +165,84 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     expect(tester.takeException(), isNull);
   });
+  testWidgets(
+    'work lamp visibly flickers locally and reduced motion holds it steady',
+    (tester) async {
+      const capture = Key('lamp-capture');
+      Widget scene(bool reduced) => MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 768,
+              height: 512,
+              child: RepaintBoundary(
+                key: capture,
+                child: HomeArtwork(reducedMotion: reduced),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpWidget(scene(false));
+      await tester.runAsync(() async {
+        await precacheImage(
+          const AssetImage('assets/art/arenas/home_hideout_v2.png'),
+          tester.element(find.byType(HomeArtwork)),
+        );
+      });
+      await tester.pump();
+      Future<List<int>> pixels() async {
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(capture),
+        );
+        final image = await boundary.toImage();
+        final bytes = await image.toByteData(
+          format: ui.ImageByteFormat.rawRgba,
+        );
+        final result = bytes!.buffer.asUint8List().toList();
+        image.dispose();
+        return result;
+      }
+
+      final first = await tester.runAsync(pixels);
+      await tester.pump(const Duration(milliseconds: 500));
+      final second = await tester.runAsync(pixels);
+      double difference(Rect region) {
+        var sum = 0;
+        var count = 0;
+        for (var y = region.top.toInt(); y < region.bottom; y++) {
+          for (var x = region.left.toInt(); x < region.right; x++) {
+            for (var c = 0; c < 3; c++) {
+              final offset = (y * 768 + x) * 4 + c;
+              sum += (first![offset] - second![offset]).abs();
+              count++;
+            }
+          }
+        }
+        return sum / count;
+      }
+
+      expect(
+        difference(const Rect.fromLTWH(450, 165, 38, 22)),
+        greaterThan(1),
+        reason: 'The actual bulb must change, not just floating dust.',
+      );
+      expect(
+        difference(const Rect.fromLTWH(450, 245, 60, 45)),
+        greaterThan(.1),
+        reason: 'The workbench must respond to the lamp.',
+      );
+      expect(
+        difference(const Rect.fromLTWH(40, 230, 40, 30)),
+        0,
+        reason: 'The dark shelter outside the lamp pool stays steady.',
+      );
+      await tester.pumpWidget(scene(true));
+      await tester.pumpAndSettle();
+      final still = await tester.runAsync(pixels);
+      await tester.pump(const Duration(seconds: 2));
+      expect(await tester.runAsync(pixels), still);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 }

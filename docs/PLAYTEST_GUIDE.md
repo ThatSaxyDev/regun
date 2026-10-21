@@ -181,3 +181,5 @@ Compare each weapon against the same enemy type up close, at mid distance and ne
 - Check the title and lower rail on a compact landscape phone and both notch orientations. Larger text and portrait can scroll without obscuring the pinned version footer.
 - Settings → Controls should still save layout preferences before a match. Returning to Home after enabling Reduced Motion must freeze the breach hardware and ash; disabling it restores slow ambient movement.
 - Review the original iron breach illustration, contrast, motion comfort and thumb reach on hardware. Automated layout/simulator screenshots do not establish physical comfort or performance.
+
+The final home art is now **Rook's shelter**, replacing the rejected iron breach. Check visible localized flicker in the hanging work lamp and responding bench warmth, small mug steam and dust; the menu and cool background must stay steady. Reduced Motion holds the whole scene still. Confirm the characterful pixel texture survives phone-size scaling.

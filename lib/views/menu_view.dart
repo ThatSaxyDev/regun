@@ -130,7 +130,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
   @override
   Widget build(BuildContext context) => AppUpdateGate(
     child: Scaffold(
-      backgroundColor: const Color(0xff101719),
+      backgroundColor: const Color(0xff171319),
       body: HomeMenu(
         ready: _ready,
         bestScore: LocalPreferences.shared.bestScore,
