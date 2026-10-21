@@ -12,5 +12,12 @@
     "peak": 0.38,
     "rms": 0.06563924863104559,
     "sha256": "fd1d3d20907b25ae83b45e057bf4051b67607fcd4a575043c3a6a5658a8052e8"
+  },
+  {
+    "file": "upgrade_pulse.wav",
+    "seconds": 0.38,
+    "peak": 0.48,
+    "rms": 0.08716022631467413,
+    "sha256": "5a1ffd317a30c3a0d9aca560724754bbc6c4bbfadc1a1b990f8641485d9c342f"
   }
 ]

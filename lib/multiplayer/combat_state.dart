@@ -14,12 +14,12 @@ double combatNumber(
     : fallback;
 
 class OnlineGun {
-  OnlineGun(this.key, this.data, {this.enabled = true});
+  OnlineGun(this.key, this.data, {this.enabled = true, this.aiming = false});
   final String key;
   final Map<String, dynamic> data;
-  final bool enabled;
+  final bool enabled, aiming;
   int get grenadeCharges => combatNumber(data, 'grenadeCharges', 2).toInt();
-  double get grenadeCooldown => combatNumber(data,'grenadeCooldown');
+  double get grenadeCooldown => combatNumber(data, 'grenadeCooldown');
   double get grenadeRemaining => combatNumber(data, 'grenadeRemaining');
   double get grenadeProgress =>
       (1 - grenadeRemaining / combatNumber(data, 'grenadeDuration', 18)).clamp(
@@ -102,7 +102,7 @@ class OnlineRound {
   }
 
   int get grenadeCharges => combatNumber(data, 'grenadeCharges', 2).toInt();
-  double get grenadeCooldown => combatNumber(data,'grenadeCooldown');
+  double get grenadeCooldown => combatNumber(data, 'grenadeCooldown');
   double get grenadeRemaining => combatNumber(data, 'grenadeRemaining');
   double get grenadeProgress =>
       (1 - grenadeRemaining / combatNumber(data, 'grenadeDuration', 18)).clamp(

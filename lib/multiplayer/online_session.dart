@@ -278,6 +278,7 @@ class OnlineSession {
             identityKeyFromCanonical(f.key),
             combatObject(f.data),
             enabled: f.enabled,
+            aiming:f.fireHeld,
           ),
       };
       scene = [

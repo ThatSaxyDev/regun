@@ -1,3 +1,4 @@
+import 'package:regun/systems/weapon_heading.dart';
 import 'package:regun/systems/grenades.dart';
 import 'package:regun/systems/arena_geometry.dart';
 
@@ -47,6 +48,8 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     with SingleTickerProviderStateMixin {
   late final Ticker ticker;
   late SoloudPlay audio;
+  final weaponHeadings = <String, WeaponHeading>{};
+  final restingAim = <String, Offset>{};
   final grenadeAim = GrenadeAim();
   final Map<int, String> pointers = {};
   final Map<String, Offset> origins = {}, knobs = {}, displayed = {};
@@ -117,11 +120,15 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       final listener = session.me;
       if (old == null &&
           entity.kind == 'effect' &&
-          d['material'] == 'explosion' &&
+          (d['material'] == 'explosion' || d['material'] == 'upgradePulse') &&
           entity.number('age') < .15 &&
           listener != null &&
           Offset(entity.x - listener.x, entity.y - listener.y).distance < 900) {
-        unawaited(audio.play('blast.wav'));
+        unawaited(
+          audio.play(
+            d['material'] == 'upgradePulse' ? 'upgrade_pulse.wav' : 'blast.wav',
+          ),
+        );
       }
       _worldCues[entity.key] = cue;
       final me = session.me;
@@ -187,6 +194,33 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       if (_controlled && !session.controlsEnabled) clear();
       _controlled = session.controlsEnabled;
       _combatCues();
+      if (session.controlsEnabled || session.match?.phase == 'active') {
+        for (final m in session.members) {
+          final key = m.identity.toHexString, gun = session.fighters[key];
+          if (gun == null || gun.health <= 0) continue;
+          final mine = key == session.identity;
+          final direct = mine ? session.firing : gun.aiming;
+          final aim = mine
+              ? Offset(session.aimX, session.aimY)
+              : Offset(m.aimX, m.aimY);
+          final movement = mine
+              ? Offset(session.moveX, session.moveY)
+              : Offset(m.moveX, m.moveY);
+          final tracker = weaponHeadings.putIfAbsent(key, WeaponHeading.new);
+          final heading = tracker.advance(
+            restingAim[key] ?? aim,
+            movement,
+            direct ? aim : Offset.zero,
+            dt,
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+          );
+          restingAim[key] = heading;
+          if (mine && !direct && tracker.idle > .65) {
+            session.aimX = heading.dx;
+            session.aimY = heading.dy;
+          }
+        }
+      }
       _sceneCues();
       if (artReady) leases.update(session.scene);
       for (final member in session.members) {
@@ -198,6 +232,8 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
             ? target
             : Offset.lerp(old, target, 1 - math.exp(-18 * dt))!;
       }
+      weaponHeadings.removeWhere((key,_)=>!session.members.any((m)=>m.identity.toHexString==key));
+      restingAim.removeWhere((key,_)=>!session.members.any((m)=>m.identity.toHexString==key));
       displayed.removeWhere(
         (id, _) => !session.members.any((m) => m.identity.toHexString == id),
       );
@@ -211,6 +247,8 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     if (connection != _generation) {
       grenadeAim.cancel();
       _generation = connection;
+      restingAim.clear();
+      weaponHeadings.clear();
       _worldCues.clear();
       _offerCue = null;
       _shots.clear();
@@ -490,6 +528,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         shotTimes: shotTimes,
                         hurtTimes: hurtTimes,
                         grenadeAim: grenadeAim,
+                        restingAim: restingAim,
                       ),
                     ),
                   ),
@@ -725,9 +764,11 @@ class _ArenaPainter extends CustomPainter {
     required this.shotTimes,
     required this.hurtTimes,
     required this.grenadeAim,
+    required this.restingAim,
   });
   final OnlineSession session;
   final GrenadeAim grenadeAim;
+  final Map<String, Offset> restingAim;
   final Map<String, Offset> positions;
   final double seconds;
   final bool artReady;
@@ -919,7 +960,8 @@ class _ArenaPainter extends CustomPainter {
           );
           canvas.save();
           canvas.translate(p.dx, p.dy + 6);
-          canvas.rotate(math.atan2(member.aimY, member.aimX));
+          final heading = restingAim[key] ?? Offset(member.aimX, member.aimY);
+          canvas.rotate(math.atan2(heading.dy, heading.dx));
           paintWeapon(
             canvas,
             weapon,

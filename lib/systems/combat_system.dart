@@ -1,6 +1,8 @@
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/presentation/attack_vfx.dart';
+
 import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
@@ -30,27 +32,39 @@ class CombatSystem {
     droneClock = 0;
     final count = state.fused('hunterSwarm') ? 3 : 1;
     for (var i = 0; i < count; i++) {
-      final target = game.nearestEnemy(game.myPlayer.position,
-          range: 600, preferMarked: rank(PowerUp.targetingLink) > 0);
+      final target = game.nearestEnemy(
+        game.myPlayer.position,
+        range: 600,
+        preferMarked: rank(PowerUp.targetingLink) > 0,
+      );
       if (target == null) continue;
-      final center = game.myPlayer.position +
+      final center =
+          game.myPlayer.position +
           Vector2(cos(angle + i * 2), sin(angle + i * 2)) * 80;
-      game.addCombatEffect(CombatEffect(
+      game.addCombatEffect(
+        CombatEffect(
           position: center,
           endpoint: target.position.clone(),
           color: const Color(0xffBBC6A5),
-          duration: 0.12));
+          duration: 0.12,
+        ),
+      );
       final marked = (target as CombatEnemy).marked;
       hit(
-          target,
-          (0.6 + effect(PowerUp.orbitDrone) * 0.35) *
-              (marked ? 1 + effect(PowerUp.targetingLink) * 0.3 : 1),
-          primary: false);
+        target,
+        (0.6 + effect(PowerUp.orbitDrone) * 0.35) *
+            (marked ? 1 + effect(PowerUp.targetingLink) * 0.3 : 1),
+        primary: false,
+      );
     }
   }
 
-  bool hit(PositionComponent enemy, double amount,
-      {bool primary = true, Vector2? direction}) {
+  bool hit(
+    PositionComponent enemy,
+    double amount, {
+    bool primary = true,
+    Vector2? direction,
+  }) {
     if (enemy is BossWeakPoint) return enemy.takeDamage(amount);
     if (enemy is! CombatEnemy ||
         enemy.isRemoving ||
@@ -80,22 +94,28 @@ class CombatSystem {
           (innate ||
               game.random.nextDouble() < effect(PowerUp.staticCharge) * 0.12)) {
         _chainBudget--;
-        final count = (innate ? 2 : 0) +
+        final count =
+            (innate ? 2 : 0) +
             rank(PowerUp.conductiveCore) +
             (state.fused('stormCircuit') ? 2 : 0);
         final visited = <PositionComponent>{enemy};
         PositionComponent source = enemy;
         for (var i = 0; i < max(1, count); i++) {
-          final target = game.nearestEnemy(source.position,
-              excluding: visited,
-              range: (innate ? 240 : 170) + rank(PowerUp.conductiveCore) * 55);
+          final target = game.nearestEnemy(
+            source.position,
+            excluding: visited,
+            range: (innate ? 240 : 170) + rank(PowerUp.conductiveCore) * 55,
+          );
           if (target == null) break;
           visited.add(target);
-          game.addCombatEffect(CombatEffect(
+          game.addCombatEffect(
+            CombatEffect(
               position: source.position.clone(),
               endpoint: target.position.clone(),
               color: const Color(0xffBCD7AE),
-              duration: 0.16));
+              duration: 0.16,
+            ),
+          );
           hit(target, amount * pow(innate ? .85 : .65, i + 1), primary: false);
           source = target;
         }
@@ -127,42 +147,83 @@ class CombatSystem {
     if (!enemy.lastHitWasSecondary &&
         rank(PowerUp.shrapnel) > 0 &&
         game.random.nextDouble() < effect(PowerUp.shrapnel) * 0.18) {
-      shards(enemy.position,
-          count: 3 + rank(PowerUp.shrapnel),
-          damage: 0.65,
-          direction: game.myPlayer.aimDirection);
+      shards(
+        enemy.position,
+        count: 3 + rank(PowerUp.shrapnel),
+        damage: 0.65,
+        direction: game.myPlayer.aimDirection,
+      );
     }
   }
 
-  void shards(Vector2 position,
-      {int count = 6, double damage = 1, Vector2? direction}) {
+  void shards(
+    Vector2 position, {
+    int count = 6,
+    double damage = 1,
+    Vector2? direction,
+  }) {
     for (var i = 0; i < count; i++) {
       if (game.projectileCount >= RegunGame.maxProjectiles) break;
-      final baseAngle =
-          direction == null ? 0.0 : atan2(direction.y, direction.x);
+      final baseAngle = direction == null
+          ? 0.0
+          : atan2(direction.y, direction.x);
       final angle = direction == null
           ? i * 2 * pi / count
           : baseAngle + (i - (count - 1) / 2) * pi / 12;
       final shotDirection = Vector2(cos(angle), sin(angle));
-      game.addProjectile(BulletComponent(
+      game.addProjectile(
+        BulletComponent(
           position: position.clone(),
           direction: shotDirection,
           damage: damage,
           speed: 650,
           maxTravelDistance: 200,
           primary: false,
-          angle: atan2(shotDirection.y, shotDirection.x)));
+          angle: atan2(shotDirection.y, shotDirection.x),
+        ),
+      );
     }
   }
 
-  void explode(Vector2 position,
-      {required double radius, required double damage}) {
+  void upgradePulse() {
+    final origin = game.myPlayer.position.clone();
+    game.clearHostileShots(origin, 250);
+    game.audio.play('upgrade_pulse.wav');
+    game.addCombatEffect(
+      CombatEffect(
+        position: origin.clone(),
+        radius: 250,
+        duration: .5,
+        upgradePulse: true,
+      ),
+    );
+    for (final target in game.liveEnemies.toList()) {
+      final delta = target.position - origin;
+      if (delta.length > 250 + game.crowdRadius(target) ||
+          game.segmentBlocked(origin, target.position)) {
+        continue;
+      }
+      hit(target, 1, primary: false);
+      if (target is CombatEnemy && !target.combatHealth.isDead) {
+        target.receiveUpgradePulse(delta.isZero() ? Vector2(1, 0) : delta, 145);
+      }
+    }
+  }
+
+  void explode(
+    Vector2 position, {
+    required double radius,
+    required double damage,
+  }) {
     game.audio.play('blast.wav');
-    game.addCombatEffect(CombatEffect(
+    game.addCombatEffect(
+      CombatEffect(
         position: position.clone(),
         radius: radius,
         duration: .48,
-        material: AttackMaterial.ember));
+        material: AttackMaterial.ember,
+      ),
+    );
     for (final target in game.liveEnemies.toList()) {
       final reach = radius + game.crowdRadius(target);
       if (target.position.distanceToSquared(position) <= reach * reach &&
@@ -171,8 +232,11 @@ class CombatSystem {
       }
     }
     if (rank(PowerUp.fragmentation) > 0) {
-      shards(position,
-          count: 4 + rank(PowerUp.fragmentation) * 2, damage: damage * 0.2);
+      shards(
+        position,
+        count: 4 + rank(PowerUp.fragmentation) * 2,
+        damage: damage * 0.2,
+      );
     }
   }
 
@@ -196,12 +260,21 @@ class DroneVisual extends PositionComponent with HasGameReference<RegunGame> {
     final count = game.gameState.fused('hunterSwarm') ? 3 : 1;
     final center = game.myPlayer.position;
     for (var i = 0; i < count; i++) {
-      final point = center +
-          Vector2(cos(game.combat.angle + i * 2),
-                  sin(game.combat.angle + i * 2)) *
+      final point =
+          center +
+          Vector2(
+                cos(game.combat.angle + i * 2),
+                sin(game.combat.angle + i * 2),
+              ) *
               80;
-      RegunArt.shared.rawSprite('items/items', 6).render(canvas,
-          position: point, size: Vector2(30, 24), anchor: Anchor.center);
+      RegunArt.shared
+          .rawSprite('items/items', 6)
+          .render(
+            canvas,
+            position: point,
+            size: Vector2(30, 24),
+            anchor: Anchor.center,
+          );
     }
   }
 }

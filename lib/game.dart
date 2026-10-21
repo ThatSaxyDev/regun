@@ -318,6 +318,13 @@ class RegunGame extends FlameGame
     return true;
   }
 
+  void clearHostileShots(Vector2 origin,double radius){
+    for(final shot in _hostileProjectiles.toList()){
+      final reach=radius+min(shot.size.x,shot.size.y)/2;
+      if(shot.position.distanceToSquared(origin)<=reach*reach)shot.removeFromParent();
+    }
+  }
+
   void unregisterHostileProjectile(PositionComponent bullet) =>
       _hostileProjectiles.remove(bullet);
   void unregisterEffect(CombatEffect effect) => _effects.remove(effect);
@@ -579,6 +586,8 @@ class RegunGame extends FlameGame
   late final BoostButtonComponent boostButtonComponent;
   late final ReloadButtonComponent reloadButtonComponent;
   late final GrenadeButtonComponent grenadeButtonComponent;
+  bool _upgradePulsePending=false;
+  void _queueUpgradePulse()=>_upgradePulsePending=true;
   final grenades = GrenadeInventory();
   double get grenadeRecharge =>
       GrenadeSpec.recharge(gameState.effectRank(PowerUp.grenadeRecharge));
@@ -762,6 +771,7 @@ class RegunGame extends FlameGame
         }
       },
     );
+    gameNotifier.upgradeConfirmed.addListener(_queueUpgradePulse);
     _startRun(clearSave: resumeSnapshot == null);
     if (resumeSnapshot != null) restoreRun(resumeSnapshot!);
     if (startPaused) gameNotifier.pauseGame();
@@ -807,6 +817,7 @@ class RegunGame extends FlameGame
     _fires.clear();
     _mines.clear();
     grenades.reset();
+    _upgradePulsePending=false;
     _hazards.clear();
     _bursts.clear();
     resetInput();
@@ -875,6 +886,7 @@ class RegunGame extends FlameGame
       'droneClock': combat.droneClock,
       'ventClock': _ventClock,
       'supplyDrops': supplyDrops.toJson(),
+      'upgradePulsePending':_upgradePulsePending,
       'grenadeInventory': grenades.toJson(),
       'grenadeProjectiles': [
         for (final g in world.children.whereType<GrenadeComponent>())
@@ -1103,6 +1115,7 @@ class RegunGame extends FlameGame
       boostButtonComponent.restoreCheckpoint(
         Map<String, dynamic>.from(snapshot['dash'] as Map? ?? {}),
       );
+      _upgradePulsePending=snapshot['upgradePulsePending']==true;
       if (snapshot['grenadeInventory'] case final Map raw) {
         grenades.restore(Map<String, dynamic>.from(raw));
       }
@@ -1612,6 +1625,10 @@ class RegunGame extends FlameGame
             loadout.weapon.cadence *
             pow(0.85, gameState.effectRank(PowerUp.quickTrigger));
       }
+      if(_upgradePulsePending){
+        _upgradePulsePending=false;
+        combat.upgradePulse();
+      }
       grenades.advance(dt, grenadeRecharge);
       combat.update(dt);
     }
@@ -1937,7 +1954,10 @@ class RegunGame extends FlameGame
     }
     _phaseSubscription?.close();
     damageFeedback.healthLost.dispose();
-    if (_started) gameNotifier.cancelPendingActions();
+    if (_started) {
+      gameNotifier.upgradeConfirmed.removeListener(_queueUpgradePulse);
+      gameNotifier.cancelPendingActions();
+    }
     super.onRemove();
   }
 }

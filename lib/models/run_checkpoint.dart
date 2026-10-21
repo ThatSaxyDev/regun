@@ -20,6 +20,10 @@ class RunCheckpoint {
           Map<String, dynamic>.from(map['supplyDrops'] as Map),
         );
       }
+      if (map.containsKey('upgradePulsePending') &&
+          map['upgradePulsePending'] is! bool) {
+        return false;
+      }
       if (map.containsKey('grenadeInventory')) {
         GrenadeInventory().restore(
           Map<String, dynamic>.from(map['grenadeInventory'] as Map),

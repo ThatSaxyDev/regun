@@ -157,7 +157,15 @@ class OnlineWorldArt {
       case 'effect':
         final progress = (entity.number('age') / entity.number('duration', 1))
             .clamp(0.0, 1.0);
-        if (d['material'] == 'chain' && d['end'] != null) {
+        if (d['material'] == 'upgradePulse') {
+          AttackVfx.upgradePulse(
+            canvas,
+            p,
+            entity.number('radius', 250),
+            progress: progress,
+            reducedMotion: reducedMotion,
+          );
+        } else if (d['material'] == 'chain' && d['end'] != null) {
           AttackVfx.lightning(
             canvas,
             p,

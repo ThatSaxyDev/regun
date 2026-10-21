@@ -40,6 +40,7 @@ class SoloudPlay {
         'impact_${weapon.name}.wav',
         'hurt_player.wav',
         'blast.wav',
+        'upgrade_pulse.wav',
         'grenade_throw.wav',
         'enemy3projectile.wav',
         'impact_guard.wav',
@@ -96,7 +97,7 @@ class SoloudPlay {
     try {
       if (!_soloud.isInitialized || _sfxVolume == 0) return;
       final now = _clock.elapsedMilliseconds;
-      final limit = assetPath == 'blast.wav' ? 120 : assetPath == 'enemy3projectile.wav'
+      final limit = assetPath == 'upgrade_pulse.wav' ? 120 : assetPath == 'blast.wav' ? 120 : assetPath == 'enemy3projectile.wav'
           ? 100
           : assetPath.startsWith('impact_')
           ? 65
@@ -107,7 +108,7 @@ class SoloudPlay {
       _lastPlayed[assetPath] = now;
       final source = await _source(assetPath);
       if (_soloud.isInitialized) {
-        final gain = assetPath == 'blast.wav' ? .65 : assetPath == 'grenade_throw.wav' ? .3 : assetPath == 'supply_land.wav' ? .8
+        final gain = assetPath == 'upgrade_pulse.wav' ? .35 : assetPath == 'blast.wav' ? .65 : assetPath == 'grenade_throw.wav' ? .3 : assetPath == 'supply_land.wav' ? .8
             : assetPath.startsWith('supply_charge_') ? .16
             : assetPath.startsWith('supply_') ? .4
             : assetPath == 'enemy3projectile.wav'

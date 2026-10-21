@@ -9,8 +9,7 @@ import 'package:regun/models/combat_health.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
 /// Shared damage/reward path for every active enemy, including bosses.
-mixin CombatEnemy
-    on PositionComponent, HasGameReference<RegunGame>
+mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     implements Damageable {
   @override
   late final CombatHealth combatHealth;
@@ -21,7 +20,20 @@ mixin CombatEnemy
   double _impactRemaining = 0, _impactDuration = 1, _impactCooldown = 0;
   final _impactDirection = Vector2.zero();
   double _impactDistance = 0;
-  double get impactStride => _impactRemaining > 0
+  double _pulseRemaining = 0, _pulseDistance = 0;
+  final _pulseDirection = Vector2.zero();
+  void receiveUpgradePulse(Vector2 direction, double distance) {
+    if (impactResponse <= 0 || combatHealth.isDead || direction.isZero()) {
+      return;
+    }
+    _pulseDirection.setFrom(direction.normalized());
+    _pulseDistance = distance * impactResponse;
+    _pulseRemaining = .32;
+  }
+
+  double get impactStride => _pulseRemaining > 0
+      ? 0
+      : _impactRemaining > 0
       ? 1 - .8 * impactResponse * (_impactRemaining / _impactDuration)
       : 1;
 
@@ -45,15 +57,19 @@ mixin CombatEnemy
 
   double _flash = 0;
   final _flashPaint = Paint()
-    ..colorFilter =
-        const ColorFilter.mode(Color(0xffFFF1D5), BlendMode.srcATop);
+    ..colorFilter = const ColorFilter.mode(
+      Color(0xffFFF1D5),
+      BlendMode.srcATop,
+    );
   final _softFlashPaint = Paint()
-    ..colorFilter =
-        const ColorFilter.mode(Color(0xffF5D2AD), BlendMode.modulate);
+    ..colorFilter = const ColorFilter.mode(
+      Color(0xffF5D2AD),
+      BlendMode.modulate,
+    );
   Paint? get damagePaint => _flash > .05
       ? game.preferences.reducedMotion
-          ? _softFlashPaint
-          : _flashPaint
+            ? _softFlashPaint
+            : _flashPaint
       : null;
   bool _rewarded = false;
   double? _restoredHealth, _restoredMaximum;
@@ -131,17 +147,31 @@ mixin CombatEnemy
     _flash = (_flash - dt).clamp(0, 0.12);
     if (game.gameState.gameplayState == GameplayState.playing &&
         !combatHealth.isDead) {
+      if (_pulseRemaining > 0) {
+        final step = dt.clamp(0.0, _pulseRemaining),
+            next = _pulseRemaining - step;
+        final fraction =
+            (_pulseRemaining * _pulseRemaining - next * next) / (.32 * .32);
+        game.moveTo(
+          this,
+          position + _pulseDirection * (_pulseDistance * fraction),
+          game.crowdRadius(this),
+        );
+        _pulseRemaining = next;
+      }
       _impactCooldown = (_impactCooldown - dt).clamp(0, .24);
       if (_impactRemaining > 0) {
         final step = dt.clamp(0.0, _impactRemaining);
         final next = _impactRemaining - step;
-        final travel = (_impactRemaining * _impactRemaining - next * next) /
+        final travel =
+            (_impactRemaining * _impactRemaining - next * next) /
             (_impactDuration * _impactDuration);
         // Uses body occupancy and wall substeps; never shove through a body.
         game.moveTo(
-            this,
-            position + _impactDirection * (_impactDistance * travel),
-            game.crowdRadius(this));
+          this,
+          position + _impactDirection * (_impactDistance * travel),
+          game.crowdRadius(this),
+        );
         _impactRemaining = (_impactRemaining - dt).clamp(0, _impactDuration);
       }
     }
@@ -150,7 +180,8 @@ mixin CombatEnemy
         ? [this as SpriteAnimationComponent]
         : children.whereType<SpriteAnimationComponent>();
     for (final body in bodies) {
-      body.paint.colorFilter = damagePaint?.colorFilter ??
+      body.paint.colorFilter =
+          damagePaint?.colorFilter ??
           (isBoss ? BossArt.ambient(game.loadout.arena) : null);
     }
     if (game.gameState.gameplayState == GameplayState.playing &&
@@ -171,21 +202,23 @@ mixin CombatEnemy
     super.render(canvas);
     if (burning && !combatHealth.isDead) {
       canvas.drawRect(
-          Rect.fromCenter(center: (size / 2).toOffset(), width: 12, height: 18),
-          Paint()..color = const Color(0xA6E99B64));
+        Rect.fromCenter(center: (size / 2).toOffset(), width: 12, height: 18),
+        Paint()..color = const Color(0xA6E99B64),
+      );
     }
     if (marked && !combatHealth.isDead) {
       final c = (size / 2).toOffset(), r = size.x * .3;
       for (final sign in [-1, 1]) {
         AttackVfx.stroke(
-            canvas,
-            [
-              c + Offset(sign * r, -8),
-              c + Offset(sign * r, -r),
-              c + Offset(sign * (r - 8), -r)
-            ],
-            const Color(0xffDAC18A),
-            3);
+          canvas,
+          [
+            c + Offset(sign * r, -8),
+            c + Offset(sign * r, -r),
+            c + Offset(sign * (r - 8), -r),
+          ],
+          const Color(0xffDAC18A),
+          3,
+        );
       }
     }
     if (_flash > 0) {
@@ -194,11 +227,14 @@ mixin CombatEnemy
     if (!isBoss && !combatHealth.isDead && combatHealth.fraction < 1) {
       final width = size.x * 0.45;
       final left = (size.x - width) / 2;
-      canvas.drawRect(Rect.fromLTWH(left, size.y * 0.28, width, 4),
-          Paint()..color = const Color(0xff211B25));
       canvas.drawRect(
-          Rect.fromLTWH(left, size.y * 0.28, width * combatHealth.fraction, 4),
-          Paint()..color = const Color(0xffDBAA67));
+        Rect.fromLTWH(left, size.y * 0.28, width, 4),
+        Paint()..color = const Color(0xff211B25),
+      );
+      canvas.drawRect(
+        Rect.fromLTWH(left, size.y * 0.28, width * combatHealth.fraction, 4),
+        Paint()..color = const Color(0xffDBAA67),
+      );
     }
   }
 }
