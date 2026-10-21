@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:regun/presentation/grenade_art.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/data/enemies.dart';
@@ -108,6 +110,15 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           ? '${d['bossPhase'] ?? d['phase']}:${d['attackName']}:${entity.number('health') <= 0}'
           : '';
       final old = _worldCues[entity.key];
+      final listener = session.me;
+      if (old == null &&
+          entity.kind == 'effect' &&
+          d['material'] == 'explosion' &&
+          entity.number('age') < .15 &&
+          listener != null &&
+          Offset(entity.x - listener.x, entity.y - listener.y).distance < 900) {
+        unawaited(audio.play('blast.wav'));
+      }
       _worldCues[entity.key] = cue;
       final me = session.me;
       if (old == null ||
@@ -348,7 +359,9 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           final radius = controls.size / 2;
           void update(PointerEvent event) {
             final id = pointers[event.pointer];
-            if (id == null || id == 'dash' || id == 'reload') return;
+            if (id == null || id == 'dash' || id == 'reload' || id == 'grenade') {
+              return;
+            }
             var delta =
                 (event.localPosition - origins[id]!) /
                 radius *
@@ -406,6 +419,10 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                   event.logicalKey == LogicalKeyboardKey.keyR) {
                 session.reload();
               }
+              if (event is KeyDownEvent &&
+                  event.logicalKey == LogicalKeyboardKey.keyG) {
+                session.throwGrenade();
+              }
               if (event.logicalKey == LogicalKeyboardKey.keyF) {
                 session.firing = event is! KeyUpEvent;
               }
@@ -430,6 +447,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                               controls.buttonSize / 2) {
                         pointers[event.pointer] = 'reload';
                         session.reload();
+                        return;
+                      }
+                      if (session.match != null &&
+                          (p - geometry.grenade).distance <
+                              controls.buttonSize / 2) {
+                        pointers[event.pointer] = 'grenade';
+                        session.throwGrenade();
                         return;
                       }
                       for (final id in ['move', 'aim']) {
@@ -584,6 +608,31 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         text: 'RELOAD',
                         fontSize: 8,
                         onTap: session.controlsEnabled ? session.reload : null,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: geometry.grenade.dx - controls.buttonSize / 2,
+                    top: geometry.grenade.dy - controls.buttonSize / 2,
+                    child: Semantics(
+                      label: 'Throw grenade',
+                      button: true,
+                      enabled:
+                          session.controlsEnabled &&
+                          session.grenadesAvailable &&
+                          (session.gun?.grenadeCharges ?? 0) > 0,
+                      child: GrenadeTapButton(
+                        size: controls.buttonSize,
+                        charges: session.grenadesAvailable
+                            ? session.gun?.grenadeCharges ?? 0
+                            : 0,
+                        progress: session.gun?.grenadeProgress ?? 0,
+                        remaining: session.gun?.grenadeRemaining ?? 0,
+                        opacity: controls.opacity,
+                        onTap:
+                            session.controlsEnabled && session.grenadesAvailable
+                            ? session.throwGrenade
+                            : null,
                       ),
                     ),
                   ),
@@ -901,6 +950,29 @@ class _ArenaPainter extends CustomPainter {
       drawEnemy();
     }
     for (final round in session.projectiles) {
+      if (round.data['kind'] == 'grenade') {
+        final flight = round.data['flight'] as Map? ?? {};
+        final height = LocalPreferences.shared.reducedMotion
+            ? 0.0
+            : (flight['height'] as num? ?? 0).toDouble();
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(round.x, round.y),
+            width: 24,
+            height: 9,
+          ),
+          Paint()..color = const Color(0x700c1012),
+        );
+        paintGrenade(
+          canvas,
+          Offset(round.x, round.y - height),
+          28,
+          angle: LocalPreferences.shared.reducedMotion
+              ? 0
+              : (flight['spin'] as num? ?? 0).toDouble(),
+        );
+        continue;
+      }
       final weapon = WeaponType.values.firstWhere(
             (w) => w.name == round.weapon,
           ),

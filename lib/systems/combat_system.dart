@@ -157,13 +157,16 @@ class CombatSystem {
 
   void explode(Vector2 position,
       {required double radius, required double damage}) {
+    game.audio.play('blast.wav');
     game.addCombatEffect(CombatEffect(
         position: position.clone(),
         radius: radius,
-        duration: .42,
+        duration: .48,
         material: AttackMaterial.ember));
     for (final target in game.liveEnemies.toList()) {
-      if (target.position.distanceToSquared(position) < radius * radius) {
+      final reach = radius + game.crowdRadius(target);
+      if (target.position.distanceToSquared(position) <= reach * reach &&
+          !game.segmentBlocked(position, target.position)) {
         hit(target, damage, primary: false);
       }
     }

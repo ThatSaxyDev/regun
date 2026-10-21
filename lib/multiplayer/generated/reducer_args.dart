@@ -487,3 +487,31 @@ class SubmitInputArgsDecoder implements ReducerArgDecoder<SubmitInputArgs> {
     }
   }
 }
+
+/// Arguments for the throw_grenade reducer
+class ThrowGrenadeArgs {
+  final Int64 roomid;
+  final Int64 generation;
+  final Int64 seq;
+  ThrowGrenadeArgs({
+    required this.roomid,
+    required this.generation,
+    required this.seq,
+  });
+}
+
+/// Decoder for throw_grenade reducer arguments
+class ThrowGrenadeArgsDecoder implements ReducerArgDecoder<ThrowGrenadeArgs> {
+  @override
+  ThrowGrenadeArgs? decode(BsatnDecoder decoder) {
+    try {
+      final roomid = decoder.readU64();
+      final generation = decoder.readU64();
+      final seq = decoder.readU64();
+
+      return ThrowGrenadeArgs(roomid: roomid, generation: generation, seq: seq);
+    } catch (e) {
+      return null; // Deserialization failed
+    }
+  }
+}

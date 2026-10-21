@@ -45,8 +45,8 @@ void main() {
             expect(geometry.separate(size / 2,
                 buttonRadius: layout.buttonSize / 2), isTrue);
             final mirrored = layout.copyWith(leftHanded: true).geometry(viewport);
-            final normal = [geometry.movement, geometry.aim, geometry.dash, geometry.reload];
-            final mirror = [mirrored.movement, mirrored.aim, mirrored.dash, mirrored.reload];
+            final normal = [geometry.movement, geometry.aim, geometry.dash, geometry.reload, geometry.grenade];
+            final mirror = [mirrored.movement, mirrored.aim, mirrored.dash, mirrored.reload, mirrored.grenade];
             for (var i = 0; i < normal.length; i++) {
               final r = i < 2 ? size / 2 : layout.buttonSize / 2;
               expect(normal[i].dx - r, greaterThanOrEqualTo(8 - .001));

@@ -21,6 +21,7 @@ class ControlArranger extends StatelessWidget {
       'move': geometry.movement,
       'aim': geometry.aim,
       'dash': geometry.dash,
+      'grenade': geometry.grenade,
       'reload': geometry.reload
     };
     return Positioned.fill(
@@ -72,6 +73,7 @@ class ControlArranger extends StatelessWidget {
                           'move' => resolved.movement,
                           'aim' => resolved.aim,
                           'dash' => resolved.dash,
+                          'grenade' => resolved.grenade,
                           _ => resolved.reload
                         };
                         // Reject overlap instead of silently putting a control on top of another.

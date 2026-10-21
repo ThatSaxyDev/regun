@@ -1054,6 +1054,9 @@ enum PowerUp {
       UpgradeGroup.special),
   executioner('Executioner', 'Deal more damage to wounded enemies.',
       UpgradeGroup.special),
+  grenadeDamage('Heavy Payload', 'Grenades deal more damage.', UpgradeGroup.utility),
+  grenadeRadius('Wide Burst', 'Grenades cover more ground.', UpgradeGroup.utility),
+  grenadeRecharge('Ordnance Cycle', 'Grenades recharge faster.', UpgradeGroup.utility),
   sprintDistanceIncrease('Long Dash', 'Dash farther.', UpgradeGroup.legacy),
   salvage('Scrap Cache', 'Gain 5 scrap and recover a heart.',
       UpgradeGroup.fallback);

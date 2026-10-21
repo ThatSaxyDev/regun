@@ -574,6 +574,36 @@ class Reducers {
     );
   }
 
+  /// Call the throw_grenade reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> throwGrenade({
+    required Int64 roomid,
+    required Int64 generation,
+    required Int64 seq,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+    encoder.writeU64(seq);
+
+    return await _reducerCaller.call(
+      'throw_grenade',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
   StreamSubscription<void> onAcknowledgeProbe(
     void Function(EventContext ctx, Int64 probe) callback,
   ) {
@@ -968,6 +998,24 @@ class Reducers {
         args.aimy,
         args.dashseq,
       );
+    });
+  }
+
+  StreamSubscription<void> onThrowGrenade(
+    void Function(EventContext ctx, Int64 roomid, Int64 generation, Int64 seq)
+    callback,
+  ) {
+    return _reducerEmitter.on('throw_grenade').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! ThrowGrenadeArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.roomid, args.generation, args.seq);
     });
   }
 }

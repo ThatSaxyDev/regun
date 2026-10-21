@@ -28,7 +28,8 @@ class GameStick extends JoystickComponent {
     if ((viewportPoint.x >= virtual.x / 2) != rightSide) return false;
     for (final button in [
       regun.boostButtonComponent,
-      regun.reloadButtonComponent
+      regun.reloadButtonComponent,
+      regun.grenadeButtonComponent
     ]) {
       if (button.containsLocalPoint(button.parentToLocal(viewportPoint))) {
         return false;

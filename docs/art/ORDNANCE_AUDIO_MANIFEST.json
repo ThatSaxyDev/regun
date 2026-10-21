@@ -1,0 +1,16 @@
+[
+  {
+    "file": "blast.wav",
+    "seconds": 0.7,
+    "peak": 0.72,
+    "rms": 0.07850663155855854,
+    "sha256": "27abe160e94ee072e1f5c7b9aeec2d03453d45856a5749239c149221e39ac091"
+  },
+  {
+    "file": "grenade_throw.wav",
+    "seconds": 0.2,
+    "peak": 0.38,
+    "rms": 0.06563924863104559,
+    "sha256": "fd1d3d20907b25ae83b45e057bf4051b67607fcd4a575043c3a6a5658a8052e8"
+  }
+]

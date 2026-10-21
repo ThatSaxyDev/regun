@@ -26,9 +26,9 @@ void main() {
   });
   tearDown(() => container.dispose());
 
-  test('catalogue has thirty ranked families and six reachable recipes', () {
-    expect(powerUps.length, 30);
-    expect(powerUps.toSet().length, 30);
+  test('catalogue has thirty-three ranked families and six reachable recipes', () {
+    expect(powerUps.length, 33);
+    expect(powerUps.toSet().length, 33);
     expect(fusionRecipes.length, 6);
     for (final recipe in fusionRecipes) {
       expect(

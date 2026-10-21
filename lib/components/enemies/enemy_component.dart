@@ -44,10 +44,11 @@ class EnemyComponent extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
+    if (isDying) return;
     final facingLeft = game.myPlayer.position.x < position.x;
     if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
 
-    if (isDying) return;
+
 
     //! PLAYER POSITION
     final playerPosition = game.myPlayer.position;

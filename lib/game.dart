@@ -1,3 +1,5 @@
+import 'package:regun/components/weapons/grenade_component.dart';
+import 'package:regun/systems/grenades.dart';
 import 'package:regun/components/ui/damage_feedback.dart';
 import 'package:regun/presentation/player_entrance.dart';
 import 'package:regun/presentation/weapon_feel.dart';
@@ -34,6 +36,7 @@ import 'package:regun/services/local_preferences.dart';
 import 'package:regun/components/enemies/shadow_boss_component.dart';
 import 'package:regun/components/enemies/shadow_projectile.dart';
 import 'package:regun/systems/encounter_director.dart';
+
 import 'dart:async';
 import 'dart:math';
 
@@ -59,15 +62,16 @@ import 'package:regun/utils/soloud_play.dart';
 
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
-  RegunGame(this.context,
-      {this.loadout = const Loadout(),
-      this.resumeSnapshot,
-      this.startPaused = false,
-      RunStore? runStore})
-      : runStore = runStore ?? RunStore.shared,
-        super(
-          camera: CameraComponent.withFixedResolution(width: 1500, height: 700),
-        );
+  RegunGame(
+    this.context, {
+    this.loadout = const Loadout(),
+    this.resumeSnapshot,
+    this.startPaused = false,
+    RunStore? runStore,
+  }) : runStore = runStore ?? RunStore.shared,
+       super(
+         camera: CameraComponent.withFixedResolution(width: 1500, height: 700),
+       );
 
   final BuildContext context;
   final Loadout loadout;
@@ -80,13 +84,13 @@ class RegunGame extends FlameGame
   int trainingStep = 0, shotsFired = 0, dashCount = 0, manualReloads = 0;
   final _trainingOrigin = Vector2.zero();
   String get trainingHint => switch (trainingStep) {
-        0 => 'Move with the movement stick',
-        1 => 'Aim and fire with the aiming stick',
-        2 => 'Dash while moving',
-        3 => 'Fire, then reload',
-        4 => 'Collect XP and choose an upgrade',
-        _ => 'Training complete',
-      };
+    0 => 'Move with the movement stick',
+    1 => 'Aim and fire with the aiming stick',
+    2 => 'Dash while moving',
+    3 => 'Fire, then reload',
+    4 => 'Collect XP and choose an upgrade',
+    _ => 'Training complete',
+  };
   Future<void> completeTraining() async {
     await preferences.completeTraining();
   }
@@ -157,10 +161,12 @@ class RegunGame extends FlameGame
     final health = (actor as CombatEnemy).combatHealth;
     return _bossAttacks.any((a) => !a.isRemoving && a.owner == health) ||
         _hazards.any((a) => !a.isRemoving && a.ownerHealth == health) ||
-        _hostileProjectiles.any((shot) =>
-            shot is ShadowProjectile &&
-            !shot.isRemoving &&
-            shot.ownerHealth == health);
+        _hostileProjectiles.any(
+          (shot) =>
+              shot is ShadowProjectile &&
+              !shot.isRemoving &&
+              shot.ownerHealth == health,
+        );
   }
 
   List<Vector2> clipBossPath(List<Vector2> path) {
@@ -195,8 +201,10 @@ class RegunGame extends FlameGame
     for (final cue in cues) {
       final time = cue.delay + cue.warning;
       final overlapping = cues
-          .where((other) =>
-              other.delay + other.warning <= time + .001 && other.end > time)
+          .where(
+            (other) =>
+                other.delay + other.warning <= time + .001 && other.end > time,
+          )
           .toList();
       if (!_bossBeatHasEscape(overlapping, cue.warning)) return false;
     }
@@ -215,24 +223,27 @@ class RegunGame extends FlameGame
       final point = queue[i];
       final key = (
         ((point.x - origin.x) / 45).round(),
-        ((point.y - origin.y) / 45).round()
+        ((point.y - origin.y) / 45).round(),
       );
-      final safe = cues.every((cue) => !cue.shape.hits(point, 1, body: 32)) &&
-          _hazards.every((area) =>
-              area.isRemoving ||
-              point.distanceToSquared(area.position) >
-                  pow(area.radius + 32, 2));
+      final safe =
+          cues.every((cue) => !cue.shape.hits(point, 1, body: 32)) &&
+          _hazards.every(
+            (area) =>
+                area.isRemoving ||
+                point.distanceToSquared(area.position) >
+                    pow(area.radius + 32, 2),
+          );
       if (safe) return true;
       for (final direction in [
         Vector2(45, 0),
         Vector2(-45, 0),
         Vector2(0, 45),
-        Vector2(0, -45)
+        Vector2(0, -45),
       ]) {
         final next = point + direction;
         final nextKey = (
           ((next.x - origin.x) / 45).round(),
-          ((next.y - origin.y) / 45).round()
+          ((next.y - origin.y) / 45).round(),
         );
         final travel = distances[key]! + 45;
         if (travel > budget || !seen.add(nextKey)) continue;
@@ -242,9 +253,11 @@ class RegunGame extends FlameGame
             segmentBlocked(point, next)) {
           continue;
         }
-        if (liveEnemies.any((enemy) =>
-            next.distanceToSquared(enemy.position) <
-            pow(crowdRadius(enemy) + 30, 2))) {
+        if (liveEnemies.any(
+          (enemy) =>
+              next.distanceToSquared(enemy.position) <
+              pow(crowdRadius(enemy) + 30, 2),
+        )) {
           continue;
         }
         distances[nextKey] = travel;
@@ -267,10 +280,7 @@ class RegunGame extends FlameGame
   ({int arena, int visible, int pending}) get enemyPopulation {
     var arena = 0, visible = 0, pending = 0;
     final view = camera.visibleWorldRect.inflate(60);
-    for (final enemy in [
-      ..._enemies,
-      ...bosses,
-    ]) {
+    for (final enemy in [..._enemies, ...bosses]) {
       if (enemy.isRemoving || enemy.isRemoved) continue;
       arena++;
       if (!enemy.isLoaded) pending++;
@@ -282,7 +292,9 @@ class RegunGame extends FlameGame
   bool get canReinforce {
     final population = enemyPopulation;
     return director.canReinforce(
-        arena: population.arena, visible: population.visible);
+      arena: population.arena,
+      visible: population.visible,
+    );
   }
 
   bool registerProjectile(BulletComponent bullet) {
@@ -326,19 +338,19 @@ class RegunGame extends FlameGame
   }
 
   Map<String, int> get runtimeCounts => {
-        'enemies': _enemies.length,
-        'visibleEnemies': enemyPopulation.visible,
-        'pendingEnemies': enemyPopulation.pending,
-        'populationLimit': director.populationLimit,
-        'xp': _coins.length,
-        'playerProjectiles': _projectiles.length,
-        'hostileProjectiles': _hostileProjectiles.length,
-        'effects': _effects.length,
-        'fire': _fires.length,
-        'mines': _mines.length,
-        'hazards': _hazards.length + _bossAttacks.length,
-        'particles': _bursts.length * 8,
-      };
+    'enemies': _enemies.length,
+    'visibleEnemies': enemyPopulation.visible,
+    'pendingEnemies': enemyPopulation.pending,
+    'populationLimit': director.populationLimit,
+    'xp': _coins.length,
+    'playerProjectiles': _projectiles.length,
+    'hostileProjectiles': _hostileProjectiles.length,
+    'effects': _effects.length,
+    'fire': _fires.length,
+    'mines': _mines.length,
+    'hazards': _hazards.length + _bossAttacks.length,
+    'particles': _bursts.length * 8,
+  };
   Iterable<PositionComponent> get liveEnemies sync* {
     for (final enemy in _enemies) {
       if (enemy is CombatEnemy &&
@@ -361,8 +373,8 @@ class RegunGame extends FlameGame
   double enemyRadius(PositionComponent enemy) => enemy is BossWeakPoint
       ? 26
       : enemy is BossEncounter
-          ? (enemy as BossEncounter).kind.bodyRadius
-          : min(enemy.size.x, enemy.size.y) * 0.3;
+      ? (enemy as BossEncounter).kind.bodyRadius
+      : min(enemy.size.x, enemy.size.y) * 0.3;
   bool segmentBlocked(Vector2 start, Vector2 end) =>
       geometry.blocked(start, end);
   void constrainActor(Vector2 position, double radius) =>
@@ -373,25 +385,35 @@ class RegunGame extends FlameGame
       ? (actor as BossEncounter).kind.bodyRadius
       : (min(actor.size.x, actor.size.y) * .45).clamp(30.0, 52.0);
 
-  bool reserveEnemySpace(PositionComponent actor,
-          {double minPlayerDistance = 0}) =>
-      crowdOccupancy.place(actor, crowdRadius(actor),
-          (point) => geometry.constrain(point, crowdRadius(actor)),
-          allowed: (point) =>
-              minPlayerDistance == 0 ||
-              point.distanceToSquared(myPlayer.position) >=
-                  minPlayerDistance * minPlayerDistance);
+  bool reserveEnemySpace(
+    PositionComponent actor, {
+    double minPlayerDistance = 0,
+  }) => crowdOccupancy.place(
+    actor,
+    crowdRadius(actor),
+    (point) => geometry.constrain(point, crowdRadius(actor)),
+    allowed: (point) =>
+        minPlayerDistance == 0 ||
+        point.distanceToSquared(myPlayer.position) >=
+            minPlayerDistance * minPlayerDistance,
+  );
   Vector2 enemyIntent(PositionComponent actor, EnemyKind kind) =>
       EnemyTactics.intent(
-          kind,
-          actor.position,
-          myPlayer.position,
-          movementJoystick.relativeDelta * gameState.movementSpeed,
-          enemyTactics.side(actor));
+        kind,
+        actor.position,
+        myPlayer.position,
+        movementJoystick.relativeDelta * gameState.movementSpeed,
+        enemyTactics.side(actor),
+      );
 
   void moveActor(
-      PositionComponent actor, Vector2 direction, double speed, double dt,
-      {double radius = 30, bool avoidCrowd = true}) {
+    PositionComponent actor,
+    Vector2 direction,
+    double speed,
+    double dt, {
+    double radius = 30,
+    bool avoidCrowd = true,
+  }) {
     if (actor is! PlayerComponent) {
       speed *= 1 + min(0.5, (director.cycle - 1) * 0.08);
       if (actor is ArenaEnemy && actor.elite) speed *= 1.15;
@@ -401,17 +423,24 @@ class RegunGame extends FlameGame
       final boss = activeBoss;
       final yielding = boss == null || !boss.isLoaded || boss.isRemoving
           ? null
-          : EnemyTactics.yieldToBoss(actor.position, boss.position,
-              myPlayer.position, enemyTactics.side(actor));
+          : EnemyTactics.yieldToBoss(
+              actor.position,
+              boss.position,
+              myPlayer.position,
+              enemyTactics.side(actor),
+            );
       direction = enemyTactics.spaced(actor, yielding ?? direction);
     }
     if (actor is CombatEnemy) {
-      crowdOccupancy.move(actor, direction * (speed * dt),
-          radius: crowdRadius(actor),
-          constrain: (point) =>
-              geometry.constrain(point, max(radius, crowdRadius(actor))),
-          slide: avoidCrowd,
-          side: enemyTactics.side(actor));
+      crowdOccupancy.move(
+        actor,
+        direction * (speed * dt),
+        radius: crowdRadius(actor),
+        constrain: (point) =>
+            geometry.constrain(point, max(radius, crowdRadius(actor))),
+        slide: avoidCrowd,
+        side: enemyTactics.side(actor),
+      );
       return;
     }
     final previous = actor.position.clone();
@@ -427,38 +456,51 @@ class RegunGame extends FlameGame
   }
 
   void moveTo(PositionComponent actor, Vector2 target, double radius) =>
-      crowdOccupancy.move(actor, target - actor.position,
-          radius: crowdRadius(actor),
-          constrain: (point) =>
-              geometry.constrain(point, max(radius, crowdRadius(actor))),
-          slide: false);
+      crowdOccupancy.move(
+        actor,
+        target - actor.position,
+        radius: crowdRadius(actor),
+        constrain: (point) =>
+            geometry.constrain(point, max(radius, crowdRadius(actor))),
+        slide: false,
+      );
 
-  void addCombatEffectForKill(Vector2 position,
-          {double radius = 45, Sprite? remains}) =>
-      addCombatEffect(CombatEffect(
-          position: position.clone(),
-          radius: radius,
-          remains: remains,
-          duration: remains == null ? .25 : .65));
-  void addHostileArea(Vector2 position,
-      {double radius = 130,
-      double warning = 0.9,
-      double active = 0.25,
-      int damage = 1,
-      String cause = 'Ground strike',
-      bool poison = false,
-      CombatHealth? ownerHealth}) {
+  void addCombatEffectForKill(
+    Vector2 position, {
+    double radius = 45,
+    Sprite? remains,
+    bool flipRemains = false,
+  }) => addCombatEffect(
+    CombatEffect(
+      position: position.clone(),
+      radius: radius,
+      remains: remains,
+      flipRemains: flipRemains,
+      duration: remains == null ? .25 : .65,
+    ),
+  );
+  void addHostileArea(
+    Vector2 position, {
+    double radius = 130,
+    double warning = 0.9,
+    double active = 0.25,
+    int damage = 1,
+    String cause = 'Ground strike',
+    bool poison = false,
+    CombatHealth? ownerHealth,
+  }) {
     if (_hazards.length + _bossAttacks.length >= 8) return;
     constrainActor(position, radius);
     final hazard = HostileArea(
-        position: position,
-        radius: radius,
-        warning: warning,
-        active: active,
-        damage: damage,
-        cause: cause,
-        poison: poison,
-        ownerHealth: ownerHealth);
+      position: position,
+      radius: radius,
+      warning: warning,
+      active: active,
+      damage: damage,
+      cause: cause,
+      poison: poison,
+      ownerHealth: ownerHealth,
+    );
     _hazards.add(hazard);
     world.add(hazard);
   }
@@ -475,10 +517,12 @@ class RegunGame extends FlameGame
     world.add(SpawnWarning(game: this, enemy: enemy));
   }
 
-  PositionComponent? nearestEnemy(Vector2 position,
-      {Set<PositionComponent> excluding = const {},
-      double range = 800,
-      bool preferMarked = false}) {
+  PositionComponent? nearestEnemy(
+    Vector2 position, {
+    Set<PositionComponent> excluding = const {},
+    double range = 800,
+    bool preferMarked = false,
+  }) {
     PositionComponent? nearest;
     var best = range * range;
     for (final enemy in liveEnemies) {
@@ -497,12 +541,17 @@ class RegunGame extends FlameGame
     return nearest;
   }
 
-  bool hitEnemy(PositionComponent enemy, double amount,
-          {bool primary = true, Vector2? direction}) =>
-      combat.hit(enemy, amount, primary: primary, direction: direction);
-  void explode(Vector2 position,
-          {required double radius, required double damage}) =>
-      combat.explode(position, radius: radius, damage: damage);
+  bool hitEnemy(
+    PositionComponent enemy,
+    double amount, {
+    bool primary = true,
+    Vector2? direction,
+  }) => combat.hit(enemy, amount, primary: primary, direction: direction);
+  void explode(
+    Vector2 position, {
+    required double radius,
+    required double damage,
+  }) => combat.explode(position, radius: radius, damage: damage);
   void addCombatEffect(CombatEffect effect) {
     if (_effects.length < 40) {
       _effects.add(effect);
@@ -529,6 +578,42 @@ class RegunGame extends FlameGame
   late final WeaponJoystickComponent weaponJoystick;
   late final BoostButtonComponent boostButtonComponent;
   late final ReloadButtonComponent reloadButtonComponent;
+  late final GrenadeButtonComponent grenadeButtonComponent;
+  final grenades = GrenadeInventory();
+  double get grenadeRecharge =>
+      GrenadeSpec.recharge(gameState.effectRank(PowerUp.grenadeRecharge));
+  bool throwGrenade() {
+    if (gameState.gameplayState != GameplayState.playing ||
+        playerEntrance.active ||
+        world.children.whereType<GrenadeComponent>().length >= 4 ||
+        !grenades.spend(grenadeRecharge)) {
+      return false;
+    }
+    final direction = weaponJoystick.relativeDelta.isZero()
+        ? myPlayer.aimDirection.clone()
+        : weaponJoystick.relativeDelta.normalized();
+    if (direction.isZero()) direction.setValues(1, 0);
+    final start = myPlayer.position + direction * 36;
+    if(geometry.obstacles.any((r)=>ArenaGeometry.crosses(myPlayer.position,start,r.inflate(8)))) {
+      start.setFrom(myPlayer.position);
+    }
+    constrainActor(start, 8);
+    world.add(
+      GrenadeComponent(
+        GrenadeFlight(
+          start.toOffset(),
+          direction.toOffset() * GrenadeSpec.speed,
+        ),
+        damage: GrenadeSpec.damage(gameState.effectRank(PowerUp.grenadeDamage)),
+        blastRadius: GrenadeSpec.radius(
+          gameState.effectRank(PowerUp.grenadeRadius),
+        ),
+      ),
+    );
+    audio.play('grenade_throw.wav');
+    return true;
+  }
+
   final damageFeedback = DamageFeedback();
   int _weaponImpacts = 0;
   bool claimWeaponImpact() => _weaponImpacts++ < 8;
@@ -558,29 +643,36 @@ class RegunGame extends FlameGame
   bool _started = false;
   bool disposed = false;
   final supplyDrops = SupplyDrops();
-  bool _supplyArtWanted = false, _supplyArtHeld = false, _supplyArtLoading = false;
+  bool _supplyArtWanted = false,
+      _supplyArtHeld = false,
+      _supplyArtLoading = false;
   void _syncSupplyArt(bool wanted) {
     _supplyArtWanted = wanted && !disposed;
     const atlases = ['arenas/supply_pod', 'effects/landing_dust'];
     if (!_supplyArtWanted) {
       if (_supplyArtHeld && !_supplyArtLoading) {
-        for (final atlas in atlases) { RegunArt.shared.release(atlas); }
+        for (final atlas in atlases) {
+          RegunArt.shared.release(atlas);
+        }
         _supplyArtHeld = false;
       }
       return;
     }
     if (_supplyArtHeld || _supplyArtLoading) return;
     _supplyArtHeld = _supplyArtLoading = true;
-    Future.wait(atlases.map(RegunArt.shared.acquire)).then((_) {
-      _supplyArtLoading = false;
-      if (!_supplyArtWanted || disposed) _syncSupplyArt(false);
-    }, onError: (Object error) {
-      _supplyArtLoading = false;
-      supplyDrops.drop = null;
-      supplyDrops.nextIn = 3;
-      _syncSupplyArt(false);
-      debugPrint('Supply art unavailable: $error');
-    });
+    Future.wait(atlases.map(RegunArt.shared.acquire)).then(
+      (_) {
+        _supplyArtLoading = false;
+        if (!_supplyArtWanted || disposed) _syncSupplyArt(false);
+      },
+      onError: (Object error) {
+        _supplyArtLoading = false;
+        supplyDrops.drop = null;
+        supplyDrops.nextIn = 3;
+        _syncSupplyArt(false);
+        debugPrint('Supply art unavailable: $error');
+      },
+    );
   }
 
   static const maxEnemies = 120;
@@ -601,19 +693,23 @@ class RegunGame extends FlameGame
     controls = preferences.controls;
 
     map = await MapComponent.loadMap();
-    geometry =
-        ArenaGeometry(map.bounds, obstacles: map.obstacles(loadout.arena));
+    geometry = ArenaGeometry(
+      map.bounds,
+      obstacles: map.obstacles(loadout.arena),
+    );
     world.add(map);
     movementJoystick = MovementJoystickComponent();
     weaponJoystick = WeaponJoystickComponent();
     boostButtonComponent = BoostButtonComponent();
     reloadButtonComponent = ReloadButtonComponent();
+    grenadeButtonComponent = GrenadeButtonComponent();
     _controlsLoaded = true;
     camera.viewport.addAll([
       movementJoystick,
       weaponJoystick,
       boostButtonComponent,
       reloadButtonComponent,
+      grenadeButtonComponent,
       damageFeedback,
       EntranceVeil(),
       if (loadout.arena == ArenaType.breach) SupplyDropLocator(),
@@ -640,11 +736,12 @@ class RegunGame extends FlameGame
           });
         }
         audio.pauseMusic(
-            phase == GameplayState.paused || phase == GameplayState.gameOver);
+          phase == GameplayState.paused || phase == GameplayState.gameOver,
+        );
         if (phase == GameplayState.powerup) {
-          audio.play(gameState.evolutionChoices.isNotEmpty
-              ? 'fusion.wav'
-              : 'level.wav');
+          audio.play(
+            gameState.evolutionChoices.isNotEmpty ? 'fusion.wav' : 'level.wav',
+          );
         }
         timeScale = phase == GameplayState.powerup ? 0.1 : 1;
         if (phase == GameplayState.playing || phase == GameplayState.powerup) {
@@ -700,6 +797,7 @@ class RegunGame extends FlameGame
     _effects.clear();
     _fires.clear();
     _mines.clear();
+    grenades.reset();
     _hazards.clear();
     _bursts.clear();
     resetInput();
@@ -719,14 +817,18 @@ class RegunGame extends FlameGame
     world.addAll([
       DroneVisual(),
       ArenaScenery(),
-      if (loadout.arena == ArenaType.breach) ...[SupplyDropField(), SupplyDropBody()],
+      if (loadout.arena == ArenaType.breach) ...[
+        SupplyDropField(),
+        SupplyDropBody(),
+      ],
     ]);
     _started = true;
     _updateCamera();
     playerEntrance.begin(
-        respawn: false,
-        reducedMotion: preferences.reducedMotion,
-        camera: camera.viewfinder.position);
+      respawn: false,
+      reducedMotion: preferences.reducedMotion,
+      camera: camera.viewfinder.position,
+    );
     layoutControls();
     revision.value++;
     resumeEngine();
@@ -748,7 +850,7 @@ class RegunGame extends FlameGame
         'burn': enemy.burnRemaining,
         'burnDamage': enemy.burnDamage,
         'spread': enemy.burnCanSpread,
-        'marked': enemy.marked
+        'marked': enemy.marked,
       };
     }
 
@@ -763,6 +865,11 @@ class RegunGame extends FlameGame
       'droneClock': combat.droneClock,
       'ventClock': _ventClock,
       'supplyDrops': supplyDrops.toJson(),
+      'grenadeInventory': grenades.toJson(),
+      'grenadeProjectiles': [
+        for (final g in world.children.whereType<GrenadeComponent>())
+          if (!g.flight.spent && !g.isRemoving) g.checkpoint(),
+      ],
       'player': [myPlayer.position.x, myPlayer.position.y],
       'lastMovement': [myPlayer.lastMovement.x, myPlayer.lastMovement.y],
       'aim': [myPlayer.aimDirection.x, myPlayer.aimDirection.y],
@@ -774,12 +881,12 @@ class RegunGame extends FlameGame
       'drops': [
         for (final c in _coins)
           if (!c.isCollected && !c.isRemoving && !c.isRemoved)
-            {'x': c.position.x, 'y': c.position.y, 'value': c.value}
+            {'x': c.position.x, 'y': c.position.y, 'value': c.value},
       ],
       'mines': [
         for (final mine in world.children.whereType<MineComponent>())
           if (!mine.exploded && !mine.isRemoving)
-            {'x': mine.position.x, 'y': mine.position.y, 'age': mine.age}
+            {'x': mine.position.x, 'y': mine.position.y, 'age': mine.age},
       ],
       'fire': [
         for (final fire in world.children.whereType<BurningGround>())
@@ -788,8 +895,8 @@ class RegunGame extends FlameGame
               'x': fire.position.x,
               'y': fire.position.y,
               'age': fire.age,
-              'damage': fire.damage
-            }
+              'damage': fire.damage,
+            },
       ],
       'defeatedBosses': defeatedBosses.toList(),
       'noHitBosses': noHitBosses.toList(),
@@ -817,36 +924,40 @@ class RegunGame extends FlameGame
   int get earnedScrap => loadout.training
       ? 0
       : gameState.scrap +
-          gameState.kills ~/ 10 +
-          gameState.bosses * 15 +
-          gameState.survivalSeconds ~/ 60;
+            gameState.kills ~/ 10 +
+            gameState.bosses * 15 +
+            gameState.survivalSeconds ~/ 60;
 
   Future<void> settleRun() async {
     if (_settled || loadout.training) return;
     _settled = true;
     final settledId = runId;
     final state = gameState;
-    final earned = state.scrap +
+    final earned =
+        state.scrap +
         state.kills ~/ 10 +
         state.bosses * 15 +
         state.survivalSeconds ~/ 60;
     newUnlocks = preferences.profile.settle(
-        runId: runId,
-        loadout: loadout,
-        kills: state.kills,
-        score: state.score,
-        seconds: state.survivalSeconds,
-        earnedScrap: earned,
-        scorpions: scorpionKills,
-        elites: eliteKills,
-        bosses: defeatedBosses,
-        noHitBosses: noHitBosses,
-        foundFusions: state.evolutions,
-        enemies: encounteredEnemies,
-        assisted: assisted);
+      runId: runId,
+      loadout: loadout,
+      kills: state.kills,
+      score: state.score,
+      seconds: state.survivalSeconds,
+      earnedScrap: earned,
+      scorpions: scorpionKills,
+      elites: eliteKills,
+      bosses: defeatedBosses,
+      noHitBosses: noHitBosses,
+      foundFusions: state.evolutions,
+      enemies: encounteredEnemies,
+      assisted: assisted,
+    );
     if (!assisted) {
       await preferences.record(
-          score: state.score, seconds: state.survivalSeconds);
+        score: state.score,
+        seconds: state.survivalSeconds,
+      );
     }
     final saved = await preferences.saveProfile();
     if (!saved) saveIssue = 'Progress could not be saved.';
@@ -871,9 +982,11 @@ class RegunGame extends FlameGame
         throw const FormatException('Unsupported checkpoint');
       }
       final stateSnapshot = GameState.fromJson(
-          Map<String, dynamic>.from(snapshot['state'] as Map));
+        Map<String, dynamic>.from(snapshot['state'] as Map),
+      );
       final savedLoadout = Loadout.fromJson(
-          Map<String, dynamic>.from(snapshot['loadout'] as Map));
+        Map<String, dynamic>.from(snapshot['loadout'] as Map),
+      );
       if (savedLoadout.weapon != loadout.weapon ||
           savedLoadout.character != loadout.character ||
           savedLoadout.arena != loadout.arena ||
@@ -900,14 +1013,22 @@ class RegunGame extends FlameGame
       runId = snapshot['id'] as String;
       random.state = snapshot['random'] as int;
       director.restore(Map<String, dynamic>.from(snapshot['director'] as Map));
-      myPlayer.position.setFrom(point((snapshot['player'] as List)[0] as num,
-          (snapshot['player'] as List)[1] as num));
+      myPlayer.position.setFrom(
+        point(
+          (snapshot['player'] as List)[0] as num,
+          (snapshot['player'] as List)[1] as num,
+        ),
+      );
       final movement = snapshot['lastMovement'] as List? ?? [1, 0];
       final aim = snapshot['aim'] as List? ?? [1, 0];
       myPlayer.lastMovement.setValues(
-          (movement[0] as num).toDouble(), (movement[1] as num).toDouble());
-      myPlayer.aimDirection
-          .setValues((aim[0] as num).toDouble(), (aim[1] as num).toDouble());
+        (movement[0] as num).toDouble(),
+        (movement[1] as num).toDouble(),
+      );
+      myPlayer.aimDirection.setValues(
+        (aim[0] as num).toDouble(),
+        (aim[1] as num).toDouble(),
+      );
       for (final record in records) {
         final kind = record['kind'] as String;
         final position = point(record['x'] as num, record['y'] as num);
@@ -930,14 +1051,19 @@ class RegunGame extends FlameGame
             EnemyKind.scorpion => EnemyComponent(position: position),
             EnemyKind.mummy => Enemy2Component(position: position),
             EnemyKind.ranged => Enemy3Component(position: position),
-            final kind => ArenaEnemy(kind,
-                position: position, elite: record['elite'] == true),
+            final kind => ArenaEnemy(
+              kind,
+              position: position,
+              elite: record['elite'] == true,
+            ),
           };
           _enemies.add(entity);
         }
         final enemy = entity as CombatEnemy;
-        enemy.restoreHealth((record['health'] as num).toDouble(),
-            maximum: maximum);
+        enemy.restoreHealth(
+          (record['health'] as num).toDouble(),
+          maximum: maximum,
+        );
         enemy.marked = record['marked'] == true;
         enemy.burnRemaining = (record['burn'] as num?)?.toDouble() ?? 0;
         enemy.burnDamage = (record['burnDamage'] as num?)?.toDouble() ?? 0;
@@ -951,11 +1077,13 @@ class RegunGame extends FlameGame
         if (value <= 0) throw const FormatException('Invalid XP');
         dropXP(point(map['x'] as num, map['y'] as num), value);
       }
-      defeatedBosses
-          .addAll((snapshot['defeatedBosses'] as List).cast<String>());
+      defeatedBosses.addAll(
+        (snapshot['defeatedBosses'] as List).cast<String>(),
+      );
       noHitBosses.addAll((snapshot['noHitBosses'] as List).cast<String>());
-      encounteredEnemies
-          .addAll((snapshot['encountered'] as List).cast<String>());
+      encounteredEnemies.addAll(
+        (snapshot['encountered'] as List).cast<String>(),
+      );
       scorpionKills = snapshot['scorpions'] as int;
       eliteKills = snapshot['elites'] as int;
       _fireCooldown = (snapshot['fireCooldown'] as num).toDouble().clamp(0, 2);
@@ -963,11 +1091,39 @@ class RegunGame extends FlameGame
       combat.droneClock = (snapshot['droneClock'] as num?)?.toDouble() ?? 0;
       _ventClock = (snapshot['ventClock'] as num?)?.toDouble() ?? 0;
       boostButtonComponent.restoreCheckpoint(
-          Map<String, dynamic>.from(snapshot['dash'] as Map? ?? {}));
+        Map<String, dynamic>.from(snapshot['dash'] as Map? ?? {}),
+      );
+      if (snapshot['grenadeInventory'] case final Map raw) {
+        grenades.restore(Map<String, dynamic>.from(raw));
+      }
+      for (final raw in (snapshot['grenadeProjectiles'] as List? ?? []).take(
+        4,
+      )) {
+        final data = Map<String, dynamic>.from(raw as Map);
+        final damage = data['damage'], radius = data['radius'];
+        if (damage is! num ||
+            !damage.isFinite ||
+            damage <= 0 ||
+            damage > 30 ||
+            radius is! num ||
+            !radius.isFinite ||
+            radius < 100 ||
+            radius > 300) {
+          throw const FormatException('Invalid grenade blast');
+        }
+        world.add(
+          GrenadeComponent(
+            GrenadeFlight.restore(data),
+            damage: damage.toDouble(),
+            blastRadius: radius.toDouble(),
+          ),
+        );
+      }
       for (final raw in (snapshot['mines'] as List? ?? []).take(12)) {
         final m = raw as Map;
-        final mine =
-            MineComponent(position: point(m['x'] as num, m['y'] as num));
+        final mine = MineComponent(
+          position: point(m['x'] as num, m['y'] as num),
+        );
         mine.age = (m['age'] as num).toDouble().clamp(0, 8);
         _mines.add(mine);
         world.add(mine);
@@ -975,8 +1131,9 @@ class RegunGame extends FlameGame
       for (final raw in (snapshot['fire'] as List? ?? []).take(12)) {
         final f = raw as Map;
         final fire = BurningGround(
-            position: point(f['x'] as num, f['y'] as num),
-            damage: (f['damage'] as num).toDouble().clamp(0, 10));
+          position: point(f['x'] as num, f['y'] as num),
+          damage: (f['damage'] as num).toDouble().clamp(0, 10),
+        );
         fire.age = (f['age'] as num).toDouble().clamp(0, 2.5);
         addFire(fire);
       }
@@ -985,8 +1142,13 @@ class RegunGame extends FlameGame
       if (snapshot['supplyDrops'] case final Map supply) {
         supplyDrops.restore(Map<String, dynamic>.from(supply));
         final drop = supplyDrops.drop;
-        if (drop != null && (!map.bounds.floor.deflate(SupplyDrop.radius).contains(drop.position) ||
-            geometry.obstacles.any((r) => r.inflate(SupplyDrop.radius).contains(drop.position)))) {
+        if (drop != null &&
+            (!map.bounds.floor
+                    .deflate(SupplyDrop.radius)
+                    .contains(drop.position) ||
+                geometry.obstacles.any(
+                  (r) => r.inflate(SupplyDrop.radius).contains(drop.position),
+                ))) {
           throw const FormatException('Invalid supply placement');
         }
       }
@@ -1037,13 +1199,21 @@ class RegunGame extends FlameGame
       final side = random.nextInt(4);
       spawn = switch (side) {
         0 => Vector2(
-            visible.left, visible.top + random.nextDouble() * visible.height),
+          visible.left,
+          visible.top + random.nextDouble() * visible.height,
+        ),
         1 => Vector2(
-            visible.right, visible.top + random.nextDouble() * visible.height),
+          visible.right,
+          visible.top + random.nextDouble() * visible.height,
+        ),
         2 => Vector2(
-            visible.left + random.nextDouble() * visible.width, visible.top),
+          visible.left + random.nextDouble() * visible.width,
+          visible.top,
+        ),
         _ => Vector2(
-            visible.left + random.nextDouble() * visible.width, visible.bottom),
+          visible.left + random.nextDouble() * visible.width,
+          visible.bottom,
+        ),
       };
       spawn.setValues(
         spawn.x.clamp(floor.left, floor.right),
@@ -1057,7 +1227,8 @@ class RegunGame extends FlameGame
     if (!reserveEnemySpace(enemy, minPlayerDistance: 300)) return;
     encounteredEnemies.add(enemyId(enemy));
     _enemies.add(
-        enemy); // Includes pending loads, so spawning cannot exceed the cap.
+      enemy,
+    ); // Includes pending loads, so spawning cannot exceed the cap.
     if (camera.visibleWorldRect
         .inflate(50)
         .contains(enemy.position.toOffset())) {
@@ -1067,8 +1238,12 @@ class RegunGame extends FlameGame
     }
   }
 
-  void enemyDefeated(PositionComponent enemy,
-      {required int xp, required int score, bool boss = false}) {
+  void enemyDefeated(
+    PositionComponent enemy, {
+    required int xp,
+    required int score,
+    bool boss = false,
+  }) {
     if (enemy.parent != world) return;
     if (enemyId(enemy) == 'scorpion') scorpionKills++;
     if (enemy is ArenaEnemy && enemy.elite) eliteKills++;
@@ -1095,14 +1270,17 @@ class RegunGame extends FlameGame
 
   void dropXP(Vector2 position, int value) {
     _coins.removeWhere(
-        (coin) => coin.isCollected || coin.isRemoving || coin.isRemoved);
+      (coin) => coin.isCollected || coin.isRemoving || coin.isRemoved,
+    );
     if (_coins.length >= maxCoins) {
       // Preserve every earned point even when the component budget is full.
-      final closest = _coins.reduce((a, b) =>
-          a.position.distanceToSquared(position) <
-                  b.position.distanceToSquared(position)
-              ? a
-              : b);
+      final closest = _coins.reduce(
+        (a, b) =>
+            a.position.distanceToSquared(position) <
+                b.position.distanceToSquared(position)
+            ? a
+            : b,
+      );
       closest.value += value;
       return;
     }
@@ -1112,13 +1290,13 @@ class RegunGame extends FlameGame
   }
 
   String enemyId(PositionComponent enemy) => switch (enemy) {
-        EnemyComponent() => 'scorpion',
-        Enemy2Component() => 'mummy',
-        Enemy3Component() => 'ranged',
-        ArenaEnemy() => enemy.kind.name,
-        BossEncounter() => (enemy as BossEncounter).kind.name,
-        _ => 'unknown',
-      };
+    EnemyComponent() => 'scorpion',
+    Enemy2Component() => 'mummy',
+    Enemy3Component() => 'ranged',
+    ArenaEnemy() => enemy.kind.name,
+    BossEncounter() => (enemy as BossEncounter).kind.name,
+    _ => 'unknown',
+  };
 
   void practiceBoss(BossKind kind) {
     if (!loadout.training) return;
@@ -1144,16 +1322,25 @@ class RegunGame extends FlameGame
   void spawnShadowBoss() => spawnBoss(BossKind.shadow);
 
   PositionComponent _createBoss(
-          BossKind kind, Vector2 position, double health) =>
-      switch (kind) {
-        BossKind.shadow =>
-          ShadowBossComponent(position: position, maximumHealth: health),
-        BossKind.demon =>
-          DemonBossComponent(position: position, maximumHealth: health),
-        BossKind.queen => PatternBoss(BossKind.queen,
-            position: position, maximumHealth: health),
-        _ => createExpansionBoss(kind, position, health),
-      };
+    BossKind kind,
+    Vector2 position,
+    double health,
+  ) => switch (kind) {
+    BossKind.shadow => ShadowBossComponent(
+      position: position,
+      maximumHealth: health,
+    ),
+    BossKind.demon => DemonBossComponent(
+      position: position,
+      maximumHealth: health,
+    ),
+    BossKind.queen => PatternBoss(
+      BossKind.queen,
+      position: position,
+      maximumHealth: health,
+    ),
+    _ => createExpansionBoss(kind, position, health),
+  };
 
   void spawnBoss(BossKind kind, {bool companion = false}) {
     if ((!companion && bosses.isNotEmpty) ||
@@ -1177,14 +1364,19 @@ class RegunGame extends FlameGame
     unawaited(audio.playMusic('boss'));
     if (!director.bossActive) director.beginBoss();
     world.add(actor);
-    final distant = liveEnemies
-        .where((e) =>
-            e is! BossEncounter &&
-            e.position.distanceToSquared(myPlayer.position) > 600 * 600)
-        .toList()
-      ..sort((a, b) => b.position
-          .distanceToSquared(myPlayer.position)
-          .compareTo(a.position.distanceToSquared(myPlayer.position)));
+    final distant =
+        liveEnemies
+            .where(
+              (e) =>
+                  e is! BossEncounter &&
+                  e.position.distanceToSquared(myPlayer.position) > 600 * 600,
+            )
+            .toList()
+          ..sort(
+            (a, b) => b.position
+                .distanceToSquared(myPlayer.position)
+                .compareTo(a.position.distanceToSquared(myPlayer.position)),
+          );
     for (final enemy in distant.take(max(0, _enemies.length - 60))) {
       enemy.removeFromParent();
     }
@@ -1252,7 +1444,9 @@ class RegunGame extends FlameGame
   bool spawnShotgunBullets() {
     if (playerEntrance.active) return false;
     final state = gameState;
-    if (state.gameplayState != GameplayState.playing || state.reloading) return false;
+    if (state.gameplayState != GameplayState.playing || state.reloading) {
+      return false;
+    }
     if (state.noOfBullets <= 0) {
       gameNotifier.reloadBullets();
       return false;
@@ -1276,9 +1470,11 @@ class RegunGame extends FlameGame
         }
       }
       if (target != null) {
-        baseDirection.setFrom((baseDirection * 0.8 +
-                (target.position - myPlayer.position).normalized() * 0.2)
-            .normalized());
+        baseDirection.setFrom(
+          (baseDirection * 0.8 +
+                  (target.position - myPlayer.position).normalized() * 0.2)
+              .normalized(),
+        );
       }
     }
     audio.play('shot_${loadout.weapon.name}_${shotsFired % 3}.wav');
@@ -1288,19 +1484,22 @@ class RegunGame extends FlameGame
         state.shotDamage * loadout.weapon.damage * loadout.character.damage;
     breachEngine = state.fused('breachEngine');
     if (state.noOfBullets == 1) {
-      damage *= 1 +
+      damage *=
+          1 +
           GameState.scaledRank(state.lastShellRank) *
               (breachEngine ? 0.9 : 0.6);
     }
     if (_breachCharged) {
-      damage *= 1 +
+      damage *=
+          1 +
           GameState.scaledRank(state.breachRank) * (breachEngine ? 0.8 : 0.5);
     }
     _breachCharged = false;
     final count = loadout.weapon == WeaponType.shotgun
         ? state.bulletNumberRange * 2 + 1
         : 1 + min(3, state.rank(PowerUp.numberOfBulletsPerShotIncrease));
-    final spread = (loadout.weapon == WeaponType.shotgun ? pi / 20 : pi / 32) *
+    final spread =
+        (loadout.weapon == WeaponType.shotgun ? pi / 20 : pi / 32) *
         (1 -
             max(0, state.rank(PowerUp.numberOfBulletsPerShotIncrease) - 3) *
                 .04);
@@ -1313,25 +1512,32 @@ class RegunGame extends FlameGame
         // A tight per-round grouping, not a shotgun fan or a wandering bullet.
         direction.rotate((random.nextDouble() * 2 - 1) * pi / 90);
         final side = Vector2(-baseDirection.y, baseDirection.x);
-        muzzleOffset = side * ((random.nextDouble() * 2 - 1) * 2) +
+        muzzleOffset =
+            side * ((random.nextDouble() * 2 - 1) * 2) +
             baseDirection * ((random.nextDouble() * 2 - 1) * 1.25);
       }
-      addProjectile(BulletComponent(
-          position: myPlayer.position +
+      addProjectile(
+        BulletComponent(
+          position:
+              myPlayer.position +
               Vector2(0, 6) +
               muzzleOffset +
               direction * (8 + WeaponFeel.of(loadout.weapon).muzzle),
           weapon: loadout.weapon,
-          damage: damage /
+          damage:
+              damage /
               (loadout.weapon != WeaponType.shotgun && count > 1 ? 1.3 : 1),
           direction: direction,
           speed: state.bulletSpeed,
           maxTravelDistance: state.bulletRange.toDouble(),
-          pierce: state.rank(PowerUp.bulletsPhaseThrough) +
+          pierce:
+              state.rank(PowerUp.bulletsPhaseThrough) +
               (state.bulletsPhaseThrough ? 1 : 0),
           bounces:
               state.rank(PowerUp.ricochet) + (state.fused('pinball') ? 3 : 0),
-          angle: atan2(direction.y, direction.x)));
+          angle: atan2(direction.y, direction.x),
+        ),
+      );
     }
     gameNotifier.decreaseBullets();
     if (gameState.noOfBullets == 0) gameNotifier.reloadBullets();
@@ -1351,8 +1557,11 @@ class RegunGame extends FlameGame
         audio.play('impact_guard.wav');
       }
       final centerCamera = map.bounds.cameraPosition(
-          Vector2.zero(), camera.viewport.virtualSize / camera.viewfinder.zoom);
-      camera.viewfinder.position = playerEntrance.cameraFrom +
+        Vector2.zero(),
+        camera.viewport.virtualSize / camera.viewfinder.zoom,
+      );
+      camera.viewfinder.position =
+          playerEntrance.cameraFrom +
           (centerCamera - playerEntrance.cameraFrom) *
               playerEntrance.cameraProgress;
       if (playerEntrance.atCenter) myPlayer.position.setZero();
@@ -1363,6 +1572,11 @@ class RegunGame extends FlameGame
         final respawn = playerEntrance.respawning;
         playerEntrance.cancel();
         if (respawn) {
+          grenades.reset();
+          for (final shot
+              in world.children.whereType<GrenadeComponent>().toList()) {
+            shot.removeFromParent();
+          }
           gameNotifier.recoverTrainingPlayer();
         }
         resetInput();
@@ -1384,16 +1598,15 @@ class RegunGame extends FlameGame
       _fireCooldown = max(0, _fireCooldown - dt);
       final firing = !weaponJoystick.relativeDelta.isZero();
       if (_fireCooldown <= 0 && firing && spawnShotgunBullets()) {
-        _fireCooldown = loadout.weapon.cadence *
+        _fireCooldown =
+            loadout.weapon.cadence *
             pow(0.85, gameState.effectRank(PowerUp.quickTrigger));
       }
+      grenades.advance(dt, grenadeRecharge);
       combat.update(dt);
     }
     enemyTactics.rebuild(liveEnemies);
-    crowdOccupancy.rebuild([
-      ..._enemies,
-      ...bosses,
-    ], crowdRadius);
+    crowdOccupancy.rebuild([..._enemies, ...bosses], crowdRadius);
     super.update(dt);
     final state = gameState;
     if (state.gameplayState == GameplayState.playing) {
@@ -1411,10 +1624,13 @@ class RegunGame extends FlameGame
           EnemyKind.scorpion => EnemyComponent(),
           EnemyKind.mummy => Enemy2Component(),
           EnemyKind.ranged => Enemy3Component(),
-          _ => ArenaEnemy(kind,
-              elite: director.elapsed > 150 &&
-                  random.nextDouble() <
-                      min(0.35, 0.12 + (director.cycle - 1) * 0.03)),
+          _ => ArenaEnemy(
+            kind,
+            elite:
+                director.elapsed > 150 &&
+                random.nextDouble() <
+                    min(0.35, 0.12 + (director.cycle - 1) * 0.03),
+          ),
         };
         _spawnEnemy(enemy);
       }
@@ -1428,11 +1644,18 @@ class RegunGame extends FlameGame
         if (_ventClock >= 6) {
           _ventClock = 0;
           final vents = map.vents
-            ..sort((a, b) => a
-                .distanceToSquared(myPlayer.position)
-                .compareTo(b.distanceToSquared(myPlayer.position)));
-          addHostileArea(vents.first,
-              radius: 115, warning: 1.2, active: 1.5, cause: 'Foundry vent');
+            ..sort(
+              (a, b) => a
+                  .distanceToSquared(myPlayer.position)
+                  .compareTo(b.distanceToSquared(myPlayer.position)),
+            );
+          addHostileArea(
+            vents.first,
+            radius: 115,
+            warning: 1.2,
+            active: 1.5,
+            cause: 'Foundry vent',
+          );
         }
       }
     }
@@ -1442,8 +1665,9 @@ class RegunGame extends FlameGame
         1 => shotsFired > 0,
         2 => dashCount > 0,
         3 => manualReloads > 0,
-        4 => gameState.currentLevel >= 2 &&
-            gameState.gameplayState == GameplayState.playing,
+        4 =>
+          gameState.currentLevel >= 2 &&
+              gameState.gameplayState == GameplayState.playing,
         _ => false,
       };
       if (done) {
@@ -1452,17 +1676,23 @@ class RegunGame extends FlameGame
       }
     }
     if (gameState.gameplayState == GameplayState.playing &&
-        loadout.arena == ArenaType.breach && !bossRush && !_supplyArtLoading) {
-      supplyDrops.advance(dt, player: myPlayer.position.toOffset(),
-          pickPosition: _pickSupplyPosition, onLand: landSupplyDrop,
-          onReward: () {
-            final granted = gameNotifier.offerSupplyUpgrade();
-            if (granted) audio.play('supply_claim.wav');
-            return granted;
-          },
-          onCharge: (step) => audio.play('supply_charge_$step.wav'),
-          onWarning: () => audio.play('supply_incoming.wav'),
-          onBreak: () => audio.play('supply_break.wav'));
+        loadout.arena == ArenaType.breach &&
+        !bossRush &&
+        !_supplyArtLoading) {
+      supplyDrops.advance(
+        dt,
+        player: myPlayer.position.toOffset(),
+        pickPosition: _pickSupplyPosition,
+        onLand: landSupplyDrop,
+        onReward: () {
+          final granted = gameNotifier.offerSupplyUpgrade();
+          if (granted) audio.play('supply_claim.wav');
+          return granted;
+        },
+        onCharge: (step) => audio.play('supply_charge_$step.wav'),
+        onWarning: () => audio.play('supply_incoming.wav'),
+        onBreak: () => audio.play('supply_break.wav'),
+      );
     }
     _syncSupplyArt(supplyDrops.drop != null && !bossRush);
     _updateCamera();
@@ -1481,15 +1711,23 @@ class RegunGame extends FlameGame
   }
 
   Offset? _pickSupplyPosition() {
-    final area = camera.visibleWorldRect.intersect(map.bounds.floor)
+    final area = camera.visibleWorldRect
+        .intersect(map.bounds.floor)
         .deflate(SupplyDrop.radius + 35);
     if (area.width <= 0 || area.height <= 0) return null;
     for (var i = 0; i < 30; i++) {
-      final spot = Offset(area.left + random.nextDouble()*area.width,
-          area.top + random.nextDouble()*area.height);
+      final spot = Offset(
+        area.left + random.nextDouble() * area.width,
+        area.top + random.nextDouble() * area.height,
+      );
       if ((spot - myPlayer.position.toOffset()).distance < 260 ||
-          (supplyDrops.previous != null && (spot - supplyDrops.previous!).distance < 350) ||
-          geometry.obstacles.any((r) => r.inflate(SupplyDrop.radius+20).contains(spot))) { continue; }
+          (supplyDrops.previous != null &&
+              (spot - supplyDrops.previous!).distance < 350) ||
+          geometry.obstacles.any(
+            (r) => r.inflate(SupplyDrop.radius + 20).contains(spot),
+          )) {
+        continue;
+      }
       return spot;
     }
     return null;
@@ -1503,10 +1741,17 @@ class RegunGame extends FlameGame
     for (final target in liveEnemies.toList()) {
       final enemy = target as CombatEnemy;
       final radius = SupplyDrop.impactRadius + enemyRadius(target);
-      if (target.position.distanceToSquared(center) > radius*radius ||
-          segmentBlocked(center, target.position)) { continue; }
-      hitEnemy(target, enemy.isBoss ? enemy.combatHealth.maximum*.03
-          : enemy.combatHealth.current, primary: false);
+      if (target.position.distanceToSquared(center) > radius * radius ||
+          segmentBlocked(center, target.position)) {
+        continue;
+      }
+      hitEnemy(
+        target,
+        enemy.isBoss
+            ? enemy.combatHealth.maximum * .03
+            : enemy.combatHealth.current,
+        primary: false,
+      );
     }
   }
 
@@ -1543,7 +1788,11 @@ class RegunGame extends FlameGame
         right = max(safe.right, letterbox.x);
     final bottom = max(safe.bottom, letterbox.y);
     return Rect.fromLTRB(
-        left, letterbox.y, canvasSize.x - right, canvasSize.y - bottom);
+      left,
+      letterbox.y,
+      canvasSize.x - right,
+      canvasSize.y - bottom,
+    );
   }
 
   void layoutControls() {
@@ -1556,7 +1805,8 @@ class RegunGame extends FlameGame
     final right = max(0.0, safe.right - letterbox.x);
     final bottom = max(0.0, safe.bottom - letterbox.y);
     final geometry = controls.geometry(
-        Size(virtual.x * factor - left - right, virtual.y * factor - bottom));
+      Size(virtual.x * factor - left - right, virtual.y * factor - bottom),
+    );
     Vector2 point(Offset value) =>
         Vector2((value.dx + left) / factor, value.dy / factor);
     if (!controls.floating || !movementJoystick.hasActivePointer) {
@@ -1569,8 +1819,10 @@ class RegunGame extends FlameGame
     weaponJoystick.scale.setAll(controls.size / (180 * factor));
     boostButtonComponent.position.setFrom(point(geometry.dash));
     reloadButtonComponent.position.setFrom(point(geometry.reload));
+    grenadeButtonComponent.position.setFrom(point(geometry.grenade));
     boostButtonComponent.scale.setAll(controls.buttonSize / (112 * factor));
     reloadButtonComponent.scale.setAll(controls.buttonSize / (112 * factor));
+    grenadeButtonComponent.scale.setAll(controls.buttonSize / (112 * factor));
   }
 
   bool damagePlayer({int amount = 1, String cause = 'The horde'}) {
@@ -1579,18 +1831,20 @@ class RegunGame extends FlameGame
     }
     final health = gameState.health;
     if (!gameNotifier.reduceHealth(
-        amount: amount,
-        cause: cause,
-        trainingRespawn: loadout.training && trainingDamage)) {
+      amount: amount,
+      cause: cause,
+      trainingRespawn: loadout.training && trainingDamage,
+    )) {
       return false;
     }
     if (loadout.training && gameState.health == 0) {
       resetInput();
       boostButtonComponent.reset();
       playerEntrance.begin(
-          respawn: true,
-          reducedMotion: preferences.reducedMotion,
-          camera: camera.viewfinder.position);
+        respawn: true,
+        reducedMotion: preferences.reducedMotion,
+        camera: camera.viewfinder.position,
+      );
     }
     if (gameState.health < health) {
       myPlayer.hurtFlash = 0.32;
@@ -1605,11 +1859,13 @@ class RegunGame extends FlameGame
         unawaited(HapticFeedback.lightImpact().catchError((Object _) {}));
       }
     }
-    audio.play(gameState.health == 0
-        ? 'gameov.wav'
-        : gameState.health < health
-            ? 'hurt_player.wav'
-            : 'impact_guard.wav');
+    audio.play(
+      gameState.health == 0
+          ? 'gameov.wav'
+          : gameState.health < health
+          ? 'hurt_player.wav'
+          : 'impact_guard.wav',
+    );
     return true;
   }
 
@@ -1645,19 +1901,20 @@ class RegunGame extends FlameGame
   void addEnemy2Component() {
     if (_enemy2Unlocked) return;
     _enemy2Unlocked = true;
-    world.add(RepeatingAction(
-      period: 1.5,
-      onTick: () => _spawnEnemy(Enemy2Component()),
-    ));
+    world.add(
+      RepeatingAction(
+        period: 1.5,
+        onTick: () => _spawnEnemy(Enemy2Component()),
+      ),
+    );
   }
 
   void addEnemy3Component() {
     if (_enemy3Unlocked) return;
     _enemy3Unlocked = true;
-    world.add(RepeatingAction(
-      period: 3,
-      onTick: () => _spawnEnemy(Enemy3Component()),
-    ));
+    world.add(
+      RepeatingAction(period: 3, onTick: () => _spawnEnemy(Enemy3Component())),
+    );
   }
 
   @override

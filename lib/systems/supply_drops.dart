@@ -11,8 +11,8 @@ class SupplyDrop {
   SupplyPhase phase = SupplyPhase.warning;
   double elapsed = 0, capture = 0, life = 0;
   bool inside = false, claimed = false;
-  static const radius = 220.0, impactRadius = 62.0;
-  static const captureSeconds = 8.0, lifetime = 45.0;
+  static const radius = 260.0, impactRadius = 62.0;
+  static const captureSeconds = 8.0, lifetime = 50.0;
 }
 
 /// One optional risk/reward objective at a time; only the game advances this
@@ -168,7 +168,7 @@ class SupplyDrops {
       final d = SupplyDrop(point(raw['position']));
       d.phase = SupplyPhase.values.byName(raw['phase'] as String);
       d.claimed = raw['claimed'] == true;
-      d.elapsed = number(raw, 'elapsed', 45);
+      d.elapsed = number(raw, 'elapsed', SupplyDrop.lifetime);
       d.capture = number(raw, 'capture', SupplyDrop.captureSeconds);
       d.life = number(raw, 'life', SupplyDrop.lifetime);
       final maximum = switch (d.phase) {

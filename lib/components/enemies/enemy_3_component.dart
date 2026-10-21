@@ -68,8 +68,6 @@ class Enemy3Component extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
-    final facingLeft = game.myPlayer.position.x < position.x;
-    if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
     if (game.gameState.gameplayState != GameplayState.playing) return;
 
     if (isDying) {
@@ -77,6 +75,10 @@ class Enemy3Component extends SpriteAnimationComponent
       if (_deathElapsed >= 0.6) removeFromParent();
       return;
     }
+
+    final facingLeft = game.myPlayer.position.x < position.x;
+    if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
+
 
     final playerPosition = game.myPlayer.position;
     final distance = position.distanceTo(playerPosition);
@@ -117,8 +119,9 @@ class Enemy3Component extends SpriteAnimationComponent
   void onCombatDeath() {
     isDying = true;
     isAttacking = false;
-    animation = game.myPlayer.position.x > position.x
-        ? deathRightAnimation
-        : deathLeftAnimation;
+    game.addCombatEffectForKill(position, radius: 58,
+        remains: RegunArt.shared.rawSprite('enemies/ranged_remains', 0),
+        flipRemains: isFlippedHorizontally);
+    removeFromParent();
   }
 }

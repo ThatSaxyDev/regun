@@ -10,6 +10,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
       {required super.position,
       this.endpoint,
       this.remains,
+      this.flipRemains = false,
       this.radius = 90,
       this.material = AttackMaterial.stone,
       this.color = const Color(0xffE3BF83),
@@ -18,6 +19,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
               endpoint == null && remains == null ? -10 : 20010);
   final Vector2? endpoint;
   final Sprite? remains;
+  final bool flipRemains;
   final double radius, duration;
   final Color color;
   final AttackMaterial material;
@@ -39,12 +41,15 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
   @override
   void render(Canvas canvas) {
     if (remains != null) {
+      canvas.save();
+      if (flipRemains) canvas.scale(-1, 1);
       remains!.render(canvas,
-          size: Vector2.all(radius * 2),
+          size: Vector2(radius * 2, radius * 2 * remains!.srcSize.y / remains!.srcSize.x),
           anchor: Anchor.center,
           overridePaint: Paint()
             ..color = Colors.white
                 .withValues(alpha: (1 - age / duration).clamp(0, 1)));
+      canvas.restore();
       return;
     }
     if (endpoint != null) {

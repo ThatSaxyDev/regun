@@ -37,6 +37,7 @@ class OnlineSession {
     defaultValue: true,
   );
   final AuthTokenStore tokens;
+  bool grenadesAvailable = false;
   bool combatAvailable = false, _attaching = false, _combatSending = false;
   OnlineMatch? match;
   Map<String, OnlineGun> fighters = {};
@@ -51,7 +52,7 @@ class OnlineSession {
   String reviveTarget = "";
   OnlineGun? get gun => fighters[identity];
   bool firing = false;
-  int _combatSeq = 0, _reloadSeq = 0;
+  int _combatSeq = 0, _reloadSeq = 0, _grenadeSeq = 0;
   bool get controlsEnabled =>
       connected &&
       !suspended &&
@@ -146,6 +147,9 @@ class OnlineSession {
         throw StateError('Server schema unavailable');
       }
       final schemaJson = jsonDecode(schema.body) as Map<String, dynamic>;
+      grenadesAvailable = (schemaJson['reducers'] as List? ?? []).any(
+        (v) => v is Map && v['name'] == 'throw_grenade',
+      );
       combatAvailable = (schemaJson['misc_exports'] as List? ?? []).any(
         (v) =>
             v is Map && v['View'] is Map && v['View']['name'] == 'room_combat',
@@ -296,8 +300,13 @@ class OnlineSession {
           : null;
       _combatSeq = fighter?.inputSeq.toInt() ?? 0;
       _reloadSeq = fighter?.reloadSeq.toInt() ?? 0;
+      _grenadeSeq =
+          int.tryParse(gun?.data['grenadeSeq'] as String? ?? '0') ?? 0;
       neutral();
     }
+    // A reconnect can deliver the member view before the fighter snapshot.
+    _grenadeSeq = math.max(_grenadeSeq,
+        int.tryParse(gun?.data['grenadeSeq'] as String? ?? '0') ?? 0);
     if (combatAvailable &&
         connected &&
         match != null &&
@@ -335,6 +344,26 @@ class OnlineSession {
 
   void reload() {
     if (controlsEnabled && match != null) _reloadSeq++;
+  }
+
+  void throwGrenade() {
+    if (!controlsEnabled ||
+        !grenadesAvailable ||
+        room == null ||
+        me == null ||
+        (gun?.grenadeCharges ?? 0) <= 0 ||
+        (gun?.offers.isNotEmpty ?? true)) {
+      return;
+    }
+    unawaited(
+      _quiet(
+        () => _client!.reducers.throwGrenade(
+          roomid: room!.id,
+          generation: me!.generation,
+          seq: Int64(++_grenadeSeq),
+        ),
+      ),
+    );
   }
 
   Future<void> chooseLoadout(String weapon, String survivor) => command(

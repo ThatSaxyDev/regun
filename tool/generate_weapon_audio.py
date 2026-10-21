@@ -119,3 +119,5 @@ if __name__ == '__main__':
     if not args.only:
         from generate_reload_audio import generate
         generate()
+        from generate_ordnance_audio import main as generate_ordnance
+        generate_ordnance()

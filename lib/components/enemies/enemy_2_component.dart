@@ -68,8 +68,6 @@ class Enemy2Component extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
-    final facingLeft = game.myPlayer.position.x < position.x;
-    if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
     if (game.gameState.gameplayState != GameplayState.playing) return;
 
     if (isDying) {
@@ -77,6 +75,10 @@ class Enemy2Component extends SpriteAnimationComponent
       if (_deathElapsed >= 0.6) removeFromParent();
       return;
     }
+
+    final facingLeft = game.myPlayer.position.x < position.x;
+    if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
+
 
     //! PLAYER POSITION
     final playerPosition = game.myPlayer.position;

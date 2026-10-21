@@ -64,7 +64,7 @@ void main() {
 
   test('unclaimed pod expires and disappears without awarding anything', () {
     landed();
-    advance(45, player: Offset.zero);
+    advance(50, player: Offset.zero);
     expect(drops.drop!.phase, SupplyPhase.breaking);
     expect(rewards, 0);
     expect(breaks, 1);

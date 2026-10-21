@@ -1,4 +1,5 @@
 import 'package:regun/data/loadout.dart';
+import 'package:regun/systems/grenades.dart';
 import 'package:regun/systems/supply_drops.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -15,10 +16,36 @@ class RunCheckpoint {
       }
       Loadout.fromJson(Map<String, dynamic>.from(map['loadout'] as Map));
       if (map.containsKey('supplyDrops')) {
-        SupplyDrops().restore(Map<String, dynamic>.from(map['supplyDrops'] as Map));
+        SupplyDrops().restore(
+          Map<String, dynamic>.from(map['supplyDrops'] as Map),
+        );
       }
-      final state =
-          GameState.fromJson(Map<String, dynamic>.from(map['state'] as Map));
+      if (map.containsKey('grenadeInventory')) {
+        GrenadeInventory().restore(
+          Map<String, dynamic>.from(map['grenadeInventory'] as Map),
+        );
+      }
+      if (map.containsKey('grenadeProjectiles')) {
+        final shots = map['grenadeProjectiles'] as List;
+        if (shots.length > 4) return false;
+        for (final raw in shots) {
+          final data = Map<String, dynamic>.from(raw as Map);
+          GrenadeFlight.restore(data);
+          if ([
+                data['damage'],
+                data['radius'],
+              ].any((v) => v is! num || !v.isFinite) ||
+              (data['damage'] as num) <= 0 ||
+              (data['damage'] as num) > 30 ||
+              (data['radius'] as num) < 100 ||
+              (data['radius'] as num) > 300) {
+            return false;
+          }
+        }
+      }
+      final state = GameState.fromJson(
+        Map<String, dynamic>.from(map['state'] as Map),
+      );
       if (state.health <= 0 ||
           state.maxHealth < state.health ||
           state.maxHealth > 10000 ||
@@ -42,8 +69,9 @@ class RunCheckpoint {
           state.pendingCores < 0 ||
           state.pendingCores > 8 ||
           state.evolutions.length > 2 ||
-          state.ranks.entries
-              .any((e) => e.value < 0 || e.value > e.key.maxRank) ||
+          state.ranks.entries.any(
+            (e) => e.value < 0 || e.value > e.key.maxRank,
+          ) ||
           state.evolutions.any((id) => !fusionRecipes.any((r) => r.id == id))) {
         return false;
       }
@@ -62,7 +90,7 @@ class RunCheckpoint {
         'activeSeconds',
         'reloadElapsedMs',
         'reloadDurationMs',
-        'nextReloadSoundMs'
+        'nextReloadSoundMs',
       ]) {
         if (!number(map[key], 1e9)) return false;
       }

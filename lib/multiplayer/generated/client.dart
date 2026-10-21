@@ -332,6 +332,10 @@ class SpacetimeDbClient {
       'submit_input',
       SubmitInputArgsDecoder(),
     );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'throw_grenade',
+      ThrowGrenadeArgsDecoder(),
+    );
 
     final client = SpacetimeDbClient._(
       connection: connection,

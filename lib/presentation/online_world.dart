@@ -202,8 +202,8 @@ class OnlineWorldArt {
           final a = i * math.pi / 12;
           final v = Offset(math.cos(a), math.sin(a));
           canvas.drawLine(
-            p + v * 213,
-            p + v * 220,
+            p + v * 253,
+            p + v * 260,
             paint
               ..color = i / 24 < capture / 8
                   ? const Color(0xffE4CE98)
@@ -312,23 +312,26 @@ class OnlineWorldArt {
     canvas.save();
     canvas.translate(p.dx, p.dy);
     if (entity.number('dx', 1) < 0) canvas.scale(-1, 1);
-    art
-        .sprite(name, frame)
-        .render(
-          canvas,
-          position: Vector2.zero(),
-          size: Vector2.all(size),
-          anchor: Anchor.center,
-          overridePaint: Paint()
-            ..filterQuality = FilterQuality.none
-            ..colorFilter = ambient(foundry)
-            ..color = Color.fromRGBO(
-              255,
-              255,
-              255,
-              dead ? (1 - entity.number('deadAge') / .8).clamp(0, 1) : 1,
-            ),
-        );
+    final sprite = dead && kind == 'ranged'
+        ? art.rawSprite('enemies/ranged_remains', 0)
+        : art.sprite(name, frame);
+    sprite.render(
+      canvas,
+      position: Vector2.zero(),
+      size: dead && kind == 'ranged'
+          ? Vector2(size, size * sprite.srcSize.y / sprite.srcSize.x)
+          : Vector2.all(size),
+      anchor: Anchor.center,
+      overridePaint: Paint()
+        ..filterQuality = FilterQuality.none
+        ..colorFilter = ambient(foundry)
+        ..color = Color.fromRGBO(
+          255,
+          255,
+          255,
+          dead ? (1 - entity.number('deadAge') / .8).clamp(0, 1) : 1,
+        ),
+    );
     canvas.restore();
     if (!dead &&
         (boss || entity.number('health') < entity.number('maximumHealth', 1))) {
