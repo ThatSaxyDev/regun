@@ -48,8 +48,12 @@ void main() {
       await LocalPreferences.shared.resetProgress();
       await tester.pumpWidget(ProviderScope(
           overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
-          child: const RepaintBoundary(
-              key: Key('capture'), child: MaterialApp(home: MenuView()))));
+          child: RepaintBoundary(
+              key: const Key('capture'), child: MaterialApp(
+                builder: (context, child) => MediaQuery(
+                    data: MediaQuery.of(context).copyWith(disableAnimations: true),
+                    child: child!),
+                home: const MenuView()))));
       await Future<void>.delayed(const Duration(milliseconds: 50));
     });
     await tester.pump();

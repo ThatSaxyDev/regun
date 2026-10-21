@@ -71,7 +71,8 @@ void main() {
           key: UniqueKey(),
           builder: (context, child) => MediaQuery(
               data: MediaQuery.of(context).copyWith(
-                  padding: safe, textScaler: TextScaler.linear(scale)),
+                  padding: safe, textScaler: TextScaler.linear(scale),
+                  disableAnimations: true),
               child: child!),
           home:
               RepaintBoundary(key: const Key('iphone-capture'), child: page)));
@@ -108,8 +109,9 @@ void main() {
             expect(find.text('LOADING'), findsNothing);
             expect(find.text('v1.0.0 (3)'), findsOneWidget);
             final label = tester.getRect(find.text('v1.0.0 (3)'));
-            final art = tester.getRect(find.byType(HomeArtwork));
-            expect(label.top, greaterThanOrEqualTo(art.bottom));
+            expect(find.byType(HomeArtwork), findsOneWidget);
+            expect(tester.getRect(find.byKey(const Key('home-title'))).top,
+                greaterThanOrEqualTo(0));
             expect(label.bottom, lessThanOrEqualTo(device.$2 - safe.bottom));
             expect(label.right, lessThanOrEqualTo(device.$1 - safe.right));
             if (scale == 1 && (device.$1 == 844 || device.$1 == 956)) {

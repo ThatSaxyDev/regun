@@ -174,3 +174,10 @@ Compare each weapon against the same enemy type up close, at mid distance and ne
 - On Home, tap the top-right gear. It has no visible text; accessibility and long-press tooltip identify Settings. Re-Gun sits lower; Play is separated from Training.
 - Settings → Controls must work without starting a run. Change control size, aim hand, stick mode and calibration; Arrange, drag a control and return with Done/system Back. Relaunch/start a match and check saved placement/size.
 - Repeat through Pause → Controls and Pause → Settings → Controls. Changes through either path must immediately apply to the paused match. Check Reset, notched safe edges and larger text on smaller phones.
+
+### Redesigned home terminal (21 October 2026)
+
+- With a saved solo run, confirm Continue and Play share a row, Online stays below, and Training/Collection/Settings are all reachable in the lower rail. Continue resumes the save; Play still asks before replacing it.
+- Check the title and lower rail on a compact landscape phone and both notch orientations. Larger text and portrait can scroll without obscuring the pinned version footer.
+- Settings → Controls should still save layout preferences before a match. Returning to Home after enabling Reduced Motion must freeze the breach hardware and ash; disabling it restores slow ambient movement.
+- Review the original iron breach illustration, contrast, motion comfort and thumb reach on hardware. Automated layout/simulator screenshots do not establish physical comfort or performance.

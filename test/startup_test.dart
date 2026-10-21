@@ -18,7 +18,11 @@ void main() {
     await tester.runAsync(() async {
       await RegunArt.shared.load();
       await tester.pumpWidget(
-        const ProviderScope(child: MaterialApp(home: FlameSplashView())),
+        ProviderScope(child: MaterialApp(
+          builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(disableAnimations: true),
+              child: child!),
+          home: const FlameSplashView())),
       );
       await tester.pump();
       await Future<void>.delayed(const Duration(milliseconds: 100));

@@ -29,9 +29,18 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       await tester.runAsync(() async {
         await LocalPreferences.shared.load();
-        await tester.pumpWidget(ProviderScope(
+        await tester.pumpWidget(
+          ProviderScope(
             overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
-            child: const MaterialApp(home: MenuView())));
+            child: MaterialApp(
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(disableAnimations: true),
+                child: child!,
+              ),
+              home: const MenuView(),
+            ),
+          ),
+        );
         await Future<void>.delayed(const Duration(milliseconds: 20));
       });
       await tester.pumpAndSettle();
@@ -44,8 +53,8 @@ void main() {
       expect(find.text('SETTINGS'), findsNothing);
       expect(find.byTooltip('Settings'), findsOneWidget);
       final settings = find.byKey(const Key('home-settings'));
-      expect(tester.getRect(settings).right, greaterThan(800));
-      expect(tester.getRect(settings).top, lessThan(24));
+      expect(tester.getRect(settings).right, lessThan(500));
+      expect(tester.getRect(settings).top, greaterThan(200));
       expect(
         tester.getRect(find.text('TRAINING')).top -
             tester.getRect(find.text('PLAY')).bottom,
