@@ -1,3 +1,5 @@
+import 'package:regun/widgets/game_presentation.dart';
+
 import 'dart:developer' as dev;
 import 'dart:async';
 
@@ -94,6 +96,7 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
     // final router = goRouter();
     return MaterialApp(
       title: 'Regun',
+      builder: (context, child) => GamePresentation(child: child!),
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),

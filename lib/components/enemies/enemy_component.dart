@@ -43,7 +43,7 @@ class EnemyComponent extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
-    if (isDying || freezeHeld) return;
+    if (isDying || freezeHeld || impactHeld) return;
     final facingLeft = game.myPlayer.position.x < position.x;
     if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
 

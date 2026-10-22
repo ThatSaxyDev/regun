@@ -1,0 +1,6 @@
+{
+  "lib/systems/weapon_reaction.dart": "2329ee74466a4dcb08047fac85e2082454d0fb7f91e2c4e44eaf15eb3cf45fc9",
+  "lib/components/enemies/combat_enemy.dart": "37133ed92ec76828ab5d512f0f89a3165fc00a423b97e492d8b67a8a0273d1e7",
+  "test/weapon_reaction_test.dart": "8efe9e8203c933919e5dba7618d2892c109d6c7fcdfab6f3c445107e86555804",
+  "test/fixtures/multiplayer_combat.json": "6743ff36b32af1ccd3080767a06b9ab2faa27ba9b97804b47d42f4df9341d36f"
+}

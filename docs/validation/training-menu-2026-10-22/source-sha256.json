@@ -1,0 +1,11 @@
+{
+  "lib/views/base_view.dart": "45a9b53385cba24dc1e0b7f310aa8b8b6c0cd3b8683ce807ca92bea20af6e303",
+  "lib/views/settings_view.dart": "96987798b9c306fccb9f7e97663d5b8a1111bba7f5995438877380ad41dd9c2e",
+  "lib/widgets/controls_editor.dart": "075fea261ed136bc99dce94b82a4fe0baedacb42ee19ffddeee146692571e6eb",
+  "lib/widgets/control_settings.dart": "7b35cebc355a54a05520816548970ae868dda4a91dfc1aa89a5f13692ebb3677",
+  "lib/widgets/practice_section.dart": "aa80df7d1a92e7172dc0115f4317fe45461d765ceb6415cb1184524549ef1b38",
+  "lib/widgets/weapon_thumbnail.dart": "d7412a265c28a5d6006f91a788b53b9de0e9cfd3298b2d46fbb934b3f3bb59a8",
+  "lib/widgets/weapon_practice_tile.dart": "26e26db61177d243ee7768ad50ce9b316404273b1f7a50b44bbb8fbecae87baf",
+  "lib/widgets/online_match_menu.dart": "2e50a7a83ca1198c2aa37ae263a4de3aeb37dad9f0501feda67e655cf830fc78",
+  "lib/widgets/online_arena.dart": "3e67bfe4d10e9dd63d858055b4cf91669bd8fe8df95daee243fc2dadb48d5c2f"
+}

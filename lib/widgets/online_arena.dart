@@ -1,3 +1,4 @@
+import 'package:regun/presentation/game_layout.dart';
 import 'package:regun/systems/weapon_heading.dart';
 import 'package:regun/multiplayer/local_fire_feedback.dart';
 import 'package:regun/systems/grenades.dart';
@@ -444,7 +445,9 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           final controls = LocalPreferences.shared.controls;
           final geometry = controls.geometry(size);
           final centers = {'move': geometry.movement, 'aim': geometry.aim};
-          final radius = controls.size / 2;
+          final stickSize = controls.displaySize(size),
+              buttonSize = controls.displayButtonSize(size);
+          final radius = stickSize / 2;
           void update(PointerEvent event) {
             final id = pointers[event.pointer];
             if (id == null ||
@@ -527,22 +530,19 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     onPointerDown: (event) {
                       if (!session.controlsEnabled) return;
                       final p = event.localPosition;
-                      if ((p - geometry.dash).distance <
-                          controls.buttonSize / 2) {
+                      if ((p - geometry.dash).distance < buttonSize / 2) {
                         pointers[event.pointer] = 'dash';
                         session.dash();
                         return;
                       }
                       if (session.match != null &&
-                          (p - geometry.reload).distance <
-                              controls.buttonSize / 2) {
+                          (p - geometry.reload).distance < buttonSize / 2) {
                         pointers[event.pointer] = 'reload';
                         session.reload();
                         return;
                       }
                       if (session.match != null &&
-                          (p - geometry.grenade).distance <
-                              controls.buttonSize / 2) {
+                          (p - geometry.grenade).distance < buttonSize / 2) {
                         pointers[event.pointer] = 'grenade';
                         return;
                       }
@@ -581,13 +581,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                 ),
                 Positioned(
                   left: 12,
-                  right: 12,
+                  right: 144,
                   top: 8,
                   child: OnlineRoster(session: session),
                 ),
                 Positioned(
-                  left: (size.width - 116) / 2,
-                  bottom: 12,
+                  right: 12,
+                  top: 8,
                   child: SizedBox(
                     width: 116,
                     child: ClickButton(
@@ -648,8 +648,8 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     ),
                   ),
                 Positioned(
-                  left: geometry.dash.dx - controls.buttonSize / 2,
-                  top: geometry.dash.dy - controls.buttonSize / 2,
+                  left: geometry.dash.dx - buttonSize / 2,
+                  top: geometry.dash.dy - buttonSize / 2,
                   child: Semantics(
                     label: 'Dash',
                     button: true,
@@ -657,7 +657,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     onTap: session.controlsEnabled ? session.dash : null,
                     child: IgnorePointer(
                       child: SizedBox.square(
-                        dimension: controls.buttonSize,
+                        dimension: buttonSize,
                         child: CustomPaint(
                           painter: OnlineActionSkin(
                             glyph: PixelGlyph.dash,
@@ -677,16 +677,16 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                 ),
                 if (session.match != null) ...[
                   Positioned(
-                    left: geometry.reload.dx - controls.buttonSize / 2,
-                    top: geometry.reload.dy - controls.buttonSize / 2,
+                    left: geometry.reload.dx - buttonSize / 2,
+                    top: geometry.reload.dy - buttonSize / 2,
                     child: Semantics(
                       label: 'Reload',
                       button: true,
                       enabled: session.controlsEnabled,
                       onTap: session.controlsEnabled ? session.reload : null,
                       child: SizedBox(
-                        width: controls.buttonSize,
-                        height: controls.buttonSize,
+                        width: buttonSize,
+                        height: buttonSize,
                         child: IgnorePointer(
                           child: CustomPaint(
                             painter: OnlineActionSkin(
@@ -703,8 +703,8 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     ),
                   ),
                   Positioned(
-                    left: geometry.grenade.dx - controls.buttonSize / 2,
-                    top: geometry.grenade.dy - controls.buttonSize / 2,
+                    left: geometry.grenade.dx - buttonSize / 2,
+                    top: geometry.grenade.dy - buttonSize / 2,
                     child: Semantics(
                       label: 'Hold and drag to aim grenade; release to throw',
                       button: true,
@@ -715,7 +715,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                       child: GrenadeAimButton(
                         input: grenadeAim,
                         onChanged: () => mounted ? setState(() {}) : null,
-                        size: controls.buttonSize,
+                        size: buttonSize,
                         charges: session.grenadesAvailable
                             ? session.gun?.grenadeCharges ?? 0
                             : 0,
@@ -837,11 +837,21 @@ class _ArenaPainter extends CustomPainter {
         ? session.identity
         : teammate?.identity.toHexString ?? session.identity;
     final center = positions[anchor] ?? Offset(mine?.x ?? 0, mine?.y ?? 0);
-    final scale = math.min(size.width / 1500, size.height / 700);
+    final worldSize = GameLayout.world(size);
+    final scale = math.min(
+      size.width / worldSize.width,
+      size.height / worldSize.height,
+    );
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.scale(scale);
-    canvas.clipRect(const Rect.fromLTWH(-750, -350, 1500, 700));
+    canvas.clipRect(
+      Rect.fromCenter(
+        center: Offset.zero,
+        width: worldSize.width,
+        height: worldSize.height,
+      ),
+    );
     final geometry =
         onlineGeometry[session.room?.mapId] ?? onlineGeometry['network_lab']!;
     Rect rectOf(List<num> r) => Rect.fromLTRB(
@@ -856,8 +866,8 @@ class _ArenaPainter extends CustomPainter {
         ? (lo + hi) / 2
         : value.clamp(lo + half, hi - half).toDouble();
     canvas.translate(
-      -cameraAxis(center.dx, bounds.left, bounds.right, 750),
-      -cameraAxis(center.dy, bounds.top, bounds.bottom, 350),
+      -cameraAxis(center.dx, bounds.left, bounds.right, worldSize.width / 2),
+      -cameraAxis(center.dy, bounds.top, bounds.bottom, worldSize.height / 2),
     );
 
     canvas.drawRect(bounds, Paint()..color = const Color(0xff252B25));
@@ -1225,7 +1235,9 @@ class _ArenaPainter extends CustomPainter {
         origin,
         d *
             GrenadeSpec.speed *
-            grenadeAim.power(LocalPreferences.shared.controls.buttonSize * .85),
+            grenadeAim.power(
+              LocalPreferences.shared.controls.displayButtonSize(size) * .85,
+            ),
       );
       final targets = <(Offset, double)>[
         for (final e in session.scene.where(

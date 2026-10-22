@@ -153,7 +153,7 @@ enum WeaponType {
   ),
   twinVerdict(
     'Twin Verdict',
-    'Alternate barrels. Pair hits for extra damage.',
+    'Brand, then shatter. Kills charge the next barrel.',
     12,
     .48,
     2.5,

@@ -1,4 +1,6 @@
+import 'package:regun/presentation/arena_viewport.dart';
 import 'package:regun/systems/weapon_mobility.dart';
+import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/systems/arsenal_system.dart';
 import 'package:regun/systems/burst_fire_clock.dart';
 import 'package:regun/presentation/weapon_art_spec.dart';
@@ -73,9 +75,7 @@ class RegunGame extends FlameGame
     this.startPaused = false,
     RunStore? runStore,
   }) : runStore = runStore ?? RunStore.shared,
-       super(
-         camera: CameraComponent.withFixedResolution(width: 1500, height: 700),
-       );
+       super(camera: CameraComponent(viewport: ArenaViewport()));
 
   final BuildContext context;
   Loadout loadout;
@@ -571,6 +571,7 @@ class RegunGame extends FlameGame
     bool primary = true,
     bool allowChain = true,
     bool armorPiercing = false,
+    WeaponReaction? reaction,
     Vector2? direction,
   }) => combat.hit(
     enemy,
@@ -579,12 +580,19 @@ class RegunGame extends FlameGame
     direction: direction,
     allowChain: allowChain,
     armorPiercing: armorPiercing,
+    reaction: reaction,
   );
   void explode(
     Vector2 position, {
     required double radius,
     required double damage,
-  }) => combat.explode(position, radius: radius, damage: damage);
+    WeaponReaction reaction = WeaponReaction.grenade,
+  }) => combat.explode(
+    position,
+    radius: radius,
+    damage: damage,
+    reaction: reaction,
+  );
   void addCombatEffect(CombatEffect effect) {
     if ((runtimeCounts['effects'] ?? 0) < 40) {
       _effects.add(effect);
@@ -2001,6 +2009,7 @@ class RegunGame extends FlameGame
     if (_started) {
       resetInput();
       _updateCamera();
+      layoutControls();
     }
   }
 
@@ -2018,6 +2027,9 @@ class RegunGame extends FlameGame
     unawaited(preferences.saveControls(layout));
     revision.value++;
   }
+
+  double get controlButtonSize =>
+      controls.displayButtonSize(controlCanvasRect.size);
 
   Rect get controlCanvasRect {
     final virtual = camera.viewport.virtualSize;
@@ -2044,9 +2056,13 @@ class RegunGame extends FlameGame
     final left = max(0.0, safe.left - letterbox.x);
     final right = max(0.0, safe.right - letterbox.x);
     final bottom = max(0.0, safe.bottom - letterbox.y);
-    final geometry = controls.geometry(
-      Size(virtual.x * factor - left - right, virtual.y * factor - bottom),
+    final available = Size(
+      virtual.x * factor - left - right,
+      virtual.y * factor - bottom,
     );
+    final geometry = controls.geometry(available);
+    final stickSize = controls.displaySize(available),
+        buttonSize = controls.displayButtonSize(available);
     Vector2 point(Offset value) =>
         Vector2((value.dx + left) / factor, value.dy / factor);
     if (!controls.floating || !movementJoystick.hasActivePointer) {
@@ -2055,14 +2071,14 @@ class RegunGame extends FlameGame
     if (!controls.floating || !weaponJoystick.hasActivePointer) {
       weaponJoystick.position.setFrom(point(geometry.aim));
     }
-    movementJoystick.scale.setAll(controls.size / (180 * factor));
-    weaponJoystick.scale.setAll(controls.size / (180 * factor));
+    movementJoystick.scale.setAll(stickSize / (180 * factor));
+    weaponJoystick.scale.setAll(stickSize / (180 * factor));
     boostButtonComponent.position.setFrom(point(geometry.dash));
     reloadButtonComponent.position.setFrom(point(geometry.reload));
     grenadeButtonComponent.position.setFrom(point(geometry.grenade));
-    boostButtonComponent.scale.setAll(controls.buttonSize / (112 * factor));
-    reloadButtonComponent.scale.setAll(controls.buttonSize / (112 * factor));
-    grenadeButtonComponent.scale.setAll(controls.buttonSize / (112 * factor));
+    boostButtonComponent.scale.setAll(buttonSize / (112 * factor));
+    reloadButtonComponent.scale.setAll(buttonSize / (112 * factor));
+    grenadeButtonComponent.scale.setAll(buttonSize / (112 * factor));
   }
 
   bool damagePlayer({int amount = 1, String cause = 'The horde'}) {

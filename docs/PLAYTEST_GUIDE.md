@@ -296,3 +296,68 @@ dash. Check Mobility in the loadout details/summary; upgrades should survive swa
 Review all three survivors, left/up/down shots, aiming-thumb mirrored/floating
 controls, Reduced Motion, pause/background, Continue, repeated Training swaps and
 weapon sounds. Performance, comfort and final balance need actual phone play.
+
+
+### Heavy-weapon follow-up
+
+Twin: alternate barrels on a tough enemy to hear/see the brand shatter. Kill a weak
+enemy with the opening shot, then shoot another: the opposite barrel still shatters.
+Only two nearby forward victims take secondary fragments; cover stops them. Miss,
+change living target, reload or Continue clears the previous pair. Bell is now a
+bright airborne weapon pulse plus brighter separate echo, with unchanged committed
+hit rules. Try all six at base/VIII for release/impact/mechanism sound and recoil.
+Flak must burst at body/cover/range without hovering, even near arena edges or after
+Continue. Guard/Scrap Armour should show a quiet shield beside the feet, with no
+chain/debris wreath around the character. Check Reduced Motion and speaker mix.
+
+## Proportionate enemy reactions — 22 October
+
+All21 weapons now have individual force/brief-stagger profiles. Compare Carbine,
+Repeater and Cinder's restrained nudges with Revolver, Shotgun, Sniper and Rail;
+then compare all six heavy weapons. Bell should visibly stop/push ordinary enemies,
+with a softer echo. Twin's paired shatter pushes more than its opener. Grenade,
+Mortar, Rivet reload blasts and Anchor crush push away from their blast centers.
+Frost retains its physical shove while freezing. Burn/spore floor ticks do not
+continually shove. Shields resist strongly; bosses/nests/sentinels stay planted.
+
+Try high fire-rate/pellet upgrades: enemies must recover between hard staggers.
+Check walls, body crowds, pause/background, death poses and Reduced Motion. See
+[WEAPON_ENEMY_REACTIONS.md](WEAPON_ENEMY_REACTIONS.md) for the full profile table.
+
+## Training menu and settings — 22 October
+
+Return to Training after the tutorial: no middle-screen Skip/Ready or tutorial
+hints should appear. Pause: Menu, Resume, Restart and Settings stay at the top
+while the practice list scrolls. Each practice section starts collapsed; tap its
+header to reveal/collapse. Weapon Practice shows21 gun images, base magazine
+counts and EQUIPPED. Swap guns and confirm the game stays paused.
+
+Boss Practice contains random rush, next round/restart rush and individual boss
+choices together. Survival holds Take damage; Supply is Breach-only. Check Fusion
+Practice too. Reduced Motion should settle sections immediately. Repeat with
+larger text and a notched phone; header/actions must remain reachable.
+
+Settings → Controls is shared by Training, normal pause and multiplayer's match
+menu. Check grouped layout/spacing, slider values, left/right hand, fixed/floating,
+Arrange, Reset, and saved settings after returning/relaunching. Online Menu is
+top-right; the match continues while its menu/settings are open and local fire
+must remain off. See [TRAINING_MENU_REVIEW.md](TRAINING_MENU_REVIEW.md).
+
+## Normal pause and consistent notices — 22 October
+
+Pause a normal run: check survival, kills, bosses, health/ammo and level/XP against
+the live HUD, including an active reload. Menu/Resume/Restart/Settings remain pinned.
+Try Menu and Restart, then cancel/back/tap outside: the run must stay paused and
+unchanged. Accept Restart only when ready to reset. Menu's Save & leave should
+return home with Continue available. A failed save must leave the run available
+and show a retry warning. Training's Menu/Restart also confirm.
+
+Compare update, Replace saved run, Reset progress, Training briefing and the new
+confirmations: they should share the same stepped frame and text hierarchy.
+Check compact screens, larger text and keyboard Cancel. Multiplayer Leave must
+warn about forfeiting an unfinished versus match and do nothing until confirmed.
+The match still continues behind its menu/settings. See PAUSE_AND_NOTICE_REVIEW.md.
+
+### Tablet landscape review
+
+On iPad, rotate between both landscape directions: arena should fill the canvas, sprites retain proportions, HUD remains legible and no portrait mode appears. Test movement + aim + dash/reload, grenade drag range, both handedness modes, floating sticks and saved custom layouts. Review training catalog, loadout, settings and normal pause at larger text. Compare phone layout against the existing candidate. Record sustained hardware performance and thumb reach separately from simulator layout acceptance. Full-screen iPad deliberately excludes Split View/Slide Over. See `TABLET_LAYOUT_REVIEW.md`.

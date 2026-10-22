@@ -1,3 +1,4 @@
+import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,7 @@ class MineComponent extends PositionComponent with HasGameReference<RegunGame> {
       exploded = true;
       game.explode(
         position,
+        reaction: WeaponReaction.mine,
         radius: 185,
         damage:
             (3.5 + game.gameState.effectRank(PowerUp.sprintMine)) *

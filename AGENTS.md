@@ -376,3 +376,92 @@ all six224×112 packets lease individually. Shared+largest boss pair+one packet 
 31.84375MiB, under32. No procedural replacement of sprite mechanisms/material VFX.
 Automated coverage443 passed/5 optional skips; backend91 passed. Physical feel,
 audio, balance and sustained device performance remain creator review gates.
+
+
+## Heavy-weapon feel and quiet player Guard (2026-10-22)
+
+The creator rejected the six weapons' muted feel and explicitly permits authored
+code/pixel geometry where it suits the art better than atlas images. The game's
+palette, material, scale, readability and attack geometry remain authoritative;
+not every effect must be a reused sprite. Read docs/HEAVY_WEAPON_FEEL_REVIEW.md.
+
+Twin now brands for1.25s, then the opposite barrel hits1.8× (4.5 base) and creates
+one220-unit iron crossburst, capped at two other owners/1.8 base damage each.
+Secondary damage cannot proc/prime/recurse. An opening kill cocks the opposite
+barrel for the next victim; a living target change/miss/reload/Continue clears the
+old pairing. Keep original-shot ledgers, owner exclusion, cover and no extra ammo.
+Brass chamber cues, a visible twin brand and recorded prime/verdict cues expose it.
+Bell's creator-requested bright warm-white stepped pressure pulse/short pixel wake
+belongs ABOVE the floor, with a distinct cooler bright echo, not dusty AoE paint.
+Its damage/committed cone/5-owner rules stay unchanged. Faultline uses bounded
+section fractures, Anchor jaws clamp with separate plant/crush audio, Cyclone cycles
+three muzzle ports and stronger bounded impact motion, Flak uses grounded bursts.
+
+Flak's sub-pixel range remainder can stop moving in Vector2 storage: resolve within
+.5 unit, on actual stall, or range/speed+.12 active seconds (hard3s ceiling), exactly
+once. Reserve fragments before primary procs, preserve direct-owner exclusion and
+cover. Never leave a paid shell hovering for the old3-second fallback.
+
+The unsettling ring from the creator's photo was player Guard calling enemy-style
+AttackVfx.armour (six chain/shield stamps). Player Guard now uses one steady small
+pixel shield beside the feet; do not restore debris/chain pieces around survivors.
+Keep protection/guard recharge mechanics intact; enemy armour presentation is separate.
+Audio layering changes only the six; older audio files remain byte-identical.
+122 expansion cues verified, review mix peak.6483.448 Flutter tests passed/5 optional
+skips; no new textures, weight/reload contracts and older weapon stats stay intact.
+Physical feel/audio/comfort still require creator review.
+
+## Weapon-proportionate enemy reaction (2026-10-22)
+
+The creator requested real physical response across ALL21 weapons, proportionate
+to their purpose/weight. WeaponReaction owns the explicit force/decay/brief stagger
+profiles, independent of damage/procs/WeaponFeel drawing. This supersedes older
+impact distances. Preserve .24s per-target force gating, >125% stronger replacement
+without accumulation, and separate .65s hard-stagger recovery. Normal/mummy/elite
+can briefly hold pursuit/ordinary attack clocks and pose; shields receive .35 force
+and braking without a full hold; bosses/nests/sentinels remain planted. Every shove
+uses actor occupancy/walls. Blasts push radially; declared secondary reactions stay
+secondary for procs. Lingering burn/spore ticks do not shove. Freeze retains ice-hit
+force; death clears pending physics/holds and unfreezes death art. Match admitted
+backend weapon/ordnance responses and shared fixture without expanding online
+admission. See docs/WEAPON_ENEMY_REACTIONS.md; physical balance remains for review.
+
+## Training pause and shared settings (2026-10-22)
+
+Training pause now pins Menu/Resume/Restart/Settings above its scrolling practice
+list. Settings owns Controls; do not restore the duplicate pause Controls editor.
+Weapon/Survival/Supply/Boss/Fusion sections default collapsed, with 180ms eased
+reveal and immediate Reduced Motion/OS Disable Animations. Remove collapsed content
+after exit to release art and exclude hidden input/semantics. Boss Practice unifies
+random rush/next round and individual bosses. Weapon Practice uses the same leased
+WeaponThumbnail as Loadout, all21 silhouettes, selected marker and magazine count.
+Key thumbnail state by weapon and release pending acquisitions after disposal.
+Only the first-run guided visit shows tutorial hints/Skip/Ready; ordinary or
+completed-player Training visits must not mount them. Shared Settings/Controls
+use grouped spacing, label/value above 48px tracks and adaptive choice rows. Keep
+preference bounds/mirroring/arrangement unchanged. Online Menu is top-right with
+roster space; its match menu opens the shared Settings without pausing the match
+or enabling input. Read docs/TRAINING_MENU_REVIEW.md for review scope.
+
+## Run summary and banner consistency (2026-10-22)
+
+Normal pause shows only recorded survival/kills/bosses, health/ammo, level/XP,
+reload time when active and the equipped kit. Keep navigation pinned and Training's
+practice UI separate. Live Menu/Restart and system back require explicit
+confirmation; cancellation leaves the game paused. Menu saves for Continue and
+must stay in the run with a visible warning if saving fails. Restart only resets
+after acceptance. Results navigation stays immediate. Online leave confirms and
+warns about a versus forfeit without changing live-match pause semantics.
+
+All dialog banners now use GameNotice/GameNoticeActions, extracted from the
+creator-approved update banner: stepped charcoal surface, brass edge/inset line,
+context heading, pixel title, paper body and shared spacing. Saved-run replacement,
+reset, briefing, coming-soon and run confirmations must not revert to plain Material
+dialogs. Compact save/online notifications use GameNoticeStrip. Preserve passive
+update checking (never modal), required policy/retry/offline/store behavior and
+optional Later. Cancel has initial focus; do not stack duplicate run dialogs.
+See docs/PAUSE_AND_NOTICE_REVIEW.md. No gameplay stats or balance change here.
+
+## Tablet presentation (2026-10-22)
+
+`GameLayout` / `ArenaViewport` retain phones' 1500×700 framing and extend tablet world visibility to fill the available aspect without stretching sprites. At shortest side >=600 logical pixels, tablet text/HUD/controls use 1.25 presentation scaling; preserve raw persisted control preferences and compose user text scaling. Solo/online rendering and grenade power must use matching displayed geometry. Resize cancels held input and relays out controls. iPad is landscape-left/right, full screen (`UIRequiresFullScreen`); do not restore portrait or multitasking that bypasses the orientation lock. Native simulator evidence and physical acceptance limits live in `docs/TABLET_LAYOUT_REVIEW.md`. Enemy reaction timers advance before sprite hold selection; death clears freezes/stagger/displacement and resumes animation.

@@ -1,10 +1,10 @@
+import 'package:regun/presentation/game_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/utils/constants.dart';
 
 const _accent = Color(0xffE1BA78);
 const _ink = Color(0xffDED4C5);
-const _muted = Color(0xffA99DAA);
 
 class HandednessSelector extends StatelessWidget {
   const HandednessSelector({
@@ -17,25 +17,15 @@ class HandednessSelector extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      const Expanded(
-        child: Text(
-          'Aim hand',
-          style: TextStyle(
-            fontFamily: FontFam.orbitron,
-            fontSize: 12,
-            color: _muted,
-          ),
-        ),
-      ),
+  Widget build(BuildContext context) => SettingsChoice(
+    label: 'Aim hand',
+    options: [
       PixelOption(
         label: 'Right',
         width: compact ? 80 : 104,
         selected: !leftHanded,
         onTap: () => onChanged(false),
       ),
-      const SizedBox(width: 8),
       PixelOption(
         label: 'Left',
         width: compact ? 80 : 104,
@@ -43,6 +33,42 @@ class HandednessSelector extends StatelessWidget {
         onTap: () => onChanged(true),
       ),
     ],
+  );
+}
+
+/// Labels keep their own line when the available width or larger text needs it.
+class SettingsChoice extends StatelessWidget {
+  const SettingsChoice({super.key, required this.label, required this.options});
+  final String label;
+  final List<Widget> options;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final text = Text(
+        label,
+        style: const TextStyle(
+          fontFamily: FontFam.orbitron,
+          fontSize: 13,
+          height: 1.5,
+          color: _ink,
+        ),
+      );
+      final choices = Wrap(spacing: 8, runSpacing: 8, children: options);
+      if (box.maxWidth <
+          420 * MediaQuery.textScalerOf(context).scale(12) / 12) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [text, const SizedBox(height: 12), choices],
+        );
+      }
+      return Row(
+        children: [
+          Expanded(child: text),
+          const SizedBox(width: 16),
+          choices,
+        ],
+      );
+    },
   );
 }
 
@@ -182,21 +208,45 @@ class ControlSlider extends StatelessWidget {
   final double value, minimum, maximum;
   final ValueChanged<double> onChanged;
 
+  String _format(double v, {double displayScale = 1}) => maximum <= 1
+      ? '${(v * 100).round()}%'
+      : label == 'Sensitivity'
+      ? '${v.toStringAsFixed(2)}×'
+      : '${(v * displayScale).round()} px';
   @override
-  Widget build(BuildContext context) => Row(
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      SizedBox(
-        width: 84,
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontFamily: FontFam.orbitron,
-            color: _muted,
-            fontSize: 12,
+      Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: FontFam.orbitron,
+                color: _ink,
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          Text(
+            _format(
+              value,
+              displayScale: GameLayout.uiScale(MediaQuery.sizeOf(context)),
+            ),
+            style: const TextStyle(
+              fontFamily: FontFam.orbitron,
+              color: _accent,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
-      Expanded(
+      const SizedBox(height: 4),
+      SizedBox(
+        height: 48,
         child: Semantics(
           label: label,
           child: SliderTheme(
@@ -214,9 +264,10 @@ class ControlSlider extends StatelessWidget {
               min: minimum,
               max: maximum,
               onChanged: onChanged,
-              semanticFormatterCallback: (v) => maximum <= 1
-                  ? '${(v * 100).round()} percent'
-                  : '${v.round()}',
+              semanticFormatterCallback: (v) => _format(
+                v,
+                displayScale: GameLayout.uiScale(MediaQuery.sizeOf(context)),
+              ),
             ),
           ),
         ),

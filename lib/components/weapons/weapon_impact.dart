@@ -1,4 +1,5 @@
 import 'package:regun/presentation/boss_art.dart';
+import 'package:regun/presentation/endgame_vfx.dart';
 
 import 'dart:math';
 
@@ -21,6 +22,17 @@ class WeaponImpact extends CombatEffect {
   final Vector2 direction;
   @override
   void render(Canvas canvas) {
+    if (weapon.index >= WeaponType.twinVerdict.index) {
+      EndgameVfx.contact(
+        canvas,
+        weapon,
+        direction.toOffset(),
+        (age / duration).clamp(0.0, 1.0),
+        BossArt.ambient(game.loadout.arena),
+        game.preferences.reducedMotion,
+      );
+      return;
+    }
     final feel = WeaponFeel.of(weapon);
     final t = (age / duration).clamp(0.0, 1.0);
     final reduced = game.preferences.reducedMotion;
@@ -106,5 +118,58 @@ class HeavyImpact extends CombatEffect {
       material: poison ? AttackMaterial.poison : AttackMaterial.ember,
     );
     canvas.restore();
+  }
+}
+
+/// One payoff cue, evictable under the existing global effect budget.
+class VerdictBurst extends CombatEffect {
+  VerdictBurst({required super.position, required Vector2 direction})
+    : direction = direction.clone(),
+      super(duration: .38, floorEffect: true);
+  final Vector2 direction;
+  @override
+  void render(Canvas canvas) {
+    // Cover clipping also applies to the visible fork, not just its damage.
+    final delta = direction.toOffset();
+    canvas.save();
+    final angle = atan2(delta.dy, delta.dx);
+    final path = Path();
+    for (final side in [-1, 1]) {
+      final ray = direction.clone()..rotate(side * .24);
+      final from = position,
+          to = game.arsenal?.clip(from, from + ray * 220) ?? from;
+      final local = (to - from).toOffset();
+      path.addPolygon([
+        const Offset(-20, -40),
+        local + Offset(-sin(angle) * 42, cos(angle) * 42),
+        local + Offset(sin(angle) * 42, -cos(angle) * 42),
+        const Offset(-20, 40),
+      ], true);
+    }
+    canvas.clipPath(path);
+    EndgameVfx.crossburst(
+      canvas,
+      delta,
+      (age / duration).clamp(0.0, 1.0),
+      BossArt.ambient(game.loadout.arena),
+      game.preferences.reducedMotion,
+    );
+    canvas.restore();
+  }
+}
+
+class FlakBurst extends CombatEffect {
+  FlakBurst({required super.position})
+    : super(duration: .38, floorEffect: true);
+  @override
+  void render(Canvas canvas) {
+    AttackVfx.explosion(
+      canvas,
+      Offset.zero,
+      78,
+      progress: (age / duration).clamp(0.0, 1.0),
+      ambient: BossArt.ambient(game.loadout.arena),
+      reducedMotion: game.preferences.reducedMotion,
+    );
   }
 }

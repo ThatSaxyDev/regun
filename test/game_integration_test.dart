@@ -59,7 +59,7 @@ void main() {
     Future<void> screenshot(String name) async {
       await tester.pump();
       final boundary =
-          tester.renderObject<RenderRepaintBoundary>(find.byKey(capture));
+          tester.renderObject<RenderRepaintBoundary>(find.byType(RepaintBoundary).first);
       await tester.runAsync(() async {
         final image = await boundary.toImage(pixelRatio: 2);
         final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
@@ -73,8 +73,10 @@ void main() {
     await screenshot('survival-hud');
     game.pauseGame();
     await tester.pump();
+    await tester.tap(find.text('SETTINGS'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('CONTROLS'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     await screenshot('control-settings');
     expect(find.byType(SwitchListTile), findsNothing);
     await tester.tap(find.text('LEFT'));
@@ -84,8 +86,12 @@ void main() {
     await tester.tap(find.text('RIGHT'));
     await tester.pump();
     expect(game.controls.leftHanded, isFalse);
-    await tester.tap(find.text('DONE'));
+    await tester.ensureVisible(find.text('DONE'));
     await tester.pump();
+    await tester.tap(find.text('DONE'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('BACK').hitTestable());
+    await tester.pumpAndSettle();
     game.resumeGame();
 
     expect(game.myPlayer.isMounted, isTrue);

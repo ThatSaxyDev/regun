@@ -1,4 +1,5 @@
 import 'package:regun/data/loadout.dart';
+import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/systems/weapon_heading.dart';
 import 'package:regun/presentation/attack_vfx.dart';
@@ -292,7 +293,8 @@ class PlayerComponent extends SpriteAnimationComponent
         charge: game.arsenal?.visualCharge ?? 0,
         muzzleJitter:
             (game.loadout.weapon == WeaponType.beltRepeater ||
-                game.loadout.weapon == WeaponType.twinVerdict)
+                game.loadout.weapon == WeaponType.twinVerdict ||
+                game.loadout.weapon == WeaponType.cycloneBreacher)
             ? Offset(
                 game.arsenal!.muzzleJitter.x,
                 game.arsenal!.muzzleJitter.y * (heading.x < 0 ? -1 : 1),
@@ -369,7 +371,20 @@ class PlayerComponent extends SpriteAnimationComponent
       }
     }
     if (game.gameState.guard) {
-      AttackVfx.armour(canvas, (size / 2).toOffset(), 35);
+      // A quiet status badge, never enemy chain sprites around the body.
+      final badge = Rect.fromLTWH(size.x * .5 + 27, size.y * .83 - 10, 12, 12);
+      paintPixelGlyph(
+        canvas,
+        badge.inflate(2),
+        PixelGlyph.shield,
+        const Color(0xff17201D),
+      );
+      paintPixelGlyph(
+        canvas,
+        badge,
+        PixelGlyph.shield,
+        const Color(0xffAEBCA7),
+      );
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:regun/presentation/game_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/models/control_layout.dart';
 import 'package:regun/utils/constants.dart';
@@ -18,6 +19,11 @@ class ControlArranger extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final geometry = layout.geometry(available.size);
+    double markerSize(String id) => !GameLayout.tablet(available.size)
+        ? 70
+        : id == 'move' || id == 'aim'
+        ? layout.displaySize(available.size)
+        : layout.displayButtonSize(available.size);
     final points = {
       'move': geometry.movement,
       'aim': geometry.aim,
@@ -65,8 +71,9 @@ class ControlArranger extends StatelessWidget {
             ),
             for (final entry in points.entries)
               Positioned(
-                left: available.left + entry.value.dx - 35,
-                top: available.top + entry.value.dy - 35,
+                left:
+                    available.left + entry.value.dx - markerSize(entry.key) / 2,
+                top: available.top + entry.value.dy - markerSize(entry.key) / 2,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onPanUpdate: (event) {
@@ -96,8 +103,8 @@ class ControlArranger extends StatelessWidget {
                     }
                   },
                   child: Container(
-                    width: 70,
-                    height: 70,
+                    width: markerSize(entry.key),
+                    height: markerSize(entry.key),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: const Color(0xff30272E),

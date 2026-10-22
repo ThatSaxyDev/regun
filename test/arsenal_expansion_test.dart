@@ -1,3 +1,5 @@
+import 'package:regun/systems/weapon_reaction.dart';
+
 import 'dart:io';
 import 'dart:convert';
 
@@ -53,6 +55,13 @@ class _Audio extends SoloudPlay {
 }
 
 class _Target extends EnemyComponent {
+  final reactions = <WeaponReaction>[];
+  @override
+  void receiveWeaponImpact(Vector2 direction, WeaponReaction reaction) {
+    reactions.add(reaction);
+    super.receiveWeaponImpact(direction, reaction);
+  }
+
   _Target(Vector2 at) : super(position: at) {
     restoreHealth(1000, maximum: 1000);
   }
@@ -312,10 +321,10 @@ void main() {
         await advance(game, .55);
         game.weaponJoystick.delta.setZero();
         await advance(game, .2, held: false);
-        expect(1000 - target.combatHealth.current, closeTo(6, 1e-6));
+        expect(1000 - target.combatHealth.current, closeTo(7, 1e-6));
         final endgame = game.arsenal!.endgame;
         endgame.acceptPair(target, 100);
-        expect(endgame.pairMultiplier(target, 101), 1.4);
+        expect(endgame.pairMultiplier(target, 101), 1.8);
         endgame.acceptPair(target, 101);
         expect(endgame.pairMultiplier(target, 101), 1);
         expect(endgame.pairMultiplier(target, 102), 1);
@@ -329,6 +338,197 @@ void main() {
         endgame.acceptPair(target, 106);
         expect(endgame.pairMultiplier(target, 107), 1);
       });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Twin brands then shatters once into two cover-respecting secondary victims',
+    (tester) async {
+      final audio = _Audio();
+      final game = await mount(tester, WeaponType.twinVerdict, audio);
+      await tester.runAsync(() async {
+        final at = game.myPlayer.position, host = _Target(at + Vector2(150, 0));
+        final others = [
+          _Target(at + Vector2(250, 24)),
+          _Target(at + Vector2(300, -36)),
+          _Target(at + Vector2(330, 43)),
+        ];
+        final outsider = _Target(at + Vector2(150, 170));
+        await game.world.addAll([host, ...others, outsider]);
+        await game.ready();
+        await advance(game, .55);
+        await advance(game, .2, held: false);
+        expect(host.combatHealth.current, closeTo(993, 1e-6));
+        expect(
+          others
+              .take(2)
+              .every((t) => (t.combatHealth.current - 998.2).abs() < 1e-6),
+          true,
+        );
+        expect(others.last.combatHealth.current, 1000);
+        expect(outsider.combatHealth.current, 1000);
+        expect(game.shotsFired, 2);
+        final s = game.arsenal!, origin = host.position.clone();
+        game.geometry = ArenaGeometry(
+          game.geometry.bounds,
+          obstacles: [Rect.fromLTWH(origin.x + 50, origin.y - 150, 20, 300)],
+        );
+        s.endgame.acceptPair(host, 100, direction: Vector2(1, 0), amount: 2.5);
+        s.endgame.acceptPair(host, 101, direction: Vector2(1, 0), amount: 4.5);
+        expect(others.first.combatHealth.current, closeTo(998.2, 1e-6));
+        // The same original shot cannot create another burst through a ricochet.
+        s.endgame.acceptPair(host, 101, direction: Vector2(1, 0), amount: 4.5);
+        expect(others.first.combatHealth.current, closeTo(998.2, 1e-6));
+        expect(audio.loops, isEmpty);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Twin opening kill cocks the opposite barrel without an unbounded kill chain',
+    (tester) async {
+      final audio = _Audio();
+      final game = await mount(tester, WeaponType.twinVerdict, audio);
+      await tester.runAsync(() async {
+        final at = game.myPlayer.position;
+        final weak = _Target(at + Vector2(150, 0)),
+            next = _Target(at + Vector2(260, 0)),
+            spill = _Target(at + Vector2(350, 0));
+        await game.world.addAll([weak, next, spill]);
+        await game.ready();
+        weak.restoreHealth(2);
+        await advance(game, .55);
+        await advance(game, .2, held: false);
+        expect(weak.combatHealth.isDead, true);
+        expect(next.combatHealth.current, closeTo(995.5, 1e-6));
+        expect(spill.combatHealth.current, closeTo(998.2, 1e-6));
+        expect(
+          audio.cues.where((c) => c == 'verdict_twinVerdict.wav').length,
+          1,
+        );
+        expect(game.arsenal!.endgame.brandReady, false);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Flak bursts immediately on a sub-pixel range remainder and only once',
+    (tester) async {
+      final audio = _Audio();
+      final game = await mount(tester, WeaponType.flakRegent, audio);
+      await tester.runAsync(() async {
+        final s = game.arsenal!;
+        final f =
+            ArsenalFlight(
+                1,
+                ArsenalFlightKind.flak,
+                Vector2(1200, 50),
+                Vector2(1, 0),
+                2.4,
+                1050,
+                650,
+              )
+              ..patchDamage = .45
+              ..travelled = 649.99998;
+        s.flights.add(f);
+        s.nextAttack = 2;
+        await advance(game, .025, held: false);
+        expect(f.spent, true);
+        expect(s.flights, isEmpty);
+        final count = game.projectileCount;
+        s.endgame.advanceFlak(f, .2);
+        expect(game.projectileCount, count);
+        await advance(game, .3, held: false);
+        expect(game.projectileCount, 0);
+        expect(audio.loops, isEmpty);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'player Guard adds one quiet foot badge with no surrounding chain fragments',
+    (tester) async {
+      final game = await mount(tester, WeaponType.flakRegent, _Audio());
+      await tester.runAsync(() async {
+        Future<ui.Image> render() async {
+          final recorder = ui.PictureRecorder(), canvas = Canvas(recorder);
+          canvas.drawColor(const Color(0xff242B25), BlendMode.src);
+          game.myPlayer.render(canvas);
+          final picture = recorder.endRecording();
+          final image = await picture.toImage(100, 100);
+          picture.dispose();
+          return image;
+        }
+
+        final plain = await render();
+        final saved = game.gameNotifier.checkpoint();
+        saved['state'] = game.gameState.copyWith(guard: true).toJson();
+        game.gameNotifier.restoreCheckpoint(saved);
+        final guarded = await render();
+        final a = (await plain.toByteData())!.buffer.asUint8List(),
+            b = (await guarded.toByteData())!.buffer.asUint8List();
+        var changed = 0;
+        for (var y = 0; y < 100; y++) {
+          for (var x = 0; x < 100; x++) {
+            final at = (y * 100 + x) * 4;
+            if (a[at] != b[at] ||
+                a[at + 1] != b[at + 1] ||
+                a[at + 2] != b[at + 2]) {
+              changed++;
+              expect(x, inInclusiveRange(75, 91));
+              expect(y, inInclusiveRange(71, 87));
+            }
+          }
+        }
+        expect(changed, greaterThan(20));
+        await Directory('build/test-previews').create(recursive: true);
+        final png = await guarded.toByteData(format: ui.ImageByteFormat.png);
+        await File('build/test-previews/player-guard-clean.png')
+            .writeAsBytes(png!.buffer.asUint8List());
+        plain.dispose();
+        guarded.dispose();
+        expect(game.gameState.guard, true);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Bell exports initial and echo pressure fronts without changing committed hits',
+    (tester) async {
+      final game = await mount(tester, WeaponType.mourningBell, _Audio());
+      await tester.runAsync(() async {
+        final at = game.myPlayer.position;
+        await game.world.addAll([
+          for (var i = 0; i < 3; i++)
+            _Target(at + Vector2(240, (i - 1) * 80.0)),
+        ]);
+        await game.ready();
+        await advance(game, .06);
+        game.weaponJoystick.delta.setZero();
+      });
+      for (var frame = 0; frame < 2; frame++) {
+        if (frame == 1) {
+          await tester.runAsync(() async {
+            await advance(game, .55, held: false);
+          });
+        }
+        await tester.pump();
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(const Key('weapon-review')),
+        );
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 1.5),
+              bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+          await File('build/test-previews/bell-pressure-$frame.png')
+              .writeAsBytes(bytes!.buffer.asUint8List());
+          image.dispose();
+        });
+      }
       await tester.pumpWidget(const SizedBox());
       expect(tester.takeException(), isNull);
     },
@@ -487,6 +687,7 @@ void main() {
         await advance(game, .6, held: false);
         expect(targets.first.combatHealth.current, 995.5);
         expect(targets[1].combatHealth.current, 994);
+        expect(targets[1].reactions.map((r) => r.distance), [112, 34]);
         expect(outsider.combatHealth.current, 1000);
         expect(targets.last.combatHealth.current, 1000);
         final hp = targets[1].combatHealth.current;
@@ -767,6 +968,14 @@ void main() {
           await game.ready();
           await advance(game, 1.3);
           expect(game.shotsFired, greaterThan(0));
+          expect(
+            targets
+                .expand((t) => t.reactions)
+                .any((r) => r.distance == WeaponReaction.of(weapon).distance),
+            isTrue,
+            reason:
+                '${weapon.name} must deliver its primary force through real firing',
+          );
           expect(
             targets.any((t) => t.combatHealth.current < 1000),
             true,

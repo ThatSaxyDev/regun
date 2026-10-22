@@ -105,7 +105,7 @@ class ArenaEnemy extends PositionComponent
   void update(double dt) {
     super.update(dt);
     if (combatHealth.isDead ||
-        freezeHeld ||
+        (freezeHeld || impactHeld) ||
         game.gameState.gameplayState != GameplayState.playing) {
       return;
     }

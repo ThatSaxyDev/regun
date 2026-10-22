@@ -4,6 +4,7 @@ import 'package:regun/presentation/weapon_feel.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/systems/weapon_ballistics.dart';
+import 'package:regun/systems/weapon_reaction.dart';
 
 import 'dart:math';
 
@@ -33,6 +34,7 @@ class BulletComponent extends PositionComponent
     this.weapon = WeaponType.shotgun,
     this.shotSequence = 0,
     this.ignoreTarget,
+    this.reaction,
   })
     // The public named delay describes a release within the current frame.
     // ignore: prefer_initializing_formals
@@ -50,6 +52,7 @@ class BulletComponent extends PositionComponent
   final Vector2 direction;
   final bool primary;
   final WeaponType weapon;
+  final WeaponReaction? reaction;
   final int shotSequence;
   final PositionComponent? ignoreTarget;
   int pierce, bounces;
@@ -253,11 +256,19 @@ class BulletComponent extends PositionComponent
           primary: primary,
           direction: direction,
           armorPiercing: weapon == WeaponType.longwatchSniper,
+          reaction: pair > 1
+              ? WeaponReaction.of(weapon).scaled(1.5, hold: true)
+              : reaction,
         )) {
       return;
     }
     if (primary && weapon == WeaponType.twinVerdict) {
-      game.arsenal?.endgame.acceptPair(owner, shotSequence);
+      game.arsenal?.endgame.acceptPair(
+        owner,
+        shotSequence,
+        direction: direction,
+        amount: amount,
+      );
     }
     _hitEnemies.add(owner);
     if (primary && owner is CombatEnemy) {

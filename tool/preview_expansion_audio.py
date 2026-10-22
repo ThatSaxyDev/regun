@@ -1,7 +1,7 @@
 """Validate every expansion cue and loop, then produce a native-gain review reel."""
 from pathlib import Path
 import csv,hashlib,math,struct,wave
-from generate_expansion_audio import SPECS,RATE,ROOT
+from generate_expansion_audio import SPECS,RATE,ROOT,EVENTS
 OUT=ROOT/'build/audio-review';OUT.mkdir(parents=True,exist_ok=True)
 def read(name):
  with wave.open(str(ROOT/'assets/audio'/name),'rb') as f:
@@ -16,6 +16,7 @@ def add(name,start,gain):
 for index,(weapon,spec) in enumerate(SPECS.items()):
  names=[f'shot_{weapon}_{i}.wav'for i in range(3)]+[f'impact_{weapon}.wav']+[f'reload_{weapon}_{i}.wav'for i in range(3)]
  loop=weapon in ('cinderHose','prismCutter','beltRepeater')
+ names += [name for name in EVENTS if weapon in name]
  if loop:names+=[f'sustain_{weapon}.wav']
  if weapon=='beltRepeater':names+=['spin_beltRepeater.wav']
  for name in names:
@@ -30,6 +31,7 @@ for index,(weapon,spec) in enumerate(SPECS.items()):
   if not loop or weapon=='beltRepeater' or i==0:add(f'shot_{weapon}_{i}.wav',start+i*.22,.72)
   add(f'impact_{weapon}.wav',start+i*.22+.12,.25)
  if loop:add(f'sustain_{weapon}.wav',start,.15)
+ for i,name in enumerate(n for n in EVENTS if weapon in n):add(name,start+.8+i*.4,.45)
  duration={'twinVerdict':2.6,'flakRegent':3.0,'anchorEngine':3.4,'faultlineDriver':3.2,'cycloneBreacher':3.0,'mourningBell':3.0,'railLance':2.6,'rivetDriver':2.2,'cinderHose':2.3,'reaperDisc':2.4,'scrapMortar':2.8,'beltRepeater':3.6,'frostShotgun':2.6,'prismCutter':1.8,'sporeLobber':2.7,'longwatchSniper':2.8}[weapon]
  for cue,phase in enumerate([0,.42,.82]):add(f'reload_{weapon}_{cue}.wav',start+1.2+phase*duration,.32)
 assert max(map(abs,mix))<1

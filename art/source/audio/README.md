@@ -73,3 +73,13 @@ The six add42 shot/impact/reload cues; preview_expansion_audio.py validates116 c
 in total. Expansion mix peak .4339 at runtime review gains. Native listening remains
 for creator review. SHA manifests: docs/art/WEAPON_AUDIO_MANIFEST.csv and the preview
 CSV under docs/validation/endgame-2026-10-22.
+
+
+22 October2026 feel follow-up: the six endgame shots now layer the same attributed
+recorded transient/body/late mechanism extracts, with longer restrained body tails.
+Six new recorded payoff cues cover Twin prime/verdict, Anchor plant/crush, Faultline
+section and Bell echo. No new external recordings or continuous voices. Bell uses
+low mechanical body/ratchet textures, not ringing oscillators.122 expansion cues
+pass validation; representative mixed peak.6483. All previously packaged WAVs
+outside the six were hash-compared and remain byte-identical. See
+validation/heavy-weapon-feel-2026-10-22 and HEAVY_WEAPON_FEEL_REVIEW.md under docs.

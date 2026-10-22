@@ -1,0 +1,16 @@
+{
+  "release": "1.0.0+11",
+  "date": "2026-10-22",
+  "nativeTestsPassed": 453,
+  "nativeOptionalSkipped": 5,
+  "serverTestsPassed": 93,
+  "analyzer": "clean",
+  "serverTypecheck": "passed",
+  "serverModuleBuild": "passed",
+  "signedIOSBuildMB": 143.2,
+  "onlineWeaponAdmissionChanged": false,
+  "serverDeployed": false,
+  "physicalFeelAccepted": false,
+  "deviceDataReset": false,
+  "profiles": 21
+}

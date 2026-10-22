@@ -1,7 +1,7 @@
 import 'package:regun/systems/freeze_state.dart';
 import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/boss_art.dart';
-import 'package:regun/presentation/weapon_feel.dart';
+import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +26,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
         !freezeState.apply()) {
       return false;
     }
-    _impactRemaining = 0;
+    // Freezing stops intent, but must not erase the force of the ice hit.
     _pulseRemaining = 0;
     onFreezeStarted();
     return true;
@@ -38,7 +38,9 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   double get impactResponse => isBoss ? 0 : 1;
   double _impactRemaining = 0, _impactDuration = 1, _impactCooldown = 0;
   final _impactDirection = Vector2.zero();
-  double _impactDistance = 0;
+  double _impactDistance = 0, _impactSlow = .8;
+  double _staggerRemaining = 0, _staggerRecovery = 0;
+  bool get impactHeld => _staggerRemaining > 1e-8 && impactResponse >= .6;
   double _pulseRemaining = 0, _pulseDistance = 0;
   final _pulseDirection = Vector2.zero();
   void receiveUpgradePulse(Vector2 direction, double distance) {
@@ -55,27 +57,39 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
 
   double get impactStride => _pulseRemaining > 0
       ? 0
+      : impactHeld
+      ? 0
       : _impactRemaining > 0
-      ? 1 - .8 * impactResponse * (_impactRemaining / _impactDuration)
+      ? 1 - _impactSlow * impactResponse * (_impactRemaining / _impactDuration)
       : 1;
 
   /// One bounded response per target, not one stack per pellet. A cooldown
   /// leaves normal pursuit between bursts even with rapid-fire upgrades.
-  void receiveBulletImpact(Vector2 direction, WeaponType weapon) {
-    if (freezeHeld ||
-        impactResponse <= 0 ||
-        _impactCooldown > 0 ||
+  void receiveBulletImpact(Vector2 direction, WeaponType weapon) =>
+      receiveWeaponImpact(direction, WeaponReaction.of(weapon));
+
+  void receiveWeaponImpact(Vector2 direction, WeaponReaction motion) {
+    if (impactResponse <= 0 ||
         direction.isZero() ||
+        !direction.x.isFinite ||
+        !direction.y.isFinite ||
         combatHealth.isDead ||
         isRemoving) {
       return;
     }
-    final motion = WeaponFeel.impactMotion(weapon);
+    final force = motion.distance * impactResponse;
+    // Strong impacts can replace a weak response; pellets cannot accumulate it.
+    if (_impactCooldown > 1e-8 && force <= _impactDistance * 1.25) return;
     _impactDirection.setFrom(direction.normalized());
-    _impactDistance = motion.distance * impactResponse;
+    _impactDistance = force;
     _impactDuration = motion.duration;
     _impactRemaining = motion.duration;
+    _impactSlow = motion.slow;
     _impactCooldown = .24;
+    if (motion.stagger > 0 && _staggerRecovery <= 1e-8) {
+      _staggerRemaining = motion.stagger * impactResponse;
+      _staggerRecovery = .65;
+    }
   }
 
   double _flash = 0;
@@ -161,6 +175,13 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     if (isBoss) game.revision.value++;
     if (result == DamageResult.killed && !_rewarded) {
       _rewarded = true;
+      freezeState.remaining = freezeState.recovery = freezeState.immunity = 0;
+      _impactRemaining = _impactCooldown = _staggerRemaining =
+          _staggerRecovery = 0;
+      _pulseRemaining = 0;
+      if (this is SpriteAnimationComponent) {
+        (this as SpriteAnimationComponent).playing = true;
+      }
       game.enemyDefeated(this, xp: xpReward, score: scoreReward, boss: isBoss);
       onCombatDeath();
     }
@@ -171,12 +192,15 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
 
   @override
   void update(double dt) {
-    final wasFrozen = freezeHeld;
+    final wasFrozen = freezeHeld || impactHeld;
     if (game.gameState.gameplayState == GameplayState.playing) {
       freezeState.advance(dt);
+      _staggerRemaining = (_staggerRemaining - dt).clamp(0.0, .3);
+      _staggerRecovery = (_staggerRecovery - dt).clamp(0.0, .65);
     }
-    if (this is SpriteAnimationComponent && (wasFrozen || freezeHeld)) {
-      (this as SpriteAnimationComponent).playing = !freezeHeld;
+    if (this is SpriteAnimationComponent &&
+        (wasFrozen || freezeHeld || impactHeld)) {
+      (this as SpriteAnimationComponent).playing = !(freezeHeld || impactHeld);
     }
     super.update(dt);
     priority = 10000 + (position.y + size.y * .35).round();

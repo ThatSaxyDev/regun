@@ -100,7 +100,7 @@ class GrenadeButtonComponent extends PositionComponent
         available &&
         game.throwGrenade(
           aim: direction == null ? null : Vector2(direction.dx, direction.dy),
-          power: aim.power(game.controls.buttonSize * .85),
+          power: aim.power(game.controlButtonSize * .85),
         )) {
       flash = .14;
     }
@@ -203,7 +203,7 @@ class GrenadeAimPreview extends PositionComponent
       direction == null
           ? game.quickGrenadeDirection
           : Vector2(direction.dx, direction.dy),
-      input.power(game.controls.buttonSize * .85),
+      input.power(game.controlButtonSize * .85),
     );
     final points = grenadePreview(
       flight,

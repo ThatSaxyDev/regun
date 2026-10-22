@@ -412,7 +412,10 @@ void main() {
       expect(game.gameState.xP, 0);
       game.pauseGame();
       await tester.pump();
-      expect(find.text('START RUSH'), findsOneWidget);
+      await tester.ensureVisible(find.text('BOSS PRACTICE'));
+      await tester.tap(find.text('BOSS PRACTICE'));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('RESTART RUSH'), findsOneWidget);
       expect(find.text('NEXT ROUND'), findsOneWidget);
       game.nextBossRushRound();
       await tick(tester, game, 240);

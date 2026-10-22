@@ -80,7 +80,7 @@ void main() {
         expect(target.combatHealth.current, health - 1);
         expect(target.impactStride, lessThan(1));
         final start = target.position.clone();
-        for (var i = 0; i < 12; i++) {
+        for (var i = 0; i < 20; i++) {
           target.receiveBulletImpact(Vector2(1, 0), WeaponType.shotgun);
           target.update(.01);
           if (i == 1) expect(target.position.x, greaterThan(start.x));
@@ -99,7 +99,7 @@ void main() {
           target.impactStride,
           lessThan(1),
         ); // Recovers for the next round.
-        target.update(.11);
+        target.update(.17);
         expect(target.impactStride, 1);
         expect(
           target.position.distanceTo(blocker.position),
@@ -120,7 +120,7 @@ void main() {
           enemy.receiveBulletImpact(Vector2(1, 0), WeaponType.revolver);
           expect(
             enemy.impactStride,
-            kind == EnemyKind.shield ? greaterThan(.7) : equals(1),
+            kind == EnemyKind.shield ? greaterThan(.65) : equals(1),
           );
         }
         game.spawnBoss(BossKind.demon);

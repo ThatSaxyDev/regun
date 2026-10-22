@@ -40,6 +40,8 @@ class EndgameArsenal {
       echoes = <CommittedArea>[];
   int get effectCount => anchors.length + lanes.length + echoes.length;
   int? _primeOwner;
+  bool _fatalBrand = false;
+  bool get brandReady => _primeOwner != null;
   int _primeShot = 0, _minimumPairShot = 0;
   double _primeUntil = 0;
   final _acceptedShots = <int, double>{};
@@ -54,24 +56,92 @@ class EndgameArsenal {
       shot >= _minimumPairShot &&
           !system.state.reloading &&
           !_acceptedShots.containsKey(shot) &&
-          _primeOwner == ownerId(target) &&
+          (_primeOwner == ownerId(target) || _fatalBrand) &&
           shot > _primeShot &&
           shot % 2 != _primeShot % 2 &&
           system.clock < _primeUntil
-      ? 1.4
+      ? 1.8
       : 1;
-  void acceptPair(PositionComponent target, int shot) {
-    if (_acceptedShots.containsKey(shot)) return;
+  bool acceptPair(
+    PositionComponent target,
+    int shot, {
+    Vector2? direction,
+    double amount = 0,
+  }) {
+    if (_acceptedShots.containsKey(shot)) return false;
     final paired = pairMultiplier(target, shot) > 1;
     _acceptedShots[shot] = system.clock;
     if (shot < _primeShot ||
         shot < _minimumPairShot ||
         system.state.reloading) {
-      return;
+      return false;
     }
     _primeShot = shot;
     _primeOwner = paired ? null : ownerId(target);
-    _primeUntil = system.clock + .8;
+    _fatalBrand =
+        !paired && target is CombatEnemy && target.combatHealth.isDead;
+    _primeUntil = system.clock + 1.25;
+    if (direction != null) {
+      if (paired) {
+        _verdict(target, direction, amount * .4);
+      } else {
+        system.audio.play('prime_twinVerdict.wav');
+      }
+    }
+    return paired;
+  }
+
+  void _verdict(PositionComponent host, Vector2 direction, double damage) {
+    final origin = host.position.clone(), hostId = ownerId(host);
+    final owners = <int>{hostId};
+    final targets = game.projectileTargets.toList()
+      ..sort(
+        (a, b) => a.position
+            .distanceToSquared(origin)
+            .compareTo(b.position.distanceToSquared(origin)),
+      );
+    final rays = [
+      direction.clone()..rotate(-.24),
+      direction.clone()..rotate(.24),
+    ];
+    for (final target in targets) {
+      final id = ownerId(target), radius = game.enemyRadius(target) + 16;
+      if (owners.contains(id) ||
+          game.segmentBlocked(origin, target.position) ||
+          !rays.any(
+            (d) =>
+                BulletComponent.segmentDistanceSquared(
+                  target.position,
+                  origin,
+                  system.clip(origin, origin + d * 220),
+                ) <=
+                radius * radius,
+          )) {
+        continue;
+      }
+      if (game.hitEnemy(
+        target,
+        damage,
+        primary: false,
+        direction: direction,
+        reaction: WeaponReaction.verdictFork,
+      )) {
+        owners.add(id);
+        if (game.claimWeaponImpact()) {
+          game.addCombatEffect(
+            WeaponImpact(
+              position: target.position.clone(),
+              weapon: WeaponType.twinVerdict,
+              direction: direction,
+            ),
+          );
+        }
+      }
+      if (owners.length >= 3) break;
+    }
+    system.audio.play('verdict_twinVerdict.wav');
+    game.reserveWeaponPatch();
+    game.addCombatEffect(VerdictBurst(position: origin, direction: direction));
   }
 
   void miss(int shot) {
@@ -91,6 +161,7 @@ class EndgameArsenal {
 
   void breakPair() {
     _primeOwner = null;
+    _fatalBrand = false;
     _primeUntil = 0;
   }
 
@@ -133,6 +204,7 @@ class EndgameArsenal {
   }
 
   void advanceFlak(ArsenalFlight f, double dt) {
+    if (f.spent) return;
     f.age += dt;
     final before = f.position.clone();
     final step = math.min(f.speed * dt, math.max(0.0, f.range - f.travelled));
@@ -164,8 +236,9 @@ class EndgameArsenal {
     final terminal =
         direct != null ||
         end.distanceToSquared(proposed) > 1e-8 ||
-        f.travelled >= f.range - 1e-8 ||
-        f.age > 3;
+        f.range - f.travelled <= .5 ||
+        before.distanceToSquared(end) < .0001 ||
+        f.age >= math.min(3.0, f.range / math.max(1.0, f.speed) + .12);
     if (!terminal) return;
     // Release all four reservations before adding the complete secondary fan.
     f.spent = true;
@@ -181,6 +254,7 @@ class EndgameArsenal {
           maxTravelDistance: 140,
           weapon: WeaponType.flakRegent,
           primary: false,
+          reaction: WeaponReaction.flakFragment,
           ignoreTarget: direct == null ? null : game.projectileOwner(direct),
           initialDelay: system._frameOffset,
         ),
@@ -189,19 +263,13 @@ class EndgameArsenal {
     // Admission of secondary procs cannot steal the reserved fragment slots.
     if (direct != null) system._direct(direct, f.damage, f.direction);
     if (direct == null) system.audio.play('impact_flakRegent.wav');
-    game.addCombatEffect(
-      CombatEffect(
-        position: end.clone(),
-        radius: 60,
-        duration: .25,
-        floorEffect: true,
-        material: AttackMaterial.stone,
-      ),
-    );
+    game.reserveWeaponPatch();
+    game.addCombatEffect(FlakBurst(position: end.clone()));
   }
 
   void plantAnchor(ArsenalFlight f) {
     game.reserveWeaponPatch();
+    system.audio.play('plant_anchorEngine.wav');
     anchors.add(
       CommittedArea(
         f.id,
@@ -282,6 +350,7 @@ class EndgameArsenal {
   void _laneStep(CommittedArea lane) {
     while (lane.next < 3 && lane.age >= lane.next * .1 - 1e-8) {
       final section = lane.next++;
+      system.audio.play('section_faultlineDriver.wav');
       final from = lane.position + lane.direction * (lane.range * section / 3);
       final to =
           lane.position + lane.direction * (lane.range * (section + 1) / 3);
@@ -343,8 +412,13 @@ class EndgameArsenal {
       }
       if (!a.resolved && a.age >= 1.05 - 1e-8) {
         a.resolved = true;
-        game.explode(a.position, radius: 165, damage: a.damage);
-        system.audio.play('impact_anchorEngine.wav');
+        game.explode(
+          a.position,
+          radius: 165,
+          damage: a.damage,
+          reaction: WeaponReaction.of(WeaponType.anchorEngine),
+        );
+        system.audio.play('crush_anchorEngine.wav');
       }
     }
     for (final e in pulls.entries) {
@@ -379,9 +453,24 @@ class EndgameArsenal {
             !_insideCone(echo, target)) {
           continue;
         }
-        system._direct(target, echo.damage / 3, echo.direction, primary: false);
+        if (system._direct(
+              target,
+              echo.damage / 3,
+              echo.direction,
+              primary: false,
+              reaction: WeaponReaction.bellEcho,
+            ) &&
+            game.claimWeaponImpact()) {
+          game.addCombatEffect(
+            WeaponImpact(
+              position: target.position.clone(),
+              weapon: WeaponType.mourningBell,
+              direction: echo.direction,
+            ),
+          );
+        }
       }
-      system.audio.play('impact_mourningBell.wav');
+      system.audio.play('echo_mourningBell.wav');
     }
     echoes.removeWhere((e) => e.age >= .9);
   }
@@ -529,11 +618,50 @@ class EndgameArsenal {
               !view.contains(body.position.toOffset())) {
             continue;
           }
-          AttackVfx.chip(
+          for (final side in [-1, 1]) {
+            canvas.save();
+            canvas.translate(body.position.x + side * 13, body.position.y - 23);
+            canvas.rotate(side * .16);
+            RegunArt.shared
+                .rawSprite('weapons/twin_verdict', 1)
+                .render(
+                  canvas,
+                  size: Vector2(9, 5),
+                  anchor: Anchor.center,
+                  overridePaint: Paint()..colorFilter = grade,
+                );
+            canvas.restore();
+          }
+        }
+      }
+      for (final echo in echoes) {
+        if (!view.inflate(echo.range).contains(echo.position.toOffset())) {
+          continue;
+        }
+        bool clear(Offset a, Offset b) =>
+            game.geometry.bounds.floor.contains(b) &&
+            !game.segmentBlocked(Vector2(a.dx, a.dy), Vector2(b.dx, b.dy));
+        EndgameVfx.pressure(
+          canvas,
+          echo.position.toOffset(),
+          echo.direction.toOffset(),
+          echo.range,
+          (echo.age / .38).clamp(0.0, 1.0),
+          grade,
+          game.preferences.reducedMotion,
+          clear,
+        );
+        if (echo.resolved) {
+          EndgameVfx.pressure(
             canvas,
-            body.position.toOffset() + const Offset(0, -24),
-            5,
-            const Color(0xffBFA776),
+            echo.position.toOffset(),
+            echo.direction.toOffset(),
+            echo.range,
+            ((echo.age - .55) / .35).clamp(0.0, 1.0),
+            grade,
+            game.preferences.reducedMotion,
+            clear,
+            echo: true,
           );
         }
       }
@@ -551,15 +679,27 @@ class EndgameArsenal {
         ambient: grade,
       );
       if (art.contains('weapons/anchor_engine')) {
-        art
-            .rawSprite('weapons/anchor_engine', 2)
-            .render(
-              canvas,
-              position: a.position,
-              size: Vector2(34, 19.14),
-              anchor: Anchor.center,
-              overridePaint: Paint()..colorFilter = grade,
-            );
+        final clamp = ((a.age - .75) / .3).clamp(0.0, 1.0);
+        final separation = game.preferences.reducedMotion
+            ? 0.0
+            : 3 * (1 - clamp);
+        final sprite = art.rawSprite('weapons/anchor_engine', 2);
+        for (final side in [-1, 1]) {
+          canvas.save();
+          canvas.translate(a.position.x, a.position.y + side * separation);
+          canvas.clipRect(
+            side < 0
+                ? const Rect.fromLTRB(-20, -12, 20, 0)
+                : const Rect.fromLTRB(-20, 0, 20, 12),
+          );
+          sprite.render(
+            canvas,
+            size: Vector2(34, 19.14),
+            anchor: Anchor.center,
+            overridePaint: Paint()..colorFilter = grade,
+          );
+          canvas.restore();
+        }
       }
       if (!a.resolved && a.age > .4) {
         for (var i = 0; i < 8; i++) {
@@ -581,42 +721,18 @@ class EndgameArsenal {
     }
     for (final lane in lanes) {
       for (var section = 0; section < lane.next; section++) {
-        final age = lane.age - section * .1;
-        final length = lane.range / 3;
-        final center =
-            lane.position + lane.direction * (length * (section + .5));
-        if (!view.inflate(length).contains(center.toOffset())) continue;
-        canvas.save();
-        canvas.translate(center.x, center.y);
-        canvas.rotate(math.atan2(lane.direction.y, lane.direction.x));
-        canvas.scale(length / 84, 1);
-        AttackVfx.floorArea(
+        final from =
+            lane.position + lane.direction * (lane.range * section / 3);
+        final to =
+            lane.position + lane.direction * (lane.range * (section + 1) / 3);
+        if (!view.inflate(lane.range / 3).contains(from.toOffset())) continue;
+        EndgameVfx.fracture(
           canvas,
-          1,
-          Offset.zero,
-          84,
-          alpha: (1 - age / .75).clamp(0.0, .8),
-          ambient: grade,
-        );
-        canvas.restore();
-      }
-    }
-    for (final echo in echoes) {
-      final p = echo.resolved
-          ? ((echo.age - .55) / .35).clamp(0.0, 1.0)
-          : (echo.age / .35).clamp(0.0, 1.0);
-      final reach = echo.range * (.15 + .8 * p);
-      for (var i = -3; i <= 3; i++) {
-        final d = echo.direction.clone()..rotate(i * math.pi / 18);
-        final at = system.clip(echo.position, echo.position + d * reach);
-        if (!view.contains(at.toOffset())) continue;
-        AttackVfx.floorArea(
-          canvas,
-          1,
-          at.toOffset(),
-          38,
-          alpha: (1 - p) * .6,
-          ambient: grade,
+          from.toOffset(),
+          to.toOffset(),
+          ((lane.age - section * .1) / .55).clamp(0.0, 1.0),
+          grade,
+          game.preferences.reducedMotion,
         );
       }
     }

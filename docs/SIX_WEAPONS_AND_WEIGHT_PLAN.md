@@ -6,7 +6,9 @@ requested checkpoint commits: client `6f9f2b3`, backend `810244b`; this expansio
 follows those commits. Release identity remains1.0.0+11. Online admission stays
 limited to supported weapons; backend walking parity is prepared locally, not
 rolled out. Universal reload and sniper fatigue remain documented in
-RELOAD_AND_SNIPER_FATIGUE.md. See ENDGAME_WEAPONS_REVIEW.md for implementation,
+RELOAD_AND_SNIPER_FATIGUE.md. The creator subsequently strengthened Twin and requested brighter weapon effects;
+see HEAVY_WEAPON_FEEL_REVIEW.md for that superseding design.
+See ENDGAME_WEAPONS_REVIEW.md for implementation,
 validation and hands-on checks. The design targets below remain tuning targets;
 automated damage samples do not certify final balance.
 

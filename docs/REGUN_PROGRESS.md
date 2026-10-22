@@ -926,3 +926,82 @@ typecheck/build passed locally; no rollout or expanded online admission. Signed
 validation/endgame-2026-10-22 for tests,12 base/VIII pack samples,144 survivor/facing
 mounts, both reload sheets and device records. Final physical feel/balance remain
 for creator playtesting.
+
+
+## 22 October2026 — heavy weapon feel / Guard photo correction
+
+After device review the creator requested stronger identities and feel, permitted
+code-constructed art and explicitly requested a brighter airborne Bell pulse.
+Twin is now brand→shatter:1.25s prime,4.5 second hit and a capped two-victim iron
+crossburst; opening kills cock the other barrel so weak packs expose the ability.
+All six receive distinct layered recorded sounds and payoff timing, stronger local
+recoil/contact feedback; Bell leaves no floor AoE paint, Faultline sections fracture,
+Anchor clamps and Cyclone uses three muzzle ports. Other weapons/reloads/weight stay.
+Flak terminal resolution fixes sub-pixel travel stalls and uses an actual short
+burst, with fragment reservations/one-hit owner exclusions retained. The photo's
+unsettling wreath was the player Guard's six enemy chain/shield stamps, now replaced
+with a quiet foot badge; protection is unchanged.448 tests/5 optional skips and
+122 audio-cue checks pass. Signed1.0.0+11 candidate143.2MB built/verified. See
+HEAVY_WEAPON_FEEL_REVIEW.md and validation/heavy-weapon-feel-2026-10-22. Native
+comfort/balance/listening remain human review gates.
+
+## 22 October 2026 — all-weapon physical enemy reactions
+
+The creator requested proportionate physical reactions across the full arsenal.
+All21 now have explicit WeaponReaction profiles: restrained rapid-fire/continuous
+nudges, heavier bullet/shotgun kicks and strong pressure/blast displacement. Hard
+stagger briefly holds ordinary pursuit/attack clocks and pose; .65s recovery and
+.24s force gating prevent stacked pellet/rapid stun-lock. Stronger hits replace
+weaker impulses without summing. Existing mass, cover, walls and body occupancy
+remain authoritative. Shields resist without a full hold; bosses/nests/sentinels
+remain planted. Blast/echo/chain/fragment reactions stay secondary for procs; DoT
+never continually pushes. Frost retains its ice-hit shove. Sprite recovery and
+death-unfreeze have a dedicated regression. Damage/cadence/reloads/weight remain.
+
+Analyzer clean;453 Flutter tests pass/5 optional skips. Server parity passes93
+checks, typecheck and module build, with a shared profile fixture for admitted
+weapons. No online weapon admission or live server deployment. Signed143.2MB
+1.0.0+11 installed in place on creator iPhone12 with data retained. See
+WEAPON_ENEMY_REACTIONS.md and validation/enemy-reactions-2026-10-22. Physical
+feel/balance/performance remain for creator Training playtesting.
+
+## 22 October 2026 — Training menu and shared settings
+
+The creator requested a coherent Training pause UI. Main navigation/actions are
+pinned above a scrolling practice list; duplicate Controls is removed in favor of
+Settings. Five animated collapsed sections cover weapons, survival, supplies,
+bosses and fusions. Boss/rush controls are unified. All21 weapon options now show
+shared leased gameplay art with equipped markers/capacity. Only the first-run
+guided visit mounts tutorial hints/Skip/Ready. Paused HUD clutter is concealed.
+
+Shared Settings/Controls now group related options with clear vertical spacing,
+label/value above48px slider tracks and adaptive choice rows. Online Menu moves
+top-right with reserved roster space and opens these same settings; live-match
+pause/forfeit/input semantics stay intact. Preference bounds and control geometry,
+weapon behavior and gameplay balance remain unchanged. See TRAINING_MENU_REVIEW.md
+and validation/training-menu-2026-10-22 for automated/render/device evidence.
+
+Training UI delivery: analyzer clean,457 tests pass/5 optional skips; signed
+143.2MB1.0.0+11 installed in place and launched on creator iPhone12. Existing data
+retained. Native touch comfort remains for creator review.
+
+## 22 October 2026 — deliberate pause snapshot and unified banners
+
+Normal pause replaces filler with actual survival/kills/bosses, health/ammo,
+level/XP and equipped-kit data; active reloads show remaining time. Live
+Menu/Restart and system back confirm before acting. Cancel preserves pause/run;
+failed Menu saves stay in the run with a visible retry warning. Terminal results
+navigation remains direct. Online leave confirms, including explicit versus
+forfeit copy. GameNotice extracts the creator-approved update banner into one
+shared design for update/replacement/reset/briefing/coming-soon/run confirmations;
+compact notifications share its frame. Required/optional update and passive
+checking semantics stay unchanged. See PAUSE_AND_NOTICE_REVIEW.md and
+validation/pause-notices-2026-10-22 for tests, renders and device records.
+
+Pause/banner delivery: analyzer clean;462 tests pass/5 optional skips. Signed
+143.2MB1.0.0+11 installed in place and launched on creator iPhone12 with data
+retained. Physical readability/touch comfort remain for creator review.
+
+### Tablet landscape pass — 22 October 2026
+
+Removed tablet gameplay letterboxing by extending world visibility, preserving phone framing and sprite proportions. Added tablet HUD/type/touch sizing and shared online geometry. iPad native configuration now enforces both landscape directions in full screen. Native iPad simulator gameplay, simultaneous controls, practice, loadout and settings renders pass; phone regression layouts remain covered. See `TABLET_LAYOUT_REVIEW.md` and its evidence folder. Hardware comfort/performance acceptance remains open.

@@ -10,7 +10,7 @@ expanded online admission, IPA export or push was performed.
 
 | Weapon | Advantage | Handling |
 |---|---|---|
-| Twin Verdict | A2.5 hit primes a.8s alternating-barrel pair; the accepted second hit is3.5. | One twin-bore pistol,12 rounds. Missing/changing owner/reloading breaks the pair. One combo application per original shot, even with Scatter/Pierce/Ricochet. |
+| Twin Verdict | A2.5 hit brands for1.25s; the opposite barrel hits for4.5 and sends a short iron crossburst into up to two other bodies. | One twin-bore pistol,12 rounds. Missing/reloading or changing a living target breaks the pair. An opening kill cocks the opposite barrel for the next enemy. One combo application per original shot, even with Scatter/Pierce/Ricochet. |
 | Flak Regent | A2.4 slug breaks into four.45 forward fragments for nearby packs. |16 rounds. Complete four-projectile reservation precedes ammo use and survives shell flight. Secondary fragments ignore the direct owner and terminate at cover/range. |
 | Anchor Engine | A planted magnetic cartridge gathers mobile bodies, then crushes for8. | Variable-distance hold/release,4 charges. Pull runs over the last.65s of its1.05s plant;55 displacement/body/device through occupancy. Strongest intent wins per step. Planted enemies stay planted. Two devices including flight/residue; total life below3s. |
 | Faultline Driver | Three committed ground sections pierce a crowded lane for6/body. | Hold aim/release,5 charges. Sections at0/.10/.20s,42 half-width, cover-clipped720 base range, six owners and one hit/owner across all sections. |
@@ -84,3 +84,11 @@ The20–35% useful-power goal in the approved plan remains a tuning target. Idea
 pack samples favor different area shapes and rank-VIII builds can exceed it.
 Physical sprite contacts, comfort, native audio, sustained frame pacing and final
 balance still require the creator's hands-on review.
+
+
+## Creator feel correction —22 October2026
+
+This follow-up supersedes the first device candidate's Twin ability and its quiet
+Bell floor effect. Read HEAVY_WEAPON_FEEL_REVIEW.md. The current native candidate
+has448 passing tests/5 optional skips. Earlier443-test evidence above describes
+the original six-weapon delivery and is retained separately.

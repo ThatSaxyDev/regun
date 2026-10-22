@@ -1,3 +1,4 @@
+import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/systems/weapon_mobility.dart';
 
 import 'dart:convert';
@@ -21,6 +22,13 @@ void main() {
   test('Flutter and authoritative TypeScript share the current weapon, survivor, XP and boss contracts', () {
     for (final w in WeaponType.values.where((w) => !w.usesArsenalRuntime)) {
       final s = fixture['weapons'][w.name] as Map, b = WeaponBallistics.of(w);
+      final reaction = WeaponReaction.of(w);
+      expect([
+        reaction.distance,
+        reaction.duration,
+        reaction.stagger,
+        reaction.slow,
+      ], fixture['weaponReactions'][w.name]);
       expect(
         [w.capacity, w.cadence, w.damage, w.range, w.speed, w.reloadMs / 1000],
         [

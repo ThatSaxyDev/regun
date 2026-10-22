@@ -325,6 +325,15 @@ void paintWeapon(
         ),
         size: Vector2(assembly.w, assembly.h),
       );
+      if (type == WeaponType.twinVerdict && !loading && charge > 0) {
+        // Cocked opposite barrel: two restrained brass chamber pixels.
+        for (final y in [-5.0, -1.0]) {
+          canvas.drawRect(
+            Rect.fromLTWH(18, y, 6, 2),
+            Paint()..color = const Color(0xffE9C582),
+          );
+        }
+      }
       final close = loading
           ? (movingReload && !tactical ? pulse(p, .82, .86, .94) * 7 : 0.0)
           : reducedMotion

@@ -1,3 +1,4 @@
+import 'package:regun/widgets/confirm_run_action.dart';
 import 'package:regun/widgets/app_update_gate.dart';
 import 'package:regun/services/online_availability.dart';
 import 'package:regun/widgets/online_coming_soon.dart';
@@ -10,14 +11,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/services/run_store.dart';
-import 'package:regun/utils/constants.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:regun/views/loadout_view.dart';
 import 'package:regun/views/collection_view.dart';
 import 'package:regun/views/settings_view.dart';
 import 'package:regun/views/online_view.dart';
-import 'package:regun/widgets/click_button.dart';
 import 'package:regun/widgets/home_menu.dart';
 
 class MenuView extends ConsumerStatefulWidget {
@@ -114,47 +113,14 @@ class _MenuViewState extends ConsumerState<MenuView>
 
   Future<void> _play() async {
     if (_saved != null) {
-      final replace = await showDialog<bool>(
-        context: context,
-        builder: (context) => Dialog(
-          backgroundColor: const Color(0xff211B26),
-          shape: const RoundedRectangleBorder(),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Replace saved run?',
-                  style: TextStyle(
-                    fontFamily: FontFam.orbitron,
-                    fontSize: 18,
-                    color: Color(0xffE5DDD1),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    ClickButton(
-                      text: 'New run',
-                      width: 140,
-                      height: 48,
-                      onTap: () => Navigator.pop(context, true),
-                    ),
-                    ClickButtonM(
-                      text: 'Keep run',
-                      width: 140,
-                      height: 48,
-                      onTap: () => Navigator.pop(context, false),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
+      final replace = await confirmRunAction(
+        context,
+        eyebrow: 'RE-GUN / SAVED RUN',
+        title: 'REPLACE SAVED RUN?',
+        message: 'Starting a new run replaces your saved run and its upgrades.',
+        action: 'New run',
+        cancel: 'Keep run',
+        destructive: true,
       );
       if (replace != true || !mounted) return;
     }

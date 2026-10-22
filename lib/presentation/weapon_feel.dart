@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:regun/data/loadout.dart';
+import 'package:regun/systems/weapon_reaction.dart';
 
 /// Presentation and bounded hit response; projectile stats/damage stay in loadout.
 class WeaponFeel {
@@ -48,23 +49,11 @@ class WeaponFeel {
     _ => (length: 16, thickness: 6, trailWidth: 4),
   };
 
-  static ({double distance, double duration}) impactMotion(WeaponType type) =>
-      switch (type) {
-        WeaponType.shotgun => (distance: 34, duration: .12),
-        WeaponType.carbine => (distance: 5, duration: .06),
-        WeaponType.revolver => (distance: 16, duration: .1),
-        WeaponType.burstRifle => (distance: 7, duration: .07),
-        _ when type.usesArsenalRuntime => (
-          distance: type == WeaponType.frostShotgun
-              ? 14
-              : type == WeaponType.longwatchSniper
-              ? 24
-              : 8,
-          duration: .12,
-        ),
-        WeaponType.arcCaster => (distance: 8, duration: .075),
-        _ => (distance: 8, duration: .12),
-      };
+  static ({double distance, double duration}) impactMotion(WeaponType type) {
+    final response = WeaponReaction.of(type);
+    return (distance: response.distance, duration: response.duration);
+  }
+
   static WeaponFeel of(WeaponType type) => switch (type) {
     WeaponType.shotgun => const WeaponFeel(
       Color(0xffE9BC75),
@@ -234,68 +223,68 @@ class WeaponFeel {
     WeaponType.twinVerdict => const WeaponFeel(
       Color(0xffD6BC8E),
       50,
-      .40,
-      9,
-      0.15,
-      28,
-      12,
-      36,
-      32,
+      .29,
+      11,
+      .17,
+      34,
+      8,
+      42,
+      42,
     ),
     WeaponType.flakRegent => const WeaponFeel(
       Color(0xffC7B795),
       68,
-      .40,
-      8,
-      0.14,
-      32,
-      12,
+      .285,
+      11,
+      .18,
       36,
-      32,
+      16,
+      36,
+      44,
     ),
     WeaponType.anchorEngine => const WeaponFeel(
       Color(0xffB5B6A0),
       66,
-      .40,
-      11,
-      0.21,
-      16,
-      12,
-      36,
-      32,
+      .27,
+      13,
+      .24,
+      18,
+      10,
+      0,
+      46,
     ),
     WeaponType.faultlineDriver => const WeaponFeel(
       Color(0xffB8AC8C),
       80,
-      .40,
-      12,
-      0.2,
+      .22,
       16,
-      12,
-      36,
-      32,
+      .23,
+      20,
+      14,
+      0,
+      50,
     ),
     WeaponType.cycloneBreacher => const WeaponFeel(
       Color(0xffD1BEA0),
       66,
-      .40,
-      10,
-      0.16,
-      34,
-      12,
+      .324,
+      13,
+      .19,
+      42,
+      18,
       36,
-      32,
+      54,
     ),
     WeaponType.mourningBell => const WeaponFeel(
       Color(0xffBDA985),
       65,
-      .40,
-      8,
-      0.2,
-      12,
-      12,
-      36,
-      32,
+      .36,
+      10,
+      .24,
+      0,
+      0,
+      0,
+      46,
     ),
   };
 }

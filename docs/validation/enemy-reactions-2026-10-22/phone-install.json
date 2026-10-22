@@ -1,0 +1,39 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "install",
+      "app",
+      "--device",
+      "00008101-000248EC1450001E",
+      "build/ios/iphoneos/Runner.app",
+      "--timeout",
+      "120",
+      "--json-output",
+      "/tmp/regun-reactions-install.json"
+    ],
+    "commandType" : "devicectl.device.install.app",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "success",
+    "version" : "642.16"
+  },
+  "result" : {
+    "deviceIdentifier" : "B1CB7226-4861-530C-943A-84DC9B0D0E12",
+    "installedApplications" : [
+      {
+        "bundleID" : "dev.kiishi.regun",
+        "databaseSequenceNumber" : 6988,
+        "databaseUUID" : "0F9DB728-A13A-488F-81A6-0070906FB372",
+        "installationURL" : "file:///private/var/containers/Bundle/Application/66435C3A-50D4-4A27-A8B1-DB36ADB923F2/Runner.app/",
+        "launchServicesIdentifier" : "unknown",
+        "options" : {
+
+        }
+      }
+    ]
+  }
+}

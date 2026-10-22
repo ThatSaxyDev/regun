@@ -1,3 +1,10 @@
+import 'package:regun/presentation/game_layout.dart';
+import 'package:regun/widgets/game_notice.dart';
+import 'package:regun/widgets/run_pause_summary.dart';
+import 'package:regun/widgets/confirm_run_action.dart';
+import 'package:regun/services/local_preferences.dart';
+import 'package:regun/widgets/practice_section.dart';
+import 'package:regun/widgets/weapon_practice_tile.dart';
 import 'package:regun/widgets/menu_layout.dart';
 import 'package:regun/widgets/training_notice.dart';
 import 'package:regun/views/loadout_view.dart';
@@ -5,7 +12,6 @@ import 'package:regun/theme/upgrade_glyph.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/widgets/pixel_icon.dart';
 import 'package:regun/data/challenges.dart';
-import 'package:regun/widgets/control_arranger.dart';
 import 'package:regun/services/run_store.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/views/settings_view.dart';
@@ -21,7 +27,6 @@ import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/game.dart';
-import 'package:regun/widgets/controls_editor.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/click_button.dart';
@@ -53,10 +58,10 @@ class BaseView extends StatefulWidget {
 class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   late final RegunGame _myGame;
   final gameWidgetKey = GlobalKey<RiverpodAwareGameWidgetState>();
-  bool _editingControls = false;
-  bool _arranging = false;
   bool _leaving = false;
+  bool _confirmingAction = false;
   late bool _trainingIntro;
+  late final bool _guidedTraining;
   bool _skippingTraining = false;
   bool _changingWeapon = false;
 
@@ -64,7 +69,11 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _trainingIntro = widget.loadout.training && widget.showTrainingIntro;
+    _guidedTraining =
+        widget.loadout.training &&
+        widget.showTrainingIntro &&
+        !LocalPreferences.shared.profile.tutorialComplete;
+    _trainingIntro = _guidedTraining;
     _myGame = RegunGame(
       context,
       startPaused: _trainingIntro,
@@ -99,7 +108,57 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     if (_leaving) return;
     _leaving = true;
     await _myGame.leaveRun();
+    if (!_myGame.loadout.training &&
+        _myGame.gameState.gameplayState != GameplayState.gameOver &&
+        _myGame.saveIssue != null) {
+      _leaving = false;
+      if (mounted) setState(() {});
+      return;
+    }
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _requestRunAction({bool restart = false}) async {
+    if (_confirmingAction || _leaving) return;
+    if (_myGame.gameState.gameplayState == GameplayState.gameOver) {
+      if (restart) {
+        _myGame.restartGame();
+      } else {
+        await _leave();
+      }
+      return;
+    }
+    _myGame.pauseGame();
+    _myGame.resetInput();
+    _confirmingAction = true;
+    try {
+      final training = _myGame.loadout.training;
+      final accepted = await confirmRunAction(
+        context,
+        title: restart ? 'RESTART RUN?' : 'RETURN TO MENU?',
+        message: restart
+            ? training
+                  ? 'This practice session and its build will reset.'
+                  : 'Your current run and upgrades will be replaced.'
+            : training
+            ? 'This practice session will end.'
+            : 'Your run will be saved for Continue.',
+        action: restart
+            ? 'Restart'
+            : training
+            ? 'Leave training'
+            : 'Save & leave',
+        destructive: restart || training,
+      );
+      if (!mounted || !accepted) return;
+      if (restart) {
+        _myGame.restartGame();
+      } else {
+        await _leave();
+      }
+    } finally {
+      _confirmingAction = false;
+    }
   }
 
   Future<void> _skipTrainingIntro() async {
@@ -117,7 +176,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   Widget build(BuildContext context) => PopScope(
     canPop: false,
     onPopInvokedWithResult: (didPop, _) {
-      if (!didPop) unawaited(_leave());
+      if (!didPop) unawaited(_requestRunAction());
     },
     child: ProviderScope(
       overrides: [gameNotifierProvider.overrideWith(GameNotifier.new)],
@@ -138,49 +197,35 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                       ValueListenableBuilder<int>(
                         valueListenable: _myGame.revision,
                         builder: (context, _, child) =>
-                            _myGame.saveIssue == null
+                            _myGame.saveIssue == null ||
+                                state.gameplayState == GameplayState.paused
                             ? const SizedBox.shrink()
                             : Positioned(
                                 top: 64,
                                 left: 24,
                                 right: 24,
                                 child: IgnorePointer(
-                                  child: Text(
-                                    _myGame.saveIssue!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: _brass,
-                                    ),
+                                  child: GameNoticeStrip(
+                                    message: _myGame.saveIssue!,
                                   ),
                                 ),
                               ),
                       ),
                       if (!_trainingIntro &&
-                          state.gameplayState != GameplayState.gameOver)
+                          state.gameplayState != GameplayState.gameOver &&
+                          state.gameplayState != GameplayState.paused)
                         _hud(state, ref.read(gameNotifierProvider.notifier)),
                       if (state.gameplayState == GameplayState.powerup)
                         _upgradePicker(state),
                       if (!_trainingIntro &&
                           state.gameplayState == GameplayState.paused)
-                        _arranging
-                            ? ControlArranger(
-                                layout: _myGame.controls,
-                                available: _myGame.controlCanvasRect,
-                                onChanged: (layout) =>
-                                    setState(() => _myGame.setControls(layout)),
-                                onDone: () =>
-                                    setState(() => _arranging = false),
-                              )
-                            : _editingControls
-                            ? _controlEditor()
-                            : _pauseMenu(),
+                        _pauseMenu(),
                       if (state.gameplayState == GameplayState.gameOver)
                         _results(state),
                       if (_trainingIntro) ...[
                         const ModalBarrier(
                           dismissible: false,
-                          color: Color(0xB3100D14),
+                          color: Color(0xD9100D14),
                         ),
                         SafeArea(
                           minimum: const EdgeInsets.all(16),
@@ -209,6 +254,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     ),
   );
 
+  double get _hudScale => GameLayout.uiScale(MediaQuery.sizeOf(context));
+
   Widget _hud(GameState state, GameNotifier notifier) => SafeArea(
     child: Column(
       children: [
@@ -224,10 +271,14 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           children: [
             IconButton(
               tooltip: 'Pause',
+              constraints: BoxConstraints(
+                minWidth: 48 * _hudScale,
+                minHeight: 48 * _hudScale,
+              ),
               onPressed: _myGame.pauseGame,
               icon: SizedBox(
-                width: 22,
-                height: 24,
+                width: 22 * _hudScale,
+                height: 24 * _hudScale,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -253,8 +304,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
               builder: (context, lost, _) => Semantics(
                 label: 'Health ${state.health}',
                 child: Container(
-                  width: 90,
-                  height: 44,
+                  width: 90 * _hudScale,
+                  height: 44 * _hudScale,
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   decoration: BoxDecoration(
                     color: lost > 0
@@ -402,9 +453,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
               ),
             ),
           ),
-        if (widget.loadout.training &&
-            !_myGame.bossRush &&
-            _myGame.bosses.isEmpty)
+        if (_guidedTraining && !_myGame.bossRush && _myGame.bosses.isEmpty)
           ValueListenableBuilder<int>(
             valueListenable: _myGame.revision,
             builder: (context, _, child) => Column(
@@ -443,8 +492,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
         const Spacer(),
         IgnorePointer(
           child: SizedBox(
-            height: 100,
-            width: 220,
+            height: 100 * _hudScale,
+            width: 220 * _hudScale,
             child: Center(
               child: ValueListenableBuilder<double>(
                 valueListenable: notifier.quickRefillProgress,
@@ -622,209 +671,272 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     ],
   );
 
-  Widget _pauseMenu() => _overlay(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _heading('TAKE A BREATHER', subtitle: 'The horde can wait.'),
-        const SizedBox(height: 22),
-        Wrap(
-          spacing: 14,
-          runSpacing: 14,
-          alignment: WrapAlignment.center,
-          children: [
-            ClickButton(
-              onTap: _myGame.resumeGame,
-              text: 'Resume',
-              width: 140,
-              height: 52,
-            ),
-            ClickButton(
-              onTap: () => setState(() => _editingControls = true),
-              text: 'Controls',
-              width: 140,
-              height: 52,
-            ),
-            ClickButton(
-              onTap: _myGame.restartGame,
-              text: 'Restart',
-              width: 140,
-              height: 52,
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        if (_myGame.gameNotifier.canFuse)
-          ClickButton(
-            text: 'Fuse core',
-            width: 150,
-            height: 48,
-            onTap: _myGame.gameNotifier.openBossCore,
-          ),
-        ClickButtonM(
-          text: 'Settings',
-          width: 140,
-          height: 48,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) =>
-                  SettingsView(onControlsChanged: _myGame.setControls),
-            ),
-          ),
-        ),
-        if (widget.loadout.training) ...[
-          const SizedBox(height: 24),
-          _practiceGroup('WEAPON PRACTICE', [
-            for (final weapon in WeaponType.values)
-              PixelOption(
-                label: weapon.title,
-                width: 190,
-                selected: weapon == _myGame.loadout.weapon,
-                onTap: () async {
-                  if (_changingWeapon) return;
-                  setState(() => _changingWeapon = true);
-                  try {
-                    await _myGame.changeTrainingWeapon(weapon);
-                  } finally {
-                    if (mounted) setState(() => _changingWeapon = false);
-                  }
-                },
-              ),
-          ]),
-          const SizedBox(height: 24),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Row(
+  Future<void> _openSettings() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SettingsView(onControlsChanged: _myGame.setControls),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  Widget _pauseMenu() => Positioned.fill(
+    child: ColoredBox(
+      color: const Color(0xe8141117),
+      child: SafeArea(
+        minimum: const EdgeInsets.all(16),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Expanded(
-                  child: Text(
-                    'Take damage',
-                    style: TextStyle(
-                      fontFamily: FontFam.orbitron,
-                      color: _paper,
-                      fontSize: 14,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.loadout.training ? 'TRAINING PAUSED' : 'PAUSED',
+                        style: const TextStyle(
+                          fontFamily: FontFam.pressStart,
+                          fontSize: 14,
+                          height: 1.6,
+                          color: _paper,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    ClickButtonM(
+                      key: const Key('pause-menu-home'),
+                      onTap: () => _requestRunAction(),
+                      text: 'Menu',
+                      width: 100,
+                      height: 48,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClickButton(
+                        onTap: _myGame.resumeGame,
+                        text: 'Resume',
+                        glyph: PixelGlyph.play,
+                        height: 48,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ClickButton(
+                        onTap: () => _requestRunAction(restart: true),
+                        buttonColor: _muted,
+                        text: 'Restart',
+                        height: 48,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ClickButton(
+                        onTap: _openSettings,
+                        text: 'Settings',
+                        glyph: PixelGlyph.settings,
+                        buttonColor: _muted,
+                        height: 48,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (_myGame.saveIssue != null) ...[
+                  const GameNoticeStrip(
+                    message:
+                        'Run could not be saved. Stay here and try Menu again.',
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                Expanded(
+                  child: MenuScrollBody(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_myGame.gameNotifier.canFuse) ...[
+                          ClickButton(
+                            text: 'Fuse core',
+                            height: 48,
+                            onTap: _myGame.gameNotifier.openBossCore,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (widget.loadout.training)
+                          ..._trainingSections()
+                        else
+                          RunPauseSummary(
+                            state: _myGame.gameState,
+                            loadout: _myGame.loadout,
+                            reloadSeconds:
+                                _myGame.gameNotifier.reloadRemainingSeconds,
+                          ),
+                      ],
                     ),
                   ),
-                ),
-                PixelOption(
-                  label: 'Off',
-                  width: 80,
-                  selected: !_myGame.trainingDamage,
-                  onTap: () => setState(() => _myGame.setTrainingDamage(false)),
-                ),
-                const SizedBox(width: 8),
-                PixelOption(
-                  label: 'On',
-                  width: 80,
-                  selected: _myGame.trainingDamage,
-                  onTap: () => setState(() => _myGame.setTrainingDamage(true)),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Fall. Return to center. Keep your build.',
-            style: TextStyle(
-              fontFamily: FontFam.orbitron,
-              fontSize: 11,
-              color: _muted,
+        ),
+      ),
+    ),
+  );
+
+  List<Widget> _trainingSections() => [
+    PracticeSection(
+      key: const Key('practice-weapons'),
+      title: 'WEAPON PRACTICE',
+      summary: '${_myGame.loadout.weapon.title} equipped / 21 weapons',
+      builder: (_) => MenuCardGrid(
+        minColumnWidth: 180,
+        children: [
+          for (final weapon in WeaponType.values)
+            WeaponPracticeTile(
+              key: ValueKey('practice-weapon-${weapon.name}'),
+              weapon: weapon,
+              selected: weapon == _myGame.loadout.weapon,
+              onTap: _changingWeapon
+                  ? null
+                  : () async {
+                      setState(() => _changingWeapon = true);
+                      try {
+                        await _myGame.changeTrainingWeapon(weapon);
+                      } finally {
+                        if (mounted) setState(() => _changingWeapon = false);
+                      }
+                    },
             ),
+        ],
+      ),
+    ),
+    const SizedBox(height: 12),
+    PracticeSection(
+      key: const Key('practice-survival'),
+      title: 'SURVIVAL PRACTICE',
+      summary: _myGame.trainingDamage
+          ? 'Damage on / return after falling'
+          : 'Damage off / practice safely',
+      builder: (_) => SettingsChoice(
+        label: 'Take damage',
+        options: [
+          PixelOption(
+            label: 'Off',
+            width: 80,
+            selected: !_myGame.trainingDamage,
+            onTap: () => setState(() => _myGame.setTrainingDamage(false)),
           ),
-          const SizedBox(height: 24),
-          if (widget.loadout.arena == ArenaType.breach) ...[
-            _practiceGroup('SUPPLY PRACTICE', [
+          PixelOption(
+            label: 'On',
+            width: 80,
+            selected: _myGame.trainingDamage,
+            onTap: () => setState(() => _myGame.setTrainingDamage(true)),
+          ),
+        ],
+      ),
+    ),
+    const SizedBox(height: 12),
+    if (widget.loadout.arena == ArenaType.breach) ...[
+      PracticeSection(
+        key: const Key('practice-supply'),
+        title: 'SUPPLY PRACTICE',
+        summary: 'Call an airdrop',
+        builder: (_) => Align(
+          alignment: Alignment.centerLeft,
+          child: ClickButton(
+            text: 'Call airdrop',
+            width: 200,
+            height: 48,
+            onTap: _myGame.practiceSupplyDrop,
+          ),
+        ),
+      ),
+      const SizedBox(height: 12),
+    ],
+    PracticeSection(
+      key: const Key('practice-bosses'),
+      title: 'BOSS PRACTICE',
+      summary: _myGame.bossRush
+          ? 'Rush active / round ${_myGame.bossRushRound}'
+          : 'Choose a boss or start a random rush',
+      builder: (_) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
               ClickButton(
-                text: 'Call airdrop',
+                text: _myGame.bossRush ? 'Restart rush' : 'Start rush',
+                width: 180,
                 height: 48,
-                onTap: _myGame.practiceSupplyDrop,
+                onTap: _myGame.startBossRush,
               ),
-            ]),
-            const SizedBox(height: 24),
-          ],
-          _practiceGroup('RANDOM BOSS RUSH', [
-            ClickButton(
-              text: 'Start rush',
-              height: 48,
-              onTap: _myGame.startBossRush,
-            ),
-            if (_myGame.bossRush)
-              ClickButton(
-                text: 'Next round',
-                height: 48,
-                onTap: _myGame.nextBossRushRound,
-              ),
-          ]),
-          const SizedBox(height: 8),
+              if (_myGame.bossRush)
+                ClickButtonM(
+                  text: 'Next round',
+                  width: 160,
+                  height: 48,
+                  onTap: _myGame.nextBossRushRound,
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
           const Text(
             'Random bosses. Sometimes two.',
             style: TextStyle(
               fontFamily: FontFam.orbitron,
-              fontSize: 11,
+              fontSize: 12,
               color: _muted,
             ),
           ),
           const SizedBox(height: 24),
-          _practiceGroup('BOSS PRACTICE', [
-            for (final kind in BossKind.values)
-              ClickButton(
-                text: kind.title,
-                height: 48,
-                onTap: () => _myGame.practiceBoss(kind),
-              ),
-          ]),
-          const SizedBox(height: 24),
-          _practiceGroup('FUSION PRACTICE', [
-            for (final recipe in fusionRecipes)
-              ClickButton(
-                text: recipe.title,
-                height: 48,
-                onTap: () => _myGame.gameNotifier.prepareTrainingFusion(recipe),
-              ),
-          ]),
-          const SizedBox(height: 8),
           const Text(
-            'Choose the fusion on the next screen.',
+            'CHOOSE A BOSS',
             style: TextStyle(
-              fontFamily: FontFam.orbitron,
-              fontSize: 11,
-              color: _muted,
+              fontFamily: FontFam.pressStart,
+              fontSize: 9,
+              color: _brass,
             ),
+          ),
+          const SizedBox(height: 12),
+          MenuCardGrid(
+            minColumnWidth: 180,
+            children: [
+              for (final kind in BossKind.values)
+                ClickButtonM(
+                  text: kind.title,
+                  height: 48,
+                  onTap: () => _myGame.practiceBoss(kind),
+                ),
+            ],
           ),
         ],
-        const SizedBox(height: 14),
-        ClickButtonM(onTap: _leave, text: 'Menu', width: 140, height: 48),
-      ],
+      ),
     ),
-  );
-
-  Widget _practiceGroup(String title, List<Widget> actions) => ConstrainedBox(
-    constraints: const BoxConstraints(maxWidth: 620),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontFamily: FontFam.pressStart,
-            fontSize: 10,
-            color: Color(0xffE1BA78),
-          ),
-        ),
-        const SizedBox(height: 12),
-        MenuCardGrid(minColumnWidth: 160, children: actions),
-      ],
+    const SizedBox(height: 12),
+    PracticeSection(
+      key: const Key('practice-fusions'),
+      title: 'FUSION PRACTICE',
+      summary: 'Try a fusion build',
+      builder: (_) => MenuCardGrid(
+        minColumnWidth: 180,
+        children: [
+          for (final recipe in fusionRecipes)
+            ClickButtonM(
+              text: recipe.title,
+              height: 48,
+              onTap: () => _myGame.gameNotifier.prepareTrainingFusion(recipe),
+            ),
+        ],
+      ),
     ),
-  );
-
-  Widget _controlEditor() => _overlay(
-    child: ControlsEditor(
-      layout: _myGame.controls,
-      onChanged: (layout) => setState(() => _myGame.setControls(layout)),
-      onDone: () => setState(() => _editingControls = false),
-      onArrange: () => setState(() => _arranging = true),
-    ),
-  );
+  ];
 
   Widget _upgradePicker(GameState state) => _overlay(
     child: Column(

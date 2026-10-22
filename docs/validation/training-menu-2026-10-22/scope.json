@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-22",
+  "release": "1.0.0+11",
+  "analyzer": "clean",
+  "testsPassed": 457,
+  "optionalSkipped": 5,
+  "signedBuildMB": 143.2,
+  "renderedImagesReviewed": true,
+  "nativeComfortAccepted": false,
+  "newTextureAssets": 0,
+  "weaponCount": 21,
+  "backendChanged": false,
+  "dataReset": false
+}

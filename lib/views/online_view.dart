@@ -1,3 +1,5 @@
+import 'package:regun/widgets/game_notice.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -688,7 +690,9 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (inRoom || notice.isNotEmpty)
+        if (notice.isNotEmpty)
+          GameNoticeStrip(message: notice)
+        else if (inRoom)
           Semantics(
             liveRegion: true,
             child: Text(

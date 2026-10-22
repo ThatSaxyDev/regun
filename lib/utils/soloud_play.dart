@@ -40,6 +40,16 @@ class SoloudPlay {
       final names = [
         for (var i = 0; i < 3; i++) 'shot_${weapon.name}_$i.wav',
         'impact_${weapon.name}.wav',
+        if (weapon == WeaponType.twinVerdict) ...[
+          'prime_twinVerdict.wav',
+          'verdict_twinVerdict.wav',
+        ],
+        if (weapon == WeaponType.anchorEngine) ...[
+          'plant_anchorEngine.wav',
+          'crush_anchorEngine.wav',
+        ],
+        if (weapon == WeaponType.faultlineDriver) 'section_faultlineDriver.wav',
+        if (weapon == WeaponType.mourningBell) 'echo_mourningBell.wav',
         if (weapon == WeaponType.beltRepeater) 'spin_beltRepeater.wav',
         if (weapon.isContinuous || weapon == WeaponType.beltRepeater)
           'sustain_${weapon.name}.wav',
@@ -110,7 +120,9 @@ class SoloudPlay {
     try {
       if (!_soloud.isInitialized || _sfxVolume == 0) return;
       final now = _clock.elapsedMilliseconds;
-      final limit = assetPath == 'upgrade_pulse.wav'
+      final limit = assetPath.startsWith('section_')
+          ? 90
+          : assetPath == 'upgrade_pulse.wav'
           ? 120
           : assetPath == 'blast.wav'
           ? 120
@@ -125,7 +137,17 @@ class SoloudPlay {
       _lastPlayed[assetPath] = now;
       final source = await _source(assetPath);
       if (_soloud.isInitialized) {
-        final gain = assetPath == 'upgrade_pulse.wav'
+        final gain = assetPath.startsWith('prime_')
+            ? .22
+            : assetPath.startsWith('verdict_')
+            ? .50
+            : assetPath.startsWith('plant_')
+            ? .45
+            : assetPath.startsWith('crush_')
+            ? .55
+            : assetPath.startsWith('section_') || assetPath.startsWith('echo_')
+            ? .38
+            : assetPath == 'upgrade_pulse.wav'
             ? .35
             : assetPath == 'blast.wav'
             ? .65

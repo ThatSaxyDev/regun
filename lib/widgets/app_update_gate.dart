@@ -1,3 +1,5 @@
+import 'package:regun/widgets/game_notice.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -181,117 +183,44 @@ class UpdateNotice extends StatelessWidget {
   final VoidCallback onUpdate, onLater, onRetry;
   final bool checking, opening, storeAvailable;
   final String? error;
-  static const _brass = Color(0xffE1BA78), _paper = Color(0xffE5DDD1);
-
   @override
-  Widget build(BuildContext context) => Semantics(
-    scopesRoute: true,
-    explicitChildNodes: true,
-    namesRoute: true,
-    label: result.isRequired ? 'Update required' : 'Update available',
-    child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 500),
-      child: Material(
-        color: Colors.transparent,
-        child: SingleChildScrollView(
-          child: CustomPaint(
-            painter: const _NoticeFrame(),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'RE-GUN / LATEST RELEASE',
-                    style: TextStyle(
-                      fontFamily: FontFam.orbitron,
-                      fontSize: 10,
-                      letterSpacing: 1.3,
-                      color: _brass,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    result.isRequired ? 'UPDATE REQUIRED' : 'NEW UPDATE',
-                    style: const TextStyle(
-                      fontFamily: FontFam.pressStart,
-                      fontSize: 16,
-                      height: 1.5,
-                      color: _paper,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _message,
-                    style: const TextStyle(
-                      fontFamily: FontFam.orbitron,
-                      fontSize: 13,
-                      height: 1.65,
-                      color: _paper,
-                    ),
-                  ),
-                  if (error != null || !storeAvailable) ...[
-                    const SizedBox(height: 12),
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        error ?? 'The update link isn’t ready yet. Please check again shortly.',
-                        style: const TextStyle(
-                          fontFamily: FontFam.orbitron,
-                          fontSize: 11,
-                          height: 1.5,
-                          color: _brass,
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final primary = ClickButton(
-                        text: opening ? 'Opening…' : 'Update',
-                        glyph: PixelGlyph.reload,
-                        height: 48,
-                        onTap: opening || !storeAvailable ? null : onUpdate,
-                      );
-                      final secondary = ClickButton(
-                        text: result.isRequired
-                            ? (checking ? 'Checking…' : 'Check again')
-                            : 'Later',
-                        buttonColor: const Color(0xffA79AA9),
-                        height: 48,
-                        onTap: checking || opening
-                            ? null
-                            : result.isRequired
-                            ? onRetry
-                            : onLater,
-                      );
-                      if (constraints.maxWidth < 300 ||
-                          MediaQuery.textScalerOf(context).scale(1) > 1.3) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            primary,
-                            const SizedBox(height: 8),
-                            secondary,
-                          ],
-                        );
-                      }
-                      return Row(
-                        children: [
-                          Expanded(child: secondary),
-                          const SizedBox(width: 12),
-                          Expanded(child: primary),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+  Widget build(BuildContext context) => GameNotice(
+    eyebrow: 'RE-GUN / LATEST RELEASE',
+    title: result.isRequired ? 'UPDATE REQUIRED' : 'NEW UPDATE',
+    message: _message,
+    detail: error != null || !storeAvailable
+        ? Semantics(
+            liveRegion: true,
+            child: Text(
+              error ?? 'The update link isn’t ready yet. Please check again shortly.',
+              style: const TextStyle(
+                fontFamily: FontFam.orbitron,
+                fontSize: 11,
+                height: 1.5,
+                color: Color(0xffE1BA78),
               ),
             ),
-          ),
-        ),
+          )
+        : null,
+    actions: GameNoticeActions(
+      primaryFirstWhenStacked: true,
+      primary: ClickButton(
+        text: opening ? 'Opening…' : 'Update',
+        glyph: PixelGlyph.reload,
+        height: 48,
+        onTap: opening || !storeAvailable ? null : onUpdate,
+      ),
+      secondary: ClickButton(
+        text: result.isRequired
+            ? (checking ? 'Checking…' : 'Check again')
+            : 'Later',
+        buttonColor: const Color(0xffA79AA9),
+        height: 48,
+        onTap: checking || opening
+            ? null
+            : result.isRequired
+            ? onRetry
+            : onLater,
       ),
     ),
   );
@@ -303,31 +232,4 @@ class UpdateNotice extends StatelessWidget {
         ? 'Update Regun to keep playing.'
         : 'The latest Regun is ready. Get the new improvements.';
   }
-}
-
-class _NoticeFrame extends CustomPainter {
-  const _NoticeFrame();
-  @override
-  void paint(Canvas canvas, Size size) {
-    final bounds = (Offset.zero & size).deflate(1);
-    final path = controlPlate(bounds);
-    canvas.drawPath(path, Paint()..color = const Color(0xff211B26));
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0xff8D7651)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-    canvas.drawLine(
-      const Offset(16, 7),
-      Offset(size.width - 16, 7),
-      Paint()
-        ..color = const Color(0xff51454C)
-        ..strokeWidth = 1,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_NoticeFrame oldDelegate) => false;
 }

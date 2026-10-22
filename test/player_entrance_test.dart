@@ -84,8 +84,12 @@ void main() {
     expect(game.damagePlayer(), isFalse); // Training defaults to protection.
     game.pauseGame();
     await tester.pump();
+    await tester.tap(find.text('SURVIVAL PRACTICE'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
     expect(find.text('Take damage'), findsOneWidget);
     await tester.ensureVisible(find.text('ON'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('ON'));
     expect(game.trainingDamage, isTrue);
     await capture(tester, 'training-damage-setting');

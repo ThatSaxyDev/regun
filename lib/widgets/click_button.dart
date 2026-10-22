@@ -18,6 +18,7 @@ class ClickButton extends ConsumerStatefulWidget {
     this.isActive = true,
     this.glyph,
     this.iconOnly = false,
+    this.autofocus = false,
   });
 
   final VoidCallback? onTap;
@@ -30,6 +31,7 @@ class ClickButton extends ConsumerStatefulWidget {
   final bool? isActive;
   final PixelGlyph? glyph;
   final bool iconOnly;
+  final bool autofocus;
 
   @override
   ConsumerState<ClickButton> createState() => _ClickButtonState();
@@ -52,6 +54,7 @@ class _ClickButtonState extends ConsumerState<ClickButton> {
         width: widget.width,
         height: widget.height ?? 52,
         child: InkWell(
+          autofocus: widget.autofocus,
           onTap: enabled
               ? () {
                   ref.read(soloudPlayProvider).play('click.mp3');

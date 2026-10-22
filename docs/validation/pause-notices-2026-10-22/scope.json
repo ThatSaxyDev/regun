@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-22",
+  "release": "1.0.0+11",
+  "analyzer": "clean",
+  "testsPassed": 462,
+  "optionalSkipped": 5,
+  "signedBuildMB": 143.2,
+  "installedInPlace": true,
+  "launched": true,
+  "dataReset": false,
+  "renderedImagesReviewed": true,
+  "physicalComfortAccepted": false,
+  "backendChanged": false,
+  "newTextures": 0
+}

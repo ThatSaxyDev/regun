@@ -1,3 +1,5 @@
+import 'package:regun/presentation/game_layout.dart';
+
 import 'dart:math';
 import 'dart:ui';
 
@@ -90,7 +92,16 @@ class ControlLayout {
     );
   }
 
+  double displaySize(Size viewport) => size * GameLayout.uiScale(viewport);
+  double displayButtonSize(Size viewport) =>
+      buttonSize * GameLayout.uiScale(viewport);
+
   ControlGeometry geometry(Size viewport) {
+    final presentation = GameLayout.uiScale(viewport);
+    final size = this.size * presentation;
+    final buttonSize = this.buttonSize * presentation;
+    final inset = this.inset * presentation;
+    final bottom = this.bottom * presentation;
     final radius = size / 2;
     final buttonRadius = buttonSize / 2;
     final minReloadY = max(40.0, buttonRadius + 8);

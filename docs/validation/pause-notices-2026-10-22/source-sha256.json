@@ -1,0 +1,12 @@
+{
+  "lib/views/base_view.dart": "5d15cfd9bebed89a8d386df2954920dc5d5a0c3b29bac8b2ee3b8d62ee859500",
+  "lib/widgets/run_pause_summary.dart": "d493c57178d9f7da8b9b66f606737299bd086b0e41e518bedd9c0d75909f9976",
+  "lib/widgets/game_notice.dart": "89b3eba399ca2a26309366a4594d9308b810cb04d9e39b605eadb402f3b90fb0",
+  "lib/widgets/confirm_run_action.dart": "094050c3c6c504328654f9787e344a94a48a7558dadb5724bbda2d0f1e7b8270",
+  "lib/widgets/app_update_gate.dart": "dbdd3ce7177d09987e3952262cd186ff7294e11536f6cfed1935cc77ed8390b9",
+  "lib/widgets/training_notice.dart": "f001bd178b1bc90cf930f7cb01b868e6f89e0b88054e9fcee8e9e93e09d97522",
+  "lib/views/menu_view.dart": "d530e694087154a5dbaf1638dada573891a4cd0486ca0bdb3a549e1ee21d0652",
+  "lib/views/settings_view.dart": "8bdb988b56323a90cf7b8b0386db56dc0bd30027e5ac9fb022e59be00bbf28ce",
+  "lib/widgets/online_match_menu.dart": "66479acf1beb51abd69472c0e2085d3c319fb4bfd23aab4b93697735e4c80943",
+  "test/pause_summary_and_notices_test.dart": "76693fa541733155b0f22a851c6cab4f965755ed75f769e089e3be0849c519d9"
+}

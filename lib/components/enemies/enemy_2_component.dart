@@ -84,7 +84,7 @@ class Enemy2Component extends SpriteAnimationComponent
       return;
     }
 
-    if (freezeHeld) return;
+    if (freezeHeld || impactHeld) return;
     final facingLeft = game.myPlayer.position.x < position.x;
     if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
 

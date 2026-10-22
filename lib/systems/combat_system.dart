@@ -1,4 +1,5 @@
 import 'package:regun/presentation/regun_art.dart';
+import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/presentation/attack_vfx.dart';
 
 import 'dart:math';
@@ -65,6 +66,7 @@ class CombatSystem {
     bool primary = true,
     bool allowChain = true,
     bool armorPiercing = false,
+    WeaponReaction? reaction,
     Vector2? direction,
   }) {
     if (enemy is BossWeakPoint) return enemy.takeDamage(amount);
@@ -88,8 +90,11 @@ class CombatSystem {
       }
     }
     if (!enemy.takeDamage(amount)) return false;
-    if (primary && direction != null) {
-      enemy.receiveBulletImpact(direction, game.loadout.weapon);
+    if (direction != null && (primary || reaction != null)) {
+      enemy.receiveWeaponImpact(
+        direction,
+        reaction ?? WeaponReaction.of(game.loadout.weapon),
+      );
     }
     if (primary) {
       final innate = game.loadout.weapon == WeaponType.arcCaster;
@@ -120,7 +125,13 @@ class CombatSystem {
               duration: 0.16,
             ),
           );
-          hit(target, amount * pow(innate ? .85 : .65, i + 1), primary: false);
+          hit(
+            target,
+            amount * pow(innate ? .85 : .65, i + 1),
+            primary: false,
+            direction: (target.position - source.position).normalized(),
+            reaction: WeaponReaction.arcJump,
+          );
           source = target;
         }
       }
@@ -183,6 +194,7 @@ class CombatSystem {
           speed: 650,
           maxTravelDistance: 200,
           primary: false,
+          reaction: WeaponReaction.shrapnel,
           angle: atan2(shotDirection.y, shotDirection.x),
         ),
       );
@@ -218,6 +230,7 @@ class CombatSystem {
     Vector2 position, {
     required double radius,
     required double damage,
+    WeaponReaction reaction = WeaponReaction.grenade,
   }) {
     game.audio.play('blast.wav');
     game.addCombatEffect(
@@ -232,7 +245,16 @@ class CombatSystem {
       final reach = radius + game.crowdRadius(target);
       if (target.position.distanceToSquared(position) <= reach * reach &&
           !game.segmentBlocked(position, target.position)) {
-        hit(target, damage, primary: false);
+        final delta = target.position - position;
+        hit(
+          target,
+          damage,
+          primary: false,
+          direction: delta.isZero()
+              ? game.myPlayer.aimDirection
+              : delta.normalized(),
+          reaction: reaction,
+        );
       }
     }
     if (rank(PowerUp.fragmentation) > 0) {

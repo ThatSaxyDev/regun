@@ -1,4 +1,5 @@
-import 'package:regun/components/weapons/combat_effect.dart';
+import 'package:regun/presentation/endgame_vfx.dart';
+import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/systems/sniper_sway.dart';
 import 'package:regun/systems/flame_flow.dart';
 import 'package:regun/presentation/grenade_art.dart';
@@ -131,7 +132,9 @@ class ArsenalSystem {
       patches.length +
       (_loopOn || flame.tongues.isNotEmpty ? 1 : 0);
   bool get hasRivets => rivets.isNotEmpty;
-  double get visualCharge => weapon == WeaponType.beltRepeater
+  double get visualCharge => weapon == WeaponType.twinVerdict
+      ? (endgame.brandReady ? 1 : 0)
+      : weapon == WeaponType.beltRepeater
       ? spool / .4
       : weapon == WeaponType.railLance
       ? charge / .45
@@ -418,6 +421,9 @@ class ArsenalSystem {
     if (weapon == WeaponType.twinVerdict) {
       muzzleJitter.y = nextAttack.isOdd ? -2.2 : 2.2;
     }
+    if (weapon == WeaponType.cycloneBreacher) {
+      muzzleJitter.y = ((nextAttack - 1) % 3 - 1) * 3.8;
+    }
     final offset =
         direction * muzzleJitter.x +
         Vector2(-direction.y, direction.x) * muzzleJitter.y;
@@ -600,6 +606,7 @@ class ArsenalSystem {
     double amount,
     Vector2 direction, {
     bool primary = true,
+    WeaponReaction? reaction,
   }) {
     final owner = game.projectileOwner(target);
     final id = owner is CombatEnemy ? owner.combatId : identityHashCode(owner);
@@ -613,6 +620,7 @@ class ArsenalSystem {
       amount,
       primary: proc,
       direction: direction,
+      reaction: reaction,
     );
     if (accepted && proc) _contact(target, direction);
     return accepted;
@@ -765,7 +773,12 @@ class ArsenalSystem {
       for (final item in group) {
         rivets.remove(item);
       }
-      game.explode(r.position, radius: 125, damage: amount);
+      game.explode(
+        r.position,
+        radius: 125,
+        damage: amount,
+        reaction: WeaponReaction.rivetBlast,
+      );
     }
     for (final f in flights.toList()) {
       if (!f.spent) _flightStep(f, dt);
@@ -833,7 +846,12 @@ class ArsenalSystem {
         if (f.kind == ArsenalFlightKind.anchor) {
           endgame.plantAnchor(f);
         } else {
-          game.explode(f.position, radius: 145, damage: f.damage);
+          game.explode(
+            f.position,
+            radius: 145,
+            damage: f.damage,
+            reaction: WeaponReaction.of(WeaponType.scrapMortar),
+          );
         }
       }
       return;
@@ -901,7 +919,15 @@ class ArsenalSystem {
         continue;
       }
       ledger.add(id);
-      _direct(target, f.damage, f.direction, primary: !f.returning);
+      _direct(
+        target,
+        f.damage,
+        f.direction,
+        primary: !f.returning,
+        reaction: f.returning
+            ? WeaponReaction.of(WeaponType.reaperDisc).scaled(.45)
+            : null,
+      );
       if (f.kind == ArsenalFlightKind.spore) {
         f.position.setFrom(
           before +
@@ -1259,6 +1285,8 @@ class ArsenalOverlay extends PositionComponent
       );
       final size = f.kind == ArsenalFlightKind.disc
           ? Vector2.all(34)
+          : f.kind == ArsenalFlightKind.flak
+          ? Vector2(21, 7)
           : Vector2(22, 14);
       sprite.render(
         canvas,
