@@ -3,23 +3,36 @@ import 'package:regun/theme/pixel_glyph.dart';
 
 extension UpgradeGlyph on PowerUp {
   PixelGlyph get glyph => switch (this) {
-    PowerUp.heavyLoad || PowerUp.executioner => PixelGlyph.crosshair,
+    PowerUp.closeQuarters ||
+    PowerUp.measuredShot ||
+    PowerUp.exposedSeam ||
+    PowerUp.heavyLoad ||
+    PowerUp.executioner => PixelGlyph.crosshair,
     PowerUp.quickTrigger ||
     PowerUp.walkingSpeedIncrease ||
     PowerUp.rapidFire => PixelGlyph.dash,
     PowerUp.maxBulletsIncrease || PowerUp.lastShell => PixelGlyph.round,
-    PowerUp.fastReload || PowerUp.breachLoader => PixelGlyph.reload,
+    PowerUp.braceLoader ||
+    PowerUp.fastReload ||
+    PowerUp.breachLoader => PixelGlyph.reload,
     PowerUp.numberOfBulletsPerShotIncrease => PixelGlyph.scatter,
     PowerUp.bulletsPhaseThrough ||
     PowerUp.bulletRangeIncrease => PixelGlyph.play,
     PowerUp.healthIncrease => PixelGlyph.heart,
     PowerUp.fieldMedic => PixelGlyph.cross,
     PowerUp.scrapArmour || PowerUp.sprintInvincibility => PixelGlyph.shield,
-    PowerUp.quickstep || PowerUp.sprintDistanceIncrease => PixelGlyph.dash,
+    PowerUp.sureFoot ||
+    PowerUp.quickstep ||
+    PowerUp.sprintDistanceIncrease => PixelGlyph.dash,
     PowerUp.scavenger => PixelGlyph.magnet,
     PowerUp.luckyFind || PowerUp.salvage => PixelGlyph.star,
-    PowerUp.hotShot || PowerUp.accelerant => PixelGlyph.fire,
-    PowerUp.staticCharge || PowerUp.conductiveCore => PixelGlyph.bolt,
+    PowerUp.scouringHeat ||
+    PowerUp.hotShot ||
+    PowerUp.accelerant => PixelGlyph.fire,
+    PowerUp.faradayReserve ||
+    PowerUp.staticCharge ||
+    PowerUp.conductiveCore => PixelGlyph.bolt,
+    PowerUp.blastHarness ||
     PowerUp.sprintMine ||
     PowerUp.grenadeDamage ||
     PowerUp.grenadeRadius => PixelGlyph.mine,
@@ -32,8 +45,8 @@ extension UpgradeGlyph on PowerUp {
 }
 
 PixelGlyph fusionGlyph(String id) => switch (id) {
-  'firebreak' => PixelGlyph.fire,
-  'stormCircuit' => PixelGlyph.bolt,
+  'kilnPact' || 'firebreak' => PixelGlyph.fire,
+  'groundWire' || 'stormCircuit' => PixelGlyph.bolt,
   'minefield' => PixelGlyph.mine,
   'pinball' => PixelGlyph.bounce,
   'breachEngine' => PixelGlyph.round,

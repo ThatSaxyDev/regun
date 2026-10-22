@@ -33,6 +33,8 @@ class BulletComponent extends PositionComponent
     this.primary = true,
     this.weapon = WeaponType.shotgun,
     this.shotSequence = 0,
+    this.releaseId = 0,
+    this.releaseBonus = 0,
     this.ignoreTarget,
     this.reaction,
   })
@@ -53,7 +55,8 @@ class BulletComponent extends PositionComponent
   final bool primary;
   final WeaponType weapon;
   final WeaponReaction? reaction;
-  final int shotSequence;
+  final int shotSequence, releaseId;
+  final double releaseBonus;
   final PositionComponent? ignoreTarget;
   int pierce, bounces;
   double _travelled = 0;
@@ -254,6 +257,9 @@ class BulletComponent extends PositionComponent
           other,
           amount,
           primary: primary,
+          releaseId: releaseId,
+          releaseBonus: releaseBonus,
+          travel: distance,
           direction: direction,
           armorPiercing: weapon == WeaponType.longwatchSniper,
           reaction: pair > 1
@@ -299,7 +305,10 @@ class BulletComponent extends PositionComponent
           damage *
               min(
                 1.4,
-                0.7 + game.gameState.effectRank(PowerUp.bankShot) * 0.15,
+                game.gameNotifier.buildBalance >= 2 &&
+                        game.gameState.rank(PowerUp.bankShot) > 0
+                    ? 1 + game.gameState.effectRank(PowerUp.bankShot) * .08
+                    : 0.7 + game.gameState.effectRank(PowerUp.bankShot) * 0.15,
               ),
         );
         // A ricochet keeps its cumulative path; turning never refreshes the

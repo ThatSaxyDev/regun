@@ -51,7 +51,12 @@ class GrenadeComponent extends PositionComponent
     );
     position.setValues(flight.position.dx, flight.position.dy);
     if (flight.spent) {
-      game.explode(position, radius: blastRadius, damage: damage);
+      game.combat.explode(
+        position,
+        radius: blastRadius,
+        damage: damage,
+        grenade: true,
+      );
       removeFromParent();
     }
   }

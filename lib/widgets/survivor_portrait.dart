@@ -1,3 +1,5 @@
+import 'package:regun/components/weapons/weapon_art.dart';
+
 import 'dart:math' as math;
 
 import 'package:regun/services/local_preferences.dart';
@@ -21,10 +23,12 @@ class SurvivorPortrait extends StatefulWidget {
     super.key,
     this.character = CharacterType.rook,
     this.style = 'standard',
+    this.weapon,
     this.maxArtSize = 110,
     this.animated = false,
   });
   final CharacterType character;
+  final WeaponType? weapon;
   final String style;
   final double maxArtSize;
   final bool animated;
@@ -38,6 +42,55 @@ class _SurvivorPortraitState extends State<SurvivorPortrait>
     vsync: this,
     duration: const Duration(milliseconds: 2200),
   );
+  String? _held, _weaponHeld;
+  int _epoch = 0;
+  bool _ready = false;
+  @override
+  void initState() {
+    super.initState();
+    _loadArt();
+  }
+
+  Future<void> _loadArt() async {
+    final epoch = ++_epoch, name = 'characters/${widget.character.name}';
+    final gun = widget.weapon;
+    final gunAtlas = gun?.hasLeasedArt == true ? gun!.atlasName : null;
+    _ready =
+        RegunArt.shared.contains(name) &&
+        (gun == null || RegunArt.shared.contains(gun.atlasName));
+    var mainAcquired = false, gunAcquired = false;
+    final jobs = [
+      RegunArt.shared.acquire(name).then((_) {
+        mainAcquired = true;
+      }),
+      if (gunAtlas != null)
+        RegunArt.shared.acquire(gunAtlas).then((_) {
+          gunAcquired = true;
+        }),
+    ];
+    final old = _held, oldGun = _weaponHeld;
+    _held = null;
+    _weaponHeld = null;
+    if (old != null) RegunArt.shared.release(old);
+    if (oldGun != null) RegunArt.shared.release(oldGun);
+    try {
+      await Future.wait(jobs);
+    } catch (_) {
+      if (mainAcquired) RegunArt.shared.release(name);
+      if (gunAcquired) RegunArt.shared.release(gunAtlas!);
+      if (mounted && epoch == _epoch) setState(() => _ready = false);
+      return;
+    }
+    if (!mounted || epoch != _epoch) {
+      RegunArt.shared.release(name);
+      if (gunAtlas != null) RegunArt.shared.release(gunAtlas);
+      return;
+    }
+    _held = name;
+    _weaponHeld = gunAtlas;
+    setState(() => _ready = true);
+  }
+
   bool get still =>
       !widget.animated ||
       LocalPreferences.shared.reducedMotion ||
@@ -60,11 +113,17 @@ class _SurvivorPortraitState extends State<SurvivorPortrait>
   @override
   void didUpdateWidget(SurvivorPortrait old) {
     super.didUpdateWidget(old);
+    if (old.character != widget.character || old.weapon != widget.weapon) {
+      _loadArt();
+    }
     sync();
   }
 
   @override
   void dispose() {
+    _epoch++;
+    if (_held != null) RegunArt.shared.release(_held!);
+    if (_weaponHeld != null) RegunArt.shared.release(_weaponHeld!);
     clock.dispose();
     super.dispose();
   }
@@ -74,29 +133,29 @@ class _SurvivorPortraitState extends State<SurvivorPortrait>
     Widget portrait() => CustomPaint(
       painter: _Portrait(
         widget.character,
+        widget.weapon,
         widget.style,
         widget.maxArtSize,
         clock,
         still,
       ),
     );
-    if (RegunArt.shared.contains('characters/${widget.character.name}')) {
-      return portrait();
-    }
-    return FutureBuilder<void>(
-      future: RegunArt.shared.load(),
-      builder: (context, state) => state.connectionState == ConnectionState.done
-          ? portrait()
-          : const SizedBox.shrink(),
-    );
+    return _ready ? portrait() : const SizedBox.shrink();
   }
 }
 
 class _Portrait extends CustomPainter {
-  _Portrait(this.character, this.style, this.maxArtSize, this.clock, this.still)
-    : super(repaint: clock);
+  _Portrait(
+    this.character,
+    this.weapon,
+    this.style,
+    this.maxArtSize,
+    this.clock,
+    this.still,
+  ) : super(repaint: clock);
   final Animation<double> clock;
   final bool still;
+  final WeaponType? weapon;
   final CharacterType character;
   final String style;
   final double maxArtSize;
@@ -114,11 +173,23 @@ class _Portrait extends CustomPainter {
       paint.colorFilter = ColorFilter.mode(tint, BlendMode.modulate);
     }
     RegunArt.shared
-        .sprite(
-          'characters/${character.name}',
-          8 + (still || clock.value < .5 ? 0 : 1),
+        .survivorIdleFrame(
+          character.name,
+          weapon == null ? 1 : 0,
+          still || clock.value < .5 ? 0 : 1,
         )
         .render(canvas, size: Vector2(edge, edge), overridePaint: paint);
+    if (weapon != null) {
+      canvas.save();
+      canvas.translate(edge * .58, edge * .56);
+      canvas.scale(edge / 100);
+      paintWeapon(canvas, weapon!, reducedMotion: true);
+      canvas.drawRect(
+        const Rect.fromLTWH(-11, -2, 7, 7),
+        Paint()..color = const Color(0xff454A43),
+      );
+      canvas.restore();
+    }
     const brass = Color(0xffD5BA75);
     if (style == 'queenTrophy') {
       for (var i = 0; i < 3; i++) {
@@ -163,6 +234,7 @@ class _Portrait extends CustomPainter {
   @override
   bool shouldRepaint(covariant _Portrait old) =>
       old.character != character ||
+      old.weapon != weapon ||
       old.style != style ||
       old.maxArtSize != maxArtSize ||
       old.still != still;

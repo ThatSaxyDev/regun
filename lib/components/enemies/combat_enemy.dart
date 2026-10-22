@@ -1,3 +1,5 @@
+import 'dart:math' show max;
+
 import 'package:regun/systems/freeze_state.dart';
 import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/boss_art.dart';
@@ -118,6 +120,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     cinderRemaining = 1;
   }
 
+  String lastDamageSource = 'secondary';
   bool burnCanSpread = true, marked = false, lastHitWasSecondary = false;
   bool get burning => burnRemaining > 0;
 
@@ -135,7 +138,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
 
   void ignite(double damage, {bool maySpread = true}) {
     burnRemaining = 3;
-    burnDamage = damage.clamp(0, 8);
+    burnDamage = max(burnDamage, damage.clamp(0, 8));
     burnCanSpread = maySpread;
   }
 
@@ -244,7 +247,8 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
       while (cinderTick >= .5 - 1e-8 && !combatHealth.isDead) {
         cinderTick = (cinderTick - .5).clamp(0, .5);
         lastHitWasSecondary = true;
-        takeDamage(.3);
+        lastDamageSource = 'cinder';
+        takeDamage(.3 * game.burnMultiplier(this));
       }
       if (cinderRemaining <= 1e-8) {
         cinderRemaining = 0;
@@ -268,7 +272,8 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
       if (_burnTick >= 0.5) {
         _burnTick = 0;
         lastHitWasSecondary = true;
-        takeDamage(burnDamage);
+        lastDamageSource = 'burn';
+        takeDamage(burnDamage * game.burnMultiplier(this));
       }
     }
   }

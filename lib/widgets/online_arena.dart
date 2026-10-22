@@ -190,8 +190,17 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   void initState() {
     super.initState();
     audio = ref.read(soloudPlayProvider);
-    RegunArt.shared.load().then((_) {
-      if (mounted) setState(() => artReady = true);
+    Future.wait([
+      for (final c in CharacterType.values.where((c) => c.availableOnline))
+        RegunArt.shared.acquireSurvivor(c.name),
+    ]).then((_) {
+      if (mounted) {
+        setState(() => artReady = true);
+      } else {
+        for (final c in CharacterType.values.where((c) => c.availableOnline)) {
+          RegunArt.shared.releaseSurvivor(c.name);
+        }
+      }
     });
     ticker = createTicker((elapsed) {
       final dt = ((elapsed - last).inMicroseconds / 1000000).clamp(0.0, .1);
@@ -405,6 +414,11 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
 
   @override
   void dispose() {
+    if (artReady) {
+      for (final c in CharacterType.values.where((c) => c.availableOnline)) {
+        RegunArt.shared.releaseSurvivor(c.name);
+      }
+    }
     ticker.dispose();
     leases.dispose();
     clear();

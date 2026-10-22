@@ -831,7 +831,12 @@ void main() {
       await tester.runAsync(() async {
         await Directory('build/test-previews').create(recursive: true);
         for (final entry in [
-          (recorder, 'endgame-survivor-mounts', 1620, 900),
+          (
+            recorder,
+            'endgame-survivor-mounts',
+            CharacterType.values.length * 4 * 130 + 60,
+            900,
+          ),
           (reloadRecorder, 'endgame-reload-modes', 1240, 810),
         ]) {
           final picture = entry.$1.endRecording();

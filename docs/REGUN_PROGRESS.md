@@ -1005,3 +1005,28 @@ retained. Physical readability/touch comfort remain for creator review.
 ### Tablet landscape pass — 22 October 2026
 
 Removed tablet gameplay letterboxing by extending world visibility, preserving phone framing and sprite proportions. Added tablet HUD/type/touch sizing and shared online geometry. iPad native configuration now enforces both landscape directions in full screen. Native iPad simulator gameplay, simultaneous controls, practice, loadout and settings renders pass; phone regression layouts remain covered. See `TABLET_LAYOUT_REVIEW.md` and its evidence folder. Hardware comfort/performance acceptance remains open.
+
+## 22 October 2026 — ten survivors and upgrade expansion
+
+Solo/Training now contain10 survivors,41 offered families and8 fusions. Flint,
+Vesper,Fuse,Moth,Coil,Suture,Harrow have distinct generated directional art,
+passives/tradeoffs and explicit settlement-based unlocks. Original stats/entitlements
+remain; source-aware release ledgers prevent fan/burst/chain replay and main blast
+weapons can use innate passives without acquiring primary-only explosion procs.
+New-run balance2 improves bounce/spread/drone/Core choices and bounds Medic healing;
+old Continue retains prior changed-formula balance. Sure Foot recovers existing
+weapon weight rather than resisting nonexistent incoming slows. See
+[TEN_SURVIVORS_IMPLEMENTATION_REVIEW.md](TEN_SURVIVORS_IMPLEMENTATION_REVIEW.md).
+
+Dedicated left-run packets and broad/passing pixel regressions cover all seven;
+all-direction playback, owner-scoped art leases and original Scrapper repair remain.
+The assembled loadout now holds its selected gameplay weapon at the shared mount.
+Existing pixel plates/tabs/control placement and1.0.0+12 identity remain. New online
+survivors are gated; no server deployment or phone installation is implied.
+Physical balance, continuity, comfort/audio and sustained performance remain open.
+
+Final survivor validation: analyzer clean;494 tests pass/five optional skips.
+30/60-minute developed-build simulations pass; peak selected-survivor/largest
+boss-pair/Cinder decoded art25.34MiB under32MiB. iOS debug simulator build succeeds.
+Evidence: validation/survivor-expansion-2026-10-22/. No phone install or server
+deployment in this pass; physical acceptance remains open.

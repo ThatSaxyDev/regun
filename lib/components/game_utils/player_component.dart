@@ -45,33 +45,13 @@ class PlayerComponent extends SpriteAnimationComponent
 
   @override
   Future<void> onLoad() async {
-    final atlas = 'characters/${game.loadout.character.name}';
+    final name = game.loadout.character.name;
     for (var row = 0; row < 4; row++) {
-      _idle.add(
-        RegunArt.shared.animation(atlas, row: row, count: 2, step: 0.3),
-      );
-      _run.add(
-        RegunArt.shared.survivorRun(game.loadout.character.name, facing: row),
-      );
-      _dash.add(
-        RegunArt.shared.animation('${atlas}_actions', row: row, count: 1),
-      );
-      _brace.add(
-        RegunArt.shared.animation(
-          '${atlas}_actions',
-          row: row,
-          from: 1,
-          count: 1,
-        ),
-      );
-      _hurt.add(
-        RegunArt.shared.animation(
-          '${atlas}_actions',
-          row: row,
-          from: 2,
-          count: 1,
-        ),
-      );
+      _idle.add(RegunArt.shared.survivorIdle(name, row));
+      _run.add(RegunArt.shared.survivorRun(name, facing: row));
+      _dash.add(RegunArt.shared.survivorAction(name, row, 0));
+      _brace.add(RegunArt.shared.survivorAction(name, row, 1));
+      _hurt.add(RegunArt.shared.survivorAction(name, row, 2));
     }
     animation = _idle[0];
     add(
@@ -263,10 +243,7 @@ class PlayerComponent extends SpriteAnimationComponent
     if (game.gameState.gameplayState == GameplayState.gameOver ||
         game.playerEntrance.fallen) {
       RegunArt.shared
-          .sprite(
-            'characters/${game.loadout.character.name}_actions',
-            _facingRow * 4 + 3,
-          )
+          .survivorActionFrame(game.loadout.character.name, _facingRow, 3)
           .render(canvas, size: size, overridePaint: paint);
       return;
     }
@@ -317,6 +294,35 @@ class PlayerComponent extends SpriteAnimationComponent
     if (aimDirection.y < -.35) weapon();
     super.render(canvas);
     if (aimDirection.y >= -.35) weapon();
+    // A small state cue beside the feet, never an aura obscuring hazards.
+    final passive = game.gameNotifier.survivor;
+    final charged =
+        game.loadout.character == CharacterType.flint &&
+        passive.reloadCharge > 0;
+    final slipstream =
+        game.loadout.character == CharacterType.vesper &&
+        passive.dashWindow > 0;
+    final circuit = game.loadout.character == CharacterType.coil
+        ? passive.coil
+        : 0;
+    if (charged || slipstream || circuit > 0) {
+      final ink = Paint()
+        ..color = slipstream
+            ? const Color(0xff90AAA3)
+            : const Color(0xffD5BA75);
+      for (var i = 0; i < (circuit > 0 ? circuit : 3); i++) {
+        canvas.drawRect(
+          Rect.fromLTWH(
+            size.x * .66 + i * 3,
+            size.y * .84,
+            2,
+            i.isEven ? 3 : 5,
+          ),
+          ink,
+        );
+      }
+    }
+
     if (style == 'queenTrophy') {
       for (var i = 0; i < 3; i++) {
         canvas.drawRect(

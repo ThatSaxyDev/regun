@@ -1,3 +1,4 @@
+import 'package:regun/systems/survivor_runtime.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/systems/run_random.dart';
 import 'package:regun/systems/xp_progression.dart';
@@ -13,6 +14,8 @@ final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(
 );
 
 class GameNotifier extends Notifier<GameState> {
+  SurvivorRuntime survivor = SurvivorRuntime();
+  int buildBalance = 2;
   double _reloadElapsedMs = 0;
   double _reloadDurationMs = 0;
   int _reloadSoundsLeft = 0;
@@ -48,6 +51,7 @@ class GameNotifier extends Notifier<GameState> {
     cancelPendingActions();
     weapon = loadout.weapon;
     character = loadout.character;
+    buildBalance = 2;
     _offerRandom.state = seed;
     state = GameState(
       maxBullets: weapon.capacity,
@@ -93,6 +97,7 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void cancelPendingActions() {
+    survivor = SurvivorRuntime();
     _choiceGrace = 0;
     supplyOffer = false;
     _quickRefillMs = -1;
@@ -111,6 +116,8 @@ class GameNotifier extends Notifier<GameState> {
 
   Map<String, dynamic> checkpoint() => {
     'xpCurve': 3,
+    'buildBalance': buildBalance,
+    'survivorRuntime': survivor.toJson(),
     'choiceGrace': _choiceGrace,
     'weaponBalance': 2,
     'shotgunReloadBalance': 1,
@@ -277,6 +284,10 @@ class GameNotifier extends Notifier<GameState> {
         weapon.supportsTacticalReload &&
         (snapshot['reloadTactical'] == true &&
             (oldPlan == null || weapon == WeaponType.carbine));
+    buildBalance = snapshot['buildBalance'] as int? ?? 1;
+    if (snapshot['survivorRuntime'] case final Map raw) {
+      survivor.restore(Map<String, dynamic>.from(raw));
+    }
     supplyOffer =
         snapshot['supplyOffer'] == true && restored.powerUpChoices.isNotEmpty;
     _reloadCue = snapshot['reloadCue'] as int? ?? 0;
@@ -328,6 +339,12 @@ class GameNotifier extends Notifier<GameState> {
                     ),
                   ))
               .toDouble();
+    if (character == CharacterType.flint) {
+      _reloadDurationMs = max(
+        weapon == WeaponType.shotgun ? min(850, normal).toDouble() : 0,
+        _reloadDurationMs * .88,
+      );
+    }
     if (_reloadTactical) _reloadDurationMs *= .70;
     _reloadSoundsLeft = weapon == WeaponType.shotgun && !state.fastReload
         ? missing - 1
@@ -350,6 +367,15 @@ class GameNotifier extends Notifier<GameState> {
   /// Called only by the game simulation: engine pause also freezes these clocks.
   void advanceTime(double dt) {
     if (state.gameplayState != GameplayState.playing || dt <= 0) return;
+    survivor.advance(dt);
+    if (character == CharacterType.suture &&
+        survivor.triageReady &&
+        state.health > 0 &&
+        state.health < state.maxHealth) {
+      survivor.triage = 0;
+      survivor.healGate = 12;
+      heal();
+    }
     _choiceGrace = max(0, _choiceGrace - dt);
     if (_quickRefillMs >= 0) {
       _quickRefillMs += dt * 1000;
@@ -415,6 +441,9 @@ class GameNotifier extends Notifier<GameState> {
     if (_reloadElapsedMs + 0.000001 >= _reloadDurationMs) {
       _reloadDurationMs = 0;
       _reloadSoundsLeft = 0;
+      if (state.noOfBullets < state.maxBullets) {
+        survivor.completedReload(character);
+      }
       state = state.copyWith(noOfBullets: state.maxBullets, reloading: false);
     }
   }
@@ -513,7 +542,7 @@ class GameNotifier extends Notifier<GameState> {
   void resetXP() => state = state.copyWith(xP: 0);
 
   List<PowerUp> _rollOffers() {
-    final pool = eligiblePowerUps(state, weapon: weapon);
+    final pool = eligiblePowerUps(state, weapon: weapon, character: character);
     final choices = <PowerUp>[];
     while (choices.length < 3 && pool.isNotEmpty) {
       double weight(PowerUp p) =>
@@ -521,17 +550,25 @@ class GameNotifier extends Notifier<GameState> {
               ? 1 + state.effectRank(PowerUp.luckyFind) * 0.35
               : 1) *
           (state.rank(p) > 0 ? 1.5 : 1);
-      final total = pool.fold<double>(0, (sum, p) => sum + weight(p));
+      final candidates =
+          choices.isEmpty &&
+              buildBalance >= 2 &&
+              pool.any((p) => state.rank(p) > 0)
+          ? pool.where((p) => state.rank(p) > 0).toList()
+          : pool;
+      final total = candidates.fold<double>(0, (sum, p) => sum + weight(p));
       var pick = _offerRandom.nextDouble() * total;
-      var index = pool.length - 1;
-      for (var i = 0; i < pool.length; i++) {
-        pick -= weight(pool[i]);
+      var index = candidates.length - 1;
+      for (var i = 0; i < candidates.length; i++) {
+        pick -= weight(candidates[i]);
         if (pick <= 0) {
           index = i;
           break;
         }
       }
-      choices.add(pool.removeAt(index));
+      final chosen = candidates[index];
+      choices.add(chosen);
+      pool.remove(chosen);
     }
     return choices;
   }
@@ -732,9 +769,12 @@ class GameNotifier extends Notifier<GameState> {
     openBossCore();
   }
 
-  void heal([int amount = 1]) => state = state.copyWith(
-    health: min(state.maxHealth, state.health + amount),
-  );
+  void heal([int amount = 1]) {
+    if (state.health <= 0 || amount <= 0) return;
+    final health = min(state.maxHealth, state.health + amount);
+    survivor.healed += health - state.health;
+    state = state.copyWith(health: health);
+  }
 
   void refillPractice() {
     _reloadDurationMs = 0;
@@ -865,7 +905,7 @@ class GameNotifier extends Notifier<GameState> {
       state = state.copyWith(bulletsPhaseThrough: false);
   void rapidFire() => state = state.copyWith(
     bulletSpeed: min(
-      min(2000, state.baseProjectileSpeed + 800),
+      min(weapon.velocityCeiling.toDouble(), state.baseProjectileSpeed + 800),
       state.bulletSpeed + (state.rank(PowerUp.rapidFire) <= 3 ? 200 : 40),
     ),
   );
@@ -1321,6 +1361,46 @@ enum PowerUp {
     'Grenades recharge faster.',
     UpgradeGroup.utility,
   ),
+  braceLoader(
+    'Brace Loader',
+    'Move faster while reloading.',
+    UpgradeGroup.utility,
+  ),
+  sureFoot(
+    'Sure Foot',
+    'Recover part of weapon weight mobility loss.',
+    UpgradeGroup.utility,
+  ),
+  scouringHeat(
+    'Scouring Heat',
+    'Burns hurt elites and bosses more.',
+    UpgradeGroup.special,
+  ),
+  faradayReserve(
+    'Faraday Reserve',
+    'Chains retain more damage per jump.',
+    UpgradeGroup.special,
+  ),
+  blastHarness(
+    'Blast Harness',
+    'Grenades and mines push ordinary foes farther.',
+    UpgradeGroup.utility,
+  ),
+  exposedSeam(
+    'Exposed Seam',
+    'Primary hits hurt frozen enemies more.',
+    UpgradeGroup.special,
+  ),
+  measuredShot(
+    'Measured Shot',
+    'Wait briefly. Empower the next release.',
+    UpgradeGroup.special,
+  ),
+  closeQuarters(
+    'Close Quarters',
+    'Primary hits hurt more at close range.',
+    UpgradeGroup.special,
+  ),
   sprintDistanceIncrease('Long Dash', 'Dash farther.', UpgradeGroup.legacy),
   salvage(
     'Scrap Cache',
@@ -1355,6 +1435,7 @@ bool weaponSupportsPowerUp(WeaponType weapon, PowerUp power) => switch (power) {
   PowerUp.staticCharge ||
   PowerUp.conductiveCore ||
   PowerUp.executioner => weapon.hasDirectHits,
+  PowerUp.closeQuarters || PowerUp.exposedSeam => weapon.hasDirectHits,
   PowerUp.quickTrigger => weapon != WeaponType.prismCutter,
   _ => true,
 };
@@ -1362,12 +1443,64 @@ bool weaponSupportsPowerUp(WeaponType weapon, PowerUp power) => switch (power) {
 List<PowerUp> eligiblePowerUps(
   GameState state, {
   WeaponType weapon = WeaponType.shotgun,
+  CharacterType character = CharacterType.rook,
 }) {
   final specialSlots = state.ranks.keys
       .where((p) => p.group == UpgradeGroup.special)
       .length;
   final eligible = powerUps.where((p) {
-    if (!weaponSupportsPowerUp(weapon, p)) return false;
+    if (!weaponSupportsPowerUp(weapon, p) &&
+        !(p == PowerUp.accelerant && character == CharacterType.moth)) {
+      return false;
+    }
+    final burn =
+        state.rank(PowerUp.hotShot) > 0 ||
+        character == CharacterType.moth ||
+        weapon == WeaponType.cinderHose;
+    final chain =
+        state.rank(PowerUp.staticCharge) > 0 ||
+        character == CharacterType.coil ||
+        weapon == WeaponType.arcCaster;
+    if ((p == PowerUp.accelerant || p == PowerUp.scouringHeat) && !burn) {
+      return false;
+    }
+    if (p == PowerUp.conductiveCore &&
+        state.rank(PowerUp.staticCharge) == 0 &&
+        weapon != WeaponType.arcCaster) {
+      return false;
+    }
+    if (p == PowerUp.faradayReserve && !chain) return false;
+    if (p == PowerUp.bankShot && state.rank(PowerUp.ricochet) == 0) {
+      return false;
+    }
+    if (p == PowerUp.targetingLink && state.rank(PowerUp.orbitDrone) == 0) {
+      return false;
+    }
+    if (p == PowerUp.exposedSeam && weapon != WeaponType.frostShotgun) {
+      return false;
+    }
+    if (p == PowerUp.sureFoot &&
+        {
+          WeaponType.shotgun,
+          WeaponType.carbine,
+          WeaponType.revolver,
+          WeaponType.burstRifle,
+        }.contains(weapon)) {
+      return false;
+    }
+    if (p == PowerUp.rapidFire &&
+        state.bulletSpeed >=
+            min(
+              weapon.velocityCeiling.toDouble(),
+              state.baseProjectileSpeed + 800,
+            )) {
+      return false;
+    }
+    if (p == PowerUp.bulletRangeIncrease &&
+        weapon.rangeCeiling != null &&
+        state.bulletRange >= weapon.rangeCeiling!) {
+      return false;
+    }
     if (weapon == WeaponType.prismCutter &&
         p == PowerUp.maxBulletsIncrease &&
         state.maxBullets >= 24) {
@@ -1420,6 +1553,20 @@ class FusionRecipe {
 
 const fusionRecipes = [
   FusionRecipe(
+    'kilnPact',
+    'Kiln Pact',
+    PowerUp.hotShot,
+    PowerUp.scouringHeat,
+    'Burning elite and boss deaths leave fire.',
+  ),
+  FusionRecipe(
+    'groundWire',
+    'Ground Wire',
+    PowerUp.staticCharge,
+    PowerUp.faradayReserve,
+    'Every fourth discharge gains a jump.',
+  ),
+  FusionRecipe(
     'firebreak',
     'Firebreak',
     PowerUp.hotShot,
@@ -1431,7 +1578,7 @@ const fusionRecipes = [
     'Storm Circuit',
     PowerUp.staticCharge,
     PowerUp.conductiveCore,
-    'Lightning leaps through marked clusters.',
+    'Lightning gains two more jumps.',
   ),
   FusionRecipe(
     'minefield',
@@ -1452,7 +1599,7 @@ const fusionRecipes = [
     'Breach Engine',
     PowerUp.lastShell,
     PowerUp.breachLoader,
-    'Final shots and reload bursts hit harder.',
+    'First and final releases hit harder.',
   ),
   FusionRecipe(
     'hunterSwarm',

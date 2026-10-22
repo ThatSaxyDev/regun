@@ -465,3 +465,29 @@ See docs/PAUSE_AND_NOTICE_REVIEW.md. No gameplay stats or balance change here.
 ## Tablet presentation (2026-10-22)
 
 `GameLayout` / `ArenaViewport` retain phones' 1500×700 framing and extend tablet world visibility to fill the available aspect without stretching sprites. At shortest side >=600 logical pixels, tablet text/HUD/controls use 1.25 presentation scaling; preserve raw persisted control preferences and compose user text scaling. Solo/online rendering and grenade power must use matching displayed geometry. Resize cancels held input and relays out controls. iPad is landscape-left/right, full screen (`UIRequiresFullScreen`); do not restore portrait or multitasking that bypasses the orientation lock. Native simulator evidence and physical acceptance limits live in `docs/TABLET_LAYOUT_REVIEW.md`. Enemy reaction timers advance before sprite hold selection; death clears freezes/stagger/displacement and resumes animation.
+
+## Ten survivors, source-owned passives and41 upgrades (2026-10-22)
+
+Solo/Training now have10 survivors (Flint,Vesper,Fuse,Moth,Coil,Suture,Harrow added),
+41 offered upgrade families and8 fusions. Read TEN_SURVIVORS_IMPLEMENTATION_REVIEW.md
+and the approved TEN_SURVIVORS_AND_POWERUP_PLAN.md in docs. SurvivorRuntime owns
+active-time charges/gates/counters and saved release ledgers. Burst/fan/continuous
+and delayed attack ownership must not repeat passive spending. Main Mortar/Anchor
+blasts carry weaponHit/release provenance for innate passives but stay excluded
+from acquired primary procs. Grenade/burn/secondary attribution remains distinct.
+Flint needs real ammo-restoring reload completion; Vesper needs finished dash;
+Suture cannot revive or stack kill heals. Original three stats/achievements stay.
+
+New-run buildBalance2 changes bounce,spread,drone,Core and Medic gate; Continue
+without it uses prior changed-formula balance. Sure Foot recovers walking weight;
+there is no incoming player-slow system. Support/capped offers must produce real
+benefit; Core needs Arc/Static, Faraday may use Coil. Preserve XP funding/grace,
+explicit cores, six special families and two fusions. New online roster is gated.
+
+All survivor art leases with its owner. Dedicated left packets use measured floor/
+torso anchors and explicit flipX on opposite-side source phases. Keep both contact/
+passing gait halves,12Hz phase continuity,original Scrapper fix and pending-load
+lease guards. Loadout holds the selected real weapon at the gameplay mount; do not
+restore a detached floating gun. Keep charcoal/brass pixel UI,brief player copy,
+Reduced Motion and release identity1.0.0+12. Physical balance/animation/comfort and
+sustained performance remain creator gates; no installation or rollout is implied.

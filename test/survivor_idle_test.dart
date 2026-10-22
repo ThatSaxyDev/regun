@@ -13,6 +13,7 @@ void main() {
     (tester) async {
       await tester.runAsync(() async {
         await RegunArt.shared.load();
+        await RegunArt.shared.acquire('characters/rook');
       });
       final previous = LocalPreferences.shared.reducedMotion;
       LocalPreferences.shared.reducedMotion = false;
@@ -50,6 +51,9 @@ void main() {
         ),
       );
       await tester.pumpWidget(scene(false));
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      });
       await tester.pump();
       final start = await pixels();
       await tester.pump(const Duration(milliseconds: 550));
@@ -60,6 +64,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1100));
       expect(await pixels(), orderedEquals(resting));
       await tester.pumpWidget(const SizedBox.shrink());
+      RegunArt.shared.release('characters/rook');
     },
   );
 }

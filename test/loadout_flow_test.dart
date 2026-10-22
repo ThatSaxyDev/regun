@@ -1,3 +1,6 @@
+import 'package:regun/widgets/survivor_portrait.dart';
+import 'package:regun/data/loadout.dart';
+
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -98,6 +101,66 @@ void main() {
   }
 
   testWidgets(
+    'all ten survivor identities retain readable details and pinned controls',
+    (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await show(tester);
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+      for (final c in CharacterType.values) {
+        await select(tester, 'survivor-${c.name}');
+        await tester.runAsync(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+        });
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('loadout-summary')), findsOneWidget);
+        expect(find.text('START').hitTestable(), findsOneWidget);
+        expect(find.textContaining(c.role), findsOneWidget);
+        if (c == CharacterType.flint || c == CharacterType.harrow) {
+          expect(RegunArt.shared.contains('characters/${c.name}'), isTrue);
+          expect(
+            find.descendant(
+              of: find.byWidgetPredicate(
+                (w) => w is SurvivorPortrait && w.character == c,
+              ),
+              matching: find.byType(CustomPaint),
+            ),
+            findsNWidgets(2),
+          );
+          await capture(tester, 'ten-${c.name}');
+        }
+        expect(tester.takeException(), isNull);
+      }
+      await tester.tap(find.text('WEAPON'));
+      await tester.pumpAndSettle();
+      for (final gun in WeaponType.values) {
+        await select(tester, 'weapon-${gun.name}');
+        await tester.runAsync(() async {
+          await RegunArt.shared.acquire(gun.atlasName);
+        });
+        await tester.pumpAndSettle();
+        final held = find.byWidgetPredicate(
+          (w) => w is SurvivorPortrait && w.weapon == gun,
+        );
+        expect(held, findsOneWidget);
+        expect(
+          find.descendant(of: held, matching: find.byType(CustomPaint)),
+          findsOneWidget,
+        );
+        if (gun == WeaponType.anchorEngine) {
+          await capture(tester, 'held-anchor');
+        }
+        RegunArt.shared.release(gun.atlasName);
+        expect(tester.takeException(), isNull);
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
     'catalogs retain the assembled kit and pinned navigation while browsing',
     (tester) async {
       addTearDown(tester.view.resetPhysicalSize);
@@ -187,7 +250,7 @@ void main() {
     await tester.pumpAndSettle();
     await select(tester, 'arena-foundry');
     expect(find.text('Rook / Pump Shotgun / The Breach'), findsOneWidget);
-    expect(find.text('Locked · Complete a cycle'), findsOneWidget);
+    expect(find.text('Locked / Complete a cycle'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

@@ -12,6 +12,8 @@ void main() {
     () async {
       final art = RegunArt.shared;
       await art.load();
+      await art.acquireSurvivor('scrapper');
+      addTearDown(() => art.releaseSurvivor('scrapper'));
       final image = art.image('characters/scrapper_left_run');
       final bytes = (await image.toByteData(
         format: ui.ImageByteFormat.rawRgba,

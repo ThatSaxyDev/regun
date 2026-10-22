@@ -1,3 +1,4 @@
+import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/presentation/attack_vfx.dart';
@@ -53,7 +54,8 @@ class CombatSystem {
       final marked = (target as CombatEnemy).marked;
       hit(
         target,
-        (0.6 + effect(PowerUp.orbitDrone) * 0.35) *
+        ((game.gameNotifier.buildBalance >= 2 ? .8 : .6) +
+                effect(PowerUp.orbitDrone) * 0.35) *
             (marked ? 1 + effect(PowerUp.targetingLink) * 0.3 : 1),
         primary: false,
       );
@@ -64,11 +66,32 @@ class CombatSystem {
     PositionComponent enemy,
     double amount, {
     bool primary = true,
+    bool weaponHit = false,
     bool allowChain = true,
     bool armorPiercing = false,
+    int releaseId = 0,
+    double releaseBonus = 0,
+    double? travel,
+    String source = 'secondary',
     WeaponReaction? reaction,
     Vector2? direction,
   }) {
+    final character = game.loadout.character;
+    final owner = enemy is BossWeakPoint ? enemy.owner : enemy;
+    final quarry =
+        owner is CombatEnemy &&
+        (owner.isBoss || (owner is ArenaEnemy && owner.elite));
+    if (primary || weaponHit) {
+      if (character == CharacterType.harrow) amount *= quarry ? 1.15 : .90;
+      if (owner is CombatEnemy && owner.freezeHeld) {
+        amount *= 1 + .06 * effect(PowerUp.exposedSeam);
+      }
+      if (travel != null && travel <= 160) {
+        amount *=
+            (1 + min(.60, releaseBonus + .06 * effect(PowerUp.closeQuarters))) /
+            (1 + releaseBonus);
+      }
+    }
     if (enemy is BossWeakPoint) return enemy.takeDamage(amount);
     if (enemy is! CombatEnemy ||
         enemy.isRemoving ||
@@ -78,8 +101,16 @@ class CombatSystem {
     }
     if (enemy.combatHealth.isDead) return false;
     enemy.lastHitWasSecondary = !primary;
+    enemy.lastDamageSource = source;
     enemy.incomingDirection = direction;
     enemy.incomingArmorPiercing = primary && armorPiercing;
+    if (primary || weaponHit) {
+      final runtime = game.gameNotifier.survivor;
+      if (character == CharacterType.moth && runtime.emberGate <= 0) {
+        runtime.emberGate = 1;
+        enemy.ignite(.35);
+      }
+    }
     if (primary) {
       if (rank(PowerUp.hotShot) > 0) {
         enemy.ignite(0.25 + effect(PowerUp.hotShot) * 0.2);
@@ -96,43 +127,95 @@ class CombatSystem {
         reaction ?? WeaponReaction.of(game.loadout.weapon),
       );
     }
-    if (primary) {
+    if (primary || weaponHit) {
+      final runtime = game.gameNotifier.survivor;
+      final coil =
+          runtime.qualifyingHit(
+            releaseId,
+            continuous: game.loadout.weapon.isContinuous,
+          ) &&
+          character == CharacterType.coil &&
+          runtime.coilHit();
       final innate = game.loadout.weapon == WeaponType.arcCaster;
-      if (allowChain &&
-          _chainBudget > 0 &&
+      final standard =
+          primary &&
           (innate ||
-              game.random.nextDouble() < effect(PowerUp.staticCharge) * 0.12)) {
+              game.random.nextDouble() < effect(PowerUp.staticCharge) * .12);
+      if (allowChain && _chainBudget > 0 && (standard || coil)) {
         _chainBudget--;
-        final count =
-            (innate ? 2 : 0) +
-            rank(PowerUp.conductiveCore) +
-            (state.fused('stormCircuit') ? 2 : 0);
+        final normalCount = standard
+            ? max(
+                1,
+                (innate
+                        ? 2
+                        : game.gameNotifier.buildBalance >= 2
+                        ? 1
+                        : 0) +
+                    rank(PowerUp.conductiveCore) +
+                    (state.fused('stormCircuit') ? 2 : 0),
+              )
+            : 0;
+        final wireReady =
+            state.fused('groundWire') &&
+            runtime.wire == 3 &&
+            runtime.wireGate <= 0;
         final visited = <PositionComponent>{enemy};
         PositionComponent source = enemy;
-        for (var i = 0; i < max(1, count); i++) {
+        var acceptedAny = false;
+        for (
+          var i = 0;
+          i < normalCount + (coil ? 1 : 0) + (wireReady ? 1 : 0);
+          i++
+        ) {
+          final coilJump = coil && i == normalCount;
+          if (coilJump) source = enemy;
           final target = game.nearestEnemy(
             source.position,
             excluding: visited,
-            range: (innate ? 240 : 170) + rank(PowerUp.conductiveCore) * 55,
+            range: coilJump
+                ? 200
+                : (innate ? 240 : 170) + rank(PowerUp.conductiveCore) * 55,
           );
-          if (target == null) break;
+          if (target == null) {
+            if (i < normalCount && coil) {
+              i = normalCount - 1;
+              continue;
+            }
+            break;
+          }
           visited.add(target);
           game.addCombatEffect(
             CombatEffect(
               position: source.position.clone(),
               endpoint: target.position.clone(),
               color: const Color(0xffBCD7AE),
-              duration: 0.16,
+              duration: .16,
             ),
           );
-          hit(
+          final retention = min(
+            .92,
+            (innate ? .85 : .65) + .02 * effect(PowerUp.faradayReserve),
+          );
+          final accepted = hit(
             target,
-            amount * pow(innate ? .85 : .65, i + 1),
+            amount *
+                (coilJump
+                    ? min(.92, .50 + .02 * effect(PowerUp.faradayReserve))
+                    : pow(retention, i + 1)) *
+                (character == CharacterType.coil ? 1.1 : 1),
             primary: false,
             direction: (target.position - source.position).normalized(),
             reaction: WeaponReaction.arcJump,
           );
+          if (accepted) {
+            acceptedAny = true;
+            runtime.chainVictim((target as CombatEnemy).combatId);
+          }
           source = target;
+        }
+        if (acceptedAny && state.fused('groundWire')) {
+          runtime.wire = (runtime.wire + 1) % 4;
+          if (wireReady) runtime.wireGate = 1;
         }
       }
     }
@@ -141,22 +224,62 @@ class CombatSystem {
 
   void onKill(PositionComponent enemy) {
     if (enemy is! CombatEnemy) return;
+    final runtime = game.gameNotifier.survivor;
+    runtime.kill();
+    final burningKill =
+        enemy.burning ||
+        enemy.cinderRemaining > 0 ||
+        {'burn', 'cinder'}.contains(enemy.lastDamageSource);
+    if (burningKill) runtime.burningKills++;
+    if (enemy.lastDamageSource == 'grenade') runtime.grenadeKills++;
     if (rank(PowerUp.fieldMedic) > 0 &&
+        runtime.healGate <= 0 &&
+        state.health < state.maxHealth &&
         game.random.nextDouble() < effect(PowerUp.fieldMedic) * 0.05) {
       game.gameNotifier.heal();
+      if (game.gameNotifier.buildBalance >= 2) {
+        runtime.healGate = game.loadout.character == CharacterType.suture
+            ? 12
+            : 6;
+      }
     }
-    if (enemy.burning && enemy.burnCanSpread && rank(PowerUp.accelerant) > 0) {
-      final radius = 100 + effect(PowerUp.accelerant) * 30;
-      for (final target in game.liveEnemies.toList()) {
-        if (target != enemy &&
+    final spreadBurn =
+        burningKill && enemy.burnCanSpread && rank(PowerUp.accelerant) > 0;
+    final leavesFire =
+        (spreadBurn && state.fused('firebreak')) ||
+        (burningKill &&
+            state.fused('kilnPact') &&
+            (enemy.isBoss || (enemy is ArenaEnemy && enemy.elite)));
+    if (leavesFire &&
+        game.world.children.whereType<BurningGround>().length < 12) {
+      game.addFire(BurningGround(position: enemy.position.clone()));
+    }
+    if (spreadBurn) {
+      final modern = game.gameNotifier.buildBalance >= 2;
+      final radius = modern
+          ? 130 + 35 * effect(PowerUp.accelerant)
+          : 100 + effect(PowerUp.accelerant) * 30;
+      final targets = game.liveEnemies.toList()
+        ..sort(
+          (a, b) => a.position
+              .distanceToSquared(enemy.position)
+              .compareTo(b.position.distanceToSquared(enemy.position)),
+        );
+      var spread = 0;
+      for (final target in targets) {
+        if ((!modern || spread < 6) &&
+            target != enemy &&
+            !game.segmentBlocked(enemy.position, target.position) &&
             target.position.distanceToSquared(enemy.position) <
                 radius * radius) {
-          (target as CombatEnemy).ignite(enemy.burnDamage, maySpread: false);
+          spread++;
+          (target as CombatEnemy).ignite(
+            enemy.burning || enemy.lastDamageSource == 'burn'
+                ? enemy.burnDamage
+                : .3,
+            maySpread: false,
+          );
         }
-      }
-      if (state.fused('firebreak') &&
-          game.world.children.whereType<BurningGround>().length < 12) {
-        game.addFire(BurningGround(position: enemy.position.clone()));
       }
     }
     if (!enemy.lastHitWasSecondary &&
@@ -231,6 +354,9 @@ class CombatSystem {
     required double radius,
     required double damage,
     WeaponReaction reaction = WeaponReaction.grenade,
+    bool grenade = false,
+    int releaseId = 0,
+    double releaseBonus = 0,
   }) {
     game.audio.play('blast.wav');
     game.addCombatEffect(
@@ -250,10 +376,19 @@ class CombatSystem {
           target,
           damage,
           primary: false,
+          source: grenade ? 'grenade' : 'secondary',
+          weaponHit: releaseId > 0,
+          releaseId: releaseId,
+          releaseBonus: releaseBonus,
           direction: delta.isZero()
               ? game.myPlayer.aimDirection
               : delta.normalized(),
-          reaction: reaction,
+          reaction: (grenade || identical(reaction, WeaponReaction.mine))
+              ? reaction.scaled(
+                  1 + .10 * effect(PowerUp.blastHarness),
+                  hold: true,
+                )
+              : reaction,
         );
       }
     }

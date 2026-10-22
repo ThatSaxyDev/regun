@@ -149,7 +149,7 @@ void main() {
           if (weapon.usesArsenalRuntime) {
             game.update(.51);
             if (weapon.firesOnRelease) {
-              game.arsenal!.releaseAim(Vector2(1,0));
+              game.arsenal!.releaseAim(Vector2(1, 0));
             }
           } else {
             game.spawnShotgunBullets();
@@ -197,6 +197,10 @@ void main() {
         (3, 1, false),
       ]) {
         final checkpoint = medic.gameNotifier.checkpoint();
+        checkpoint['survivorRuntime'] = {
+          ...medic.gameNotifier.survivor.toJson(),
+          'healGate': 0,
+        };
         checkpoint['state'] = medic.gameState
             .copyWith(
               health: 2,

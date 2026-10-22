@@ -1,3 +1,4 @@
+import 'package:regun/systems/upgrade_details.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart' show PlatformException;
@@ -74,7 +75,7 @@ class _CollectionViewState extends State<CollectionView> {
                   .map(
                     (p) => _card(
                       p.title,
-                      '${p.group.name.toUpperCase()} / ${p.maxRank} RANKS\n${p.description}',
+                      '${p.group.name.toUpperCase()} / ${p.maxRank} RANKS\n${p.description}\n${upgradeDetails(p, GameState(), WeaponType.shotgun)}',
                       width,
                     ),
                   )
@@ -177,21 +178,32 @@ class _CollectionViewState extends State<CollectionView> {
     }
   }
 
-  String _progress(String id) => switch (id) {
-    'burstRifle' =>
-      '${LocalPreferences.shared.profile.totalBossVictories} / 3 bosses',
-    'scrapper' => '${profile.totalKills} / 500 KILLS',
-    'scorpionCharm' => '${profile.scorpionKills} / 1000',
-    'eliteHunter' => '${profile.eliteKills} / 100 ELITES',
-    'engineer' => '${profile.fusions.length} / 6 FUSIONS',
-    'survivor' => '${profile.cycleCharacters.length} / 3 SURVIVORS',
-    _
-        when WeaponType.values.any(
-          (w) => w.name == id && w.victoryRequirement > 0,
-        ) =>
-      '${profile.totalBossVictories} / ${WeaponType.values.byName(id).victoryRequirement} BOSSES',
-    _ => 'IN PROGRESS',
-  };
+  String _progress(String id) {
+    final survivor = CharacterType.values
+        .where((c) => c.name == id)
+        .firstOrNull;
+    if (survivor != null) return profile.characterProgress(survivor);
+    return switch (id) {
+      'burstRifle' =>
+        '${LocalPreferences.shared.profile.totalBossVictories} / 3 bosses',
+      'scrapper' => '${profile.totalKills} / 500 KILLS',
+      'scorpionCharm' => '${profile.scorpionKills} / 1000',
+      'eliteHunter' => '${profile.eliteKills} / 100 ELITES',
+      'engineer' =>
+        '${profile.fusions.where((f) => !['kilnPact', 'groundWire'].contains(f)).length} / 6 FUSIONS',
+      'eightFusions' => '${profile.fusions.length} / 8 FUSIONS',
+      'tenSurvivors' => '${profile.cycleCharacters.length} / 10 SURVIVORS',
+      'survivor' =>
+        '${profile.cycleCharacters.where((c) => ['rook', 'scrapper', 'warden'].contains(c)).length} / 3 SURVIVORS',
+      _
+          when WeaponType.values.any(
+            (w) => w.name == id && w.victoryRequirement > 0,
+          ) =>
+        '${profile.totalBossVictories} / ${WeaponType.values.byName(id).victoryRequirement} BOSSES',
+      _ => 'IN PROGRESS',
+    };
+  }
+
   Widget _card(
     String title,
     String body,

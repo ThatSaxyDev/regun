@@ -54,7 +54,10 @@ class BoostButtonComponent extends AdvancedButtonComponent
     _cooldown = (_cooldown - dt).clamp(0, 1.6);
     if (!tapped) return;
     _remaining -= dt;
-    if (_remaining <= 0) tapped = false;
+    if (_remaining <= 0) {
+      tapped = false;
+      game.gameNotifier.survivor.landedDash(game.loadout.character);
+    }
   }
 
   @override

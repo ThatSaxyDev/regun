@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "build": "12",
+  "bundleId": "dev.kiishi.regun",
+  "export": "app-store-connect",
+  "artifact": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun/build/ios/ipa/regun-1.0.0-12.ipa",
+  "bytes": 136089447,
+  "sha256": "f109da751ba06809b9e055bcedac8668b445682614d34cfcf612d9fd0d8328b7",
+  "uploadedToApple": false,
+  "androidFirebaseGroup": "playtesters",
+  "androidTesterUrl": "https://appdistribution.firebase.google.com/testerapps/1:225712394437:android:a774f7de7e22d0abd0e0ac/releases/1k9kop3mudov0",
+  "androidDistributed": true
+}

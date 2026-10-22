@@ -60,7 +60,7 @@ void main() {
       ShotgunReload.firstShellMs / 1000,
       ShotgunReload.shellIntervalMs / 1000,
     ], fixture['shotgunReload']);
-    for (final c in CharacterType.values) {
+    for (final c in CharacterType.values.where((c) => c.availableOnline)) {
       expect([c.health, c.speed, c.damage], fixture['survivors'][c.name]);
     }
     for (final b in BossKind.values) {
@@ -80,7 +80,7 @@ void main() {
       WeaponMobility.multipliers.keys.toSet(),
       WeaponType.values.map((w) => w.name).toSet(),
     );
-    for (final c in CharacterType.values) {
+    for (final c in CharacterType.values.where((c) => c.availableOnline)) {
       for (final w in WeaponType.values) {
         expect(
           WeaponMobility.speed(w, c.speed),

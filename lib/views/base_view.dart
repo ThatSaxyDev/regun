@@ -1,3 +1,4 @@
+import 'package:regun/systems/upgrade_details.dart';
 import 'package:regun/presentation/game_layout.dart';
 import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/widgets/run_pause_summary.dart';
@@ -971,7 +972,13 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             for (final choice in state.powerUpChoices)
               _upgradeCard(
                 choice.title,
-                choice.description,
+                upgradeDetails(
+                  choice,
+                  state,
+                  _myGame.loadout.weapon,
+                  balance: _myGame.gameNotifier.buildBalance,
+                  character: _myGame.loadout.character,
+                ),
                 choice == PowerUp.salvage
                     ? 'RECOVERY'
                     : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${choice.maxRank}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',

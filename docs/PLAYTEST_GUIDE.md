@@ -361,3 +361,32 @@ The match still continues behind its menu/settings. See PAUSE_AND_NOTICE_REVIEW.
 ### Tablet landscape review
 
 On iPad, rotate between both landscape directions: arena should fill the canvas, sprites retain proportions, HUD remains legible and no portrait mode appears. Test movement + aim + dash/reload, grenade drag range, both handedness modes, floating sticks and saved custom layouts. Review training catalog, loadout, settings and normal pause at larger text. Compare phone layout against the existing candidate. Record sustained hardware performance and thumb reach separately from simulator layout acceptance. Full-screen iPad deliberately excludes Split View/Slide Over. See `TABLET_LAYOUT_REVIEW.md`.
+
+## Ten survivors and41 upgrades — 22 October2026
+
+Training exposes all10 survivors. In Loadout inspect role/HP/base and weighted
+walking, choose each survivor, then switch weapons: the preview must HOLD that
+weapon without blank art, floating detached gun, stale atlas or moving grip.
+Normal locked cards show earned progress; Training must not farm unlocks.
+
+Run all four directions and repeatedly turn left/right. In particular compare
+contact and narrow passing phases on Flint/Vesper/Fuse/Moth/Coil/Suture/Harrow;
+feet/knees must keep animating, torso must stay anchored and the gun must stay
+seated. Try dash/hurt/death/landing, Reduced Motion and all21 gun mounts. Compare
+with the preserved Scrapper repair. Review actual continuous movement on a phone.
+
+Flint: real reload empowers one release; pickup refill does not. Vesper: complete
+a dash, then fire; repeated fast dashes must not extend the window. Fuse: independent
+throws retain two charges and10s final recharge floor. Moth: tag different targets,
+then compare burns/elite burns and cover-limited spread. Coil: count hit releases,
+not pellets, and compare Arc/Faraday against a single boss and packs. Suture: bank
+15 kills at full HP, lose health, verify one heal/12s gate and no lethal rescue.
+Harrow: compare ordinary packs with elite/boss and apparatus damage.
+
+Review support prerequisites, useful capped offers, one owned-family choice,
+current/next values, all eight new families and Kiln Pact/Ground Wire. Both need
+purchased III/II ranks and an explicit core; existing two slots stay. Pause/picker/
+background must freeze timers; Continue must not replay charges, discharges,
+heals, rewards or unlock counters. Read TEN_SURVIVORS_IMPLEMENTATION_REVIEW.md for
+source ownership, exact values, migration and evidence. Human balance/readability,
+comfort/listening and physical performance acceptance remain open.

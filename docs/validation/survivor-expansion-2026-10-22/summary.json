@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-22",
+  "release": "1.0.0+12",
+  "scope": "Solo and Training; expanded online content remains gated",
+  "survivors": 10,
+  "weapons": 21,
+  "offeredUpgradeFamilies": 41,
+  "fusions": 8,
+  "checks": {
+    "make_verify": {
+      "result": "success",
+      "passed": 494,
+      "optionalSkipped": 5,
+      "analyzer": "clean",
+      "log": "verify.txt"
+    },
+    "focusedPassiveArtCombat": {
+      "passed": 20,
+      "log": "passives-art-combat.txt"
+    },
+    "optionalSoak": {
+      "passed": 2,
+      "simulatedMinutes": [
+        30,
+        60
+      ],
+      "log": "soak.txt",
+      "physicalPerformanceEvidence": false
+    },
+    "iOSSimulatorBuild": {
+      "result": "success",
+      "log": "ios-simulator-build.txt",
+      "installedOnPhysicalPhone": false
+    },
+    "decodedTexturePeakBytes": 26567168,
+    "decodedTextureBudgetBytes": 33554432
+  },
+  "physicalAcceptance": [
+    "balance",
+    "animation continuity",
+    "touch and motion comfort",
+    "speaker mix",
+    "sustained performance"
+  ],
+  "sourceRecords": [
+    "../../../art/source/survivors/generation.json",
+    "../../../art/source/survivors/left_generation.json",
+    "../../../art/source/survivors/corrections.json"
+  ]
+}

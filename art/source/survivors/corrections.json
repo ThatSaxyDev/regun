@@ -1,0 +1,21 @@
+{
+  "fuse_run": {
+    "source": "fuse_run_master.png",
+    "generator": "built-in image_gen",
+    "reason": "Original packet omitted idle row and mixed front poses into rear locomotion. Separate32-frame run packet with pose-guide reference.",
+    "prompt": "A transparent production pixel animation atlas of this SAME Fuse demolition survivor, EXACT8 columns x4 rows, landscape2:1. 32 full body poses no other rows. Row1 right running eight phases, row2 front/down running, row3 LEFT running, row4 back/up running. Use pose-guide as anatomy/gait guide; broad stride CONTACT in frames1/5, narrow legs crossing PASSING in frames3/7, clearly raised bent knee4/8, alternating legs. Do NOT copy one stationary boot across a row. Every row is a complete8pose cycle, especially back row ALL eight face BACK with back of iron blast hood/canisters visible, NEVER front. Keep same scale/ground baseline/upper torso center, full body/boots unclipped; controlled pixel materials. No weapons/text/grid/ground/shadows. Match reference survivor identity with slatted iron faceplate,olive padded jacket,brass canisters.",
+    "sha256": "d675002e20aeb36b5828b57b479bc1557fbb8d555882fd3c27adf364fc559e29"
+  },
+  "fuse_actions": {
+    "source": "fuse_actions_master.png",
+    "generator": "built-in image_gen",
+    "prompt": "A transparent production pixel animation atlas of this SAME Fuse demolition survivor EXACT8 columns x3 rows landscape8:3 ratio,24 full-body poses. Row1 eight breathing IDLES, in order RIGHT RIGHT FRONT FRONT LEFT LEFT BACK BACK. Row2 RIGHT dash lean, RIGHT planted brace, RIGHT hurt recoil, RIGHT fallen body, FRONT dash lean, FRONT planted brace, FRONT hurt recoil, FRONT fallen body. Row3 LEFT dash lean, LEFT planted brace, LEFT hurt recoil, LEFT fallen body, BACK dash lean, BACK planted brace, BACK hurt recoil, BACK fallen body. Strict24 equal cells with generous clear gutters, no clipping,all same scale,standing feet on same baseline,large readable head and boots, controlled detailed pixel materials. No text/grid/shadows/weapons. Same slatted iron faceplate,paddedolivejacket,brass canisters; distinct faces match direction.",
+    "sha256": "c8bf73a5456b1edfac3755136ffe2f8d8059a6cbb7cb68879574170731c45e02"
+  },
+  "fuse_actions_alpha": {
+    "source": "fuse_actions_alpha_master.png",
+    "generator": "built-in image_gen",
+    "prompt": "Use case: background-extraction. Remove ONLY the brown/gray background from this exact sprite atlas. Make all background fully transparent including gaps between all24 sprites. Preserve every character pixel, proportions, poses, cell positions, size, colors and full canvas exactly. No new shadow, no checkerboard, no paint outside characters. Do not rearrange or redraw any sprite.",
+    "sha256": "29c36e49687d7db6041eef90b84c60fe98f5bfe67ddb02166c6e431a882faa60"
+  }
+}

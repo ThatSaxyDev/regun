@@ -36,7 +36,7 @@ class LocalPreferences {
           final encoded = _storage!.getString(key);
           if (encoded == null) continue;
           final decoded = Map<String, dynamic>.from(jsonDecode(encoded) as Map);
-          if (![1, 2].contains(decoded['schema'])) continue;
+          if (![1, 2, 3].contains(decoded['schema'])) continue;
           profile = PlayerProfile.fromJson(decoded);
           break;
         } on FormatException {
@@ -73,7 +73,7 @@ class LocalPreferences {
         if (previous != null) {
           try {
             final decoded = jsonDecode(previous);
-            if (decoded is Map && [1, 2].contains(decoded['schema'])) {
+            if (decoded is Map && [1, 2, 3].contains(decoded['schema'])) {
               await _storage?.setString('profile.backup.v1', previous);
             }
           } on FormatException {

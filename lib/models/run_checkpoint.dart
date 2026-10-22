@@ -1,3 +1,4 @@
+import 'package:regun/systems/survivor_runtime.dart';
 import 'package:regun/systems/arsenal_system.dart';
 import 'package:regun/systems/freeze_state.dart';
 import 'package:regun/data/loadout.dart';
@@ -21,6 +22,22 @@ class RunCheckpoint {
       );
       if (map['arsenal'] case final Map raw) {
         ArsenalSystem.validate(Map<String, dynamic>.from(raw), loadout.weapon);
+      }
+      if (map.containsKey('buildBalance') &&
+          ![1, 2].contains(map['buildBalance'])) {
+        return false;
+      }
+      if (map.containsKey('survivorRuntime') && map['survivorRuntime'] is! Map) {
+        return false;
+      }
+      if (map['survivorRuntime'] case final Map raw) {
+        SurvivorRuntime().restore(Map<String, dynamic>.from(raw));
+      }
+      if (map.containsKey('dashCount') &&
+          (map['dashCount'] is! int ||
+              map['dashCount'] < 0 ||
+              map['dashCount'] > 1000000000)) {
+        return false;
       }
       final ids = <int>{};
       for (final actor in map['enemies'] as List) {

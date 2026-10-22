@@ -1,7 +1,7 @@
 # Ten survivors and a stronger upgrade system
 
 **Date:** 22 October 2026  
-**Status:** design proposal only; no characters, stats, art, unlocks or upgrades are implemented by this document.  
+**Status:** approved design baseline. Implementation is now recorded in [the implementation review](TEN_SURVIVORS_IMPLEMENTATION_REVIEW.md), including final differences and validation. The baseline tables below retain the inspected pre-expansion state.
 **Goal:** define the three live survivors, expand to ten worthwhile choices, make existing power-ups understandable and useful, then add a controlled set of new build options.
 
 All proposed numbers are initial balance candidates. Unlock difficulty should reward a different way to play, not purchase a stronger version of Rook. Physical balance, comfort, audio and readability require creator playtesting.

@@ -11,6 +11,7 @@ class PlayerProfile {
     this.bestScore = 0,
     this.assistedBestScore = 0,
     this.assistedBestSeconds = 0,
+    Map<String, int>? survivorCounters,
     Set<String>? challenges,
     Set<String>? discoveredEnemies,
     Set<String>? fusions,
@@ -19,13 +20,15 @@ class PlayerProfile {
     Set<String>? settledRuns,
     Set<String>? owned,
     this.cosmetic = 'standard',
-  }) : challenges = challenges ?? {},
+  }) : survivorCounters = survivorCounters ?? {},
+       challenges = challenges ?? {},
        discoveredEnemies = discoveredEnemies ?? {},
        fusions = fusions ?? {},
        cycleWeapons = cycleWeapons ?? {},
        cycleCharacters = cycleCharacters ?? {},
        settledRuns = settledRuns ?? {},
        owned = owned ?? {'standard'};
+  final Map<String, int> survivorCounters;
   int totalBossVictories;
   int scrap, totalKills, scorpionKills, eliteKills, bestSeconds, bestScore;
   int assistedBestScore, assistedBestSeconds;
@@ -55,6 +58,26 @@ class PlayerProfile {
   bool arenaUnlocked(ArenaType arena) =>
       arena == ArenaType.breach || challenges.contains('foundry');
 
+  String characterProgress(CharacterType c) {
+    final count = switch (c) {
+      CharacterType.scrapper => '$totalKills / 500 kills',
+      CharacterType.warden => '$bestSeconds / 480s best',
+      CharacterType.flint => '${survivorCounters['reloads'] ?? 0} / 40 reloads',
+      CharacterType.fuse =>
+        '${survivorCounters['grenadeKills'] ?? 0} / 120 grenade kills',
+      CharacterType.moth =>
+        '${survivorCounters['burningKills'] ?? 0} / 150 burning enemies',
+      CharacterType.coil =>
+        '${survivorCounters['chainVictims'] ?? 0} / 200 chain victims',
+      CharacterType.suture =>
+        '${survivorCounters['healed'] ?? 0} / 40 HP restored',
+      CharacterType.harrow =>
+        '$eliteKills / 15 elites · $totalBossVictories / 3 bosses',
+      _ => c.unlockHint,
+    };
+    return count;
+  }
+
   Set<String> settle({
     required String runId,
     required Loadout loadout,
@@ -70,9 +93,26 @@ class PlayerProfile {
     required Set<String> foundFusions,
     required Set<String> enemies,
     bool assisted = false,
+    Map<String, dynamic> survivorProgress = const {},
+    int dashes = 0,
   }) {
     if (loadout.training || settledRuns.contains(runId)) return {};
     settledRuns.add(runId);
+    for (final key in [
+      'reloads',
+      'grenadeKills',
+      'burningKills',
+      'chainVictims',
+      'healed',
+    ]) {
+      final value = survivorProgress[key];
+      if (value is int && value >= 0) {
+        survivorCounters[key] = ((survivorCounters[key] ?? 0) + value).clamp(
+          0,
+          1000000000,
+        );
+      }
+    }
     totalKills += kills;
     totalBossVictories += (bossVictories ?? bosses.length).clamp(0, 1000000);
     scorpionKills += scorpions;
@@ -96,6 +136,13 @@ class PlayerProfile {
         if (weapon.victoryRequirement > 0 &&
             totalBossVictories >= weapon.victoryRequirement)
           weapon.name,
+      if (seconds >= 360 && dashes >= 30) 'vesper',
+      if ((survivorCounters['reloads'] ?? 0) >= 40) 'flint',
+      if ((survivorCounters['grenadeKills'] ?? 0) >= 120) 'fuse',
+      if ((survivorCounters['burningKills'] ?? 0) >= 150) 'moth',
+      if ((survivorCounters['chainVictims'] ?? 0) >= 200) 'coil',
+      if ((survivorCounters['healed'] ?? 0) >= 40) 'suture',
+      if (eliteKills >= 15 && totalBossVictories >= 3) 'harrow',
       if (totalKills >= 500) 'scrapper',
       if (bestSeconds >= 480) 'warden',
       if (bosses.contains('shadow')) 'revolver',
@@ -112,8 +159,20 @@ class PlayerProfile {
       if (cycleWeapons.contains('carbine')) 'carbineMaster',
       if (cycleWeapons.contains('revolver')) 'revolverMaster',
       if (cycleWeapons.contains('arcCaster')) 'arcMaster',
-      if (fusions.length >= 6) 'engineer',
-      if (cycleCharacters.length >= 3) 'survivor',
+      if ([
+        'firebreak',
+        'stormCircuit',
+        'minefield',
+        'pinball',
+        'breachEngine',
+        'hunterSwarm',
+      ].every(fusions.contains))
+        'engineer',
+      if (['rook', 'scrapper', 'warden'].every(cycleCharacters.contains))
+        'survivor',
+      if (CharacterType.values.every((c) => cycleCharacters.contains(c.name)))
+        'tenSurvivors',
+      if (fusions.length >= 8) 'eightFusions',
     }.difference(challenges);
     challenges.addAll(unlocked);
     owned.addAll(unlocked.where((id) => cosmeticIds.contains(id)));
@@ -121,7 +180,8 @@ class PlayerProfile {
   }
 
   Map<String, dynamic> toJson() => {
-    'schema': 2,
+    'schema': 3,
+    'survivorCounters': survivorCounters,
     'totalBossVictories': totalBossVictories,
     'assistedBestScore': assistedBestScore,
     'assistedBestSeconds': assistedBestSeconds,
@@ -146,6 +206,11 @@ class PlayerProfile {
     Set<String> strings(String key) =>
         (json[key] as List? ?? []).whereType<String>().toSet();
     return PlayerProfile(
+      survivorCounters: {
+        for (final e in (json['survivorCounters'] as Map? ?? {}).entries)
+          if (e.key is String && e.value is int && e.value >= 0)
+            e.key as String: (e.value as int).clamp(0, 1000000000),
+      },
       scrap: number('scrap'),
       totalKills: number('totalKills'),
       totalBossVictories: number('totalBossVictories'),

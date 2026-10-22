@@ -114,6 +114,7 @@ class ArsenalSystem {
       .085 + (.040 - .085) * (sustainedFire / 8).clamp(0.0, 1.0);
   double _idle = 0, _cooling = 0, _patchTick = 0;
   int nextAttack = 1;
+  final _releaseContexts = <int, (int, double)>{};
   bool _wasReloading = false, _loopOn = false;
   bool aiming = false;
   final _lastAim = Vector2.zero();
@@ -228,16 +229,11 @@ class ArsenalSystem {
     return game.myPlayer.position + Vector2(p.dx, p.dy);
   }
 
-  double get effectiveRange => switch (weapon) {
-    WeaponType.cinderHose => math.min(320, state.bulletRange.toDouble()),
-    WeaponType.reaperDisc => math.min(650, state.bulletRange.toDouble()),
-    WeaponType.scrapMortar => math.min(760, state.bulletRange.toDouble()),
-    WeaponType.frostShotgun => math.min(480, state.bulletRange.toDouble()),
-    WeaponType.prismCutter => math.min(560, state.bulletRange.toDouble()),
-    WeaponType.sporeLobber => math.min(600, state.bulletRange.toDouble()),
-    WeaponType.anchorEngine => math.min(760, state.bulletRange.toDouble()),
-    _ => state.bulletRange.toDouble(),
-  };
+  double get effectiveRange => math.min(
+    weapon.rangeCeiling?.toDouble() ?? double.infinity,
+    state.bulletRange.toDouble(),
+  );
+
   int get pelletCount => !weapon.supportsScatter
       ? 1
       : weapon == WeaponType.cycloneBreacher
@@ -261,6 +257,12 @@ class ArsenalSystem {
           1 +
           state.effectRank(PowerUp.breachLoader) *
               (state.fused('breachEngine') ? .8 : .5);
+    }
+    amount = game.primaryRelease(amount);
+    final runtime = game.gameNotifier.survivor;
+    _releaseContexts[nextAttack] = (runtime.lastRelease, runtime.releaseBonus);
+    if (_releaseContexts.length > 512) {
+      _releaseContexts.remove(_releaseContexts.keys.first);
     }
     return amount;
   }
@@ -441,10 +443,7 @@ class ArsenalSystem {
             math.max(
                   0,
                   state.rank(PowerUp.numberOfBulletsPerShotIncrease) -
-                      ((weapon == WeaponType.railLance ||
-                              weapon == WeaponType.beltRepeater)
-                          ? 2
-                          : 3),
+                      weapon.scatterCountCapRank,
                 ) *
                 .04);
     for (var i = 0; i < pelletCount; i++) {
@@ -459,6 +458,8 @@ class ArsenalSystem {
           initialDelay: _frameOffset,
           weapon: weapon,
           shotSequence: nextAttack,
+          releaseId: _releaseContexts[nextAttack]?.$1 ?? 0,
+          releaseBonus: _releaseContexts[nextAttack]?.$2 ?? 0,
           damage:
               amount /
               (!{
@@ -606,6 +607,8 @@ class ArsenalSystem {
     double amount,
     Vector2 direction, {
     bool primary = true,
+    int? attackId,
+    double? travel,
     WeaponReaction? reaction,
   }) {
     final owner = game.projectileOwner(target);
@@ -619,6 +622,13 @@ class ArsenalSystem {
       target,
       amount,
       primary: proc,
+      weaponHit: primary,
+      releaseId: _releaseContexts[attackId ?? nextAttack]?.$1 ?? 0,
+      releaseBonus: _releaseContexts[attackId ?? nextAttack]?.$2 ?? 0,
+      travel:
+          travel ??
+          muzzle(direction).distanceTo(target.position) -
+              game.enemyRadius(target),
       direction: direction,
       reaction: reaction,
     );
@@ -850,6 +860,8 @@ class ArsenalSystem {
             f.position,
             radius: 145,
             damage: f.damage,
+            releaseId: _releaseContexts[f.id]?.$1 ?? 0,
+            releaseBonus: _releaseContexts[f.id]?.$2 ?? 0,
             reaction: WeaponReaction.of(WeaponType.scrapMortar),
           );
         }
@@ -924,6 +936,15 @@ class ArsenalSystem {
         f.damage,
         f.direction,
         primary: !f.returning,
+        attackId: f.id,
+        travel:
+            f.travelled +
+            BulletComponent.contactDistance(
+              target.position,
+              before,
+              after,
+              radius,
+            ),
         reaction: f.returning
             ? WeaponReaction.of(WeaponType.reaperDisc).scaled(.45)
             : null,
@@ -977,6 +998,10 @@ class ArsenalSystem {
     'cooling': _cooling,
     'patchTick': _patchTick,
     'nextAttack': nextAttack,
+    'releaseContexts': {
+      for (final e in _releaseContexts.entries)
+        e.key.toString(): [e.value.$1, e.value.$2],
+    },
     if (weapon == WeaponType.longwatchSniper)
       'sniperSway': sniperSway.checkpoint(),
     'wasReloading': state.reloading,
@@ -990,6 +1015,31 @@ class ArsenalSystem {
   };
 
   static void validate(Map<String, dynamic> map, WeaponType weapon) {
+    if (map.containsKey('releaseContexts') && map['releaseContexts'] is! Map) {
+      throw const FormatException('Invalid release contexts');
+    }
+    if (map['releaseContexts'] case final Map entries) {
+      if (entries.length > 512) {
+        throw const FormatException('Too many release contexts');
+      }
+      for (final e in entries.entries) {
+        final key = int.tryParse(e.key.toString()), v = e.value;
+        if (key == null ||
+            key < 1 ||
+            key > 1e9 ||
+            v is! List ||
+            v.length != 2 ||
+            v[0] is! int ||
+            v[0] < 1 ||
+            v[0] > 1e9 ||
+            v[1] is! num ||
+            !v[1].isFinite ||
+            v[1] < 0 ||
+            v[1] > .60) {
+          throw const FormatException('Invalid release context');
+        }
+      }
+    }
     if (map['weapon'] == 'breachHammer' &&
         weapon == WeaponType.longwatchSniper) {
       map['weapon'] = weapon.name;
@@ -1129,6 +1179,16 @@ class ArsenalSystem {
     _cooling = n('cooling');
     _patchTick = n('patchTick');
     nextAttack = map['nextAttack'] as int;
+    _releaseContexts.clear();
+    if (map['releaseContexts'] case final Map entries) {
+      for (final e in entries.entries) {
+        final v = e.value as List;
+        _releaseContexts[int.parse(e.key as String)] = (
+          v[0] as int,
+          (v[1] as num).toDouble(),
+        );
+      }
+    }
     _wasReloading = map['wasReloading'] as bool;
     endgame.restore(map['endgame']);
     sniperSway.reset();

@@ -6,6 +6,20 @@ class ChallengeDefinition {
 }
 
 final challenges = [
+  for (final c in CharacterType.values.where((c) => c.expansion))
+    ChallengeDefinition(c.name, c.role, c.unlockHint, c.title),
+  const ChallengeDefinition(
+    'tenSurvivors',
+    'Ten Against the Breach',
+    'Complete a cycle with all ten survivors',
+    'Roster mastery',
+  ),
+  const ChallengeDefinition(
+    'eightFusions',
+    'Complete Circuit',
+    'Discover all eight fusions',
+    'Fusion mastery',
+  ),
   const ChallengeDefinition(
     'training',
     'First Steps',

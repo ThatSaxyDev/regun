@@ -671,7 +671,7 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
             const OnlineCaption('Survivor'),
             const SizedBox(height: 8),
             options(
-              CharacterType.values,
+              CharacterType.values.where((c) => c.availableOnline).toList(),
               character,
               (c) => c.title,
               (c) => unawaited(session.chooseLoadout(weapon.name, c.name)),

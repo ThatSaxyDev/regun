@@ -148,7 +148,11 @@ class BurningGround extends PositionComponent with HasGameReference<RegunGame> {
       tick = 0;
       for (final enemy in game.liveEnemies.toList()) {
         if (enemy.position.distanceToSquared(position) < 90 * 90) {
-          game.hitEnemy(enemy, damage, primary: false);
+          game.hitEnemy(
+            enemy,
+            damage * game.burnMultiplier(enemy),
+            primary: false,
+          );
         }
       }
     }

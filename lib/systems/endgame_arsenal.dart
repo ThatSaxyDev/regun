@@ -261,7 +261,15 @@ class EndgameArsenal {
       );
     }
     // Admission of secondary procs cannot steal the reserved fragment slots.
-    if (direct != null) system._direct(direct, f.damage, f.direction);
+    if (direct != null) {
+      system._direct(
+        direct,
+        f.damage,
+        f.direction,
+        attackId: f.id,
+        travel: f.travelled,
+      );
+    }
     if (direct == null) system.audio.play('impact_flakRegent.wav');
     game.reserveWeaponPatch();
     game.addCombatEffect(FlakBurst(position: end.clone()));
@@ -338,7 +346,18 @@ class EndgameArsenal {
     for (final target in targets) {
       final id = ownerId(target);
       if (cone.owners.containsKey(id)) continue;
-      if (system._direct(target, cone.damage, direction)) cone.owners[id] = 0;
+      if (system._direct(
+        target,
+        cone.damage,
+        direction,
+        attackId: cone.id,
+        travel: math.max(
+          0,
+          cone.position.distanceTo(target.position) - game.enemyRadius(target),
+        ),
+      )) {
+        cone.owners[id] = 0;
+      }
       if (cone.owners.length >= 5) break;
     }
     game.reserveWeaponPatch();
@@ -369,7 +388,17 @@ class EndgameArsenal {
             game.segmentBlocked(lane.position, target.position)) {
           continue;
         }
-        if (system._direct(target, lane.damage, lane.direction)) {
+        if (system._direct(
+          target,
+          lane.damage,
+          lane.direction,
+          attackId: lane.id,
+          travel: math.max(
+            0,
+            lane.position.distanceTo(target.position) -
+                game.enemyRadius(target),
+          ),
+        )) {
           lane.owners[id] = 0;
         }
       }
@@ -416,6 +445,8 @@ class EndgameArsenal {
           a.position,
           radius: 165,
           damage: a.damage,
+          releaseId: system._releaseContexts[a.id]?.$1 ?? 0,
+          releaseBonus: system._releaseContexts[a.id]?.$2 ?? 0,
           reaction: WeaponReaction.of(WeaponType.anchorEngine),
         );
         system.audio.play('crush_anchorEngine.wav');

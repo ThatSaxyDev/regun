@@ -305,6 +305,25 @@ enum WeaponType {
       this != WeaponType.scrapMortar && this != WeaponType.anchorEngine;
   bool get hasLastRound => this != WeaponType.prismCutter;
   bool get supportsRange => true;
+  int? get rangeCeiling => switch (this) {
+    cinderHose => 320,
+    reaperDisc => 650,
+    scrapMortar => 760,
+    frostShotgun => 480,
+    prismCutter => 560,
+    sporeLobber => 600,
+    anchorEngine => 760,
+    _ => null,
+  };
+  int get velocityCeiling => this == reaperDisc
+      ? 1200
+      : this == sporeLobber
+      ? 1000
+      : 2000;
+  int get scatterCountCapRank =>
+      this == railLance || this == beltRepeater || this == cycloneBreacher
+      ? 2
+      : 3;
   bool get firesOnRelease =>
       this == WeaponType.longwatchSniper ||
       this == WeaponType.scrapMortar ||
@@ -326,7 +345,7 @@ enum CharacterType {
   rook('Rook', 'Balanced and dependable.', 6, 300, 1, Color(0xffDF795F)),
   scrapper(
     'Scrapper',
-    '+15% speed. Wider pickups. Stronger mines. −15% direct damage.',
+    '+15% speed. XP reach +80. Mines +40%. −15% primary damage.',
     6,
     345,
     0.85,
@@ -334,11 +353,67 @@ enum CharacterType {
   ),
   warden(
     'Warden',
-    'Two extra hearts and a recharging guard. −13% speed.',
+    'Two extra HP. Guard recharges in 20s. −13% speed.',
     8,
     261,
     1,
     Color(0xff8EA9C2),
+  ),
+  flint(
+    'Flint',
+    'Reloads 12% faster. Next release +20%. −5% primary damage.',
+    6,
+    291,
+    .95,
+    Color(0xffBF8D65),
+  ),
+  vesper(
+    'Vesper',
+    'Dash, then strike +18%. One less heart. −5% primary damage.',
+    5,
+    330,
+    .95,
+    Color(0xff90AAA3),
+  ),
+  fuse(
+    'Fuse',
+    'Grenades +20%. Recharge −2s. −10% primary damage.',
+    6,
+    285,
+    .90,
+    Color(0xffB9A46E),
+  ),
+  moth(
+    'Moth',
+    'Hits kindle fire. Burns +25%. −10% primary damage.',
+    6,
+    300,
+    .90,
+    Color(0xffB87862),
+  ),
+  coil(
+    'Coil',
+    'Every fifth hit release arcs. Chains +10%. One less heart.',
+    5,
+    300,
+    .95,
+    Color(0xff83A5A2),
+  ),
+  suture(
+    'Suture',
+    '15 kills earn a heart. 12s heal cooldown. −10% primary damage.',
+    7,
+    276,
+    .90,
+    Color(0xffD0C7AE),
+  ),
+  harrow(
+    'Harrow',
+    'Primary: +15% to elites/bosses, −10% to ordinary foes. One less heart.',
+    5,
+    300,
+    1,
+    Color(0xffAF9C87),
   );
 
   const CharacterType(
@@ -353,6 +428,32 @@ enum CharacterType {
   final int health;
   final double speed, damage;
   final Color color;
+  bool get expansion => index >= CharacterType.flint.index;
+  bool get availableOnline => !expansion;
+  String get role => switch (this) {
+    rook => 'Balanced',
+    scrapper => 'Salvage runner',
+    warden => 'Defensive anchor',
+    flint => 'Reload duelist',
+    vesper => 'Dash skirmisher',
+    fuse => 'Ordnance specialist',
+    moth => 'Furnace tender',
+    coil => 'Grid conductor',
+    suture => 'Field surgeon',
+    harrow => 'Quarry hunter',
+  };
+  String get unlockHint => switch (this) {
+    rook => 'Available',
+    scrapper => '500 kills',
+    warden => 'Survive 8 minutes',
+    flint => '40 completed reloads',
+    vesper => '6 minutes + 30 dashes in one run',
+    fuse => '120 grenade kills',
+    moth => 'Defeat 150 burning enemies',
+    coil => 'Chain-hit 200 enemies',
+    suture => 'Restore 40 HP',
+    harrow => '15 elites + 3 bosses',
+  };
 }
 
 enum ArenaType {

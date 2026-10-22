@@ -168,12 +168,11 @@ class _LoadoutViewState extends State<LoadoutView> {
             (c) => _option(
               id: 'survivor-${c.name}',
               title: c.title,
-              description: c.description,
+              description:
+                  '${c.role} / ${c.health} HP / ${c.speed.round()} speed / ${WeaponMobility.speed(weapon, c.speed).round()} equipped\n${c.description}',
               selected: character == c,
               unlocked: widget.training || profile.characterUnlocked(c),
-              lock: c == CharacterType.scrapper
-                  ? '500 kills'
-                  : 'Survive 8 minutes',
+              lock: profile.characterProgress(c),
               art: SurvivorPortrait(character: c, animated: true),
               onTap: () => setState(() => character = c),
             ),
@@ -274,7 +273,7 @@ class _LoadoutViewState extends State<LoadoutView> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          unlocked ? description : 'Locked · $lock',
+                          unlocked ? description : 'Locked / $lock',
                           style: const TextStyle(
                             fontFamily: FontFam.orbitron,
                             fontSize: 10,
@@ -315,7 +314,7 @@ class _LoadoutViewState extends State<LoadoutView> {
       children: [
         Expanded(
           child: Text(
-            '${character.title} / ${weapon.title} / ${arena.title}${WeaponMobility.label(weapon).isEmpty ? '' : ' · ${WeaponMobility.label(weapon)}'}',
+            '${character.title} / ${weapon.title} / ${arena.title}${WeaponMobility.label(weapon).isEmpty ? '' : ' / ${WeaponMobility.label(weapon)}'}',
             key: const Key('loadout-summary'),
             style: const TextStyle(
               fontFamily: FontFam.orbitron,
@@ -395,17 +394,9 @@ class _KitPreview extends StatelessWidget {
           child: SurvivorPortrait(
             animated: true,
             character: character,
+            weapon: weapon,
             style: style,
             maxArtSize: 270,
-          ),
-        ),
-        Positioned(
-          right: 8,
-          bottom: 30,
-          child: SizedBox(
-            width: 76,
-            height: 36,
-            child: WeaponThumbnail(weapon),
           ),
         ),
         Positioned(
