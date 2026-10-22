@@ -1,0 +1,59 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "process",
+      "launch",
+      "--device",
+      "00008101-000248EC1450001E",
+      "--terminate-existing",
+      "dev.kiishi.regun",
+      "--timeout",
+      "60",
+      "--json-output",
+      "/tmp/regun-reload-sway-launch.json"
+    ],
+    "commandType" : "devicectl.device.process.launch",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "success",
+    "version" : "642.16"
+  },
+  "result" : {
+    "deviceIdentifier" : "B1CB7226-4861-530C-943A-84DC9B0D0E12",
+    "launchOptions" : {
+      "activatedWhenStarted" : true,
+      "arguments" : [
+
+      ],
+      "environmentVariables" : {
+        "TERM" : "dumb"
+      },
+      "platformSpecificOptions" : {
+
+      },
+      "startStopped" : false,
+      "terminateExistingInstances" : true,
+      "user" : {
+        "active" : true
+      }
+    },
+    "process" : {
+      "auditToken" : [
+        4294967295,
+        501,
+        501,
+        501,
+        501,
+        1974,
+        0,
+        5500
+      ],
+      "executable" : "file:///private/var/containers/Bundle/Application/83544075-4FDF-4B11-A00B-4CE733C77210/Runner.app/Runner",
+      "processIdentifier" : 1974
+    }
+  }
+}

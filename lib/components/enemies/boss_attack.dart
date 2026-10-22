@@ -1,3 +1,4 @@
+import 'package:regun/presentation/boss_art.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
@@ -7,19 +8,19 @@ import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/systems/boss_attack_shape.dart';
 
 class BossAttack extends PositionComponent with HasGameReference<RegunGame> {
-  BossAttack(
-      {required this.shape,
-      required this.owner,
-      required this.warning,
-      required this.active,
-      this.delay = 0,
-      this.material = AttackMaterial.stone,
-      this.damage = 1,
-      this.cause = 'Boss strike',
-      this.color = const Color(0xffDDA46E),
-      this.sound = 'impact_boss.wav',
-      this.onImpact})
-      : super(priority: material == AttackMaterial.laser ? 20010 : -10);
+  BossAttack({
+    required this.shape,
+    required this.owner,
+    required this.warning,
+    required this.active,
+    this.delay = 0,
+    this.material = AttackMaterial.stone,
+    this.damage = 1,
+    this.cause = 'Boss strike',
+    this.color = const Color(0xffDDA46E),
+    this.sound = 'impact_boss.wav',
+    this.onImpact,
+  }) : super(priority: material == AttackMaterial.laser ? 20010 : -10);
   final BossAttackShape shape;
   final CombatHealth owner;
   final double warning, active, delay;
@@ -74,13 +75,16 @@ class BossAttack extends PositionComponent with HasGameReference<RegunGame> {
   @override
   void render(Canvas canvas) {
     if (age < delay) return;
-    shape.render(canvas,
-        warning: age < delay + warning,
-        progress: progress,
-        color: color,
-        warningFocus: _warningFocus,
-        reducedMotion: game.preferences.reducedMotion,
-        warningProgress: ((age - delay) / warning).clamp(0, 1),
-        material: material);
+    shape.render(
+      canvas,
+      warning: age < delay + warning,
+      progress: progress,
+      color: color,
+      ambient: BossArt.ambient(game.loadout.arena),
+      warningFocus: _warningFocus,
+      reducedMotion: game.preferences.reducedMotion,
+      warningProgress: ((age - delay) / warning).clamp(0, 1),
+      material: material,
+    );
   }
 }

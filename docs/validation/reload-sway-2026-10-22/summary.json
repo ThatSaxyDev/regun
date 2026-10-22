@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-22",
+  "version": "1.0.0+11",
+  "nativeWeapons": 15,
+  "newWeaponsAndWeight": "proposal only; docs/SIX_WEAPONS_AND_WEIGHT_PLAN.md",
+  "flutter": {
+    "analyzer": "clean",
+    "passed": 391,
+    "optionalSkipped": 5
+  },
+  "server": {
+    "passed": 90,
+    "typecheck": "passed",
+    "build": "passed",
+    "deployed": false
+  },
+  "reload": "all15: ammo-remaining manual .70, empty full, final motion/audio skipped in tactical, full completion required",
+  "sniper": "sight/muzzle/release share .18\u2192.85 degree envelope over6 active seconds; recovery2s/s; fatigue/phase saved without input",
+  "ios": {
+    "releaseBuild": "passed",
+    "size": "133.5MB",
+    "signature": "strict/deep verified",
+    "bundle": "dev.kiishi.regun"
+  },
+  "phoneDelivery": {
+    "status": "installed and launched",
+    "appDataCleared": false,
+    "device": "creator iPhone12"
+  },
+  "physicalApproval": "pending creator review"
+}

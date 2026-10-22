@@ -1,5 +1,7 @@
 import 'package:regun/models/player_profile.dart';
+
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/models/control_layout.dart';
@@ -15,12 +17,14 @@ class LocalPreferences {
   SharedPreferences? _storage;
   int bestScore = 0;
   int bestSeconds = 0;
+  String onlineName = 'Rook';
   ControlLayout controls = const ControlLayout();
 
   Future<void> load() async {
     try {
       await _saving;
       _storage = await SharedPreferences.getInstance();
+      onlineName = _storage!.getString('online.name') ?? 'Rook';
       musicVolume = (_storage!.getDouble('settings.music') ?? 0.6).clamp(0, 1);
       sfxVolume = (_storage!.getDouble('settings.sfx') ?? 0.8).clamp(0, 1);
       haptics = _storage!.getBool('settings.haptics') ?? true;
@@ -32,19 +36,22 @@ class LocalPreferences {
           final encoded = _storage!.getString(key);
           if (encoded == null) continue;
           final decoded = Map<String, dynamic>.from(jsonDecode(encoded) as Map);
-          if (decoded['schema'] != 1) continue;
+          if (![1, 2].contains(decoded['schema'])) continue;
           profile = PlayerProfile.fromJson(decoded);
           break;
         } on FormatException {
           /* Try the last completed profile. */
-        } on TypeError {/* Try the last completed profile. */}
+        } on TypeError {
+          /* Try the last completed profile. */
+        }
       }
       bestScore = _storage!.getInt('record.score') ?? 0;
       bestSeconds = _storage!.getInt('record.seconds') ?? 0;
       final encoded = _storage!.getString('controls.v1');
       if (encoded != null) {
         controls = ControlLayout.fromJson(
-            Map<String, dynamic>.from(jsonDecode(encoded) as Map));
+          Map<String, dynamic>.from(jsonDecode(encoded) as Map),
+        );
       }
     } on MissingPluginException {
       // Headless test environments may have no platform preference channel.
@@ -66,10 +73,12 @@ class LocalPreferences {
         if (previous != null) {
           try {
             final decoded = jsonDecode(previous);
-            if (decoded is Map && decoded['schema'] == 1) {
+            if (decoded is Map && [1, 2].contains(decoded['schema'])) {
               await _storage?.setString('profile.backup.v1', previous);
             }
-          } on FormatException {/* Retain the existing backup. */}
+          } on FormatException {
+            /* Retain the existing backup. */
+          }
         }
 
         success = await _storage?.setString('profile.v1', payload) ?? false;
@@ -91,7 +100,7 @@ class LocalPreferences {
         'profile.v1',
         'profile.backup.v1',
         'record.score',
-        'record.seconds'
+        'record.seconds',
       ]) {
         await _storage?.remove(key);
       }
@@ -113,14 +122,29 @@ class LocalPreferences {
       await _storage?.setBool('settings.haptics', haptics);
       await _storage?.setBool('settings.motion', reducedMotion);
       await _storage?.setBool('settings.aim', aimAssist);
-    } on PlatformException {/* Settings remain active in memory. */}
+    } on PlatformException {
+      /* Settings remain active in memory. */
+    }
+  }
+
+  Future<void> saveOnlineName(String value) async {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return;
+    onlineName = trimmed;
+    try {
+      await _storage?.setString('online.name', trimmed);
+    } on PlatformException {
+      /* Retain the name for this visit. */
+    }
   }
 
   Future<bool> saveControls(ControlLayout value) async {
     controls = value;
     try {
       return await _storage?.setString(
-              'controls.v1', jsonEncode(value.toJson())) ??
+            'controls.v1',
+            jsonEncode(value.toJson()),
+          ) ??
           false;
     } on PlatformException {
       return false;

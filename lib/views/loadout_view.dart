@@ -6,6 +6,7 @@ import 'package:regun/data/loadout.dart';
 import 'package:regun/models/player_profile.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/presentation/weapon_feel.dart';
+import 'package:regun/presentation/weapon_art_spec.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/services/run_store.dart';
 import 'package:regun/theme/pixel_glyph.dart';
@@ -174,7 +175,7 @@ class _LoadoutViewState extends State<LoadoutView> {
               lock: c == CharacterType.scrapper
                   ? '500 kills'
                   : 'Survive 8 minutes',
-              art: SurvivorPortrait(character: c),
+              art: SurvivorPortrait(character: c, animated: true),
               onTap: () => setState(() => character = c),
             ),
           )
@@ -189,9 +190,13 @@ class _LoadoutViewState extends State<LoadoutView> {
               selected: weapon == w,
               unlocked: widget.training || profile.weaponUnlocked(w),
               lock: switch (w) {
+                WeaponType.burstRifle =>
+                  'Boss victories ${profile.totalBossVictories} / 3',
                 WeaponType.carbine => 'Complete training',
                 WeaponType.revolver => 'Defeat Shadow',
-                _ => 'Defeat Demon',
+                WeaponType.arcCaster => 'Defeat Demon',
+                _ =>
+                  'Boss victories ${profile.totalBossVictories} / ${w.victoryRequirement}',
               },
               art: _WeaponArt(w, key: ValueKey('loadout-art-${w.name}')),
               onTap: () => setState(() => weapon = w),
@@ -388,6 +393,7 @@ class _KitPreview extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(bottom: 24),
           child: SurvivorPortrait(
+            animated: true,
             character: character,
             style: style,
             maxArtSize: 270,
@@ -539,21 +545,45 @@ class _EquippedMark extends CustomPainter {
   bool shouldRepaint(_EquippedMark oldDelegate) => false;
 }
 
-class _WeaponArt extends StatelessWidget {
+class _WeaponArt extends StatefulWidget {
   const _WeaponArt(this.weapon, {super.key});
   final WeaponType weapon;
   @override
-  Widget build(BuildContext context) {
-    if (RegunArt.shared.contains('weapons/arsenal')) {
-      return CustomPaint(painter: _WeaponPreview(weapon));
-    }
-    return FutureBuilder<void>(
-      future: RegunArt.shared.load(),
-      builder: (context, state) => state.connectionState == ConnectionState.done
-          ? CustomPaint(painter: _WeaponPreview(weapon))
-          : const SizedBox.expand(),
-    );
+  State<_WeaponArt> createState() => _WeaponArtState();
+}
+
+class _WeaponArtState extends State<_WeaponArt> {
+  bool ready = false, held = false;
+  @override
+  void initState() {
+    super.initState();
+    ready = RegunArt.shared.contains(widget.weapon.atlasName);
+    _load();
   }
+
+  Future<void> _load() async {
+    await RegunArt.shared.load();
+    if (widget.weapon.hasLeasedArt) {
+      await RegunArt.shared.acquire(widget.weapon.atlasName);
+      if (!mounted) {
+        RegunArt.shared.release(widget.weapon.atlasName);
+        return;
+      }
+      held = true;
+    }
+    if (mounted) setState(() => ready = true);
+  }
+
+  @override
+  void dispose() {
+    if (held) RegunArt.shared.release(widget.weapon.atlasName);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ready
+      ? CustomPaint(painter: _WeaponPreview(widget.weapon))
+      : const SizedBox.expand();
 }
 
 class _WeaponPreview extends CustomPainter {
@@ -563,7 +593,7 @@ class _WeaponPreview extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.save();
     final feel = WeaponFeel.of(weapon);
-    final height = weapon == WeaponType.shotgun ? 22.0 : 26.0;
+    final height = WeaponArtSpec.of(weapon).height;
     final scale = math.min(
       (size.width - 4) / feel.width,
       (size.height - 4) / height,

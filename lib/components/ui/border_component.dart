@@ -18,11 +18,13 @@ class BorderComponent extends PositionComponent {
   Future<void> onLoad() async {
     // debugMode = true;
     await super.onLoad();
-    add(RectangleHitbox(
-      size: Vector2(size.x, size.x - 30),
-      anchor: const Anchor(0.5, 0.502),
-      collisionType: CollisionType.passive,
-    ));
+    add(
+      RectangleHitbox(
+        size: Vector2(size.x, size.x - 30),
+        anchor: const Anchor(0.5, 0.502),
+        collisionType: CollisionType.passive,
+      ),
+    );
   }
 
   // @override

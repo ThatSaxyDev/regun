@@ -1,0 +1,27 @@
+[
+  {
+    "status": "failed",
+    "mode": "versus",
+    "players": 6,
+    "arena": "ossuary_cross_3v3",
+    "activeSeconds": 10.0,
+    "maxPendingCommands": 12,
+    "stalledSamples": 3,
+    "samples": 240,
+    "maxServerQueued": 4,
+    "minimumSimulationRate": 0.6500494624379552,
+    "maxAckSilenceMs": 333,
+    "maxStoppedError": 0.0,
+    "applicationRttMs": [
+      206,
+      232,
+      797,
+      200,
+      207,
+      491
+    ],
+    "allPositionsFinite": true,
+    "failure": "Expected: <0>\n  Actual: <3>\n",
+    "testClientsClosed": true
+  }
+]

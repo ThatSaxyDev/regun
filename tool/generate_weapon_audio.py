@@ -5,7 +5,7 @@ Only combat assets are written; music and UI files are untouched.
 from pathlib import Path
 import argparse, csv, math, random, struct, wave, subprocess
 parser = argparse.ArgumentParser()
-parser.add_argument("--only", choices=["arcCaster"])
+parser.add_argument("--only", choices=["arcCaster", "burstRifle"])
 args = parser.parse_args()
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'assets/audio'
@@ -47,14 +47,14 @@ def render(name, duration, kind, seed=1):
         low += .035*(noise-low)
         fast += .55*(noise-fast)
         high = noise-fast
-        if kind in ('shotgun','carbine','revolver'):
+        if kind in ('shotgun','carbine','revolver','burstRifle'):
             # Recorded attack keeps a firearm's irregular transient. Warm pressure
             # and harmonics carry weight on small speakers without a long bass note.
-            heavy = kind != 'carbine'
-            speed = {'shotgun':.83,'carbine':1.05,'revolver':.94}[kind]*pitch
+            heavy = kind not in ('carbine', 'burstRifle')
+            speed = {'shotgun':.83,'carbine':1.05,'revolver':.94,'burstRifle':.97}[kind]*pitch
             transient = recorded(RIFLE[seed%3], t, speed)
             pressure += .035*(recorded(CANNON,t,.95 if heavy else 1.3)-pressure)
-            decay = {'shotgun':17,'carbine':34,'revolver':22}[kind]
+            decay = {'shotgun':17,'carbine':34,'revolver':22,'burstRifle':29}[kind]
             phase += 2*math.pi*(64+95*math.exp(-t*34))*pitch/RATE
             body = (math.sin(phase)+.38*math.sin(phase*2)+.16*math.sin(phase*3))
             v = transient*1.2*math.exp(-t*18)+high*.35*math.exp(-t*95)
@@ -95,7 +95,7 @@ def render(name, duration, kind, seed=1):
     rows.append([name,round(duration,3),round(max(abs(x) for x in samples),4),round(math.sqrt(sum(x*x for x in samples)/len(samples)),4),kind,seed])
 
 if __name__ == '__main__':
-    for weapon,duration in [('shotgun',.38),('carbine',.18),('revolver',.42),('arcCaster',.3)]:
+    for weapon,duration in [('shotgun',.38),('carbine',.18),('revolver',.42),('arcCaster',.3),('burstRifle',.22)]:
         if args.only and weapon != args.only: continue
         for variant in range(3): render(f'shot_{weapon}_{variant}.wav',duration,weapon,11+variant)
         render(f'impact_{weapon}.wav',.22 if weapon=='carbine' else .3,'impact_'+weapon,31)
@@ -116,6 +116,9 @@ if __name__ == '__main__':
         writer=csv.writer(f, lineterminator='\n');writer.writerow(['file','seconds','peak','rms','event','seed']);writer.writerows(rows)
     print(f'Wrote {written_count} mono PCM16 sounds at {RATE} Hz; music/UI unchanged.')
 
+    if args.only == 'burstRifle':
+        from generate_reload_audio import generate
+        generate(only='burstRifle')
     if not args.only:
         from generate_reload_audio import generate
         generate()

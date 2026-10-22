@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-21",
+  "version": "1.0.0+10",
+  "scrapperSpeed": 345,
+  "scrapperBonusPercent": 15,
+  "wardenSpeed": 261,
+  "wardenPenaltyPercent": 13,
+  "gait": "Eight full-body left poses including narrow passing frames3/7",
+  "sourceAssetSha256": "9fb0c0731398f97baec8f356148592ac786288ed05bf7c2f2d96fc26a125d838",
+  "preFinalSpeedFullVerify": {
+    "passed": 261,
+    "skipped": 5,
+    "bossPairBudget": "passed"
+  },
+  "finalTargetedVerify": {
+    "passed": 45,
+    "skipped": 1,
+    "analyzer": "passed",
+    "backendTestsPassed": 84,
+    "backendBuild": "passed"
+  },
+  "device": {
+    "model": "iPhone12",
+    "signedReleaseBuild": true,
+    "inPlaceInstalled": true,
+    "launched": true,
+    "onlineEnabled": true
+  },
+  "limitations": [
+    "Physical animation/feel review open",
+    "Online server changes not deployed",
+    "IPA unchanged"
+  ]
+}

@@ -1,5 +1,9 @@
+import 'package:regun/presentation/burster_walk.dart';
+
 import 'dart:math' as math;
 import 'dart:ui';
+
+import 'package:regun/presentation/marshal_aim.dart';
 
 import 'package:flame/components.dart';
 import 'package:regun/data/loadout.dart';
@@ -140,6 +144,7 @@ class OnlineWorldArt {
               canvas,
               p,
               radius,
+              ambient: ambient(foundry),
               warning: warning,
               progress: progress,
               material: material,
@@ -150,6 +155,7 @@ class OnlineWorldArt {
           canvas,
           p,
           90,
+          ambient: ambient(foundry),
           warning: false,
           progress: (entity.number('age') / 2.5).clamp(0, 1),
           material: AttackMaterial.ember,
@@ -266,6 +272,8 @@ class OnlineWorldArt {
     OnlineEntity entity, {
     required bool foundry,
     required bool reducedMotion,
+    Offset? laserAim,
+    Offset? laserOrigin,
   }) {
     final p = Offset(entity.x, entity.y),
         d = entity.data,
@@ -312,34 +320,58 @@ class OnlineWorldArt {
         canvas,
         p,
         entity.number('radius', 30) + 12,
+        ambient: ambient(foundry),
         warning: true,
         progress: 1 - entity.number('spawning') / .7,
         material: AttackMaterial.stone,
       );
     }
+    final aimedMarshal = !dead && kind == 'marshal' && laserAim != null;
+    if (aimedMarshal) {
+      MarshalAim.paint(
+        canvas,
+        p,
+        laserAim,
+        size,
+        left: laserOrigin == null
+            ? entity.number('dx', 1) < 0
+            : MarshalAim.facingLeft(p, laserOrigin, laserAim, size),
+        ambient: ambient(foundry),
+      );
+    }
     canvas.save();
     canvas.translate(p.dx, p.dy);
-    if (entity.number('dx', 1) < 0) canvas.scale(-1, 1);
-    final sprite = dead && kind == 'ranged'
+    if (kind != 'burster' && entity.number('dx', 1) < 0) canvas.scale(-1, 1);
+    final sprite = !dead && kind == 'burster' && phase == 0
+        ? art.sprite(
+            'enemies/burster_walk',
+            BursterWalk.frame(
+              Offset(entity.number('dx', 1), entity.number('dy')),
+              clock * 90,
+            ),
+          )
+        : dead && kind == 'ranged'
         ? art.rawSprite('enemies/ranged_remains', 0)
         : art.sprite(name, frame);
-    sprite.render(
-      canvas,
-      position: Vector2.zero(),
-      size: dead && kind == 'ranged'
-          ? Vector2(size, size * sprite.srcSize.y / sprite.srcSize.x)
-          : Vector2.all(size),
-      anchor: Anchor.center,
-      overridePaint: Paint()
-        ..filterQuality = FilterQuality.none
-        ..colorFilter = ambient(foundry)
-        ..color = Color.fromRGBO(
-          255,
-          255,
-          255,
-          dead ? (1 - entity.number('deadAge') / .8).clamp(0, 1) : 1,
-        ),
-    );
+    if (!aimedMarshal) {
+      sprite.render(
+        canvas,
+        position: Vector2.zero(),
+        size: dead && kind == 'ranged'
+            ? Vector2(size, size * sprite.srcSize.y / sprite.srcSize.x)
+            : Vector2.all(size),
+        anchor: Anchor.center,
+        overridePaint: Paint()
+          ..filterQuality = FilterQuality.none
+          ..colorFilter = ambient(foundry)
+          ..color = Color.fromRGBO(
+            255,
+            255,
+            255,
+            dead ? (1 - entity.number('deadAge') / .8).clamp(0, 1) : 1,
+          ),
+      );
+    }
     canvas.restore();
     if (!dead &&
         (boss || entity.number('health') < entity.number('maximumHealth', 1))) {

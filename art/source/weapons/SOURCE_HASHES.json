@@ -1,0 +1,58 @@
+[
+  {
+    "file": "belt_repeater_master.png",
+    "sha256": "f3eb17d4c3a6f9aba961b73f6fed8f9ade5d193fb29fee7aabb929d4354a4693"
+  },
+  {
+    "file": "breach_hammer_master.png",
+    "sha256": "8cbf3f03467bb6c7e03625c5bb4671f7ff6385c2960d8d4bf29bfd969405f9e7"
+  },
+  {
+    "file": "burst_rifle_master.png",
+    "sha256": "3c15bc6333209bc766661d2ae6e5d8f43ec4bd7c19821f317ec66110561e8ccc"
+  },
+  {
+    "file": "cinder_hose_master.png",
+    "sha256": "e659de6f4ae6a9b3a7e6eb774deb10f41818574bc8d8dc3b0d1aa2c9a8f853f1"
+  },
+  {
+    "file": "frost_shotgun_master.png",
+    "sha256": "93da4c70c941d55b6e40cfbe78216cd75364847a58c6b212b618acb80029afeb"
+  },
+  {
+    "file": "prism_cutter_master.png",
+    "sha256": "f7724626b1f6ef629abfb0fba7c959d2ba07aeda6a304c292b26cc6b955a91fa"
+  },
+  {
+    "file": "rail_lance_master.png",
+    "sha256": "ca20146776165866972d6b00442f3890417b1fc144218aca9c819de1d23d20a2"
+  },
+  {
+    "file": "reaper_disc_master.png",
+    "sha256": "4f3c1e000449c4f1591ba50773fa2af92df15939a3cedaedf334ee6390a64d89"
+  },
+  {
+    "file": "rivet_driver_master.png",
+    "sha256": "5a1c77c9e3ef150a4dae246579f93900938729f9f7e210d57e1ede746acb4c5e"
+  },
+  {
+    "file": "rook_hammer_master.png",
+    "sha256": "d6c37dee816b625c61b155afc99174b93ac1f91a08950180439b75537446441f"
+  },
+  {
+    "file": "scrap_mortar_master.png",
+    "sha256": "ea97afc52bd1eee3e210171d61cbbe31bbe1d41eda2f34ac2988c71e3e0c3da3"
+  },
+  {
+    "file": "scrapper_hammer_master.png",
+    "sha256": "2d27f6ad7ee7ded1ed7c82c440c3e5a8a9c63b18beddb9ddff50f16dca207e5c"
+  },
+  {
+    "file": "spore_lobber_master.png",
+    "sha256": "577e3634647691538e9564b73b76dba5137ef574717aa313b8d17bff4ab1c671"
+  },
+  {
+    "file": "warden_hammer_master.png",
+    "sha256": "800c9d92389dc6437dc23bbfa0d02be10c574e71ed68463d2fe45fb791202782"
+  }
+]

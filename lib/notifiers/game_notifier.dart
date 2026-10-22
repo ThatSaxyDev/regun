@@ -20,6 +20,8 @@ class GameNotifier extends Notifier<GameState> {
   double _nextReloadSoundMs = ShotgunReload.shellIntervalMs.toDouble();
   bool _reloadTactical = false;
   bool supplyOffer = false;
+  double get reloadRemainingSeconds =>
+      state.reloading ? max(0, _reloadDurationMs - _reloadElapsedMs) / 1000 : 0;
   bool get reloadTactical => state.reloading && _reloadTactical;
   double _invincibilityMs = 0;
   double _hurtCooldownMs = 0;
@@ -60,6 +62,33 @@ class GameNotifier extends Notifier<GameState> {
     );
   }
 
+  void changeTrainingWeapon(WeaponType next) {
+    if (state.gameplayState != GameplayState.paused) return;
+    final old = weapon;
+    final rank = state.rank(PowerUp.maxBulletsIncrease);
+    final extra =
+        min(3, rank) * (next == WeaponType.carbine ? 6 : 2) +
+        max(0, rank - 3) * (next == WeaponType.carbine ? 2 : 1);
+    final capacity = next == WeaponType.prismCutter
+        ? min(24, next.capacity + extra)
+        : next.capacity + extra;
+    weapon = next;
+    _reloadDurationMs = _reloadElapsedMs = 0;
+    _reloadSoundsLeft = _reloadCue = 0;
+    _reloadTactical = false;
+    _quickRefillMs = -1;
+    quickRefillProgress.value = -1;
+    reloadProgress.value = 0;
+    state = state.copyWith(
+      maxBullets: capacity,
+      noOfBullets: capacity,
+      reloading: false,
+      bulletRange: next.range + max(0, state.bulletRange - old.range),
+      bulletSpeed: next.speed + max(0, state.bulletSpeed - old.speed),
+      baseProjectileSpeed: next.speed,
+    );
+  }
+
   void cancelPendingActions() {
     _choiceGrace = 0;
     supplyOffer = false;
@@ -82,11 +111,14 @@ class GameNotifier extends Notifier<GameState> {
     'choiceGrace': _choiceGrace,
     'weaponBalance': 2,
     'shotgunReloadBalance': 1,
+    'arsenalReviewBalance': 2,
+    'survivorSpeedBalance': 3,
     'state': state.toJson(),
     'offerRandom': _offerRandom.state,
     'guardElapsed': _guardElapsed,
     'reloadCue': _reloadCue,
     'reloadTactical': _reloadTactical,
+    'reloadPolicy': 2,
     'supplyOffer': supplyOffer,
     'activeSeconds': _activeSeconds,
     'reloadElapsedMs': _reloadElapsedMs,
@@ -102,13 +134,26 @@ class GameNotifier extends Notifier<GameState> {
     if (restored.health <= 0 ||
         restored.health > 10000 ||
         restored.maxBullets < 1 ||
-        restored.maxBullets > 100 ||
+        restored.maxBullets > (weapon == WeaponType.beltRepeater ? 128 : 100) ||
         restored.noOfBullets < 0 ||
         restored.noOfBullets > restored.maxBullets ||
         restored.noOfCoinsToUpgrade < 1 ||
         !restored.noOfCoinsToUpgrade.isFinite ||
         restored.xP < 0) {
       throw const FormatException('Invalid run state');
+    }
+    final survivorSpeedBalance =
+        (snapshot['survivorSpeedBalance'] as num?)?.toInt() ?? 0;
+    if (character == CharacterType.scrapper && survivorSpeedBalance < 1) {
+      restored = restored.copyWith(movementSpeed: restored.movementSpeed + 45);
+    }
+    if (character == CharacterType.scrapper &&
+        survivorSpeedBalance >= 1 &&
+        survivorSpeedBalance < 3) {
+      restored = restored.copyWith(movementSpeed: restored.movementSpeed - 105);
+    }
+    if (character == CharacterType.warden && survivorSpeedBalance < 2) {
+      restored = restored.copyWith(movementSpeed: restored.movementSpeed - 9);
     }
     if (weapon == WeaponType.arcCaster && snapshot['weaponBalance'] != 2) {
       restored = restored.copyWith(
@@ -119,6 +164,39 @@ class GameNotifier extends Notifier<GameState> {
         bulletRange: restored.bulletRange + 80,
         bulletSpeed: restored.bulletSpeed + 400,
         baseProjectileSpeed: restored.baseProjectileSpeed + 400,
+      );
+    }
+    if (((snapshot['arsenalReviewBalance'] as num?)?.toInt() ?? 0) < 1) {
+      final delta = weapon == WeaponType.beltRepeater
+          ? 10
+          : weapon == WeaponType.prismCutter
+          ? 8
+          : weapon == WeaponType.longwatchSniper
+          ? 1
+          : 0;
+      if (delta > 0) {
+        restored = restored.copyWith(
+          maxBullets: min(100, restored.maxBullets + delta),
+          noOfBullets: restored.reloading
+              ? restored.noOfBullets
+              : min(100, restored.noOfBullets + delta),
+        );
+      }
+      if (weapon == WeaponType.longwatchSniper) {
+        restored = restored.copyWith(
+          bulletRange: restored.bulletRange + 1070,
+          bulletSpeed: restored.bulletSpeed + 1300,
+          baseProjectileSpeed: 1900,
+        );
+      }
+    }
+    if (((snapshot['arsenalReviewBalance'] as num?)?.toInt() ?? 0) < 2 &&
+        weapon == WeaponType.beltRepeater) {
+      restored = restored.copyWith(
+        maxBullets: min(128, restored.maxBullets + 30),
+        noOfBullets: restored.reloading
+            ? restored.noOfBullets
+            : min(128, restored.noOfBullets + 30),
       );
     }
     cancelPendingActions();
@@ -193,8 +271,9 @@ class GameNotifier extends Notifier<GameState> {
       }
     }
     _reloadTactical =
-        weapon == WeaponType.carbine &&
-        (snapshot['reloadTactical'] == true || oldPlan?['tactical'] == true);
+        weapon.supportsTacticalReload &&
+        (snapshot['reloadTactical'] == true &&
+            (oldPlan == null || weapon == WeaponType.carbine));
     supplyOffer =
         snapshot['supplyOffer'] == true && restored.powerUpChoices.isNotEmpty;
     _reloadCue = snapshot['reloadCue'] as int? ?? 0;
@@ -212,10 +291,10 @@ class GameNotifier extends Notifier<GameState> {
   static int reloadDurationFor(int missingShells) =>
       ShotgunReload.durationFor(missingShells);
 
-  void reloadBullets({bool manual = false}) {
+  void reloadBullets({bool manual = false, bool allowFull = false}) {
     if (state.gameplayState != GameplayState.playing ||
         state.reloading ||
-        state.noOfBullets >= state.maxBullets) {
+        (!allowFull && state.noOfBullets >= state.maxBullets)) {
       return;
     }
     final missing = state.maxBullets - state.noOfBullets;
@@ -224,7 +303,7 @@ class GameNotifier extends Notifier<GameState> {
     _reloadElapsedMs = 0;
     _reloadCue = 0;
     _reloadTactical =
-        manual && weapon == WeaponType.carbine && state.noOfBullets > 0;
+        manual && weapon.supportsTacticalReload && state.noOfBullets > 0;
     final normal = weapon == WeaponType.shotgun
         ? reloadDurationFor(
             state.maxBullets > weapon.capacity
@@ -251,7 +330,8 @@ class GameNotifier extends Notifier<GameState> {
         ? missing - 1
         : 0;
     reloadProgress.value = 0;
-    _nextReloadSoundMs = ShotgunReload.shellIntervalMs.toDouble();
+    _nextReloadSoundMs =
+        ShotgunReload.shellIntervalMs * (_reloadTactical ? .70 : 1.0);
     state = state.copyWith(reloading: true);
     ref
         .read(soloudPlayProvider)
@@ -302,10 +382,10 @@ class GameNotifier extends Notifier<GameState> {
     if (!state.reloading || _reloadDurationMs <= 0) return;
     _reloadElapsedMs += milliseconds;
     reloadProgress.value = (_reloadElapsedMs / _reloadDurationMs).clamp(0, 1);
-    if (_reloadTactical) {
+    if (_reloadTactical && weapon != WeaponType.shotgun) {
       if (_reloadCue == 0 && reloadProgress.value >= .82) {
         _reloadCue = 2; // Chambered round: seat magazine, skip the bolt.
-        ref.read(soloudPlayProvider).play('reload_carbine_1.wav');
+        ref.read(soloudPlayProvider).play('reload_${weapon.name}_1.wav');
       }
     } else if (weapon != WeaponType.shotgun) {
       while (_reloadCue < 2 &&
@@ -319,9 +399,11 @@ class GameNotifier extends Notifier<GameState> {
     while (_reloadSoundsLeft > 0 && _reloadElapsedMs >= _nextReloadSoundMs) {
       ref.read(soloudPlayProvider).play('reload_shotgun_shell.wav');
       _reloadSoundsLeft--;
-      _nextReloadSoundMs += ShotgunReload.shellIntervalMs;
+      _nextReloadSoundMs +=
+          ShotgunReload.shellIntervalMs * (_reloadTactical ? .70 : 1.0);
     }
     if (weapon == WeaponType.shotgun &&
+        !_reloadTactical &&
         _reloadCue == 0 &&
         _reloadElapsedMs >= _reloadDurationMs - 180) {
       _reloadCue = 1;
@@ -343,6 +425,17 @@ class GameNotifier extends Notifier<GameState> {
     _quickRefillMs = -1;
     quickRefillProgress.value = -1;
     state = state.copyWith(noOfBullets: state.noOfBullets - 1);
+  }
+
+  void restorePrimaryUnits(int amount) {
+    if (amount <= 0 ||
+        state.reloading ||
+        state.gameplayState != GameplayState.playing) {
+      return;
+    }
+    state = state.copyWith(
+      noOfBullets: min(state.maxBullets, state.noOfBullets + amount),
+    );
   }
 
   void addBullets() {
@@ -417,7 +510,7 @@ class GameNotifier extends Notifier<GameState> {
   void resetXP() => state = state.copyWith(xP: 0);
 
   List<PowerUp> _rollOffers() {
-    final pool = eligiblePowerUps(state);
+    final pool = eligiblePowerUps(state, weapon: weapon);
     final choices = <PowerUp>[];
     while (choices.length < 3 && pool.isNotEmpty) {
       double weight(PowerUp p) =>
@@ -585,7 +678,7 @@ class GameNotifier extends Notifier<GameState> {
 
   bool get canFuse =>
       state.pendingCores > 0 &&
-      fusionRecipes.any((recipe) => recipe.available(state));
+      fusionRecipes.any((recipe) => recipe.available(state, weapon: weapon));
 
   void openBossCore() {
     if (!canFuse ||
@@ -594,7 +687,7 @@ class GameNotifier extends Notifier<GameState> {
       return;
     }
     final recipes = fusionRecipes
-        .where((r) => r.available(state))
+        .where((r) => r.available(state, weapon: weapon))
         .map((r) => r.id)
         .toList();
     state = state.copyWith(
@@ -700,9 +793,12 @@ class GameNotifier extends Notifier<GameState> {
               ? 'reload_shotgun_pump.wav'
               : 'reload_${weapon.name}_2.wav',
         );
+    final boundedCapacity = weapon == WeaponType.prismCutter
+        ? min(24, capacity)
+        : capacity;
     state = state.copyWith(
-      maxBullets: capacity,
-      noOfBullets: capacity,
+      maxBullets: boundedCapacity,
+      noOfBullets: boundedCapacity,
       reloading: false,
     );
   }
@@ -717,7 +813,8 @@ class GameNotifier extends Notifier<GameState> {
         state.movementSpeed +
         (state.rank(PowerUp.walkingSpeedIncrease) <= 3 ? 50 : 12),
   );
-  void resetWalkingSpeed() => state = state.copyWith(movementSpeed: 300);
+  void resetWalkingSpeed() =>
+      state = state.copyWith(movementSpeed: character.speed);
   void sprintDistanceIncrease() =>
       state = state.copyWith(sprintTimeDistance: state.sprintTimeDistance + 15);
   void resetSprintTimeDistance() =>
@@ -751,8 +848,9 @@ class GameNotifier extends Notifier<GameState> {
     }
     _invincibilityMs = state.sprintInvincibility
         ? state.sprintTimeDistance +
+              70 +
               max(0, state.rank(PowerUp.sprintInvincibility) - 1) * 15.0
-        : min(80, state.sprintTimeDistance).toDouble();
+        : state.sprintTimeDistance.toDouble();
     state = state.copyWith(triggerSprintInvincibility: true);
   }
 
@@ -1242,11 +1340,36 @@ final List<PowerUp> powerUps = List.unmodifiable(
   ),
 );
 
-List<PowerUp> eligiblePowerUps(GameState state) {
+bool weaponSupportsPowerUp(WeaponType weapon, PowerUp power) => switch (power) {
+  PowerUp.numberOfBulletsPerShotIncrease => weapon.supportsScatter,
+  PowerUp.bulletsPhaseThrough => weapon.supportsPierce,
+  PowerUp.ricochet || PowerUp.bankShot => weapon.supportsRicochet,
+  PowerUp.rapidFire => weapon.supportsVelocity,
+  PowerUp.bulletRangeIncrease => weapon.supportsRange,
+  PowerUp.lastShell || PowerUp.breachLoader => weapon.hasLastRound,
+  PowerUp.hotShot ||
+  PowerUp.accelerant ||
+  PowerUp.staticCharge ||
+  PowerUp.conductiveCore ||
+  PowerUp.executioner => weapon.hasDirectHits,
+  PowerUp.quickTrigger => weapon != WeaponType.prismCutter,
+  _ => true,
+};
+
+List<PowerUp> eligiblePowerUps(
+  GameState state, {
+  WeaponType weapon = WeaponType.shotgun,
+}) {
   final specialSlots = state.ranks.keys
       .where((p) => p.group == UpgradeGroup.special)
       .length;
   final eligible = powerUps.where((p) {
+    if (!weaponSupportsPowerUp(weapon, p)) return false;
+    if (weapon == WeaponType.prismCutter &&
+        p == PowerUp.maxBulletsIncrease &&
+        state.maxBullets >= 24) {
+      return false;
+    }
     if (state.banned.contains(p) || state.rank(p) >= p.maxRank) return false;
     if (p.group == UpgradeGroup.special &&
         state.rank(p) == 0 &&
@@ -1283,7 +1406,9 @@ class FusionRecipe {
   );
   final String id, title, description;
   final PowerUp first, second;
-  bool available(GameState state) =>
+  bool available(GameState state, {WeaponType weapon = WeaponType.shotgun}) =>
+      weaponSupportsPowerUp(weapon, first) &&
+      weaponSupportsPowerUp(weapon, second) &&
       state.evolutions.length < 2 &&
       !state.fused(id) &&
       state.rank(first) >= 3 &&

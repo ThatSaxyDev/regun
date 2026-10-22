@@ -1,0 +1,40 @@
+{
+  "note": "Read-only fresh HTTPS connections from laptop. TCP handshake is a rough route RTT sample, not game one-way delay; TLS/startup timings are not steady-state gameplay latency. No alternate region comparison or VPS CPU telemetry available.",
+  "samples": [
+    {
+      "status": 200,
+      "dnsMs": 1.93,
+      "tcpHandshakeMs": 180.14,
+      "tlsAfterTcpMs": 208.64,
+      "httpAfterTlsMs": 273.04
+    },
+    {
+      "status": 200,
+      "dnsMs": 3.48,
+      "tcpHandshakeMs": 156.55,
+      "tlsAfterTcpMs": 173.15,
+      "httpAfterTlsMs": 167.49
+    },
+    {
+      "status": 200,
+      "dnsMs": 2.08,
+      "tcpHandshakeMs": 165.08,
+      "tlsAfterTcpMs": 182.25,
+      "httpAfterTlsMs": 165.68
+    },
+    {
+      "status": 200,
+      "dnsMs": 2.98,
+      "tcpHandshakeMs": 160.96,
+      "tlsAfterTcpMs": 197.81,
+      "httpAfterTlsMs": 175.58
+    },
+    {
+      "status": 200,
+      "dnsMs": 3.52,
+      "tcpHandshakeMs": 160.48,
+      "tlsAfterTcpMs": 166.71,
+      "httpAfterTlsMs": 167.62
+    }
+  ]
+}

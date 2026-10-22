@@ -1,3 +1,5 @@
+import 'package:regun/systems/arsenal_system.dart';
+import 'package:regun/systems/freeze_state.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/systems/grenades.dart';
 import 'package:regun/systems/supply_drops.dart';
@@ -14,7 +16,41 @@ class RunCheckpoint {
           (map['id'] as String).isEmpty) {
         return false;
       }
-      Loadout.fromJson(Map<String, dynamic>.from(map['loadout'] as Map));
+      final loadout = Loadout.fromJson(
+        Map<String, dynamic>.from(map['loadout'] as Map),
+      );
+      if (map['arsenal'] case final Map raw) {
+        ArsenalSystem.validate(Map<String, dynamic>.from(raw), loadout.weapon);
+      }
+      final ids = <int>{};
+      for (final actor in map['enemies'] as List) {
+        if (actor['cinder'] != null &&
+            (actor['cinder'] is! num ||
+                !(actor['cinder'] as num).isFinite ||
+                actor['cinder'] < 0 ||
+                actor['cinder'] > 1)) {
+          return false;
+        }
+        if (actor['cinderTick'] != null &&
+            (actor['cinderTick'] is! num ||
+                !(actor['cinderTick'] as num).isFinite ||
+                actor['cinderTick'] < 0 ||
+                actor['cinderTick'] > .5)) {
+          return false;
+        }
+        if (actor['combatId'] case final int id) {
+          if (id < 1 || id > 1000000000 || !ids.add(id)) return false;
+        }
+        if (actor['freeze'] case final Map raw) {
+          FreezeState().restore(Map<String, dynamic>.from(raw));
+        }
+      }
+      if (map.containsKey('burstRecovery')) {
+        final value = map['burstRecovery'];
+        if (value is! num || !value.isFinite || value < 0 || value > .6) {
+          return false;
+        }
+      }
       if (map.containsKey('supplyDrops')) {
         SupplyDrops().restore(
           Map<String, dynamic>.from(map['supplyDrops'] as Map),
@@ -55,7 +91,8 @@ class RunCheckpoint {
           state.maxHealth > 10000 ||
           state.noOfBullets < 0 ||
           state.noOfBullets > state.maxBullets ||
-          state.maxBullets > 100 ||
+          state.maxBullets >
+              (loadout.weapon == WeaponType.beltRepeater ? 128 : 100) ||
           state.maxBullets < 1 ||
           state.xP < 0 ||
           !state.noOfCoinsToUpgrade.isFinite ||

@@ -8,6 +8,9 @@ RATE = 44100
 # Source, trim, pitch ratio, tempo correction, output duration, low-pass, peak.
 # Source pitch drops slightly; atempo keeps each action short without brightening it.
 CUES = {
+    'burstRifle_0': ('rifle_reload_springyspringo.wav', .14, .49, .94, 1.80, .24, 2300, .46),
+    'burstRifle_1': ('rifle_reload_springyspringo.wav', .97, 1.19, .92, 1.25, .22, 2200, .50),
+    'burstRifle_2': ('rifle_reload_springyspringo.wav', 1.18, 1.51, .90, 1.75, .24, 2400, .54),
     'shotgun_shell': ('handgun_reload_zer0sol.wav', .55, .81, .82, 1.65, .20, 1800, .38),
     'shotgun_pump': ('shotgun_pump_springyspringo.wav', .025, .41, .86, 1.85, .26, 2400, .60),
     'carbine_0': ('rifle_reload_springyspringo.wav', .14, .49, .88, 1.75, .25, 2200, .46),
@@ -22,9 +25,10 @@ CUES = {
 }
 
 
-def generate():
+def generate(only=None):
     rows = []
     for cue, (source, start, end, pitch, tempo, duration, cutoff, peak) in CUES.items():
+        if only and not cue.startswith(only + '_'): continue
         filters = (f'atrim=start={start}:end={end},asetpts=PTS-STARTPTS,'
                    f'asetrate={round(RATE*pitch)},aresample={RATE},atempo={tempo},'
                    f'highpass=f=85,lowpass=f={cutoff}:p=2,lowpass=f=3200:p=2,bass=g=3:f=220')

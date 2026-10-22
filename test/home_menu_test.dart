@@ -191,6 +191,7 @@ void main() {
           home: Scaffold(
             body: HomeMenu(
               ready: true,
+              onlineAvailable: false,
               reducedMotion: true,
               onPlay: () {},
               onOnline: () => online++,

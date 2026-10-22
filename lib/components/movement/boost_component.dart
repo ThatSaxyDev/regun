@@ -8,24 +8,31 @@ import 'package:regun/theme/pixel_glyph.dart';
 class BoostButtonComponent extends AdvancedButtonComponent
     with HasGameReference<RegunGame> {
   BoostButtonComponent({super.onPressed, this.tapped = false})
-      : super(
-          defaultSkin: ActionControlSkin(glyph: PixelGlyph.dash, label: 'DASH'),
-          downSkin: ActionControlSkin(
-              glyph: PixelGlyph.dash, label: 'DASH', pressed: true),
-          size: Vector2.all(112),
-          position: Vector2(1130, 585),
-          anchor: Anchor.center,
-        );
+    : super(
+        defaultSkin: ActionControlSkin(glyph: PixelGlyph.dash, label: 'DASH'),
+        downSkin: ActionControlSkin(
+          glyph: PixelGlyph.dash,
+          label: 'DASH',
+          pressed: true,
+        ),
+        size: Vector2.all(112),
+        position: Vector2(1130, 585),
+        anchor: Anchor.center,
+      );
 
   bool tapped;
   double _remaining = 0;
   double _cooldown = 0, _cooldownDuration = 1.6;
-  Map<String, dynamic> checkpoint() =>
-      {'remaining': _cooldown, 'duration': _cooldownDuration};
+  Map<String, dynamic> checkpoint() => {
+    'remaining': _cooldown,
+    'duration': _cooldownDuration,
+  };
   void restoreCheckpoint(Map<String, dynamic> map) {
     _cooldown = ((map['remaining'] as num?)?.toDouble() ?? 0).clamp(0, 1.6);
-    _cooldownDuration =
-        ((map['duration'] as num?)?.toDouble() ?? 1.6).clamp(0.6, 1.6);
+    _cooldownDuration = ((map['duration'] as num?)?.toDouble() ?? 1.6).clamp(
+      0.6,
+      1.6,
+    );
   }
 
   double get cooldownFraction => (_cooldown / _cooldownDuration).clamp(0, 1);
@@ -61,11 +68,13 @@ class BoostButtonComponent extends AdvancedButtonComponent
     }
     final movement = game.movementJoystick.relativeDelta;
     final aim = game.weaponJoystick.relativeDelta;
-    game.myPlayer.dashDirection.setFrom(!movement.isZero()
-        ? movement.normalized()
-        : !aim.isZero()
-            ? aim.normalized()
-            : game.myPlayer.lastMovement);
+    game.myPlayer.dashDirection.setFrom(
+      !movement.isZero()
+          ? movement.normalized()
+          : !aim.isZero()
+          ? aim.normalized()
+          : game.myPlayer.lastMovement,
+    );
     _cooldown = (1.6 - game.gameState.effectRank(PowerUp.quickstep) * 0.25)
         .clamp(0.6, 1.6);
     _cooldownDuration = _cooldown;

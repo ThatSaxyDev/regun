@@ -65,6 +65,27 @@ Future<RegunGame> mount(WidgetTester tester, {bool training = false}) async {
 }
 
 void main() {
+  testWidgets('dash rejects boss, projectile and floor damage throughout movement', (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final game = await mount(tester);
+    final health = game.gameState.health;
+    game.boostButtonComponent.tapped = true;
+    game.gameNotifier.triggerSprintInvincibility();
+    game.gameNotifier.advanceTime(.14);
+    for (final cause in ['Chain Magistrate', 'Marshal laser', 'Revenant shot', 'Burning ground']) {
+      expect(game.damagePlayer(amount: 3, cause: cause), isFalse);
+    }
+    expect(game.gameState.health, health);
+    // Active movement remains immune even if notifier/frame order crosses expiry.
+    game.gameNotifier.advanceTime(.02);
+    expect(game.damagePlayer(cause: 'Chain Magistrate'), isFalse);
+    game.boostButtonComponent.cancelDash();
+    expect(game.damagePlayer(cause: 'Burning ground'), isTrue);
+    expect(game.gameState.health, health-1);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets(
       'training separates bosses and fusions and safely replaces practice bosses',
       (tester) async {

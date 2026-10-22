@@ -63,6 +63,8 @@ class CombatSystem {
     PositionComponent enemy,
     double amount, {
     bool primary = true,
+    bool allowChain = true,
+    bool armorPiercing = false,
     Vector2? direction,
   }) {
     if (enemy is BossWeakPoint) return enemy.takeDamage(amount);
@@ -75,6 +77,7 @@ class CombatSystem {
     if (enemy.combatHealth.isDead) return false;
     enemy.lastHitWasSecondary = !primary;
     enemy.incomingDirection = direction;
+    enemy.incomingArmorPiercing = primary && armorPiercing;
     if (primary) {
       if (rank(PowerUp.hotShot) > 0) {
         enemy.ignite(0.25 + effect(PowerUp.hotShot) * 0.2);
@@ -90,7 +93,8 @@ class CombatSystem {
     }
     if (primary) {
       final innate = game.loadout.weapon == WeaponType.arcCaster;
-      if (_chainBudget > 0 &&
+      if (allowChain &&
+          _chainBudget > 0 &&
           (innate ||
               game.random.nextDouble() < effect(PowerUp.staticCharge) * 0.12)) {
         _chainBudget--;

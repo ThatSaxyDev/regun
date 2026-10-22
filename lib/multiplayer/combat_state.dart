@@ -33,6 +33,7 @@ class OnlineGun {
   int get ammo => combatNumber(data, 'ammo').toInt();
   int get baseCapacity => switch (weapon) {
     'carbine' => 24,
+    'burstRifle' => 18,
     'revolver' || 'arcCaster' => 6,
     _ => 5,
   };

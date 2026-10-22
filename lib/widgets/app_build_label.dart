@@ -13,18 +13,22 @@ class _AppBuildLabelState extends State<AppBuildLabel> {
   late final _info = PackageInfo.fromPlatform();
   @override
   Widget build(BuildContext context) => FutureBuilder<PackageInfo>(
-      future: _info,
-      builder: (context, snapshot) {
-        final info = snapshot.data;
-        if (info == null) return const SizedBox(height: 14);
-        return Text('v${info.version} (${info.buildNumber})',
-            key: const ValueKey('app-build-label'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontFamily: FontFam.orbitron,
-                fontSize: 10,
-                height: 1.4,
-                letterSpacing: 1,
-                color: Color(0xffB8A78F)));
-      });
+    future: _info,
+    builder: (context, snapshot) {
+      final info = snapshot.data;
+      if (info == null) return const SizedBox(height: 14);
+      return Text(
+        'v${info.version} (${info.buildNumber})',
+        key: const ValueKey('app-build-label'),
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontFamily: FontFam.orbitron,
+          fontSize: 10,
+          height: 1.4,
+          letterSpacing: 1,
+          color: Color(0xffB8A78F),
+        ),
+      );
+    },
+  );
 }

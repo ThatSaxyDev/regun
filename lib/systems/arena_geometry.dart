@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flame/components.dart';
 import 'package:regun/systems/arena_bounds.dart';
 
@@ -16,7 +17,7 @@ class ArenaGeometry {
         point.x - expanded.left,
         expanded.right - point.x,
         point.y - expanded.top,
-        expanded.bottom - point.y
+        expanded.bottom - point.y,
       ];
       var nearest = 0;
       for (var i = 1; i < 4; i++) {
@@ -36,8 +37,10 @@ class ArenaGeometry {
   }
 
   void move(Vector2 point, Vector2 delta, double radius) {
-    final steps =
-        (delta.length / (radius * 0.6).clamp(8, 50)).ceil().clamp(1, 256);
+    final steps = (delta.length / (radius * 0.6).clamp(8, 50)).ceil().clamp(
+      1,
+      256,
+    );
     for (var i = 0; i < steps; i++) {
       point.addScaled(delta, 1 / steps);
       constrain(point, radius);
@@ -55,7 +58,7 @@ class ArenaGeometry {
       start.x - rect.left,
       rect.right - start.x,
       start.y - rect.top,
-      rect.bottom - start.y
+      rect.bottom - start.y,
     ];
     for (var i = 0; i < 4; i++) {
       if (p[i] == 0) {

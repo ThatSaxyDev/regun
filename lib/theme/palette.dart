@@ -13,8 +13,8 @@ class Palette {
   static const backButtonGrey = Color(0xffF4F5F5);
   static const orange = Color(0xffD95700);
 
-  static var imagePlaceHolder2 =
-      const Color(0xff969696).withValues(alpha: 0.29);
+  static var imagePlaceHolder2 = const Color(0xff969696)
+      .withValues(alpha: 0.29);
   static const imagePlaceHolder3 = Color(0xffECE9D9);
 
   static const greey = Color(0xffC4C4C4);
@@ -42,12 +42,16 @@ class Palette {
   static const inactiveButtonBlue = Color(0xff37313B);
   static const inactiveButtonShadow = Color(0xff17131B);
   static const gradientGrey = Color(0xffD9D9D9);
-  static const buttonRed =
-      Color(0xffCB7967); // A red variant similar in shade to buttonBlue
-  static const buttonShadowRed =
-      Color(0xff482A29); // A darker red variant for the shadow
-  static const buttonBlueVariant =
-      Color(0xffC6B7A1); // A slightly darker blue variant
-  static const buttonShadowBlueVariant =
-      Color(0xff302832); // A darker blue variant for the shadow
+  static const buttonRed = Color(
+    0xffCB7967,
+  ); // A red variant similar in shade to buttonBlue
+  static const buttonShadowRed = Color(
+    0xff482A29,
+  ); // A darker red variant for the shadow
+  static const buttonBlueVariant = Color(
+    0xffC6B7A1,
+  ); // A slightly darker blue variant
+  static const buttonShadowBlueVariant = Color(
+    0xff302832,
+  ); // A darker blue variant for the shadow
 }

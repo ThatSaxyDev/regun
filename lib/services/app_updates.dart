@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -14,8 +15,10 @@ import 'package:url_launcher/url_launcher.dart';
 export 'package:telling_logger/telling_logger.dart' show VersionCheckResult;
 
 const tellingProjectKey = String.fromEnvironment('TELLING_PROJECT_KEY');
-const tellingApiUrl = String.fromEnvironment('TELLING_API_URL',
-    defaultValue: 'https://telling-api.kiishi.space/api/v1');
+const tellingApiUrl = String.fromEnvironment(
+  'TELLING_API_URL',
+  defaultValue: 'https://telling-api.kiishi.space/api/v1',
+);
 final appUpdatesProvider = Provider<AppUpdates>((ref) => AppUpdates());
 
 /// Telling release configuration only. No crash hooks, player IDs or analytics.
@@ -28,12 +31,13 @@ class AppUpdates {
     http.Client Function()? client,
     Future<bool> Function(Uri)? open,
     DateTime Function()? now,
-  })  : platform = platform ?? defaultTargetPlatform,
-        version = version ?? PackageInfo.fromPlatform,
-        client = client ?? http.Client.new,
-        open = open ??
-            ((uri) => launchUrl(uri, mode: LaunchMode.externalApplication)),
-        now = now ?? DateTime.now;
+  }) : platform = platform ?? defaultTargetPlatform,
+       version = version ?? PackageInfo.fromPlatform,
+       client = client ?? http.Client.new,
+       open =
+           open ??
+           ((uri) => launchUrl(uri, mode: LaunchMode.externalApplication)),
+       now = now ?? DateTime.now;
 
   final String apiKey, serverUrl;
   final TargetPlatform platform;
@@ -78,9 +82,9 @@ class AppUpdates {
         return uri;
       }
       final release = RegExp(
-              '^/testerapps/${RegExp.escape(_androidFirebaseAppId)}'
-              r'/releases/[A-Za-z0-9]+/?$')
-          .hasMatch(uri.path);
+        '^/testerapps/${RegExp.escape(_androidFirebaseAppId)}'
+        r'/releases/[A-Za-z0-9]+/?$',
+      ).hasMatch(uri.path);
       if (uri.host == 'appdistribution.firebase.google.com' && release) {
         return uri;
       }
@@ -118,8 +122,9 @@ class AppUpdates {
           get: (uri, headers) async {
             final response = await transport.get(uri, headers: headers);
             if (response.statusCode != 200) return null;
-            final data =
-                Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+            final data = Map<String, dynamic>.from(
+              jsonDecode(response.body) as Map,
+            );
             // A malformed response must not clear an existing required prompt.
             if (data['requiresUpdate'] is! bool ||
                 (data['requiresUpdate'] == true &&
@@ -138,15 +143,15 @@ class AppUpdates {
         if (result.isRequired) return result;
         final prefs = await SharedPreferences.getInstance();
         if (telling_version.isUpdateSnoozed(
-            result: result,
-            storedTarget: prefs.getString(_targetKey),
-            storedUntil: prefs.getString(_snoozeKey),
-            now: now())) {
+          result: result,
+          storedTarget: prefs.getString(_targetKey),
+          storedUntil: prefs.getString(_snoozeKey),
+          now: now(),
+        )) {
           return VersionCheckResult.noUpdateRequired;
         }
         return result;
-      })()
-          .timeout(const Duration(seconds: 5));
+      })().timeout(const Duration(seconds: 5));
     } finally {
       transport.close();
     }
@@ -156,8 +161,10 @@ class AppUpdates {
     if (result.isRequired || result.snoozeTarget == null) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_targetKey, result.snoozeTarget!);
-    await prefs.setString(_snoozeKey,
-        now().add(const Duration(days: 1)).toUtc().toIso8601String());
+    await prefs.setString(
+      _snoozeKey,
+      now().add(const Duration(days: 1)).toUtc().toIso8601String(),
+    );
   }
 
   Future<bool> openStore(VersionCheckResult result) async {

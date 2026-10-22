@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-21",
+  "scope": "First native Burst Rifle slice of fifteen-weapon expansion; ten additions remain unimplemented",
+  "releaseIdentity": "1.0.0+11",
+  "baseline": {
+    "flutterTestsPassed": 267,
+    "optionalSkipped": 5,
+    "analyzer": "clean"
+  },
+  "validation": {
+    "flutterTestsPassed": 283,
+    "optionalSkipped": 5,
+    "analyzer": "clean",
+    "serverTestsPassed": 88,
+    "serverTypecheck": "passed",
+    "serverBuild": "passed",
+    "iosReleaseNoCodesign": "passed",
+    "installed": true,
+    "serverDeployed": false,
+    "longSoakRun": false,
+    "physicalAcceptance": "pending",
+    "iosSignedRelease": "passed",
+    "phoneLaunch": "passed",
+    "appDataCleared": false
+  },
+  "art": {
+    "packet": "assets/art/weapons/burst_rifle.png",
+    "sha256": "3c15bc6333209bc766661d2ae6e5d8f43ec4bd7c19821f317ec66110561e8ccc",
+    "decodedSharedMiBReported": 30.3,
+    "existingBossPairBudgetTests": "passed <=32MiB",
+    "rendererContactSheet": "build/test-previews/burst-rifle-mechanism.png",
+    "gameplayCapture": "build/test-previews/rounds-burstRifle.png",
+    "generation": "built-in image_gen.imagegen; original RGBA copied unchanged",
+    "promptRecord": "art/source/weapons/BURST_RIFLE.md"
+  },
+  "online": "Burst Rifle excluded from client loadout options and rejected by server lobby admission until expanded-weapon negotiation is implemented",
+  "knownRemaining": [
+    "Ten other expansion weapons, including three-pellet Frost Shotgun",
+    "Complete shared WeaponRuntime extraction and typed resource/capability system",
+    "Expanded online negotiation, prediction and native remote-play validation",
+    "New weapon moving sprite/audio/comfort/balance review on physical phones"
+  ],
+  "deviceDelivery": {
+    "device": "creator iPhone 12",
+    "bundle": "dev.kiishi.regun",
+    "version": "1.0.0+11",
+    "method": "CoreDevice in-place install and foreground launch",
+    "physicalGameplayAcceptance": "pending",
+    "ipaExported": false
+  }
+}

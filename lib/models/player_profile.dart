@@ -1,30 +1,32 @@
 import 'package:regun/data/loadout.dart';
 
 class PlayerProfile {
-  PlayerProfile(
-      {this.scrap = 0,
-      this.totalKills = 0,
-      this.scorpionKills = 0,
-      this.eliteKills = 0,
-      this.bestSeconds = 0,
-      this.bestScore = 0,
-      this.assistedBestScore = 0,
-      this.assistedBestSeconds = 0,
-      Set<String>? challenges,
-      Set<String>? discoveredEnemies,
-      Set<String>? fusions,
-      Set<String>? cycleWeapons,
-      Set<String>? cycleCharacters,
-      Set<String>? settledRuns,
-      Set<String>? owned,
-      this.cosmetic = 'standard'})
-      : challenges = challenges ?? {},
-        discoveredEnemies = discoveredEnemies ?? {},
-        fusions = fusions ?? {},
-        cycleWeapons = cycleWeapons ?? {},
-        cycleCharacters = cycleCharacters ?? {},
-        settledRuns = settledRuns ?? {},
-        owned = owned ?? {'standard'};
+  PlayerProfile({
+    this.scrap = 0,
+    this.totalKills = 0,
+    this.totalBossVictories = 0,
+    this.scorpionKills = 0,
+    this.eliteKills = 0,
+    this.bestSeconds = 0,
+    this.bestScore = 0,
+    this.assistedBestScore = 0,
+    this.assistedBestSeconds = 0,
+    Set<String>? challenges,
+    Set<String>? discoveredEnemies,
+    Set<String>? fusions,
+    Set<String>? cycleWeapons,
+    Set<String>? cycleCharacters,
+    Set<String>? settledRuns,
+    Set<String>? owned,
+    this.cosmetic = 'standard',
+  }) : challenges = challenges ?? {},
+       discoveredEnemies = discoveredEnemies ?? {},
+       fusions = fusions ?? {},
+       cycleWeapons = cycleWeapons ?? {},
+       cycleCharacters = cycleCharacters ?? {},
+       settledRuns = settledRuns ?? {},
+       owned = owned ?? {'standard'};
+  int totalBossVictories;
   int scrap, totalKills, scorpionKills, eliteKills, bestSeconds, bestScore;
   int assistedBestScore, assistedBestSeconds;
   final Set<String> challenges,
@@ -37,33 +39,42 @@ class PlayerProfile {
   String cosmetic;
   bool get tutorialComplete => challenges.contains('training');
   bool weaponUnlocked(WeaponType weapon) => switch (weapon) {
-        WeaponType.shotgun => true,
-        WeaponType.carbine => challenges.contains('training'),
-        WeaponType.revolver => challenges.contains('revolver'),
-        WeaponType.arcCaster => challenges.contains('arcCaster'),
-      };
+    WeaponType.shotgun => true,
+    WeaponType.carbine => challenges.contains('training'),
+    WeaponType.revolver => challenges.contains('revolver'),
+    WeaponType.burstRifle => challenges.contains('burstRifle'),
+    WeaponType.arcCaster => challenges.contains('arcCaster'),
+    _ =>
+      challenges.contains(weapon.name) ||
+          (weapon == WeaponType.longwatchSniper &&
+              challenges.contains('breachHammer')) ||
+          totalBossVictories >= weapon.victoryRequirement,
+  };
   bool characterUnlocked(CharacterType character) =>
       character == CharacterType.rook || challenges.contains(character.name);
   bool arenaUnlocked(ArenaType arena) =>
       arena == ArenaType.breach || challenges.contains('foundry');
 
-  Set<String> settle(
-      {required String runId,
-      required Loadout loadout,
-      required int kills,
-      required int score,
-      required int seconds,
-      required int earnedScrap,
-      required int scorpions,
-      required int elites,
-      required Set<String> bosses,
-      required Set<String> noHitBosses,
-      required Set<String> foundFusions,
-      required Set<String> enemies,
-      bool assisted = false}) {
+  Set<String> settle({
+    required String runId,
+    required Loadout loadout,
+    required int kills,
+    required int score,
+    required int seconds,
+    required int earnedScrap,
+    required int scorpions,
+    required int elites,
+    required Set<String> bosses,
+    int? bossVictories,
+    required Set<String> noHitBosses,
+    required Set<String> foundFusions,
+    required Set<String> enemies,
+    bool assisted = false,
+  }) {
     if (loadout.training || settledRuns.contains(runId)) return {};
     settledRuns.add(runId);
     totalKills += kills;
+    totalBossVictories += (bossVictories ?? bosses.length).clamp(0, 1000000);
     scorpionKills += scorpions;
     eliteKills += elites;
     scrap += earnedScrap;
@@ -81,6 +92,10 @@ class PlayerProfile {
       cycleCharacters.add(loadout.character.name);
     }
     final unlocked = <String>{
+      for (final weapon in WeaponType.values)
+        if (weapon.victoryRequirement > 0 &&
+            totalBossVictories >= weapon.victoryRequirement)
+          weapon.name,
       if (totalKills >= 500) 'scrapper',
       if (bestSeconds >= 480) 'warden',
       if (bosses.contains('shadow')) 'revolver',
@@ -106,46 +121,49 @@ class PlayerProfile {
   }
 
   Map<String, dynamic> toJson() => {
-        'schema': 1,
-        'assistedBestScore': assistedBestScore,
-        'assistedBestSeconds': assistedBestSeconds,
-        'scrap': scrap,
-        'totalKills': totalKills,
-        'scorpionKills': scorpionKills,
-        'eliteKills': eliteKills,
-        'bestSeconds': bestSeconds,
-        'bestScore': bestScore,
-        'challenges': challenges.toList(),
-        'enemies': discoveredEnemies.toList(),
-        'fusions': fusions.toList(),
-        'cycleWeapons': cycleWeapons.toList(),
-        'cycleCharacters': cycleCharacters.toList(),
-        'settledRuns': settledRuns.toList(),
-        'owned': owned.toList(),
-        'cosmetic': cosmetic
-      };
+    'schema': 2,
+    'totalBossVictories': totalBossVictories,
+    'assistedBestScore': assistedBestScore,
+    'assistedBestSeconds': assistedBestSeconds,
+    'scrap': scrap,
+    'totalKills': totalKills,
+    'scorpionKills': scorpionKills,
+    'eliteKills': eliteKills,
+    'bestSeconds': bestSeconds,
+    'bestScore': bestScore,
+    'challenges': challenges.toList(),
+    'enemies': discoveredEnemies.toList(),
+    'fusions': fusions.toList(),
+    'cycleWeapons': cycleWeapons.toList(),
+    'cycleCharacters': cycleCharacters.toList(),
+    'settledRuns': settledRuns.toList(),
+    'owned': owned.toList(),
+    'cosmetic': cosmetic,
+  };
   factory PlayerProfile.fromJson(Map<String, dynamic> json) {
     int number(String key) =>
         ((json[key] as num?)?.toInt() ?? 0).clamp(0, 1000000000);
     Set<String> strings(String key) =>
         (json[key] as List? ?? []).whereType<String>().toSet();
     return PlayerProfile(
-        scrap: number('scrap'),
-        totalKills: number('totalKills'),
-        scorpionKills: number('scorpionKills'),
-        eliteKills: number('eliteKills'),
-        bestSeconds: number('bestSeconds'),
-        bestScore: number('bestScore'),
-        assistedBestScore: number('assistedBestScore'),
-        assistedBestSeconds: number('assistedBestSeconds'),
-        challenges: strings('challenges'),
-        discoveredEnemies: strings('enemies'),
-        fusions: strings('fusions'),
-        cycleWeapons: strings('cycleWeapons'),
-        cycleCharacters: strings('cycleCharacters'),
-        settledRuns: strings('settledRuns'),
-        owned: strings('owned')..add('standard'),
-        cosmetic: json['cosmetic'] as String? ?? 'standard');
+      scrap: number('scrap'),
+      totalKills: number('totalKills'),
+      totalBossVictories: number('totalBossVictories'),
+      scorpionKills: number('scorpionKills'),
+      eliteKills: number('eliteKills'),
+      bestSeconds: number('bestSeconds'),
+      bestScore: number('bestScore'),
+      assistedBestScore: number('assistedBestScore'),
+      assistedBestSeconds: number('assistedBestSeconds'),
+      challenges: strings('challenges'),
+      discoveredEnemies: strings('enemies'),
+      fusions: strings('fusions'),
+      cycleWeapons: strings('cycleWeapons'),
+      cycleCharacters: strings('cycleCharacters'),
+      settledRuns: strings('settledRuns'),
+      owned: strings('owned')..add('standard'),
+      cosmetic: json['cosmetic'] as String? ?? 'standard',
+    );
   }
 }
 
@@ -159,6 +177,6 @@ const cosmeticIds = [
   'endless',
   'scorpionCharm',
   'eliteHunter',
-  'survivor'
+  'survivor',
 ];
 const shopCosmetics = {'copper': 100, 'moss': 100, 'ivory': 150};

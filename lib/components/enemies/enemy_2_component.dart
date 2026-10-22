@@ -10,10 +10,7 @@ import 'package:regun/game.dart';
 class Enemy2Component extends SpriteAnimationComponent
     with HasGameReference<RegunGame>, CollisionCallbacks, CombatEnemy {
   Enemy2Component({super.position})
-      : super(
-          size: Vector2.all(enemySize),
-          anchor: Anchor.center,
-        );
+    : super(size: Vector2.all(enemySize), anchor: Anchor.center);
   static const enemySize = 100.0;
   @override
   double get impactResponse => .7;
@@ -36,19 +33,30 @@ class Enemy2Component extends SpriteAnimationComponent
   Future<void> onLoad() async {
     await super.onLoad();
     initializeHealth(6 * game.director.healthScale);
-    moveLeftAnimation = moveRightAnimation =
-        RegunArt.shared.animation('enemies/mummy', step: 1 / 12);
-    attackLeftAnimation = attackRightAnimation = RegunArt.shared
-        .animation('enemies/mummy', row: 1, from: 1, count: 2, step: .3);
+    moveLeftAnimation = moveRightAnimation = RegunArt.shared.animation(
+      'enemies/mummy',
+      step: 1 / 12,
+    );
+    attackLeftAnimation = attackRightAnimation = RegunArt.shared.animation(
+      'enemies/mummy',
+      row: 1,
+      from: 1,
+      count: 2,
+      step: .3,
+    );
     deathLeftAnimation = deathRightAnimation = RegunArt.shared.animation(
-        'enemies/mummy',
-        row: 1,
-        from: 3,
-        count: 1,
-        step: .6,
-        loop: false);
-    hurtLeftAnimation = hurtRightAnimation =
-        RegunArt.shared.animation('enemies/mummy', row: 1, count: 1);
+      'enemies/mummy',
+      row: 1,
+      from: 3,
+      count: 1,
+      step: .6,
+      loop: false,
+    );
+    hurtLeftAnimation = hurtRightAnimation = RegunArt.shared.animation(
+      'enemies/mummy',
+      row: 1,
+      count: 1,
+    );
     animation = moveRightAnimation;
     add(
       CircleHitbox(
@@ -76,9 +84,9 @@ class Enemy2Component extends SpriteAnimationComponent
       return;
     }
 
+    if (freezeHeld) return;
     final facingLeft = game.myPlayer.position.x < position.x;
     if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
-
 
     //! PLAYER POSITION
     final playerPosition = game.myPlayer.position;
@@ -123,6 +131,14 @@ class Enemy2Component extends SpriteAnimationComponent
         animation = attackLeftAnimation;
       }
     }
+  }
+
+  @override
+  void onFreezeStarted() {
+    isAttacking = false;
+    timeSinceLastAttack = 0;
+    animation = moveRightAnimation;
+    animationTicker?.reset();
   }
 
   @override

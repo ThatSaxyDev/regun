@@ -257,10 +257,18 @@ class SupplyDropBody extends PositionComponent
     )..layout();
     title.paint(canvas, Offset(-title.width / 2, -163));
     if (d.phase == SupplyPhase.active && !d.inside) {
-      final hint = TextPainter(text: const TextSpan(text: 'Hold for upgrade',
-          style: TextStyle(fontFamily: 'Orbitron', fontSize: 14, color: Color(0xffB4A797))),
-          textDirection: TextDirection.ltr)..layout();
-      hint.paint(canvas, const Offset(-102,-145));
+      final hint = TextPainter(
+        text: const TextSpan(
+          text: 'Hold for upgrade',
+          style: TextStyle(
+            fontFamily: 'Orbitron',
+            fontSize: 14,
+            color: Color(0xffB4A797),
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      hint.paint(canvas, const Offset(-102, -145));
     }
     if (d.phase == SupplyPhase.active) {
       for (var i = 0; i < 16; i++) {

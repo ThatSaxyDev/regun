@@ -23,7 +23,7 @@ def treble(path, a):
     return energy(b)/max(energy(a), 1e-12)
 
 names = sorted((ROOT/'assets/audio').glob('reload_*.wav'))
-assert len(names) == 11
+assert len(names) == 44, 'All fifteen weapon reload packets must be present'
 with (OUT/'reload_audio.csv').open('w') as f:
     writer = csv.writer(f)
     writer.writerow(['file','seconds','peak','rms','dc','above_3khz_ratio','sha256'])
@@ -45,7 +45,7 @@ def sequence(mix, directory, offset, gain, all_weapons=False):
         add(mix, directory, 'reload_shotgun_shell.wav', offset+.3+shell*.7, gain)
     add(mix, directory, 'reload_shotgun_pump.wav', offset+.3+3.52, gain)
     for weapon,start,duration in [('carbine',4.5,1.8)]+(
-            [('revolver',7,2.1),('arcCaster',10,2.4)] if all_weapons else []):
+            [('revolver',7,2.1),('arcCaster',10,2.4),('burstRifle',13,2.0)] if all_weapons else []):
         for cue,phase in enumerate([0,.42,.82]):
             add(mix,directory,f'reload_{weapon}_{cue}.wav',offset+start+phase*duration,gain)
 
@@ -56,12 +56,12 @@ def write(name,mix):
         f.writeframes(struct.pack('<'+'h'*len(mix), *[round(x*32767) for x in mix]))
     return round(peak,4)
 
-mix = [0.0]*(14*RATE)
+mix = [0.0]*(17*RATE)
 sequence(mix, ROOT/'assets/audio',0,.32,True)
 peak = write('reload_mix.wav',mix)
 before = OUT/'reload-before'
 if before.exists():
-    mix = [0.0]*(14*RATE)
+    mix = [0.0]*(17*RATE)
     sequence(mix,before,0,.42)
     sequence(mix,ROOT/'assets/audio',7,.32)
     write('reload_before_after.wav',mix)

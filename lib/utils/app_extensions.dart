@@ -2,6 +2,7 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_animate/flutter_animate.dart";
+
 // import "package:flutter_screenutil/flutter_screenutil.dart";
 // import "package:intl/intl.dart";
 // import 'package:url_launcher/url_launcher.dart' show launchUrl;
@@ -551,45 +552,36 @@ extension WidgetAnimation on Widget {
     Duration? delay,
     Duration? animatiomDuration,
     Offset? offset,
-  }) =>
-      animate(delay: delay ?? 500.ms)
-          .move(
-            duration: animatiomDuration ?? 500.ms,
-            begin: offset ?? const Offset(0, -10),
-          )
-          .fade(duration: animatiomDuration ?? 500.ms);
+  }) => animate(delay: delay ?? 500.ms)
+      .move(
+        duration: animatiomDuration ?? 500.ms,
+        begin: offset ?? const Offset(0, -10),
+      )
+      .fade(duration: animatiomDuration ?? 500.ms);
 
   Animate fadeInFromBottom({
     Duration? delay,
     Duration? animatiomDuration,
     Offset? offset,
-  }) =>
-      animate(delay: delay ?? 500.ms)
-          .move(
-            duration: animatiomDuration ?? 500.ms,
-            begin: offset ?? const Offset(0, 10),
-          )
-          .fade(duration: animatiomDuration ?? 500.ms);
+  }) => animate(delay: delay ?? 500.ms)
+      .move(
+        duration: animatiomDuration ?? 500.ms,
+        begin: offset ?? const Offset(0, 10),
+      )
+      .fade(duration: animatiomDuration ?? 500.ms);
 
   Animate fadeIn({
     Duration? delay,
     Duration? animatiomDuration,
     Curve? curve,
-  }) =>
-      animate(delay: delay ?? 500.ms).fade(
-        duration: animatiomDuration ?? 500.ms,
-        curve: curve ?? Curves.decelerate,
-      );
+  }) => animate(delay: delay ?? 500.ms).fade(
+    duration: animatiomDuration ?? 500.ms,
+    curve: curve ?? Curves.decelerate,
+  );
 }
 
 //! enum for fontweight
-enum F {
-  w3,
-  w5,
-  w6,
-  w7,
-  w8,
-}
+enum F { w3, w5, w6, w7, w8 }
 
 /// Extension for creating a ValueNotifier from a value directly.
 extension ValueNotifierExtension<T> on T {
@@ -602,12 +594,9 @@ extension ValueNotifierExtension<T> on T {
 extension ValueNotifierBuilderExtension<T> on ValueNotifier<T> {
   Widget sync({
     required Widget Function(BuildContext context, T value, Widget? child)
-        builder,
+    builder,
   }) {
-    return ValueListenableBuilder<T>(
-      valueListenable: this,
-      builder: builder,
-    );
+    return ValueListenableBuilder<T>(valueListenable: this, builder: builder);
   }
 }
 
@@ -650,9 +639,9 @@ extension ListenableBuilderExtension on List<Listenable> {
 
 extension HapticFeedbackForApp on bool {
   Future<void> withHapticFeedback() async => switch (this) {
-        true => await HapticFeedback.lightImpact(),
-        false => await HapticFeedback.mediumImpact(),
-      };
+    true => await HapticFeedback.lightImpact(),
+    false => await HapticFeedback.mediumImpact(),
+  };
 }
 
 Future<bool> onWillPop() async {
@@ -683,9 +672,6 @@ const String dateFormatter = 'EEE, dd MMM yyyy';
 
 extension IgnorePointerExtension on Widget {
   Widget ignoreTaps(bool ignoring, {Widget? child}) {
-    return IgnorePointer(
-      ignoring: ignoring,
-      child: this,
-    );
+    return IgnorePointer(ignoring: ignoring, child: this);
   }
 }

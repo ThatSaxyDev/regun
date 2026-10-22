@@ -3,10 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:regun/views/menu_view.dart';
 
-enum Routes {
-  menu,
-  game,
-}
+enum Routes { menu, game }
 
 GoRouter goRouter() {
   return GoRouter(
@@ -21,12 +18,12 @@ GoRouter goRouter() {
             child: const MenuView(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
-              return FadeTransition(
-                opacity:
-                    CurveTween(curve: Curves.easeInOutCirc).animate(animation),
-                child: child,
-              );
-            },
+                  return FadeTransition(
+                    opacity: CurveTween(curve: Curves.easeInOutCirc)
+                        .animate(animation),
+                    child: child,
+                  );
+                },
           );
         },
         // builder: (context, state) {
@@ -42,12 +39,12 @@ GoRouter goRouter() {
             child: const BaseView(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
-              return FadeTransition(
-                opacity:
-                    CurveTween(curve: Curves.easeInOutCirc).animate(animation),
-                child: child,
-              );
-            },
+                  return FadeTransition(
+                    opacity: CurveTween(curve: Curves.easeInOutCirc)
+                        .animate(animation),
+                    child: child,
+                  );
+                },
           );
         },
       ),

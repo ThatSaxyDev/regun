@@ -1,4 +1,5 @@
 import 'package:regun/data/enemies.dart';
+
 import 'dart:math';
 
 /// Run time advances only during active play. Rendering slow motion cannot
@@ -39,15 +40,15 @@ class EncounterDirector {
   }
 
   Map<String, dynamic> toJson() => {
-        'elapsed': elapsed,
-        'spawnElapsed': _spawnElapsed,
-        'nextBoss': _nextBoss,
-        'recoveryUntil': _recoveryUntil,
-        'bossActive': bossActive,
-        'bossesDefeated': bossesDefeated,
-        'bossBag': _bossBag.map((kind) => kind.name).toList(),
-        'lastBoss': _lastBoss?.name,
-      };
+    'elapsed': elapsed,
+    'spawnElapsed': _spawnElapsed,
+    'nextBoss': _nextBoss,
+    'recoveryUntil': _recoveryUntil,
+    'bossActive': bossActive,
+    'bossesDefeated': bossesDefeated,
+    'bossBag': _bossBag.map((kind) => kind.name).toList(),
+    'lastBoss': _lastBoss?.name,
+  };
 
   void restore(Map<String, dynamic> json) {
     elapsed = (json['elapsed'] as num).toDouble();
@@ -57,13 +58,20 @@ class EncounterDirector {
     bossActive = json['bossActive'] as bool;
     bossesDefeated = json['bossesDefeated'] as int;
     _bossBag.clear();
-    _bossBag.addAll((json['bossBag'] as List? ?? [])
-        .map((id) => BossKind.values.byName(id as String)));
+    _bossBag.addAll(
+      (json['bossBag'] as List? ?? []).map(
+        (id) => BossKind.values.byName(id as String),
+      ),
+    );
     _lastBoss = json['lastBoss'] == null
         ? null
         : BossKind.values.byName(json['lastBoss'] as String);
-    if (![elapsed, _spawnElapsed, _nextBoss, _recoveryUntil]
-        .every((v) => v.isFinite && v >= 0)) {
+    if (![
+      elapsed,
+      _spawnElapsed,
+      _nextBoss,
+      _recoveryUntil,
+    ].every((v) => v.isFinite && v >= 0)) {
       throw const FormatException('Invalid encounter clock');
     }
   }
@@ -83,9 +91,12 @@ class EncounterDirector {
   void beginBoss() {
     bossActive = true;
     final cycleStart = elapsed ~/ 600 * 600;
-    _nextBoss = [180.0, 360.0, 600.0, 780.0]
-        .map((t) => cycleStart + t)
-        .firstWhere((t) => t > elapsed + 0.01);
+    _nextBoss = [
+      180.0,
+      360.0,
+      600.0,
+      780.0,
+    ].map((t) => cycleStart + t).firstWhere((t) => t > elapsed + 0.01);
   }
 
   void defeatBoss() {
@@ -103,7 +114,7 @@ class EncounterDirector {
       if (elapsed >= 220) EnemyKind.shield,
       if (elapsed >= 270) EnemyKind.burster,
       if (elapsed >= 400) EnemyKind.nest,
-      if (elapsed >= 460) EnemyKind.sentinel
+      if (elapsed >= 460) EnemyKind.sentinel,
     ];
     if (unlocked.isNotEmpty && random.nextDouble() < 0.35) {
       return unlocked[random.nextInt(unlocked.length)];

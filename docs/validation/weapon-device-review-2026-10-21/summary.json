@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-21",
+  "version": "1.0.0+11",
+  "nativeWeapons": 15,
+  "replacement": "Breach Hammer \u2192 Longwatch Sniper",
+  "flutter": {
+    "analyzer": "clean",
+    "passed": 361,
+    "optionalSkipped": 5
+  },
+  "server": {
+    "passed": 89,
+    "build": "passed",
+    "typecheck": "passed",
+    "deployed": false
+  },
+  "audio": {
+    "expansionCues": 74,
+    "reelPeak": 0.4304,
+    "nativeListeningApproval": false
+  },
+  "renderedEvidence": [
+    "cinder-flow.gif",
+    "cinder-flow-0.png",
+    "cinder-flow-4.png",
+    "cinder-flow-6.png",
+    "cinder-flow-7.png",
+    "weapon-identity.png"
+  ],
+  "artBudget": "largest expansion pair + Cinder packet/flow <=32MiB decoded",
+  "ios": {
+    "releaseBuild": "passed",
+    "size": "128.9MB",
+    "bundle": "dev.kiishi.regun",
+    "version": "1.0.0+11",
+    "signature": "codesign --verify --deep --strict: passed"
+  },
+  "phoneDelivery": {
+    "status": "installed and launched",
+    "device": "creator iPhone12",
+    "version": "1.0.0+11",
+    "appDataCleared": false,
+    "latestVersionInstalled": true,
+    "priorAttempt": "CoreDevice4016; successful retry after reconnect"
+  },
+  "physicalAcceptance": "pending creator playtest",
+  "online": "expanded weapons remain gated"
+}

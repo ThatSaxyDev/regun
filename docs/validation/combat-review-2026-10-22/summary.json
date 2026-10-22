@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-22",
+  "version": "1.0.0+11",
+  "flutter": {
+    "analyzer": "clean",
+    "passed": 372,
+    "optionalSkipped": 5
+  },
+  "server": {
+    "typecheck": "passed",
+    "passed": 89,
+    "build": "passed",
+    "deployed": false
+  },
+  "art": {
+    "sharedDecodedMiB": 30.06,
+    "largestPairWithCinderFlow": "<=32MiB regression passed",
+    "generatedTool": "image_gen.imagegen",
+    "newAssets": [
+      "assets/art/effects/grounded_areas.png",
+      "assets/art/enemies/burster_walk.png"
+    ],
+    "sourcePixelsAndAlpha": "preserved"
+  },
+  "regressions": [
+    "moving gun disc return",
+    "Repeater ramp and bounded jitter",
+    "one-time 60/70\u2192100 magazine migration",
+    "Spore rupture under full FX capacity without exceeding40",
+    "Sniper two normal frontal shield hits",
+    "Rivet dead-host grouped splash",
+    "Burster distance-driven gait and freeze/wind-up hold",
+    "center-transparent subtle damage tint/Reduced Motion",
+    "Skitter initial readability on both arena backgrounds"
+  ],
+  "ios": {
+    "releaseBuild": "passed",
+    "size": "133.5MB",
+    "signature": "strict/deep verified",
+    "bundle": "dev.kiishi.regun"
+  },
+  "phoneDelivery": {
+    "status": "installed and launched",
+    "device": "creator iPhone12",
+    "appDataCleared": false,
+    "initialAttempt": "CoreDevice4000 connection reset; retry installation succeeded"
+  },
+  "physicalAcceptance": "pending creator playtest"
+}

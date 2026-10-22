@@ -1,0 +1,51 @@
+{
+  "error" : {
+    "code" : 4016,
+    "domain" : "com.apple.dt.CoreDeviceError",
+    "userInfo" : {
+      "CurrentlyAssertableStates" : {
+        "array" : [
+
+        ]
+      },
+      "NSLocalizedDescription" : {
+        "string" : "The device is not able to fulfill the requested usage assertion requirements."
+      },
+      "RequestedDeviceStates" : {
+        "array" : [
+          {
+            "string" : "com.apple.coredevice.remoteServiceDiscoveryTrustedConnectivityAvailable"
+          },
+          {
+            "string" : "com.apple.coredevice.coreDeviceServicesLoaded"
+          },
+          {
+            "string" : "com.apple.coredevice.powerAssertionTaken"
+          }
+        ]
+      }
+    }
+  },
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "install",
+      "app",
+      "--device",
+      "00008101-000248EC1450001E",
+      "build/ios/iphoneos/Runner.app",
+      "--timeout",
+      "120",
+      "--json-output",
+      "/tmp/regun-device-review-install.json"
+    ],
+    "commandType" : "devicectl.device.install.app",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "failed",
+    "version" : "642.16"
+  }
+}

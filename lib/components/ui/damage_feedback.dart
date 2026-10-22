@@ -29,12 +29,40 @@ class DamageFeedback extends PositionComponent
     }
   }
 
+  static void paintScreenTint(
+    Canvas canvas,
+    Size size,
+    double strength, {
+    bool reducedMotion = false,
+  }) {
+    final rect = Offset.zero & size;
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            Colors.transparent,
+            const Color(0xffA54F42).withValues(
+              alpha: strength.clamp(0.0, 1.0) * (reducedMotion ? .11 : .22),
+            ),
+          ],
+          stops: const [.65, 1],
+        ).createShader(rect),
+    );
+  }
+
   @override
   void render(Canvas canvas) {
     if (remaining <= 0) return;
     final size = game.camera.viewport.virtualSize;
     final fade = (remaining / .32).clamp(0.0, 1.0);
     final reduced = game.preferences.reducedMotion;
+    paintScreenTint(
+      canvas,
+      Size(size.x, size.y),
+      remaining / duration,
+      reducedMotion: reduced,
+    );
     const red = Color(0xffEF8B76);
     // Pixel steps follow the HUD's framing; no full-screen flash or camera kick.
     for (var step = 0; step < 4; step++) {

@@ -1,5 +1,7 @@
 import 'package:flame/components.dart';
+
 import 'dart:ui';
+
 import 'package:regun/data/enemies.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/presentation/regun_art.dart';
@@ -45,11 +47,13 @@ class BossArt {
     // Layered contact occlusion without blur or a costly full-screen layer.
     for (final (scale, alpha) in [(1.25, .10), (1.0, .17), (.68, .24)]) {
       canvas.drawOval(
-          Rect.fromCenter(
-              center: feet,
-              width: radius * 2 * scale,
-              height: radius * .45 * scale),
-          Paint()..color = Color.fromRGBO(12, 14, 13, alpha));
+        Rect.fromCenter(
+          center: feet,
+          width: radius * 2 * scale,
+          height: radius * .45 * scale,
+        ),
+        Paint()..color = Color.fromRGBO(12, 14, 13, alpha),
+      );
     }
   }
 
@@ -60,16 +64,26 @@ class BossArt {
         : [start, start + 1, start + 2, start + 3];
   }
 
-  static SpriteAnimation clip(BossKind kind, List<int> frames, double duration,
-          {bool loop = false}) =>
-      SpriteAnimation.spriteList([
-        for (final frame in frames)
-          RegunArt.shared.sprite('bosses/${kind.name}', frame)
-      ], stepTime: duration / frames.length, loop: loop);
+  static SpriteAnimation clip(
+    BossKind kind,
+    List<int> frames,
+    double duration, {
+    bool loop = false,
+  }) => SpriteAnimation.spriteList(
+    [
+      for (final frame in frames)
+        RegunArt.shared.sprite('bosses/${kind.name}', frame),
+    ],
+    stepTime: duration / frames.length,
+    loop: loop,
+  );
 
-  static SpriteAnimation walk(BossKind kind) =>
-      clip(kind, const [4, 5, 6, 7], kind == BossKind.demon ? .64 : .56,
-          loop: true);
+  static SpriteAnimation walk(BossKind kind) => clip(
+    kind,
+    const [4, 5, 6, 7],
+    kind == BossKind.demon ? .64 : .56,
+    loop: true,
+  );
 
   static SpriteAnimation idle(BossKind kind) =>
       clip(kind, const [0, 1, 2, 3], 1.2, loop: true);

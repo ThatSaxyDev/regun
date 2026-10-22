@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "build": "10",
+  "bundleId": "dev.kiishi.regun",
+  "serverCommit": "f82c200",
+  "clientTestsPassed": 252,
+  "clientTestsSkipped": 5,
+  "backendTestsPassed": 82,
+  "simulatorsInstalled": [
+    "iPhone17",
+    "iPhone18 Pro"
+  ],
+  "phoneInstalled": true,
+  "existingIpaRegenerated": false,
+  "phoneLaunched": true
+}

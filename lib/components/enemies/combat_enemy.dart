@@ -1,3 +1,4 @@
+import 'package:regun/systems/freeze_state.dart';
 import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/presentation/weapon_feel.dart';
@@ -13,6 +14,24 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     implements Damageable {
   @override
   late final CombatHealth combatHealth;
+  int combatId = 0;
+  final freezeState = FreezeState();
+  bool get freezeHeld => freezeState.held;
+  bool get canFreeze => !isBoss && impactResponse > 0;
+  void onFreezeStarted() {}
+  bool freeze() {
+    if (!canFreeze ||
+        combatHealth.isDead ||
+        isRemoving ||
+        !freezeState.apply()) {
+      return false;
+    }
+    _impactRemaining = 0;
+    _pulseRemaining = 0;
+    onFreezeStarted();
+    return true;
+  }
+
   int get xpReward => 1;
   int get scoreReward => 10;
   bool get isBoss => false;
@@ -23,7 +42,10 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   double _pulseRemaining = 0, _pulseDistance = 0;
   final _pulseDirection = Vector2.zero();
   void receiveUpgradePulse(Vector2 direction, double distance) {
-    if (impactResponse <= 0 || combatHealth.isDead || direction.isZero()) {
+    if (freezeHeld ||
+        impactResponse <= 0 ||
+        combatHealth.isDead ||
+        direction.isZero()) {
       return;
     }
     _pulseDirection.setFrom(direction.normalized());
@@ -40,7 +62,8 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   /// One bounded response per target, not one stack per pellet. A cooldown
   /// leaves normal pursuit between bursts even with rapid-fire upgrades.
   void receiveBulletImpact(Vector2 direction, WeaponType weapon) {
-    if (impactResponse <= 0 ||
+    if (freezeHeld ||
+        impactResponse <= 0 ||
         _impactCooldown > 0 ||
         direction.isZero() ||
         combatHealth.isDead ||
@@ -74,7 +97,13 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   bool _rewarded = false;
   double? _restoredHealth, _restoredMaximum;
   Vector2? incomingDirection;
+  bool incomingArmorPiercing = false;
   double burnRemaining = 0, _burnTick = 0, burnDamage = 0;
+  double cinderRemaining = 0, cinderTick = 0;
+  void igniteCinder() {
+    cinderRemaining = 1;
+  }
+
   bool burnCanSpread = true, marked = false, lastHitWasSecondary = false;
   bool get burning => burnRemaining > 0;
 
@@ -142,6 +171,13 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
 
   @override
   void update(double dt) {
+    final wasFrozen = freezeHeld;
+    if (game.gameState.gameplayState == GameplayState.playing) {
+      freezeState.advance(dt);
+    }
+    if (this is SpriteAnimationComponent && (wasFrozen || freezeHeld)) {
+      (this as SpriteAnimationComponent).playing = !freezeHeld;
+    }
     super.update(dt);
     priority = 10000 + (position.y + size.y * .35).round();
     _flash = (_flash - dt).clamp(0, 0.12);
@@ -175,6 +211,22 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
         _impactRemaining = (_impactRemaining - dt).clamp(0, _impactDuration);
       }
     }
+    if (game.gameState.gameplayState == GameplayState.playing &&
+        !combatHealth.isDead &&
+        cinderRemaining > 0) {
+      final step = dt.clamp(0.0, cinderRemaining);
+      cinderRemaining -= step;
+      cinderTick += step;
+      while (cinderTick >= .5 - 1e-8 && !combatHealth.isDead) {
+        cinderTick = (cinderTick - .5).clamp(0, .5);
+        lastHitWasSecondary = true;
+        takeDamage(.3);
+      }
+      if (cinderRemaining <= 1e-8) {
+        cinderRemaining = 0;
+        cinderTick = 0;
+      }
+    }
     // Sprite enemies draw themselves; boss bodies live one level below the root.
     final bodies = this is SpriteAnimationComponent
         ? [this as SpriteAnimationComponent]
@@ -200,7 +252,18 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    if (burning && !combatHealth.isDead) {
+    if (freezeState.frozen && !combatHealth.isDead) {
+      final center = (size / 2).toOffset();
+      for (final side in [-1, 1]) {
+        AttackVfx.chip(
+          canvas,
+          center + Offset(side * size.x * .3, size.y * .18),
+          9,
+          const Color(0xffA9C9C7),
+        );
+      }
+    }
+    if ((burning || cinderRemaining > 0) && !combatHealth.isDead) {
       canvas.drawRect(
         Rect.fromCenter(center: (size / 2).toOffset(), width: 12, height: 18),
         Paint()..color = const Color(0xA6E99B64),

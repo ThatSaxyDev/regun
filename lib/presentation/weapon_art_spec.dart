@@ -1,0 +1,181 @@
+import 'dart:math' as math;
+import 'dart:ui';
+
+import 'package:regun/data/loadout.dart';
+
+/// Explicit frame references: enum order must never address moving-part rows.
+class WeaponArtSpec {
+  const WeaponArtSpec(
+    this.atlas,
+    this.body,
+    this.mechanism,
+    this.width,
+    this.height,
+    this.grip, {
+    this.bolt,
+    this.muzzleHeight = .55,
+  });
+  final String atlas;
+  final int body, mechanism;
+  final int? bolt;
+  final double width, height, grip, muzzleHeight;
+  Offset get gripSocket => Offset(width * grip, height * .55);
+  Offset get muzzleSocket => Offset(width, height * muzzleHeight);
+  double get muzzle => muzzleSocket.dx - gripSocket.dx;
+
+  static WeaponArtSpec of(WeaponType type) => switch (type) {
+    WeaponType.shotgun => const WeaponArtSpec(
+      'weapons/arsenal',
+      0,
+      4,
+      64,
+      22,
+      .44,
+    ),
+    WeaponType.carbine => const WeaponArtSpec(
+      'weapons/arsenal',
+      1,
+      5,
+      57,
+      26,
+      .45,
+    ),
+    WeaponType.revolver => const WeaponArtSpec(
+      'weapons/arsenal',
+      2,
+      6,
+      44,
+      26,
+      .23,
+    ),
+    WeaponType.arcCaster => const WeaponArtSpec(
+      'weapons/arsenal',
+      3,
+      7,
+      54,
+      26,
+      .23,
+    ),
+    WeaponType.burstRifle => const WeaponArtSpec(
+      'weapons/burst_rifle',
+      0,
+      1,
+      62,
+      20,
+      .43,
+      bolt: 2,
+      muzzleHeight: .347,
+    ),
+    WeaponType.railLance => const WeaponArtSpec(
+      'weapons/rail_lance',
+      0,
+      1,
+      78,
+      18.01,
+      0.43,
+      bolt: 2,
+      muzzleHeight: 0.44,
+    ),
+    WeaponType.rivetDriver => const WeaponArtSpec(
+      'weapons/rivet_driver',
+      0,
+      1,
+      52,
+      21.55,
+      0.44,
+      bolt: 2,
+      muzzleHeight: 0.33,
+    ),
+    WeaponType.cinderHose => const WeaponArtSpec(
+      'weapons/cinder_hose',
+      0,
+      1,
+      58,
+      16.2,
+      0.43,
+      bolt: 2,
+      muzzleHeight: 0.4,
+    ),
+    WeaponType.reaperDisc => const WeaponArtSpec(
+      'weapons/reaper_disc',
+      0,
+      1,
+      59,
+      22.51,
+      0.43,
+      bolt: 2,
+      muzzleHeight: 0.4,
+    ),
+    WeaponType.scrapMortar => const WeaponArtSpec(
+      'weapons/scrap_mortar',
+      0,
+      1,
+      54,
+      21.32,
+      0.43,
+      bolt: 2,
+      muzzleHeight: .34,
+    ),
+    WeaponType.beltRepeater => const WeaponArtSpec(
+      'weapons/belt_repeater',
+      0,
+      1,
+      70,
+      30.96,
+      0.43,
+      bolt: 2,
+      muzzleHeight: .34,
+    ),
+    WeaponType.frostShotgun => const WeaponArtSpec(
+      'weapons/frost_shotgun',
+      0,
+      1,
+      65,
+      16.62,
+      0.44,
+      bolt: 2,
+      muzzleHeight: 0.3,
+    ),
+    WeaponType.prismCutter => const WeaponArtSpec(
+      'weapons/prism_cutter',
+      0,
+      1,
+      58,
+      23.36,
+      0.43,
+      bolt: 2,
+      muzzleHeight: 0.38,
+    ),
+    WeaponType.sporeLobber => const WeaponArtSpec(
+      'weapons/spore_lobber',
+      0,
+      1,
+      55,
+      14.79,
+      0.43,
+      bolt: 2,
+      muzzleHeight: 0.4,
+    ),
+    WeaponType.longwatchSniper => const WeaponArtSpec(
+      'weapons/longwatch_sniper',
+      0,
+      1,
+      86,
+      17,
+      .34,
+      bolt: 2,
+      muzzleHeight: .40,
+    ),
+  };
+
+  /// The actor's hand mount is 8 units toward aim and 6 units below its origin.
+  /// World projectile creation and local/remote presentation share this socket.
+  Offset releaseOffset(Offset direction) {
+    if (direction.distanceSquared < 1e-12) return const Offset(0, 6);
+    final unit = direction / math.sqrt(direction.distanceSquared);
+    final side = Offset(-unit.dy, unit.dx) * (unit.dx < 0 ? -1 : 1);
+    return const Offset(0, 6) +
+        unit * (8 + muzzle) +
+        side * (muzzleSocket.dy - gripSocket.dy);
+  }
+}

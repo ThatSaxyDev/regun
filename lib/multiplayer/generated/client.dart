@@ -10,6 +10,7 @@ import 'reducer_args.dart';
 import 'fighter.dart';
 import 'match_combat.dart';
 import 'member.dart';
+import 'motion_state.dart';
 import 'online_account.dart';
 import 'online_result.dart';
 import 'projectile.dart';
@@ -80,6 +81,10 @@ class SpacetimeDbClient {
     return subscriptions.cache.getTableByTypedName<Member>('member');
   }
 
+  TableCache<MotionState> get motionState {
+    return subscriptions.cache.getTableByTypedName<MotionState>('motion_state');
+  }
+
   TableCache<OnlineAccount> get onlineAccount {
     return subscriptions.cache.getTableByTypedName<OnlineAccount>(
       'online_account',
@@ -102,6 +107,10 @@ class SpacetimeDbClient {
 
   TableCache<Scene> get scene {
     return subscriptions.cache.getTableByTypedName<Scene>('scene');
+  }
+
+  TableCache<MotionState> get myMotion {
+    return subscriptions.cache.getTableByTypedName<MotionState>('my_motion');
   }
 
   TableCache<OnlineAccount> get myOnlineAccount {
@@ -201,6 +210,10 @@ class SpacetimeDbClient {
       'member',
       MemberDecoder(),
     );
+    subscriptionManager.cache.registerDecoder<MotionState>(
+      'motion_state',
+      MotionStateDecoder(),
+    );
     subscriptionManager.cache.registerDecoder<OnlineAccount>(
       'online_account',
       OnlineAccountDecoder(),
@@ -217,6 +230,10 @@ class SpacetimeDbClient {
     subscriptionManager.cache.registerDecoder<Scene>('scene', SceneDecoder());
 
     // Auto-register view decoders
+    subscriptionManager.cache.registerDecoder<MotionState>(
+      'my_motion',
+      MotionStateDecoder(),
+    );
     subscriptionManager.cache.registerDecoder<OnlineAccount>(
       'my_online_account',
       OnlineAccountDecoder(),
@@ -289,6 +306,10 @@ class SpacetimeDbClient {
       CombatInputArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
+      'combat_input_v_2',
+      CombatInputV2ArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
       'configure_room',
       ConfigureRoomArgsDecoder(),
     );
@@ -313,6 +334,10 @@ class SpacetimeDbClient {
       OpenFusionArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
+      'queue_motion',
+      QueueMotionArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
       'rematch',
       RematchArgsDecoder(),
     );
@@ -331,6 +356,10 @@ class SpacetimeDbClient {
     subscriptionManager.reducerRegistry.registerDecoder(
       'start_match',
       StartMatchArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'stop_motion',
+      StopMotionArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
       'submit_input',

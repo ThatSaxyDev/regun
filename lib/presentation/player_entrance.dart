@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
@@ -22,18 +23,19 @@ class PlayerEntrance {
   double get bodyOpacity => fallen
       ? (1 - elapsed / fall).clamp(0, 1)
       : !atCenter
-          ? 0
-          : drop;
+      ? 0
+      : drop;
   double get height => reduced ? 0 : 150 * (1 - drop * drop);
   double get cameraProgress {
     final t = ((elapsed - fall) / math.max(.001, pan)).clamp(0.0, 1.0);
     return reduced ? (t < .5 ? 0 : 1) : t * t * (3 - 2 * t);
   }
 
-  void begin(
-      {required bool respawn,
-      required bool reducedMotion,
-      required Vector2 camera}) {
+  void begin({
+    required bool respawn,
+    required bool reducedMotion,
+    required Vector2 camera,
+  }) {
     active = true;
     respawning = respawn;
     reduced = reducedMotion;
@@ -61,9 +63,11 @@ class EntranceVeil extends PositionComponent with HasGameReference<RegunGame> {
     final alpha = entrance.elapsed < entrance.fall
         ? entrance.elapsed / entrance.fall
         : entrance.atCenter
-            ? 1 - entrance.drop
-            : 1.0;
-    canvas.drawRect(Offset.zero & game.camera.viewport.virtualSize.toSize(),
-        Paint()..color = Color.fromRGBO(20, 17, 23, alpha.clamp(0, 1)));
+        ? 1 - entrance.drop
+        : 1.0;
+    canvas.drawRect(
+      Offset.zero & game.camera.viewport.virtualSize.toSize(),
+      Paint()..color = Color.fromRGBO(20, 17, 23, alpha.clamp(0, 1)),
+    );
   }
 }

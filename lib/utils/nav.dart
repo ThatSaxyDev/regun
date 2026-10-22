@@ -17,21 +17,14 @@ void goBack(BuildContext context) {
 //   Routemaster.of(context).push(route);
 // }
 
-void goTo({
-  required BuildContext context,
-  required Widget view,
-}) {
-  Navigator.of(context).push(MaterialPageRoute(
-    builder: (context) => view,
-  ));
+void goTo({required BuildContext context, required Widget view}) {
+  Navigator.of(context).push(MaterialPageRoute(builder: (context) => view));
 }
 
 //! fade page transition
-fadeTo({
-  required BuildContext context,
-  required Widget view,
-}) {
-  Navigator.of(context).push(PageRouteBuilder(
+fadeTo({required BuildContext context, required Widget view}) {
+  Navigator.of(context).push(
+    PageRouteBuilder(
       pageBuilder: (context, animation, anotherAnimation) {
         return view;
       },
@@ -41,9 +34,8 @@ fadeTo({
           curve: Curves.linearToEaseOut,
           parent: animation,
         );
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      }));
+        return FadeTransition(opacity: animation, child: child);
+      },
+    ),
+  );
 }

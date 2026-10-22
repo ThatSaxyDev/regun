@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-21",
+  "version": "1.0.0",
+  "build": "11",
+  "bundle": "dev.kiishi.regun",
+  "ipa": "build/ios/ipa/regun-1.0.0-11.ipa",
+  "bytes": 106971381,
+  "sha256": "b2141d09595cc19eb08b065f4b25cdc5cc6db17ebe123278e6df5adfe257fc5a",
+  "remoteOnlinePolicy": true,
+  "backendDeployed": false,
+  "clientVerify": {
+    "passed": 267,
+    "skipped": 5,
+    "analyzer": "passed"
+  },
+  "serverLocalChecks": {
+    "imageBuild": true,
+    "policyBothStates": true,
+    "newConnectionGate": true,
+    "healthAndAdminIsolation": true,
+    "noStore": true,
+    "invalidEnvRejected": true,
+    "guestSurvivesTrueFalseTrueSameVolume": true
+  },
+  "phoneInstalled": false,
+  "backendCommit": "62fdf0a",
+  "phoneInstallAttempt": "CoreDevice4016: device unavailable; install not performed"
+}

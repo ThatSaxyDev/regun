@@ -1,0 +1,4 @@
+{
+  "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-6f53f23f-a270-42a9-a3b0-042e3abfb25a.png",
+  "prompt": "Remove the entire background and ALL halo, glow, smoke and shadows from this sprite packet. Keep exactly the three opaque metal weapon objects with crisp hard silhouettes; everything else must be fully transparent alpha 0, including holes and gutters. Preserve the three object's designs and layout. No black rectangle, no shading or haze behind them. This is a production game cutout. True transparent background."
+}

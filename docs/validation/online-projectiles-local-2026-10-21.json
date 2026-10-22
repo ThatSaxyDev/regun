@@ -1,0 +1,25 @@
+[
+  {
+    "scenario": "shotgun-local",
+    "status": "passed",
+    "endpoint": "127.0.0.1:3102",
+    "weapon": "shotgun",
+    "firstVisualBulletMs": 14,
+    "firstConfirmedShotMs": 259,
+    "matchedProjectiles": 9,
+    "maxSpeculativeBullets": 3,
+    "continuousPeerFrames": 75,
+    "duplicateVisualKeys": 0,
+    "roomCleanup": true,
+    "impairment": "200ms nominal RTT +/-20ms per direction"
+  },
+  {
+    "scenario": "carbine-local",
+    "status": "passed",
+    "firstVisualBulletMs": 17,
+    "firstConfirmedShotMs": 287,
+    "matchedProjectiles": 1,
+    "impairment": "200ms nominal RTT +/-20ms per direction",
+    "note": "Safe metrics retained from native log; full hosted report line exceeded native logging limit."
+  }
+]

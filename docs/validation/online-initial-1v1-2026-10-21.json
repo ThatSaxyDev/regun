@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "endpoint": "regunserver.kiishi.space",
+  "checks": [
+    "fresh-native-guests-and-prediction-capabilities",
+    "room-rosters-options-loadouts-readiness",
+    "touch-movement-before-server-echo",
+    "stop-convergence-and-peer-position",
+    "dash-confirmation-and-convergence",
+    "authoritative-fire-and-manual-reload",
+    "independent-grenade-intent-and-inventory",
+    "sustained-reversals-without-queue-stall",
+    "menu-stop-and-resume",
+    "same-guest-reconnect-and-cleared-input"
+  ],
+  "connectMs": 3617,
+  "localFirstMoveMs": 27,
+  "serverFirstMoveMs": 282,
+  "stoppedError": 0.0,
+  "sustainedSeconds": 12,
+  "maxPendingCommands": 7,
+  "stalledSamples": 0,
+  "maxPredictionLead": 98.2586999999998,
+  "meanPredictionLead": 72.15610111900902,
+  "afterReversalsError": 0.0,
+  "hostRttMs": 173,
+  "peerRttMs": 164,
+  "roomCleanup": true
+}
+

@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-21",
+  "backendBase": "f82c200",
+  "startupGuard": {
+    "bootstrap": true,
+    "restartPreservesKey": true,
+    "reconstructPublicFromPrivate": true,
+    "existingDataWithoutKeyRejected": true,
+    "publisherWithoutKeyRejected": true,
+    "mismatchedPairRejected": true,
+    "changedPairRejected": true,
+    "corruptOrEmptyPrivateRejected": true
+  },
+  "containerReplacement": {
+    "sameNamedVolumeGuestAccepted": true,
+    "sameIdentity": true,
+    "replacementVolumeOldGuestRejected": true,
+    "replacementVolumeFreshGuestAccepted": true,
+    "temporaryResourcesCleaned": true
+  },
+  "backendVerify": {
+    "testsPassed": 82,
+    "typecheck": true,
+    "moduleBuild": true,
+    "smokeTypecheck": true,
+    "dockerBuild": true
+  },
+  "production": {
+    "mountInspected": false,
+    "guestSafeguardDeployed": false,
+    "requires": "Inspect and preserve actual /var/lib/regun storage source before redeployment"
+  }
+}

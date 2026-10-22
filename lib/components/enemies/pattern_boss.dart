@@ -1,5 +1,7 @@
 import 'package:regun/components/weapons/weapon_impact.dart';
+
 import 'dart:math';
+
 import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -20,7 +22,7 @@ class PatternBoss extends PositionComponent
     with HasGameReference<RegunGame>, CombatEnemy
     implements BossEncounter {
   PatternBoss(this.kind, {super.position, this.maximumHealth = 230})
-      : super(size: Vector2.all(200), anchor: Anchor.center, priority: 5);
+    : super(size: Vector2.all(200), anchor: Anchor.center, priority: 5);
   @override
   final BossKind kind;
   final double maximumHealth;
@@ -48,24 +50,28 @@ class PatternBoss extends PositionComponent
   double get zoneRadius => kind == BossKind.demon
       ? 180
       : pattern == 0
-          ? 170
-          : 145;
+      ? 170
+      : 145;
 
   @override
   Future<void> onLoad() async {
     initializeHealth(maximumHealth);
-    add(CircleHitbox(
+    add(
+      CircleHitbox(
         radius: kind.bodyRadius,
         position: size / 2,
         anchor: Anchor.center,
-        collisionType: CollisionType.passive));
+        collisionType: CollisionType.passive,
+      ),
+    );
     _walk = BossArt.walk(kind);
     _idle = BossArt.idle(kind);
     _body = SpriteAnimationComponent(
-        size: Vector2.all(kind.spriteSize),
-        position: Vector2(size.x * .5, size.y * .85 - .38 * kind.spriteSize),
-        anchor: Anchor.center,
-        animation: _idle);
+      size: Vector2.all(kind.spriteSize),
+      position: Vector2(size.x * .5, size.y * .85 - .38 * kind.spriteSize),
+      anchor: Anchor.center,
+      animation: _idle,
+    );
     add(_body);
     _body.paint.colorFilter = BossArt.ambient(game.loadout.arena);
   }
@@ -77,10 +83,17 @@ class PatternBoss extends PositionComponent
     _committed = false;
     final start = 8 + pattern * 8;
     _body.animation = switch (next) {
-      PatternBossPhase.warning => BossArt.clip(
-          kind, [start, start + 1, start + 2, start + 3], warningDuration),
-      PatternBossPhase.active =>
-        BossArt.clip(kind, BossArt.impactFrames(kind, pattern), activeDuration),
+      PatternBossPhase.warning => BossArt.clip(kind, [
+        start,
+        start + 1,
+        start + 2,
+        start + 3,
+      ], warningDuration),
+      PatternBossPhase.active => BossArt.clip(
+        kind,
+        BossArt.impactFrames(kind, pattern),
+        activeDuration,
+      ),
       PatternBossPhase.approach => _walk,
       _ => _idle,
     };
@@ -91,10 +104,10 @@ class PatternBoss extends PositionComponent
     final distance = position.distanceTo(game.myPlayer.position);
     pattern = kind == BossKind.demon
         ? (distance > 400
-            ? 2
-            : distance < 330 && _sequence.isEven
-                ? 0
-                : 1)
+              ? 2
+              : distance < 330 && _sequence.isEven
+              ? 0
+              : 1)
         : _sequence % 3;
     _sequence++;
     _origin.setFrom(position);
@@ -107,7 +120,8 @@ class PatternBoss extends PositionComponent
     _zones.clear();
     if (_charge) {
       _target.setFrom(
-          position + _direction * (distance + 800).clamp(900.0, 2200.0));
+        position + _direction * (distance + 800).clamp(900.0, 2200.0),
+      );
       game.constrainActor(_target, 75);
     } else if (kind == BossKind.demon && pattern == 1 ||
         kind == BossKind.queen && pattern != 1) {
@@ -137,44 +151,53 @@ class PatternBoss extends PositionComponent
         game.damagePlayer(amount: 2, cause: 'Demon cleave');
       }
       game.addCombatEffect(
-          HeavyImpact(position: position.clone(), radius: 260));
+        HeavyImpact(position: position.clone(), radius: 260),
+      );
     } else if (kind == BossKind.queen && pattern == 1) {
       for (var i = 0; i < (enraged ? 4 : 3); i++) {
         game.spawnAdd(
-            EnemyKind.runner, position + Vector2(cos(i * 2), sin(i * 2)) * 220);
+          EnemyKind.runner,
+          position + Vector2(cos(i * 2), sin(i * 2)) * 220,
+        );
       }
       game.addHostileArea(
-          game.myPlayer.position +
-              game.movementJoystick.relativeDelta *
-                  game.gameState.movementSpeed *
-                  .7,
-          radius: 155,
-          warning: 1.05,
-          active: 1.3,
-          poison: true,
-          cause: 'Queen brood eruption',
-          ownerHealth: combatHealth);
-      game.addCombatEffect(CombatEffect(
+        game.myPlayer.position +
+            game.movementJoystick.relativeDelta *
+                game.gameState.movementSpeed *
+                .7,
+        radius: 155,
+        warning: 1.05,
+        active: 1.3,
+        poison: true,
+        cause: 'Queen brood eruption',
+        ownerHealth: combatHealth,
+      );
+      game.addCombatEffect(
+        CombatEffect(
           position: position.clone(),
           radius: 220,
           color: const Color(0xffC7CA89),
           material: AttackMaterial.poison,
-          duration: .4));
+          duration: .4,
+        ),
+      );
     } else if (!_charge) {
       for (var i = 0; i < _zones.length; i++) {
         final poison = kind == BossKind.queen && pattern == 2;
-        game.addHostileArea(_zones[i].clone(),
-            radius: zoneRadius,
-            warning: .04 + i * .18,
-            active: poison ? 3.5 : .3,
-            poison: poison,
-            damage: poison ? 1 : 2,
-            cause: kind == BossKind.demon
-                ? 'Demon slam'
-                : poison
-                    ? 'Queen poison'
-                    : 'Queen tail strike',
-            ownerHealth: combatHealth);
+        game.addHostileArea(
+          _zones[i].clone(),
+          radius: zoneRadius,
+          warning: .04 + i * .18,
+          active: poison ? 3.5 : .3,
+          poison: poison,
+          damage: poison ? 1 : 2,
+          cause: kind == BossKind.demon
+              ? 'Demon slam'
+              : poison
+              ? 'Queen poison'
+              : 'Queen tail strike',
+          ownerHealth: combatHealth,
+        );
       }
     }
   }
@@ -197,13 +220,14 @@ class PatternBoss extends PositionComponent
         if (delta.x.abs() > 20) _body.scale.x = delta.x < 0 ? -1 : 1;
         if (moving) {
           game.moveActor(
-              this,
-              delta.normalized(),
-              kind == BossKind.demon
-                  ? (enraged ? 320 : 275)
-                  : (enraged ? 290 : 250),
-              dt,
-              radius: 75);
+            this,
+            delta.normalized(),
+            kind == BossKind.demon
+                ? (enraged ? 320 : 275)
+                : (enraged ? 290 : 250),
+            dt,
+            radius: 75,
+          );
         }
         if (clock >= (enraged ? .65 : 1.0)) _commit();
       case PatternBossPhase.warning:
@@ -212,12 +236,16 @@ class PatternBoss extends PositionComponent
         if (_charge) {
           final before = position.clone();
           game.moveTo(
-              this,
-              _origin +
-                  (_target - _origin) * (clock / activeDuration).clamp(0, 1),
-              75);
+            this,
+            _origin +
+                (_target - _origin) * (clock / activeDuration).clamp(0, 1),
+            75,
+          );
           if (BulletComponent.segmentDistanceSquared(
-                      game.myPlayer.position, before, position) <
+                    game.myPlayer.position,
+                    before,
+                    position,
+                  ) <
                   85 * 85 &&
               !game.segmentBlocked(before, game.myPlayer.position)) {
             game.damagePlayer(amount: 2, cause: 'Demon charge');
@@ -237,9 +265,19 @@ class PatternBoss extends PositionComponent
   void render(Canvas canvas) {
     final center = (size / 2).toOffset();
     BossArt.contactShadow(
-        canvas, Offset(size.x * .5, size.y * .86), kind.bodyRadius);
+      canvas,
+      Offset(size.x * .5, size.y * .86),
+      kind.bodyRadius,
+    );
     if (phase == PatternBossPhase.arrival) {
-      AttackVfx.disk(canvas, center, 110, warning: true, progress: clock / 1.5);
+      AttackVfx.disk(
+        canvas,
+        center,
+        110,
+        ambient: BossArt.ambient(game.loadout.arena),
+        warning: true,
+        progress: clock / 1.5,
+      );
     }
     if (phase == PatternBossPhase.warning || phase == PatternBossPhase.active) {
       final warning = phase == PatternBossPhase.warning;
@@ -248,28 +286,48 @@ class PatternBoss extends PositionComponent
           : (clock / activeDuration).clamp(0.0, 1.0);
       if (kind == BossKind.demon && pattern == 0) {
         final start = atan2(_direction.y, _direction.x) - 1.75;
-        AttackVfx.fan(canvas, center, 340, start, 3.5,
-            warning: warning,
-            progress: progress,
-            material: AttackMaterial.ember);
+        AttackVfx.fan(
+          canvas,
+          center,
+          340,
+          start,
+          3.5,
+          warning: warning,
+          progress: progress,
+          material: AttackMaterial.ember,
+        );
       } else if (_charge) {
         AttackVfx.ribbon(
-            canvas, center, (_target - position + size / 2).toOffset(), 80,
-            warning: warning, progress: progress);
+          canvas,
+          center,
+          (_target - position + size / 2).toOffset(),
+          80,
+          warning: warning,
+          progress: progress,
+        );
       } else if (kind == BossKind.queen && pattern == 1) {
-        AttackVfx.disk(canvas, center, 220,
-            warning: warning,
-            progress: progress,
-            material: AttackMaterial.poison);
+        AttackVfx.disk(
+          canvas,
+          center,
+          220,
+          ambient: BossArt.ambient(game.loadout.arena),
+          warning: warning,
+          progress: progress,
+          material: AttackMaterial.poison,
+        );
       } else if (warning || !_committed) {
         for (final point in _zones) {
           AttackVfx.disk(
-              canvas, (point - position + size / 2).toOffset(), zoneRadius,
-              warning: warning,
-              progress: progress,
-              material: kind == BossKind.queen && pattern == 2
-                  ? AttackMaterial.poison
-                  : AttackMaterial.stone);
+            canvas,
+            (point - position + size / 2).toOffset(),
+            zoneRadius,
+            ambient: BossArt.ambient(game.loadout.arena),
+            warning: warning,
+            progress: progress,
+            material: kind == BossKind.queen && pattern == 2
+                ? AttackMaterial.poison
+                : AttackMaterial.stone,
+          );
         }
       }
     }
@@ -278,9 +336,11 @@ class PatternBoss extends PositionComponent
 
   @override
   void onCombatDeath() {
-    game.addCombatEffectForKill(position,
-        radius: 150,
-        remains: RegunArt.shared.sprite('bosses/${kind.name}', 39));
+    game.addCombatEffectForKill(
+      position,
+      radius: 150,
+      remains: RegunArt.shared.sprite('bosses/${kind.name}', 39),
+    );
     removeFromParent();
   }
 }

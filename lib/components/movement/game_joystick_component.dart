@@ -2,12 +2,13 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/events.dart';
 import 'package:regun/notifiers/game_notifier.dart';
-import 'package:regun/theme/pixel_glyph.dart';
+import 'package:regun/presentation/control_art.dart';
 import 'package:regun/game.dart';
 
 class GameStick extends JoystickComponent {
   GameStick() : super(knob: JoyStickKnob(), background: _JoystickRing());
   int? _pointer;
+  bool _cancelling = false;
   bool get hasActivePointer => _pointer != null;
 
   @override
@@ -23,13 +24,14 @@ class GameStick extends JoystickComponent {
       return false;
     }
     final movementSide = this is MovementJoystickComponent;
-    final rightSide =
-        movementSide ? regun.controls.leftHanded : !regun.controls.leftHanded;
+    final rightSide = movementSide
+        ? regun.controls.leftHanded
+        : !regun.controls.leftHanded;
     if ((viewportPoint.x >= virtual.x / 2) != rightSide) return false;
     for (final button in [
       regun.boostButtonComponent,
       regun.reloadButtonComponent,
-      regun.grenadeButtonComponent
+      regun.grenadeButtonComponent,
     ]) {
       if (button.containsLocalPoint(button.parentToLocal(viewportPoint))) {
         return false;
@@ -47,8 +49,9 @@ class GameStick extends JoystickComponent {
     _pointer = event.pointerId;
     final regun = game as RegunGame;
     if (regun.controls.floating) {
-      position
-          .setFrom(regun.camera.viewport.globalToLocal(event.canvasPosition));
+      position.setFrom(
+        regun.camera.viewport.globalToLocal(event.canvasPosition),
+      );
     }
     return super.onDragStart(event);
   }
@@ -62,13 +65,26 @@ class GameStick extends JoystickComponent {
   @override
   bool onDragEnd(DragEndEvent event) {
     if (event.pointerId != _pointer) return false;
+    if (!_cancelling && this is WeaponJoystickComponent) {
+      (game as RegunGame).arsenal?.releaseAim(strengthDelta);
+    }
     return super.onDragEnd(event);
   }
 
   @override
   bool onDragCancel(DragCancelEvent event) {
     if (event.pointerId != _pointer) return false;
-    return super.onDragCancel(event);
+    if (this is WeaponJoystickComponent) {
+      (game as RegunGame).arsenal?.cancelAim();
+    }
+    // Flame translates cancellation into virtual onDragEnd. Suppress its
+    // release shot while still letting the inherited drag state clean up.
+    _cancelling = true;
+    try {
+      return super.onDragCancel(event);
+    } finally {
+      _cancelling = false;
+    }
   }
 
   @override
@@ -76,6 +92,16 @@ class GameStick extends JoystickComponent {
     _pointer = null;
     super.onDragStop();
     delta.setZero();
+  }
+
+  Vector2 get strengthDelta {
+    final value = super.relativeDelta;
+    if (value.length2 <
+        (game as RegunGame).controls.deadZone *
+            (game as RegunGame).controls.deadZone) {
+      return Vector2.zero();
+    }
+    return value;
   }
 
   @override
@@ -102,59 +128,13 @@ class WeaponJoystickComponent extends GameStick {
 class _JoystickRing extends CircleComponent with HasGameReference<RegunGame> {
   _JoystickRing() : super(radius: 90);
   @override
-  void render(Canvas canvas) {
-    final center = Offset(radius, radius);
-    canvas.drawCircle(
-        center,
-        radius,
-        Paint()
-          ..color = Color.fromRGBO(35, 29, 40, 0.15 * game.controls.opacity));
-    final line = Paint()
-      ..color = Color.fromRGBO(126, 114, 123, 0.4 * game.controls.opacity)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawCircle(center, radius - 2, line);
-    canvas.drawCircle(
-        center, radius - 10, line..color = const Color(0x187E727B));
-    final tick = Paint()
-      ..color = const Color(0x808E827F)
-      ..strokeWidth = 3;
-    for (final direction in [
-      const Offset(1, 0),
-      const Offset(-1, 0),
-      const Offset(0, 1),
-      const Offset(0, -1)
-    ]) {
-      canvas.drawLine(center + direction * (radius - 6),
-          center + direction * (radius - 16), tick);
-    }
-  }
+  void render(Canvas canvas) =>
+      ControlArt.stickRing(canvas, radius, game.controls.opacity);
 }
 
 class JoyStickKnob extends PositionComponent with HasGameReference<RegunGame> {
   JoyStickKnob() : super(size: Vector2.all(64), anchor: Anchor.center);
   @override
-  void render(Canvas canvas) {
-    Color tone(int value) {
-      final c = Color(value);
-      return c.withValues(alpha: c.a * game.controls.opacity);
-    }
-
-    final rect = Rect.fromLTWH(0, 0, size.x, size.y);
-    canvas.drawPath(controlPlate(rect), Paint()..color = tone(0xC82B252F));
-    canvas.drawPath(
-        controlPlate(rect.deflate(1)),
-        Paint()
-          ..color = tone(0xA0B1A18E)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2);
-    canvas.drawPath(
-        controlPlate(rect.deflate(7), cut: 3),
-        Paint()
-          ..color = tone(0x405E515D)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1);
-    canvas.drawRect(Rect.fromCenter(center: rect.center, width: 4, height: 4),
-        Paint()..color = tone(0xffB6A893));
-  }
+  void render(Canvas canvas) =>
+      ControlArt.stickKnob(canvas, Size(size.x, size.y), game.controls.opacity);
 }

@@ -1,3 +1,5 @@
+import 'package:regun/data/loadout.dart';
+import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/systems/weapon_heading.dart';
 import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/weapon_feel.dart';
@@ -37,7 +39,8 @@ class PlayerComponent extends SpriteAnimationComponent
   final aimDirection = Vector2(1, 0);
   final weaponHeading = WeaponHeading();
   double recoil = 0, hurtFlash = 0;
-  double _trailClock = 0;
+  double _trailClock = 0, _dashDustClock = 0;
+  bool _wasDashing = false;
 
   @override
   Future<void> onLoad() async {
@@ -103,6 +106,11 @@ class PlayerComponent extends SpriteAnimationComponent
         reducedMotion: game.preferences.reducedMotion,
       );
       aimDirection.setValues(heading.dx, heading.dy);
+      if (game.loadout.weapon == WeaponType.longwatchSniper &&
+          !aim.isZero() &&
+          game.arsenal!.ready) {
+        aimDirection.setFrom(game.arsenal!.aim);
+      }
     }
     recoil = max(0, recoil - dt / WeaponFeel.of(game.loadout.weapon).recovery);
     hurtFlash = max(0, hurtFlash - dt);
@@ -146,8 +154,23 @@ class PlayerComponent extends SpriteAnimationComponent
     }
 
     if (game.boostButtonComponent.tapped) {
+      _dashDustClock += dt;
+      if (!_wasDashing ||
+          (!game.preferences.reducedMotion && _dashDustClock >= .035)) {
+        _dashDustClock = 0;
+        game.addCombatEffect(
+          CombatEffect(
+            position: position + Vector2(0, 28),
+            dashDirection: dashDirection.clone(),
+            duration: .24,
+          ),
+        );
+      }
+      _wasDashing = true;
       game.moveActor(this, dashDirection, 1450, dt, radius: collisionRadius);
     } else {
+      _wasDashing = false;
+      _dashDustClock = 0;
       game.moveActor(
         this,
         movement,
@@ -252,8 +275,9 @@ class PlayerComponent extends SpriteAnimationComponent
         size.x * .5 + aimDirection.x * 8,
         size.y * .56 + aimDirection.y * 8,
       );
-      canvas.rotate(atan2(aimDirection.y, aimDirection.x));
-      if (aimDirection.x < 0) canvas.scale(1, -1);
+      final heading = aimDirection;
+      canvas.rotate(atan2(heading.y, heading.x));
+      if (heading.x < 0) canvas.scale(1, -1);
       paintWeapon(
         canvas,
         game.loadout.weapon,
@@ -265,6 +289,13 @@ class PlayerComponent extends SpriteAnimationComponent
             ? game.gameNotifier.reloadProgress.value
             : -1,
         recoil: recoil,
+        charge: game.arsenal?.visualCharge ?? 0,
+        muzzleJitter: game.loadout.weapon == WeaponType.beltRepeater
+            ? Offset(
+                game.arsenal!.muzzleJitter.x,
+                game.arsenal!.muzzleJitter.y * (heading.x < 0 ? -1 : 1),
+              )
+            : Offset.zero,
         tactical: game.gameNotifier.reloadTactical,
         reloadShells: game.gameState.maxBullets - game.gameState.noOfBullets,
         reducedMotion: game.preferences.reducedMotion,
@@ -342,6 +373,7 @@ class PlayerComponent extends SpriteAnimationComponent
 
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    if (other is CombatEnemy && other.freezeHeld) return;
     super.onCollision(intersectionPoints, other);
     if (other is EnemyComponent &&
         !other.isRemoving &&
@@ -355,6 +387,7 @@ class PlayerComponent extends SpriteAnimationComponent
     Set<Vector2> intersectionPoints,
     PositionComponent other,
   ) {
+    if (other is CombatEnemy && other.freezeHeld) return;
     super.onCollisionStart(intersectionPoints, other);
     if (game.gameState.gameplayState != GameplayState.playing) return;
     if (other is CoinComponent && !other.isCollected) {

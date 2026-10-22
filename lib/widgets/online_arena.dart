@@ -1,4 +1,5 @@
 import 'package:regun/systems/weapon_heading.dart';
+import 'package:regun/multiplayer/local_fire_feedback.dart';
 import 'package:regun/systems/grenades.dart';
 import 'package:regun/systems/arena_geometry.dart';
 
@@ -18,6 +19,7 @@ import 'package:regun/widgets/online_combat_hud.dart';
 import 'package:regun/widgets/online_match_menu.dart';
 import 'package:regun/widgets/online_objectives.dart';
 import 'package:regun/presentation/online_world.dart';
+import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/presentation/wall_art.dart';
 
 import 'dart:math' as math;
@@ -34,6 +36,8 @@ import 'package:regun/services/local_preferences.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/online_roster.dart';
 import 'package:regun/widgets/click_button.dart';
+import 'package:regun/presentation/control_art.dart';
+import 'package:regun/theme/pixel_glyph.dart';
 
 /// Deliberately separate from RegunGame: no local director, health, checkpoint,
 /// profile rewards or combat may run while the authoritative port is incomplete.
@@ -51,6 +55,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   final weaponHeadings = <String, WeaponHeading>{};
   final restingAim = <String, Offset>{};
   final grenadeAim = GrenadeAim();
+  final localFireFeedback = LocalFireFeedback();
   final Map<int, String> pointers = {};
   final Map<String, Offset> origins = {}, knobs = {}, displayed = {};
   final Set<LogicalKeyboardKey> keys = {};
@@ -190,6 +195,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     ticker = createTicker((elapsed) {
       final dt = ((elapsed - last).inMicroseconds / 1000000).clamp(0.0, .1);
       last = elapsed;
+      session.predictionReducedMotion = LocalPreferences.shared.reducedMotion;
       seconds += dt * (session.match?.phase == 'choice' ? .1 : 1);
       if (_controlled && !session.controlsEnabled) clear();
       _controlled = session.controlsEnabled;
@@ -225,15 +231,26 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       if (artReady) leases.update(session.scene);
       for (final member in session.members) {
         final id = member.identity.toHexString;
-        final target = Offset(member.x, member.y);
-        final old = displayed[id] ?? target;
-        // Small display-only interpolation; simulation coordinates stay server-owned.
-        displayed[id] = (target - old).distance > 300
-            ? target
-            : Offset.lerp(old, target, 1 - math.exp(-18 * dt))!;
+        if (id == session.identity &&
+            session.predictionAvailable &&
+            session.controlsEnabled &&
+            session.predictedPosition != null) {
+          displayed[id] = session.predictedPosition!;
+          continue;
+        }
+        displayed[id] = id == session.identity
+            ? Offset(member.x, member.y)
+            : session.remotePosition(
+                member,
+                reducedMotion: LocalPreferences.shared.reducedMotion,
+              );
       }
-      weaponHeadings.removeWhere((key,_)=>!session.members.any((m)=>m.identity.toHexString==key));
-      restingAim.removeWhere((key,_)=>!session.members.any((m)=>m.identity.toHexString==key));
+      weaponHeadings.removeWhere(
+        (key, _) => !session.members.any((m) => m.identity.toHexString == key),
+      );
+      restingAim.removeWhere(
+        (key, _) => !session.members.any((m) => m.identity.toHexString == key),
+      );
       displayed.removeWhere(
         (id, _) => !session.members.any((m) => m.identity.toHexString == id),
       );
@@ -257,6 +274,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       _damageTotals.clear();
       _reloadPhase.clear();
       _wasReloading.clear();
+      localFireFeedback.reset();
       shotTimes.clear();
       hurtTimes.clear();
     }
@@ -278,7 +296,27 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     math.pow(member.y - session.me!.y, 2),
               ) <
               850;
-      if (previous != null && gun.shots > previous) {
+      final predictedCue =
+          key == session.identity && session.projectilePredictionAvailable
+          ? session.projectilePresentation.takeCue()
+          : false;
+      final shotCue = key == session.identity
+          ? session.projectilePredictionAvailable
+                ? predictedCue ||
+                      (previous != null &&
+                          gun.shots > previous &&
+                          !session.projectilePresentation.wasPredicted(gun))
+                : localFireFeedback.update(
+                    now: seconds,
+                    held: session.firing,
+                    enabled: session.controlsEnabled,
+                    shots: gun.shots,
+                    ammo: gun.ammo,
+                    reloading: gun.reloading,
+                    cooldown: gun.cooldown,
+                  )
+          : previous != null && gun.shots > previous;
+      if (shotCue) {
         shotTimes[key] = seconds;
         if (audible) {
           unawaited(audio.play('shot_${gun.weapon}_${gun.shots % 3}.wav'));
@@ -307,14 +345,20 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           wasReloading &&
           !gun.reloading &&
           gun.weapon == 'shotgun' &&
-          gun.ammo == gun.capacity) {
+          gun.ammo == gun.capacity &&
+          gun.data['reloadTactical'] != true) {
         unawaited(audio.play('reload_shotgun_pump.wav'));
       }
       final reload = _reloads[key];
       _reloads[key] = gun.reloadSerial;
       final elapsed = gun.reloadDuration - gun.reloadRemaining;
-      final phase = gun.weapon == 'shotgun'
-          ? (elapsed / .7).floor()
+      final burstTactical =
+          gun.weapon != 'shotgun' && gun.data['reloadTactical'] == true;
+      final phase = burstTactical
+          ? (elapsed >= gun.reloadDuration * .82 ? 1 : 0)
+          : gun.weapon == 'shotgun'
+          ? (elapsed / (.6 * (gun.data['reloadTactical'] == true ? .7 : 1)))
+                .floor()
           : elapsed >= gun.reloadDuration * .82
           ? 2
           : elapsed >= gun.reloadDuration * .42
@@ -333,7 +377,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           );
         } else if (previousPhase != null &&
             phase > previousPhase &&
-            !(gun.weapon == 'carbine' &&
+            !(gun.weapon != 'shotgun' &&
                 gun.data['reloadTactical'] == true &&
                 phase == 2) &&
             (gun.weapon != 'shotgun' || phase < gun.capacity - gun.ammo)) {
@@ -409,13 +453,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                 id == 'grenade') {
               return;
             }
-            var delta =
-                (event.localPosition - origins[id]!) /
-                radius *
-                controls.sensitivity;
-            if (delta.distance > 1) delta = delta / delta.distance;
-            if (delta.distance < controls.deadZone) delta = Offset.zero;
-            knobs[id] = delta;
+            var raw = (event.localPosition - origins[id]!) / (radius * 58 / 90);
+            if (raw.distance > 1) raw /= raw.distance;
+            var delta = raw.distance < controls.deadZone
+                ? Offset.zero
+                : raw * controls.sensitivity;
+            if (delta.distance > 1) delta /= delta.distance;
+            knobs[id] = raw;
             if (id == 'move') {
               session.moveX = delta.dx;
               session.moveY = delta.dy;
@@ -508,7 +552,9 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                             (p.dx < size.width / 2) ==
                             (centers[id]!.dx < size.width / 2);
                         if ((p - centers[id]!).distance <= radius ||
-                            (controls.floating && matchesSide && p.dy > 100)) {
+                            (controls.floating &&
+                                matchesSide &&
+                                p.dy > size.height * .35)) {
                           pointers[event.pointer] = id;
                           origins[id] = controls.floating ? p : centers[id]!;
                           update(event);
@@ -589,31 +635,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     left: (origins[id] ?? centers[id]!).dx - radius,
                     top: (origins[id] ?? centers[id]!).dy - radius,
                     child: IgnorePointer(
-                      child: Opacity(
-                        opacity: controls.opacity,
-                        child: Container(
-                          width: radius * 2,
-                          height: radius * 2,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0x77302332),
-                            border: Border.all(
-                              color: const Color(0xffAD9162),
-                              width: 2,
-                            ),
-                          ),
-                          child: Transform.translate(
-                            offset: (knobs[id] ?? Offset.zero) * radius * .55,
-                            child: Center(
-                              child: Container(
-                                width: radius * .55,
-                                height: radius * .55,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xffAD9162),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
+                      child: SizedBox(
+                        width: radius * 2,
+                        height: radius * 2,
+                        child: CustomPaint(
+                          painter: OnlineStickSkin(
+                            delta: knobs[id] ?? Offset.zero,
+                            opacity: controls.opacity,
                           ),
                         ),
                       ),
@@ -622,24 +650,26 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                 Positioned(
                   left: geometry.dash.dx - controls.buttonSize / 2,
                   top: geometry.dash.dy - controls.buttonSize / 2,
-                  child: IgnorePointer(
-                    child: Container(
-                      width: controls.buttonSize,
-                      height: controls.buttonSize,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: const Color(0xcc302332),
-                        border: Border.all(
-                          color: const Color(0xffAD9162),
-                          width: 2,
-                        ),
-                      ),
-                      child: Text(
-                        (session.me?.cooldown ?? 0) > 0 ? '…' : 'DASH',
-                        style: const TextStyle(
-                          fontFamily: FontFam.orbitron,
-                          color: Color(0xffE5DDD1),
-                          fontSize: 10,
+                  child: Semantics(
+                    label: 'Dash',
+                    button: true,
+                    enabled: session.controlsEnabled,
+                    onTap: session.controlsEnabled ? session.dash : null,
+                    child: IgnorePointer(
+                      child: SizedBox.square(
+                        dimension: controls.buttonSize,
+                        child: CustomPaint(
+                          painter: OnlineActionSkin(
+                            glyph: PixelGlyph.dash,
+                            label: 'DASH',
+                            opacity: controls.opacity,
+                            active:
+                                session.predictedDashRemaining > 0 ||
+                                pointers.containsValue('dash'),
+                            cooldown:
+                                session.predictedDashCooldown /
+                                session.predictedDashDuration,
+                          ),
                         ),
                       ),
                     ),
@@ -649,13 +679,26 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                   Positioned(
                     left: geometry.reload.dx - controls.buttonSize / 2,
                     top: geometry.reload.dy - controls.buttonSize / 2,
-                    child: SizedBox(
-                      width: controls.buttonSize,
-                      height: controls.buttonSize,
-                      child: ClickButton(
-                        text: 'RELOAD',
-                        fontSize: 8,
-                        onTap: session.controlsEnabled ? session.reload : null,
+                    child: Semantics(
+                      label: 'Reload',
+                      button: true,
+                      enabled: session.controlsEnabled,
+                      onTap: session.controlsEnabled ? session.reload : null,
+                      child: SizedBox(
+                        width: controls.buttonSize,
+                        height: controls.buttonSize,
+                        child: IgnorePointer(
+                          child: CustomPaint(
+                            painter: OnlineActionSkin(
+                              glyph: PixelGlyph.reload,
+                              label: 'RELOAD',
+                              opacity: controls.opacity,
+                              active:
+                                  session.gun?.reloading == true ||
+                                  pointers.containsValue('reload'),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -736,13 +779,20 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                       },
                     ),
                   ),
-                if (!session.connected && !session.menuOpen)
+                if (!session.connected &&
+                    !session.menuOpen &&
+                    !session.connecting &&
+                    !session.retryScheduled)
                   Center(
                     child: SizedBox(
                       width: 240,
                       child: ClickButton(
-                        text: 'Retry connection',
-                        onTap: () => unawaited(session.connect()),
+                        text: session.guestRejected
+                            ? 'Back to menu'
+                            : 'Retry connection',
+                        onTap: () => session.guestRejected
+                            ? Navigator.of(context).pop()
+                            : unawaited(session.connect()),
                       ),
                     ),
                   ),
@@ -880,9 +930,36 @@ class _ArenaPainter extends CustomPainter {
       ..sort((a, b) => a.y.compareTo(b.y));
     var enemyIndex = 0;
     void drawEnemy() {
+      final enemy = enemies[enemyIndex++];
+      final beams =
+          session.scene
+              .where(
+                (h) =>
+                    h.kind == 'hazard' &&
+                    h.data['material'] == 'laser' &&
+                    h.number('muzzleProtocol') >= 2 &&
+                    h.data['owner'] == enemy.key &&
+                    h.number('age') <
+                        h.number('delay') +
+                            h.number('warning') +
+                            h.number('duration'),
+              )
+              .toList()
+            ..sort(
+              (a, b) => (a.number('delay') - a.number('age')).compareTo(
+                b.number('delay') - b.number('age'),
+              ),
+            );
+      final aim = beams.isEmpty
+          ? null
+          : OnlineWorldArt.point((beams.first.data['points'] as List).last);
       OnlineWorldArt.enemy(
         canvas,
-        enemies[enemyIndex++],
+        enemy,
+        laserAim: aim,
+        laserOrigin: beams.isEmpty
+            ? null
+            : OnlineWorldArt.point((beams.first.data['points'] as List).first),
         foundry: session.room?.mapId == 'foundry',
         reducedMotion: LocalPreferences.shared.reducedMotion,
       );
@@ -907,6 +984,31 @@ class _ArenaPainter extends CustomPainter {
           positions[member.identity.toHexString] ?? Offset(member.x, member.y);
       final key = member.identity.toHexString, gun = session.fighters[key];
       final hurt = seconds - (hurtTimes[key] ?? -10) < .32;
+      final dashing = key == session.identity
+          ? session.predictedDashRemaining > 0
+          : member.dashRemaining > 0;
+      if (artReady && dashing && (gun?.health ?? 1) > 0) {
+        final direction = key == session.identity
+            ? session.movementPrediction.body?.dashDirection ??
+                  Offset(member.dashX, member.dashY)
+            : Offset(member.dashX, member.dashY);
+        final reduced = LocalPreferences.shared.reducedMotion;
+        for (var i = 0; i < (reduced ? 1 : 3); i++) {
+          AttackVfx.dashDust(
+            canvas,
+            p + const Offset(0, 28) - direction * (i * 22),
+            direction,
+            progress: .15 + i * .26,
+            reducedMotion: reduced,
+            ambient: BossArt.ambient(
+              session.room?.mapId == 'foundry'
+                  ? ArenaType.foundry
+                  : ArenaType.breach,
+            ),
+          );
+        }
+      }
+
       final shotAge = seconds - (shotTimes[key] ?? -10);
       final color = member.team == 0
           ? const Color(0xffA9C990)
@@ -925,35 +1027,37 @@ class _ArenaPainter extends CustomPainter {
       );
       if (artReady) {
         final moving =
-            (member.moveX != 0 || member.moveY != 0) && (gun?.health ?? 1) > 0;
+            (key == session.identity
+                ? session.moveX != 0 || session.moveY != 0
+                : member.moveX != 0 || member.moveY != 0) &&
+            (gun?.health ?? 1) > 0;
         final survivor = gun?.survivor ?? 'rook';
         final dead = gun != null && gun.health <= 0;
         final frame = moving ? (seconds * 12).floor() % 8 : 0;
-        final facing = member.aimX.abs() > member.aimY.abs()
-            ? (member.aimX < 0 ? 2 : 0)
-            : (member.aimY > 0 ? 1 : 3);
-        RegunArt.shared
-            .sprite(
-              dead
-                  ? 'characters/${survivor}_actions'
-                  : moving
-                  ? 'characters/${survivor}_run'
-                  : 'characters/$survivor',
-              dead ? facing * 4 + 3 : facing * 8 + frame,
-            )
-            .render(
-              canvas,
-              position: Vector2(p.dx, p.dy),
-              size: Vector2.all(100),
-              anchor: Anchor.center,
-              overridePaint: Paint()
-                ..colorFilter = hurt
-                    ? const ColorFilter.mode(
-                        Color(0xffDD826C),
-                        BlendMode.modulate,
-                      )
-                    : null,
-            );
+        final facingAim = key == session.identity
+            ? Offset(session.aimX, session.aimY)
+            : Offset(member.aimX, member.aimY);
+        final facing = facingAim.dx.abs() > facingAim.dy.abs()
+            ? (facingAim.dx < 0 ? 2 : 0)
+            : (facingAim.dy > 0 ? 1 : 3);
+        final survivorSprite = moving && !dead
+            ? RegunArt.shared.survivorRunFrame(survivor, facing, frame)
+            : RegunArt.shared.sprite(
+                dead
+                    ? 'characters/${survivor}_actions'
+                    : 'characters/$survivor',
+                dead ? facing * 4 + 3 : facing * 8,
+              );
+        survivorSprite.render(
+          canvas,
+          position: Vector2(p.dx, p.dy),
+          size: Vector2.all(100),
+          anchor: Anchor.center,
+          overridePaint: Paint()
+            ..colorFilter = hurt
+                ? const ColorFilter.mode(Color(0xffDD826C), BlendMode.modulate)
+                : null,
+        );
         if (gun != null && !dead) {
           final weapon = WeaponType.values.firstWhere(
             (w) => w.name == gun.weapon,
@@ -1009,7 +1113,7 @@ class _ArenaPainter extends CustomPainter {
     while (artReady && enemyIndex < enemies.length) {
       drawEnemy();
     }
-    for (final round in session.projectiles) {
+    for (final round in session.presentedProjectiles()) {
       if (round.data['kind'] == 'grenade') {
         final flight = round.data['flight'] as Map? ?? {};
         final height = LocalPreferences.shared.reducedMotion
@@ -1099,7 +1203,7 @@ class _ArenaPainter extends CustomPainter {
         session.controlsEnabled &&
         mine != null) {
       final direction = grenadeAim.direction ?? session.quickGrenadeDirection;
-      final start = Offset(mine.x, mine.y),
+      final start = positions[session.identity] ?? Offset(mine.x, mine.y),
           d = direction.distance < .001
               ? const Offset(1, 0)
               : direction / direction.distance;

@@ -1,0 +1,85 @@
+[
+  {
+    "status": "passed",
+    "endpoint": "regunserver.kiishi.space",
+    "mode": "versus",
+    "players": 6,
+    "arena": "ossuary_cross_3v3",
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 54.597,
+    "inputAgeP95Ms": 88.664,
+    "maxInputAgeMs": 98.767,
+    "tickIntervalP50Ms": 49.802,
+    "tickIntervalP95Ms": 52.24,
+    "maxRemoteExtrapolationMs": 80.0,
+    "maxEventLoopGapMs": [
+      20.348000000000003,
+      19.281,
+      21.139000000000003,
+      22.343,
+      21.141000000000002,
+      22.282
+    ],
+    "maxRefreshGapMs": [
+      237.414,
+      238.964,
+      239.177,
+      236.944,
+      235.742,
+      238.88
+    ],
+    "droppedCommands": [
+      8,
+      10,
+      9,
+      6,
+      8,
+      8
+    ],
+    "activeSeconds": 10.0,
+    "maxPendingCommands": 11,
+    "stalledSamples": 0,
+    "samples": 240,
+    "maxServerQueued": 2,
+    "minimumSimulationRate": 0.7690805033427014,
+    "maxAckSilenceMs": 239,
+    "maxStoppedError": 7.061848814039456e-09,
+    "applicationRttMs": [
+      184,
+      173,
+      205,
+      161,
+      183,
+      210
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -885.0,
+        -125.0
+      ],
+      [
+        885.0,
+        125.0
+      ],
+      [
+        -885.0,
+        0.0
+      ],
+      [
+        885.0,
+        0.0
+      ],
+      [
+        -885.0,
+        125.0
+      ],
+      [
+        885.0,
+        -125.0
+      ]
+    ],
+    "rostersAgree": true,
+    "testClientsClosed": true
+  }
+]

@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-21",
+  "version": "1.0.0+10",
+  "changes": [
+    "full-dash immunity",
+    "grounded dash dust",
+    "lighter Skitter scrape warnings",
+    "lighter boss arcs",
+    "articulated Marshal muzzle"
+  ],
+  "client": {
+    "analyzer": "passed",
+    "testsPassed": 258,
+    "testsSkipped": 5,
+    "allBossPairs32MiBBudget": "passed"
+  },
+  "backend": {
+    "testsPassed": 84,
+    "typecheck": "passed",
+    "moduleBuild": "passed",
+    "deployed": false
+  },
+  "assets": {
+    "assets/art/effects/ground_motion.png": "e8d2a304763b41711b6ff3e657f1b594b099b5b45479192905e0f77391d21643",
+    "assets/art/effects/marshal_aim.png": "7e246a35d4d6d60376ef645bf03e1182bf49a524c04c7ac9cf3070e40133b25c"
+  },
+  "preview": "build/test-previews/combat-readability.png",
+  "limitations": [
+    "Online immunity/muzzle changes await matching backend deployment",
+    "Physical feel/readability/balance remains for creator review",
+    "IPA not regenerated"
+  ],
+  "phone": {
+    "device": "iPhone12",
+    "version": "1.0.0+10",
+    "releaseBuild": true,
+    "inPlaceInstall": true,
+    "launchConfirmed": true,
+    "onlineEnabled": true
+  }
+}

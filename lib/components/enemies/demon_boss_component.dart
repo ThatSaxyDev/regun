@@ -3,5 +3,5 @@ import 'package:regun/data/enemies.dart';
 
 class DemonBossComponent extends PatternBoss {
   DemonBossComponent({super.position, super.maximumHealth = 230})
-      : super(BossKind.demon);
+    : super(BossKind.demon);
 }

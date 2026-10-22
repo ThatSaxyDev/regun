@@ -4,8 +4,6 @@ import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/utils/soloud_play.dart';
 
-import 'package:regun/config/release_features.dart';
-
 import 'online_coming_soon.dart';
 import 'app_build_label.dart';
 import 'home_artwork.dart';
@@ -23,9 +21,10 @@ class HomeMenu extends StatelessWidget {
     required this.onSettings,
     this.onContinue,
     this.bestScore = 0,
-    this.onlineAvailable = ReleaseFeatures.onlinePlay,
+    this.onlineAvailable = false,
+    this.onlineChecking = false,
   });
-  final bool ready, reducedMotion, onlineAvailable;
+  final bool ready, reducedMotion, onlineAvailable, onlineChecking;
   final int bestScore;
   final VoidCallback onPlay, onOnline, onTraining, onCollection, onSettings;
   final VoidCallback? onContinue;
@@ -92,9 +91,13 @@ class HomeMenu extends StatelessWidget {
             const SizedBox(height: 10),
             _HomeAction(
               label: 'Online',
-              detail: onlineAvailable ? 'CO-OP / VERSUS' : 'COMING SOON',
+              detail: onlineChecking
+                  ? 'CHECKING…'
+                  : onlineAvailable
+                  ? 'CO-OP / VERSUS'
+                  : 'COMING SOON',
               muted: !onlineAvailable,
-              onTap: !ready
+              onTap: !ready || onlineChecking
                   ? null
                   : onlineAvailable
                   ? onOnline

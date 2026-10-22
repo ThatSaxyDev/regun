@@ -282,13 +282,16 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.text('Online | connection test'), findsOneWidget);
-        await tester.ensureVisible(find.text('VERSUS'));
-        await tester.tap(find.text('VERSUS'));
+        expect(find.text('Online'), findsOneWidget);
+        await tester.ensureVisible(find.text('Versus'));
+        await tester.tap(find.text('Versus'));
         await tester.pumpAndSettle();
-        expect(find.text('3 V 3'), findsOneWidget);
+        expect(find.text('3 v 3'), findsOneWidget);
         expect(tester.takeException(), isNull);
         // Ten characters must fit: the server creates ten-character room codes.
+        await tester.ensureVisible(find.text('Join room'));
+        await tester.tap(find.text('Join room'));
+        await tester.pumpAndSettle();
         final field = find.byType(TextField).last;
         await tester.ensureVisible(field);
         await tester.enterText(field, 'ABCDEFGH23');
@@ -300,11 +303,11 @@ void main() {
         s.members = [for (var i = 1; i <= 6; i++) member(i, team: (i - 1) % 2)];
         s.changes.add(null);
         await tester.pumpAndSettle();
-        expect(find.text('ROOM ABCDEFGH23'), findsOneWidget);
+        expect(find.text('ABCDEFGH23'), findsOneWidget);
         expect(find.textContaining('Player 6'), findsOneWidget);
         expect(tester.takeException(), isNull);
         if (scale == 1) {
-          await tester.ensureVisible(find.text('ROOM ABCDEFGH23'));
+          await tester.ensureVisible(find.text('ABCDEFGH23'));
           await tester.pumpAndSettle();
           final boundary = tester.renderObject<RenderRepaintBoundary>(
             find.byKey(capture),

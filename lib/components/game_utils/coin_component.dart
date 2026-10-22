@@ -7,10 +7,7 @@ import 'package:regun/notifiers/game_notifier.dart';
 class CoinComponent extends SpriteAnimationComponent
     with HasGameReference<RegunGame>, CollisionCallbacks {
   CoinComponent({super.position, this.value = 1})
-      : super(
-          size: Vector2.all(coinSize),
-          anchor: Anchor.center,
-        );
+    : super(size: Vector2.all(coinSize), anchor: Anchor.center);
 
   bool isCollected = false;
   int value;
@@ -25,7 +22,8 @@ class CoinComponent extends SpriteAnimationComponent
       return;
     }
     final toPlayer = game.myPlayer.position - position;
-    final radius = 180 +
+    final radius =
+        180 +
         game.gameState.effectRank(PowerUp.scavenger) * 60 +
         (game.loadout.character.name == 'scrapper' ? 80 : 0);
     if (toPlayer.length2 <= radius * radius) {
@@ -39,10 +37,7 @@ class CoinComponent extends SpriteAnimationComponent
     coinAnimation = RegunArt.shared.animation('items/items', step: .14);
     animation = coinAnimation;
     add(
-      CircleHitbox(
-        radius: coinSize / 2,
-        collisionType: CollisionType.passive,
-      ),
+      CircleHitbox(radius: coinSize / 2, collisionType: CollisionType.passive),
     );
   }
 }

@@ -1,0 +1,190 @@
+[
+  {
+    "status": "passed",
+    "endpoint": "regunserver.kiishi.space",
+    "mode": "coop",
+    "players": 3,
+    "arena": "breach",
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 54.595,
+    "inputAgeP95Ms": 85.642,
+    "maxInputAgeMs": 86.384,
+    "tickIntervalP50Ms": 50.152,
+    "tickIntervalP95Ms": 51.084,
+    "maxRemoteExtrapolationMs": 53.88283729553223,
+    "droppedCommands": [
+      0,
+      2,
+      4
+    ],
+    "activeSeconds": 4.0,
+    "maxPendingCommands": 6,
+    "stalledSamples": 0,
+    "samples": 48,
+    "maxServerQueued": 1,
+    "minimumSimulationRate": 0.9776732780556111,
+    "maxAckSilenceMs": 97,
+    "maxStoppedError": 5.10763418407527e-17,
+    "applicationRttMs": [
+      169,
+      176,
+      157
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -300.0,
+        -100.0
+      ],
+      [
+        -300.0,
+        0.0
+      ],
+      [
+        -300.0,
+        100.0
+      ]
+    ],
+    "rostersAgree": true,
+    "testClientsClosed": true
+  },
+  {
+    "status": "passed",
+    "endpoint": "regunserver.kiishi.space",
+    "mode": "coop",
+    "players": 2,
+    "arena": "foundry",
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 53.238,
+    "inputAgeP95Ms": 81.901,
+    "maxInputAgeMs": 88.007,
+    "tickIntervalP50Ms": 50.007,
+    "tickIntervalP95Ms": 51.142,
+    "maxRemoteExtrapolationMs": 65.46139717102051,
+    "droppedCommands": [
+      8,
+      5
+    ],
+    "activeSeconds": 4.0,
+    "maxPendingCommands": 7,
+    "stalledSamples": 0,
+    "samples": 32,
+    "maxServerQueued": 2,
+    "minimumSimulationRate": 0.9482222929184326,
+    "maxAckSilenceMs": 130,
+    "maxStoppedError": 0.0,
+    "applicationRttMs": [
+      293,
+      164
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -300.0,
+        -50.0
+      ],
+      [
+        -300.0,
+        50.0
+      ]
+    ],
+    "rostersAgree": true,
+    "testClientsClosed": true
+  },
+  {
+    "status": "passed",
+    "endpoint": "regunserver.kiishi.space",
+    "mode": "versus",
+    "players": 4,
+    "arena": "ironworks_relay_2v2",
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 52.994,
+    "inputAgeP95Ms": 88.762,
+    "maxInputAgeMs": 99.411,
+    "tickIntervalP50Ms": 49.99,
+    "tickIntervalP95Ms": 50.704,
+    "maxRemoteExtrapolationMs": 80.0,
+    "droppedCommands": [
+      11,
+      9,
+      15,
+      7
+    ],
+    "activeSeconds": 10.0,
+    "maxPendingCommands": 7,
+    "stalledSamples": 0,
+    "samples": 160,
+    "maxServerQueued": 3,
+    "minimumSimulationRate": 0.9390439519806025,
+    "maxAckSilenceMs": 225,
+    "maxStoppedError": 1.4210854715202004e-14,
+    "applicationRttMs": [
+      154,
+      166,
+      160,
+      175
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -855.0,
+        -55.0
+      ],
+      [
+        855.0,
+        55.0
+      ],
+      [
+        -855.0,
+        55.0
+      ],
+      [
+        855.0,
+        -55.0
+      ]
+    ],
+    "rostersAgree": true,
+    "testClientsClosed": true
+  },
+  {
+    "status": "failed",
+    "endpoint": "regunserver.kiishi.space",
+    "mode": "versus",
+    "players": 6,
+    "arena": "ossuary_cross_3v3",
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 40.107,
+    "inputAgeP95Ms": 73.102,
+    "maxInputAgeMs": 90.704,
+    "tickIntervalP50Ms": 49.865,
+    "tickIntervalP95Ms": 55.543,
+    "maxRemoteExtrapolationMs": 80.0,
+    "droppedCommands": [
+      7,
+      10,
+      7,
+      9,
+      4,
+      8
+    ],
+    "activeSeconds": 10.0,
+    "maxPendingCommands": 12,
+    "stalledSamples": 6,
+    "samples": 240,
+    "maxServerQueued": 2,
+    "minimumSimulationRate": 0.6506240562178534,
+    "maxAckSilenceMs": 481,
+    "maxStoppedError": 5.769298490567276e-10,
+    "applicationRttMs": [
+      220,
+      154,
+      189,
+      269,
+      280,
+      194
+    ],
+    "allPositionsFinite": true,
+    "failure": "Expected: <0>\n  Actual: <6>\n",
+    "note": "Detailed client state suffix was truncated by native logging; metrics and failure retained."
+  }
+]

@@ -1,0 +1,95 @@
+{
+  "longwatch_sniper": {
+    "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-91ddbd59-e8a9-4d59-bc01-74d04ff1b72f.png",
+    "prompt": "Use case: stylized-concept. Production modular weapon sprite packet for Regun. Create ONE long precision bolt-action sniper rifle, RIGHT-facing orthographic side view, weathered graphite and olive receiver, long narrow rifled barrel, small mechanical scope, wood and brass details. Match reference textured chunky pixel art, no clean vector or photorealism. EXACTLY THREE isolated objects: main rifle in upper half; detachable small magazine lower-left; separate sliding bolt lower-right. Empty magazine socket, no hand or person, no laser or scope light, no text, no shadows, no scene. True transparent alpha, fully transparent gutters, no glow/halo. All objects completely contained, aligned mechanical parts.",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "rects": [
+      [
+        36,
+        166,
+        1746,
+        498
+      ],
+      [
+        556,
+        547,
+        743,
+        813
+      ],
+      [
+        947,
+        623,
+        1356,
+        802
+      ]
+    ],
+    "sha256": "80352ca149645974228ab366b60ffbb39c19d5cbb1b81cd71ac8159055122406"
+  },
+  "cinder_flame": {
+    "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-092bf102-7391-417e-a302-9e9cf0f7dd68.png",
+    "prompt": "Use case: stylized-concept. Production 3-frame sprite sheet of grounded flamethrower fire for a gritty top-down pixel shooter. Image1 is arena MATERIAL/PALETTE reference; Image2 is chunky textured sprite STYLE reference. EXACTLY THREE separated horizontal flames, stacked in three ROWS, all pointing RIGHT. Each flame starts at a small fixed left nozzle origin and widens to a low 40-degree ragged cone to right. THREE variations of same silhouette for looping animation. LOW licking sooty tongues close to ground, smoked charcoal outlines, muted rust/ochre orange, small restrained amber centers. No rocks erupting, no radial explosions, no tall plumes. No neon, no yellow-white hot blob, no bloom/glow, no vector shapes, no background/floor painted in, no text. True transparent alpha and wide empty gutters; crisp worn pixel texture, suitable at 160\u2013260 world-unit length.",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "rects": [
+      [
+        532,
+        49,
+        1381,
+        314
+      ],
+      [
+        532,
+        314,
+        1500,
+        638
+      ],
+      [
+        532,
+        638,
+        1428,
+        856
+      ]
+    ],
+    "sha256": "04528932a26358e461aff331b3b9d7dc4e41b099913c9edb701839d0fa1994a0"
+  },
+  "grounded_ordnance": {
+    "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-fa0cd001-ff2d-4ac9-886e-020ba8ce4fd9.png",
+    "prompt": "Use case: stylized-concept. Production FOUR isolated effect sprites in EXACT 2x2 grid with large transparent gutters, for gritty top-down pixel shooter. Image1 is floor palette/texture reference, Image2 sprite texture reference. Top-left: low grounded GRENADE BLAST of sooty dust, a few small worn iron chips, restrained burnt amber tongues within dark smoke; no giant fireball. Top-right: flat broken charcoal SCORCH and sparse stone dust footprint, top-down foreshortened ellipse. Bottom-left: low SPore capsule rupture of dusty desaturated olive-brown motes and damp dark soil, no glowing poison. Bottom-right: flat mottled moss/olive SPORE PATCH stain with sparse dark seed specks, feathered irregular edge and open gaps so floor shows through. Small restrained amber flecks only, avoid bright green/yellow and white. No luminous circles, no rings, no neon, no diagrams, no text, no floor rectangle, no scene. Opaque material texture inside elements with true transparent alpha around all effects. Match distressed pixel art and blend naturally with dark arena.",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "rects": [
+      [
+        38,
+        68,
+        627,
+        627
+      ],
+      [
+        627,
+        139,
+        1216,
+        573
+      ],
+      [
+        55,
+        680,
+        625,
+        1204
+      ],
+      [
+        653,
+        689,
+        1206,
+        1198
+      ]
+    ],
+    "sha256": "e94f8306e1c66e79f6db5e722068f2dce2d939914ff509275bb59eda2e8cdef7"
+  }
+}

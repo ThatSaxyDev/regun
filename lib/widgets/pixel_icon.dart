@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 
 class PixelIcon extends StatelessWidget {
-  const PixelIcon(this.glyph,
-      {super.key, this.size = 24, this.color = const Color(0xffE1BA78)});
+  const PixelIcon(
+    this.glyph, {
+    super.key,
+    this.size = 24,
+    this.color = const Color(0xffE1BA78),
+  });
   final PixelGlyph glyph;
   final double size;
   final Color color;

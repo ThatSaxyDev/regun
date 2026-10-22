@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "endpoint": "regunserver.kiishi.space",
+  "weapon": "carbine",
+  "firstVisualBulletMs": 24,
+  "firstConfirmedShotMs": 203,
+  "matchedProjectiles": 11,
+  "maxSpeculativeBullets": 2,
+  "continuousPeerFrames": 34,
+  "duplicateVisualKeys": 0,
+  "roomCleanup": true
+}

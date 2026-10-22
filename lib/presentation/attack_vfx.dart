@@ -104,18 +104,18 @@ class AttackVfx {
       ..color = Color.fromRGBO(255, 255, 255, alpha.clamp(0, 1));
     if (material == AttackMaterial.poison) {
       paint.colorFilter = const ColorFilter.matrix([
-        .45,
-        .7,
+        .48,
+        .20,
+        .03,
         0,
         0,
+        .18,
+        .48,
+        .06,
         0,
-        .8,
-        .25,
         0,
-        0,
-        0,
-        .15,
-        .5,
+        .06,
+        .20,
         .25,
         0,
         0,
@@ -179,46 +179,96 @@ class AttackVfx {
     required bool warning,
     required double progress,
     AttackMaterial material = AttackMaterial.stone,
+    ColorFilter? ambient,
   }) {
-    final base = row(material) * 6;
-    // Overlapping textured fault plates mark the complete floor footprint.
-    // The erupting sprite shares its footing with those plates, never a UI ring.
-    for (final dy in [-.48, .48]) {
-      stamp(
+    if (!canvas.getLocalClipBounds().inflate(radius).contains(center)) return;
+    final p = progress.clamp(0.0, 1.0);
+    // One planted floor footprint shares the authoritative circular radius.
+    // Its irregular material edge replaces overlapping tall eruption stamps.
+    final frame = warning
+        ? (material == AttackMaterial.ember ? 2 : 0)
+        : switch (material) {
+            AttackMaterial.ember => 3,
+            AttackMaterial.poison => 4,
+            AttackMaterial.glass => 5,
+            AttackMaterial.chain => 6,
+            AttackMaterial.shadow => 7,
+            _ => 1,
+          };
+    floorArea(
+      canvas,
+      frame,
+      center,
+      radius * 2,
+      alpha: warning ? .60 + p * .28 : .78 * ((1 - p) / .22).clamp(0.0, 1.0),
+      ambient: ambient,
+    );
+    if (warning &&
+        material != AttackMaterial.stone &&
+        material != AttackMaterial.ember) {
+      floorArea(
         canvas,
-        base,
-        center + Offset(0, radius * (dy + .35)),
-        radius * 1.65,
-        alpha: warning ? .68 + progress * .25 : .55,
-        material: material,
-      );
-    }
-    for (var i = 0; i < 8; i++) {
-      final a = i * math.pi / 4;
-      final p = center + Offset(math.cos(a), math.sin(a)) * radius * .88;
-      stamp(
-        canvas,
-        base + 5,
-        p + Offset(0, radius * .1),
-        radius * .36,
-        alpha: warning ? .75 : .9,
-        material: material,
-      );
-    }
-    if (!warning) {
-      final frame = 1 + (progress * 5).floor().clamp(0, 4);
-      stamp(
-        canvas,
-        base + frame,
-        center + Offset(0, radius * .45),
-        radius * 1.7,
-        material: material,
+        switch (material) {
+          AttackMaterial.poison => 4,
+          AttackMaterial.glass => 5,
+          AttackMaterial.chain => 6,
+          _ => 7,
+        },
+        center,
+        radius * 1.8,
+        alpha: .18 + p * .14,
+        ambient: ambient,
       );
     }
   }
 
+  static const floorGrade = ColorFilter.matrix([
+    .81,
+    .05,
+    .02,
+    0,
+    0,
+    .03,
+    .85,
+    .03,
+    0,
+    0,
+    .02,
+    .04,
+    .78,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+  ]);
+  static void floorArea(
+    Canvas canvas,
+    int frame,
+    Offset center,
+    double width, {
+    double alpha = 1,
+    ColorFilter? ambient,
+  }) {
+    if (!RegunArt.shared.contains('effects/grounded_areas')) return;
+    RegunArt.shared
+        .rawSprite('effects/grounded_areas', frame)
+        .render(
+          canvas,
+          position: Vector2(center.dx, center.dy),
+          size: Vector2.all(width),
+          anchor: Anchor.center,
+          overridePaint: Paint()
+            ..filterQuality = FilterQuality.none
+            ..colorFilter = ambient ?? floorGrade
+            ..color = Color.fromRGBO(255, 255, 255, alpha.clamp(0.0, 1.0)),
+        );
+  }
+
   /// Shared grounded burst for mines and future death explosions. Reuses the
-  /// ember atlas; the foot stays planted while heat gives way to dust/char.
+  /// grounded ordnance atlas; heat gives way to planted dust/char.
   static void explosion(
     Canvas canvas,
     Offset center,
@@ -228,45 +278,84 @@ class AttackVfx {
     bool reducedMotion = false,
   }) {
     final p = progress.clamp(0.0, 1.0);
-    final fade = ((1 - p) / .45).clamp(0.0, 1.0);
-    final foot = center + Offset(0, radius * .28);
-    stamp(
+    final fade = (1 - p).clamp(0.0, 1.0);
+    groundMaterial(
       canvas,
-      23,
-      foot,
+      1,
+      center,
       radius * 2,
-      height: radius * .85,
-      alpha: .55 * fade,
-      material: AttackMaterial.ember,
-      grading: ambient,
+      height: radius * .94,
+      alpha: .48 * fade,
+      ambient: ambient,
     );
-    // Sparse pieces share the damaged floor footprint without a glowing ring.
-    for (var i = 0; i < 6; i++) {
-      final angle = i * math.pi / 3 + .2;
-      final offset =
-          Offset(math.cos(angle), math.sin(angle) * .65) * radius * .78;
-      stamp(
+    final expansion = reducedMotion
+        ? 1.0
+        : .72 + .28 * (1 - math.pow(1 - p, 3));
+    groundMaterial(
+      canvas,
+      0,
+      center + Offset(0, -radius * .10),
+      radius * 1.8 * expansion,
+      height: radius * 1.02 * expansion,
+      alpha: (reducedMotion ? .50 : .68) * fade,
+      ambient: ambient,
+    );
+  }
+
+  static void groundMaterial(
+    Canvas canvas,
+    int frame,
+    Offset point,
+    double width, {
+    required double height,
+    double alpha = 1,
+    required ColorFilter ambient,
+  }) {
+    final art = RegunArt.shared;
+    if (!art.contains('effects/grounded_ordnance')) return;
+    art
+        .rawSprite('effects/grounded_ordnance', frame)
+        .render(
+          canvas,
+          position: Vector2(point.dx, point.dy),
+          size: Vector2(width, height),
+          anchor: Anchor.center,
+          overridePaint: Paint()
+            ..filterQuality = FilterQuality.none
+            ..colorFilter = ambient
+            ..color = Color.fromRGBO(255, 255, 255, alpha.clamp(0, 1)),
+        );
+  }
+
+  static void sporePatch(
+    Canvas canvas,
+    Offset point,
+    double radius, {
+    required double progress,
+    required ColorFilter ambient,
+    bool reducedMotion = false,
+  }) {
+    final p = progress.clamp(0.0, 1.0), fade = ((1 - p) / .25).clamp(0.0, 1.0);
+    groundMaterial(
+      canvas,
+      3,
+      point,
+      radius * 2,
+      height: radius * 1.25,
+      alpha: .62 * fade,
+      ambient: ambient,
+    );
+    if (p < .16) {
+      groundMaterial(
         canvas,
-        23,
-        center + offset + Offset(0, radius * .15),
-        radius * .38,
-        height: radius * .24,
-        alpha: .5 * fade,
-        material: AttackMaterial.ember,
-        grading: ambient,
+        2,
+        point,
+        radius * (reducedMotion ? 1.7 : 1.3 + p * 3),
+        height: radius * .90,
+        alpha: .48 * (1 - p / .16),
+        ambient: ambient,
       );
     }
-    final frame = reducedMotion ? 21 : 19 + (p * 5).floor().clamp(0, 4);
-    stamp(
-      canvas,
-      frame,
-      foot,
-      radius * 1.65,
-      height: radius * 1.65,
-      alpha: (reducedMotion ? .72 : .9) * fade,
-      material: AttackMaterial.ember,
-      grading: ambient,
-    );
   }
 
   /// A short outward pressure wave, distinct from ember ordnance blasts.
@@ -312,44 +401,77 @@ class AttackVfx {
     required double progress,
     required ColorFilter ambient,
   }) {
-    final delta = end - start;
-    if (delta.distance < 1) return;
-    final length = delta.distance;
-    final heading = math.atan2(delta.dy, delta.dx);
-    final count = (length / 64).ceil().clamp(3, 9);
-    for (var i = 0; i <= count; i++) {
-      final point = start + delta * (i / count);
-      canvas.save();
-      canvas.translate(point.dx, point.dy);
-      canvas.rotate(heading);
-      stamp(
+    final delta = end - start, length = delta.distance;
+    if (length < 1) return;
+    final direction = delta / length;
+    final p = progress.clamp(0.0, 1.0);
+    // The complete committed route and landing are visible from the first frame.
+    // Small stone notches match aimed weapon previews without a flashing arrow.
+    for (var d = 44.0; d < length - 25; d += 24) {
+      final point = start + direction * d;
+      chip(canvas, point, 7, const Color(0xff292A25).withValues(alpha: .72));
+      chip(
         canvas,
-        5,
-        const Offset(4, 7),
-        54,
-        height: 26,
-        alpha: .54 + progress * .16,
-        grading: ambient,
+        point,
+        4,
+        const Color(0xffB5AB95).withValues(alpha: .70 + p * .16),
       );
-      for (final side in [-1, 1]) {
-        for (var claw = 0; claw < 3; claw++) {
-          final y = side * (9.0 + claw * 5);
-          final marks = [
-            Offset(-17.0 + claw * 4, y + side * 3),
-            Offset(-4.0 + claw, y),
-            Offset(13.0 - claw * 3, y - side * 3),
-          ];
-          stroke(canvas, marks, const Color(0xb3100F0E), 7);
-          stroke(
-            canvas,
-            marks,
-            Color.fromRGBO(190, 174, 146, .66 + progress * .18),
-            3,
-          );
-        }
-      }
-      canvas.restore();
     }
+    floorArea(canvas, 0, end, 104, alpha: .78 + p * .12, ambient: ambient);
+    for (final sign in [-1, 1]) {
+      final side = Offset(-direction.dy, direction.dx) * sign.toDouble();
+      final foot = end + side * 43;
+      chip(canvas, foot, 7, const Color(0xff292A25));
+      chip(canvas, foot, 3, const Color(0xffB5AB95).withValues(alpha: .80));
+    }
+  }
+
+  static void groundStamp(
+    Canvas canvas,
+    int frame,
+    Offset point,
+    double width, {
+    required double height,
+    double alpha = 1,
+    ColorFilter? ambient,
+  }) {
+    if (!RegunArt.shared.contains('effects/ground_motion')) return;
+    RegunArt.shared
+        .rawSprite('effects/ground_motion', frame)
+        .render(
+          canvas,
+          position: Vector2(point.dx, point.dy),
+          size: Vector2(width, height),
+          anchor: Anchor.center,
+          overridePaint: Paint()
+            ..filterQuality = FilterQuality.none
+            ..colorFilter = ambient
+            ..color = Color.fromRGBO(255, 255, 255, alpha.clamp(0, 1)),
+        );
+  }
+
+  static void dashDust(
+    Canvas canvas,
+    Offset foot,
+    Offset direction, {
+    required double progress,
+    required ColorFilter ambient,
+    bool reducedMotion = false,
+  }) {
+    canvas.save();
+    canvas.translate(foot.dx, foot.dy);
+    canvas.rotate(math.atan2(direction.dy, direction.dx));
+    final p = progress.clamp(0.0, 1.0);
+    groundStamp(
+      canvas,
+      p < .4 ? 2 : 3,
+      Offset.zero,
+      reducedMotion ? 52 : 54 + 22 * p,
+      height: reducedMotion ? 19 : 20 + 7 * p,
+      alpha: .65 * (1 - p),
+      ambient: ambient,
+    );
+    canvas.restore();
   }
 
   /// Continuous hostile energy. One unbroken core, no repeated impact sprites.
@@ -369,6 +491,7 @@ class AttackVfx {
     canvas.save();
     canvas.translate(start.dx, start.dy);
     canvas.rotate(math.atan2(delta.dy, delta.dx));
+    canvas.clipRect(Rect.fromLTWH(0, -width - 8, length, 2 * (width + 8)));
     void band(double halfWidth, Color color) => canvas.drawRect(
       Rect.fromLTWH(0, -halfWidth, length, halfWidth * 2),
       Paint()
@@ -389,7 +512,7 @@ class AttackVfx {
       }
     } else {
       final fade = ((1 - progress) / .18).clamp(.35, 1.0);
-      band(width + 12, Color.fromRGBO(221, 67, 41, .14 * fade));
+      band(width + 5, Color.fromRGBO(221, 67, 41, .10 * fade));
       band(width, Color.fromRGBO(239, 99, 51, .65 * fade));
       band(width * .58, Color.fromRGBO(255, 175, 103, .95 * fade));
       band(width * .20, Color.fromRGBO(255, 245, 212, fade));
@@ -405,7 +528,7 @@ class AttackVfx {
         }
       }
       canvas.drawRect(
-        Rect.fromLTWH(-9, -width * .65, 22, width * 1.3),
+        Rect.fromLTWH(0, -width * .35, 12, width * .7),
         Paint()..color = Color.fromRGBO(255, 238, 192, fade),
       );
     }
@@ -453,6 +576,17 @@ class AttackVfx {
         );
         canvas.restore();
       } else {
+        if (warning) {
+          groundStamp(
+            canvas,
+            0,
+            p,
+            math.max(42, width * 2),
+            height: math.max(15, width * .65),
+            alpha: .55 + progress * .22,
+          );
+          continue;
+        }
         final base = row(material) * 6;
         final frame = warning
             ? 0
@@ -461,12 +595,13 @@ class AttackVfx {
           canvas,
           base + frame,
           p + Offset(0, width * .7),
-          width * 2.4,
+          width * 2.1,
+          height: width * (warning ? .55 : 1.1),
           alpha: spent
               ? .25
               : warning
-              ? .6 + progress * .35
-              : 1,
+              ? .48 + progress * .25
+              : .88,
           material: material,
         );
       }
@@ -514,14 +649,26 @@ class AttackVfx {
         : sector;
     canvas.save();
     canvas.clipPath(footprint);
-    disk(
-      canvas,
-      center,
-      radius,
-      warning: warning,
-      progress: progress,
-      material: material,
-    );
+    // Sparse low scuffs leave the arena visible through the committed sector.
+    for (double r = math.max(45, innerRadius); r <= radius; r += 75) {
+      final count = math.max(1, (arc.abs() * r / 90).ceil());
+      for (var i = 0; i <= count; i++) {
+        final a = angle + arc * i / count;
+        final point = center + Offset(math.cos(a), math.sin(a)) * r;
+        canvas.save();
+        canvas.translate(point.dx, point.dy);
+        canvas.rotate(a);
+        groundStamp(
+          canvas,
+          0,
+          Offset.zero,
+          38,
+          height: 11,
+          alpha: warning ? .38 + progress * .18 : .65,
+        );
+        canvas.restore();
+      }
+    }
     canvas.restore();
   }
 
@@ -546,12 +693,17 @@ class AttackVfx {
       final a = angle + arc * i / count;
       final p = center + Offset(math.cos(a), math.sin(a)) * radius;
       if (!clip.contains(p)) continue;
+      if (warning) {
+        groundStamp(canvas, 0, p, 32, height: 14, alpha: .66 + progress * .16);
+        continue;
+      }
       stamp(
         canvas,
         base + (warning ? 0 : 1 + i % 3),
         p + Offset(0, width * .6),
-        warning ? 30 : width * 2.7,
-        alpha: warning ? .7 : 1,
+        warning ? 28 : width * 2.1,
+        height: warning ? 12 : width * 1.15,
+        alpha: warning ? .62 : .9,
         material: material,
       );
     }
@@ -570,26 +722,15 @@ class AttackVfx {
       canvas.save();
       canvas.translate(p.dx, p.dy);
       canvas.rotate(a);
-      final plate = Path()
-        ..addPolygon(const [
-          Offset(-4, -10),
-          Offset(3, -10),
-          Offset(7, -4),
-          Offset(7, 4),
-          Offset(3, 10),
-          Offset(-4, 10),
-        ], true);
-      canvas.drawPath(
-        plate,
-        Paint()
-          ..color = const Color(0xff33454F)
-          ..isAntiAlias = false,
-      );
-      stroke(
+      stamp(
         canvas,
-        const [Offset(3, -9), Offset(6, -3), Offset(6, 4), Offset(3, 9)],
-        const Color(0xffABC0BE),
-        3,
+        12,
+        Offset.zero,
+        27,
+        height: 32,
+        anchor: Anchor.center,
+        material: AttackMaterial.chain,
+        alpha: .88,
       );
       canvas.restore();
     }

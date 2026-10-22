@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flame/components.dart';
 import 'package:regun/data/enemies.dart';
 
@@ -30,7 +31,7 @@ class EnemyTactics {
       // Use floor below too: negative world coordinates need equal-width cells.
       final cell = (
         (sample.position.x / 128).floor(),
-        (sample.position.y / 128).floor()
+        (sample.position.y / 128).floor(),
       );
       _cells.putIfAbsent(cell, () => []).add(sample);
     }
@@ -57,7 +58,7 @@ class EnemyTactics {
           final variation = .92 + ((low * 73 + high * 37) % 17) * .01;
           final gap =
               ((actor.size.x + other.actor.size.x) * .52).clamp(72.0, 112.0) *
-                  variation;
+              variation;
           if (distance >= gap) continue;
           if (distance < .001) {
             // Deterministic, opposite forces even for exactly coincident spawns.
@@ -79,7 +80,11 @@ class EnemyTactics {
   /// Step out of a large pursuer's approach early, while there is time to yield
   /// at normal movement speed. This never changes a committed attack direction.
   static Vector2? yieldToBoss(
-      Vector2 position, Vector2 boss, Vector2 target, double side) {
+    Vector2 position,
+    Vector2 boss,
+    Vector2 target,
+    double side,
+  ) {
     final heading = target - boss;
     if (heading.length < 1) return null;
     heading.normalize();
@@ -91,8 +96,13 @@ class EnemyTactics {
     return tangent * (lateral.abs() > 4 ? lateral.sign : side);
   }
 
-  static Vector2 intent(EnemyKind kind, Vector2 position, Vector2 target,
-      Vector2 targetVelocity, double side) {
+  static Vector2 intent(
+    EnemyKind kind,
+    Vector2 position,
+    Vector2 target,
+    Vector2 targetVelocity,
+    double side,
+  ) {
     final delta = target - position;
     final distance = delta.length;
     if (distance < .001) return Vector2.zero();

@@ -1,0 +1,69 @@
+[
+  {
+    "status": "passed",
+    "endpoint": "127.0.0.1:3102",
+    "mode": "versus",
+    "players": 6,
+    "arena": "ossuary_cross_3v3",
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 44.612,
+    "inputAgeP95Ms": 77.177,
+    "maxInputAgeMs": 89.724,
+    "tickIntervalP50Ms": 49.822,
+    "tickIntervalP95Ms": 50.872,
+    "maxRemoteExtrapolationMs": 46.219825744628906,
+    "droppedCommands": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "activeSeconds": 10.0,
+    "maxPendingCommands": 6,
+    "stalledSamples": 0,
+    "samples": 240,
+    "maxServerQueued": 2,
+    "minimumSimulationRate": 0.9783216689730516,
+    "maxAckSilenceMs": 80,
+    "maxStoppedError": 3.3484640879891846e-08,
+    "applicationRttMs": [
+      220,
+      217,
+      207,
+      215,
+      223,
+      207
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -885.0,
+        -125.0
+      ],
+      [
+        885.0,
+        125.0
+      ],
+      [
+        -885.0,
+        0.0
+      ],
+      [
+        885.0,
+        0.0
+      ],
+      [
+        -885.0,
+        125.0
+      ],
+      [
+        885.0,
+        -125.0
+      ]
+    ],
+    "rostersAgree": true,
+    "testClientsClosed": true
+  }
+]

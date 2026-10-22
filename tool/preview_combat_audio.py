@@ -28,9 +28,9 @@ with (OUT/'combat_audio.csv').open('w') as f:
                     round(sum(a)/len(a),6),round(max(map(abs,a[-44:])),4),
                     hashlib.sha256(path.read_bytes()).hexdigest()])
 
-# Four sections: shotgun, carbine, revolver, Arc Caster. Final section stresses
+# Weapon sections plus an actual three-round Burst Rifle sample. Final section stresses
 # coincident paired-boss impacts against a rifle burst; never normalize the mix.
-mix = [0.0]*(RATE*18)
+mix = [0.0]*(RATE*21)
 def add(name,start,gain):
     for i,x in enumerate(read(ROOT/'assets/audio'/name)):
         index = round(start*RATE)+i
@@ -40,6 +40,11 @@ for weapon,start,cadence,count in [('shotgun',.3,.7,4),('carbine',4,.1,16),
     for i in range(count):
         add(f'shot_{weapon}_{i%3}.wav',start+i*cadence,.72)
         add(f'impact_{weapon}.wav',start+i*cadence+.12,.45 if weapon=='arcCaster' else .25)
+for burst in range(3):
+    for subshot in range(3):
+        t = 18.2 + burst * .6 + subshot * .1
+        add(f'shot_burstRifle_{subshot}.wav', t, .72)
+        add('impact_burstRifle.wav', t + .12, .25)
 for i in range(16):
     add(f'shot_carbine_{i%3}.wav',14.5+i*.1,.72)
     add('impact_carbine.wav',14.62+i*.1,.25)

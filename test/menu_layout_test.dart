@@ -134,6 +134,7 @@ void main() {
                   builder: (context, child) => MediaQuery(
                       data: MediaQuery.of(context).copyWith(
                           textScaler: TextScaler.linear(scale),
+                          disableAnimations: true,
                           padding: EdgeInsets.only(
                               left: size.width > size.height ? 24 : 0,
                               right: size.width > size.height ? 24 : 0,

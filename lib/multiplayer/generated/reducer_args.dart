@@ -231,6 +231,50 @@ class CombatInputArgsDecoder implements ReducerArgDecoder<CombatInputArgs> {
   }
 }
 
+/// Arguments for the combat_input_v_2 reducer
+class CombatInputV2Args {
+  final Int64 roomid;
+  final Int64 generation;
+  final Int64 seq;
+  final Int64 reloadseq;
+  final bool firing;
+  final Int64 burst;
+  CombatInputV2Args({
+    required this.roomid,
+    required this.generation,
+    required this.seq,
+    required this.reloadseq,
+    required this.firing,
+    required this.burst,
+  });
+}
+
+/// Decoder for combat_input_v_2 reducer arguments
+class CombatInputV2ArgsDecoder implements ReducerArgDecoder<CombatInputV2Args> {
+  @override
+  CombatInputV2Args? decode(BsatnDecoder decoder) {
+    try {
+      final roomid = decoder.readU64();
+      final generation = decoder.readU64();
+      final seq = decoder.readU64();
+      final reloadseq = decoder.readU64();
+      final firing = decoder.readBool();
+      final burst = decoder.readU64();
+
+      return CombatInputV2Args(
+        roomid: roomid,
+        generation: generation,
+        seq: seq,
+        reloadseq: reloadseq,
+        firing: firing,
+        burst: burst,
+      );
+    } catch (e) {
+      return null; // Deserialization failed
+    }
+  }
+}
+
 /// Arguments for the configure_room reducer
 class ConfigureRoomArgs {
   final bool enemies;
@@ -370,6 +414,58 @@ class OpenFusionArgsDecoder implements ReducerArgDecoder<OpenFusionArgs> {
   }
 }
 
+/// Arguments for the queue_motion reducer
+class QueueMotionArgs {
+  final Int64 roomid;
+  final Int64 generation;
+  final Int64 seq;
+  final double movex;
+  final double movey;
+  final double aimx;
+  final double aimy;
+  final Int64 dashseq;
+  QueueMotionArgs({
+    required this.roomid,
+    required this.generation,
+    required this.seq,
+    required this.movex,
+    required this.movey,
+    required this.aimx,
+    required this.aimy,
+    required this.dashseq,
+  });
+}
+
+/// Decoder for queue_motion reducer arguments
+class QueueMotionArgsDecoder implements ReducerArgDecoder<QueueMotionArgs> {
+  @override
+  QueueMotionArgs? decode(BsatnDecoder decoder) {
+    try {
+      final roomid = decoder.readU64();
+      final generation = decoder.readU64();
+      final seq = decoder.readU64();
+      final movex = decoder.readF64();
+      final movey = decoder.readF64();
+      final aimx = decoder.readF64();
+      final aimy = decoder.readF64();
+      final dashseq = decoder.readU64();
+
+      return QueueMotionArgs(
+        roomid: roomid,
+        generation: generation,
+        seq: seq,
+        movex: movex,
+        movey: movey,
+        aimx: aimx,
+        aimy: aimy,
+        dashseq: dashseq,
+      );
+    } catch (e) {
+      return null; // Deserialization failed
+    }
+  }
+}
+
 /// Arguments for the rematch reducer
 class RematchArgs {
   RematchArgs();
@@ -474,6 +570,28 @@ class StartMatchArgsDecoder implements ReducerArgDecoder<StartMatchArgs> {
   StartMatchArgs? decode(BsatnDecoder decoder) {
     try {
       return StartMatchArgs();
+    } catch (e) {
+      return null; // Deserialization failed
+    }
+  }
+}
+
+/// Arguments for the stop_motion reducer
+class StopMotionArgs {
+  final Int64 roomid;
+  final Int64 generation;
+  StopMotionArgs({required this.roomid, required this.generation});
+}
+
+/// Decoder for stop_motion reducer arguments
+class StopMotionArgsDecoder implements ReducerArgDecoder<StopMotionArgs> {
+  @override
+  StopMotionArgs? decode(BsatnDecoder decoder) {
+    try {
+      final roomid = decoder.readU64();
+      final generation = decoder.readU64();
+
+      return StopMotionArgs(roomid: roomid, generation: generation);
     } catch (e) {
       return null; // Deserialization failed
     }

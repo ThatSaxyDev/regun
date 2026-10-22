@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "build": "10",
+  "bundleId": "dev.kiishi.regun",
+  "export": "app-store",
+  "onlineEnabled": true,
+  "bytes": 104091498,
+  "sha256": "e8396abf161fea5045fc802e217f4c8e828790cac8e55a57234fbc8f8db02e34",
+  "artifact": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun/build/ios/ipa/regun-1.0.0-10.ipa",
+  "uploaded": false
+}

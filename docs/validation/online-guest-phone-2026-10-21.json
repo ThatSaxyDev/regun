@@ -1,0 +1,32 @@
+{
+  "saved": {
+    "present": true,
+    "jwtParsed": true,
+    "issuedAt": 1792578471,
+    "hasExpiry": false
+  },
+  "archived": {
+    "present": true,
+    "jwtParsed": true,
+    "issuedAt": 1792570479,
+    "hasExpiry": false
+  },
+  "savedConnection": {
+    "accepted": false,
+    "failureType": "SpacetimeDbAuthException"
+  },
+  "archivedConnection": {
+    "accepted": false,
+    "failureType": "SpacetimeDbAuthException"
+  },
+  "fresh": {
+    "present": true,
+    "jwtParsed": true,
+    "issuedAt": 1792582902,
+    "hasExpiry": false
+  },
+  "sameIssuerAsFresh": true,
+  "freshConnected": true,
+  "savedUnchanged": true,
+  "note": "Native in-place Keychain read; saved/archived credentials tested using isolated memory copies; original saved guest unchanged."
+}

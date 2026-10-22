@@ -667,3 +667,243 @@ Creator requested a public build showing upcoming multiplayer without access. Ve
 Creator also requested liveliness within a five-second recording and reported a gray patch over the dim lamp. Removed the flat bulb polygon in favor of feathered rotated attenuation that preserves painted texture. Increased irregular contact dips/recovery, broader sparse dust and occasional cable sparks; darker surrounding grade and Reduced Motion hold remain. Tests verify voltage variation in every five-second interval across the loop, actual rendered dim/bright lamp and bench, stable Reduced Motion, release popup/dismissal and restored online callback. Compact/large-text popup and bright/brownout frames rendered and inspected.
 
 Build8 validation:16 focused home/update tests passed (including additional five-second-window and popup render checks); analyzer clean. App Store export succeeded at build/ios/ipa/regun.ipa, with archive settings validating1.0.0/build8. Signed archive app installed and launched on the paired iPhone; simulator debug build installed/launched and home frame inspected. No App Store upload performed. Physical animation/comfort acceptance stays with creator review.
+
+## Online preparation UI — 21 October 2026
+
+Following the creator's lobby/input review, Online now has separate Create/Join paths, a remembered guest name, stepped native text editors with persistent labels/focus, explicit Paste and keyboard dismissal, normalized ten-character invitations and immediate submission validation. The primary action stays pinned; the header yields space while the landscape keyboard is open. The shared menu's new header/dismissal options default to the prior behavior for other screens.
+
+The waiting room presents co-op squad slots or two Versus teams, survivor portraits, remote weapons, You/Host labels, empty places and Ready/Choosing/Reconnecting states. A bounded local notice reports joins, departures and reconnections, suppresses invented arrivals when the local connection resynchronizes, and explains a room disappearing. Copy confirms inline. A compact kit summary exposes existing weapon/survivor choices; Ready/Start and the specific authoritative start blocker remain visible below the scrolling content. Normal co-op still starts with two ready players; Versus still needs full balanced teams. No matchmaking, chat, host migration or gameplay/server rule changes were added.
+
+Initial connection attempts and automatic retries no longer display an available Retry button. Service HTTP rejection, invalid schema, arena preparation and session attachment have distinct brief failures and a safe internal diagnostic category. Closing/backgrounding during schema/art preparation cannot proceed into a stale session attachment. This improves feedback and lifecycle handling; the phone's reported live connection failure has not been established as fixed.
+
+The charcoal/brass pixel treatment uses existing survivor art and native text-editing semantics. Static membership feedback supports Reduced Motion without new ambient animation. Review rationale and sources are in `ONLINE_UX_REVIEW.md`; rendered previews are `build/test-previews/online-join.png`, `online-squad.png` and `online-lobby.png`. Public build 8 identity and `ReleaseFeatures.onlinePlay = false` remain unchanged. No server deployment or device installation was performed. Native keyboard/VoiceOver feel, two-device arrivals/readiness and real WAN reconnect acceptance remain for hands-on review.
+
+Validation of this UI pass: analyzer clean; **213 client tests passed**, four opt-in simulations skipped. New regressions cover initial/retry presentation, service/schema/art failure categories, route disposal during a pending schema request, name persistence, code normalization/validation, IME composition, keyboard insets/dismiss/refocus at normal and 1.8× text, explicit paste/copy, outside-touch dismissal, squad/readiness/loadouts, join/leave/reconnect notices, room removal and resync suppression. The regenerated Join, co-op and six-player Versus widget renders were inspected. No physical-device or live-room acceptance is inferred.
+
+Creator-authorized private phone install: enabled `ReleaseFeatures.onlinePlay`, built signed release1.0.0+8 with the configured public multiplayer endpoint and installed/launched `dev.kiishi.regun` on the paired physical iPhone12. Xcode release build and CoreDevice installation/launch succeeded. This supersedes the gate-off/no-install delivery state above for this local private candidate; no store upload or server deployment occurred. The online UI and full live connection still require creator device review.
+
+## Online movement response, control parity and guest recovery — 21 October 2026
+
+Creator device feedback identified delayed self movement and simplified Online controls. `ControlArt` now owns the joystick ring/stepped knob and Dash/Reload plate/glyph rendering shared by the original Flame components and Online. Online retains the same persisted sizes, opacity, mirrored aiming-thumb cluster, floating exclusions and sensitivity/dead-zone order; its knob travel now matches Flame. Grenade remains independent. Native touch tests and fixed/floating/right/left control regressions cover the cluster.
+
+The sibling server adds an opt-in private bounded movement queue with owner-scoped applied acknowledgements. It consumes at most one server-owned50ms movement step per callback; no client positions, duration, speed, damage or hits are accepted. The client predicts local presentation, replays only unacknowledged commands and blends small cover-constrained corrections; large corrections snap and Reduced Motion avoids reconciliation blending. Other players retain display interpolation. Dash uses the same direction, duration, cooldown, movement ranks and collision rules; input-generation, shared phase/death, menu, connection and route transitions reset/stop prediction. The maximum prediction/queue horizon is12 commands (600ms). Old servers remain capability-gated and use the earlier authoritative display. Combat authority/rewards/weapon timing are unchanged; no rewind, speculative hits or seamless bad-network promise is made.
+
+Native public-server diagnosis on the iPhone17 simulator reproduced a rejected saved guest (`session_SpacetimeDbAuthException`), while a fresh guest connected successfully. A rejected credential now stops retries and offers an explicit Start new guest action with an online-record warning. Secure storage retains the rejected token under a separate secure key before replacement; no credential is written to reports. Solo profile data is untouched. An isolated native recovery test connected/subscribed and reconnected using its new saved token. This establishes the simulator's failure category, not the physical phone's exact cause or whether the original token expired versus server keys changing. Connection/subscription timeouts now allow a reasonable cold mobile handshake. Route/lifecycle double-disposal detaches listeners synchronously and shares one close future.
+
+Validation: analyzer clean; **225 client tests pass**, five opt-in simulations/live checks skipped. **77 server tests**, typecheck and module build pass. Disposable local TypeScript smoke confirms applied acknowledgements, owner scoping, wrong-room/generation/replay/invalid-vector denial, one-step movement, dash and stop. Flutter live-local movement tests pass direct and through nominal100/200ms round-trip ordered TCP proxies with jitter, including early local movement, convergence, bounded replay, menu stop and reconnect epochs. The iPhone17 simulator repeats actual touch movement/dash/pause at approximately200ms application RTT; its screenshot `build/test-previews/online-prediction-native.png` was visually inspected. Public native guest diagnosis and isolated recovery/reconnect pass. Proxy tests do not simulate actual radio packet loss or establish physical comfort/performance.
+
+Restored the normal `lib/main.dart` debug app, Online enabled, on both running iPhone17 and iPhone18Pro simulators with the **public** endpoint. Release identity remains1.0.0+8. The matching prediction backend is published only to disposable local `regun-dev`; the public backend has not been updated. VPS deployment is blocked because its saved SSH entry references a missing key; browser control for Dokploy is disabled. Until the backend is deployed, these public-endpoint simulator builds have the new controls and guest recovery but keep legacy movement. Follow `MULTIPLAYER_TEST_AND_DEPLOY.md` for additive rollout/volume preservation and verification. No phone installation or store upload occurred in this pass.
+
+The matching signed iOS release1.0.0+8 phone candidate also builds successfully (`build/ios/iphoneos/Runner.app`,109.1MB); it has not replaced the phone app while the creator is away. The production rollout/access question remains pending.
+
+Public prediction rollout verified: the creator clarified that pushing backend main triggers automatic deployment and authorized the push. Committed/pushed sibling server `8f54d7175d103a5dbecd07e09e474a215573a1b0` (`Add authoritative movement acknowledgements for client prediction`). The public named schema now advertises `queue_motion`, `stop_motion` and `my_motion`; `/health` returns HTTP200. A fresh authenticated TLS WebSocket connection successfully subscribed to the existing scoped views plus `my_motion`. This supersedes the rollout/access blocker above. These were schema/connection checks, not production room-mutation or physical gameplay acceptance. Existing updated simulator clients can select prediction on their next connection; the physical phone still needs the latest client candidate installed.
+
+
+### Hosted multiplayer regression pass — 21 October 2026
+
+At the creator's request, tested fresh native SDK guests against the deployed public server in disposable private rooms. Initial 1v1 passed actual touch-before-echo (27ms local/282ms authoritative), dash, stop, fire/reload, grenade, 12-second reversals, menu resume and identity-preserving reconnect. Larger party tests exposed capped prediction queues (2v2 one/160 samples; 3v3 fifteen/240). Added observed-server-cadence pacing with bounded buffer feedback; compacted owner acknowledgements and kept packet receipt private server-side; coalesced row refreshes and flushed command completion state before dependent room setup. Server `afa88a8` was pushed to main and compact acknowledgements verified live. Corrected final party run passed co-op three/Breach, co-op two/Foundry, 2v2/Ironworks Relay and 3v3/Ossuary Cross: zero cap stalls/480 sampled client intervals, zero stopped-position error. RTT still varied (152–465ms); the short tests do not prove absence of future WAN spikes. Analyzer clean, client227 pass/five skipped; server77 plus build/typecheck and local protocol smoke pass. Retained safe reports and failed comparisons live under `docs/validation`. Simulator multi-client testing is not physical-device or independent-network acceptance.
+
+Final 1v1 rerun after deployment passed again (23ms local/255ms authoritative response, maxpending8/no sampled stalls, reconnect and cleanup passed). Rebuilt the normal `main.dart` debug simulator app with the existing local define file and installed/launched it on iPhone17 and iPhone18 Pro; both use the public server and Online remains enabled. No phone installation was possible in this pass.
+
+Phone installation follow-up (21 October): rebuilt signed iOS release1.0.0+8 from the current client with the existing private define file and Online enabled. `devicectl` confirmed successful in-place installation and launch on the creator's iPhone12. This includes the hosted-tested prediction pacing, compact acknowledgements and command-refresh correction. User data was not cleared; physical gameplay/comfort acceptance remains for the creator.
+
+IPA follow-up (21 October): creator requested a build-number bump and IPA. Source identity is now1.0.0+9. `make buildIPA` produced a signed App Store export at `build/ios/ipa/regun.ipa` (104.3MB as reported by Flutter). Xcode app validation and the exported IPA Info.plist confirm1.0.0/build9 and `dev.kiishi.regun`. Online remains enabled as explicitly requested for this multiplayer review. No upload was performed.
+
+
+### Multiplayer latency implementation after build9
+
+Recorded plan/results in `docs/ONLINE_LATENCY_PLAN.md`. Backend1379097 sheds old
+movement bursts without granting extra simulation time, preserves original pending
+dash heading, expires receipt-aged inputs/dash edges and exposes private input-age/
+callback diagnostics. Client uses bounded timestamped remote interpolation (20–70ms
+adaptive buffer,80ms max extrapolation with shared cover constraints), clears tracks
+on phase/epoch/death/reconnect/relocation, and sends combat edges independently of
+prior RTT with six-request bound/150ms keepalive. Eligible first trigger has cosmetic
+muzzle/recoil/audio feedback; confirmation suppresses the duplicate. No predicted
+bullets/ammo/hits/rewards. Analyzer clean;237 client tests/five skips;80 backend tests,
+build/typecheck/local smoke. Local delayed six-player native and hosted co-op2/3,
+2v2,1v1 touch/combat/reconnect pass. Initial hosted3v3 hit six sampled stalls during
+481ms ack gap; instrumented rerun passed, both retained. Route handshake157–180ms
+and callback p95 around51–55ms support investigating delivery path/hosting next,
+without proving its exact cause. No hosting/tick-rate change; physical feel remains
+open. Current identity stays1.0.0+9 and Online remains enabled.
+
+Latency delivery: current release app installed/launched on creator iPhone12 and
+normal app restored on both iPhone17/18 Pro simulators, with Online enabled. Identity
+remains1.0.0+9; prior IPA export is unchanged. Physical movement/audio feel remains
+for creator approval. Local test server/proxy stopped after verification.
+
+Build10 IPA follow-up: creator requested IPA10. Current identity is1.0.0+10; signed
+App Store export completed with latest multiplayer latency improvements and Online
+enabled. Exported Info.plist verifies1.0.0/build10 and dev.kiishi.regun. Artifact:
+build/ios/ipa/regun-1.0.0-10.ipa. Hash/size recorded in validation/ipa-build10-2026-10-21.json.
+No upload was performed. Phone/simulators still carry the prior private build9.
+
+
+### Online bullet travel/correlation correction after build10
+
+Creator reported improved movement but lagging/desynchronized bullets. Raw20Hz bullet
+coordinates were still painted directly. `ProjectilePresentation` now advances server
+rounds continuously up to80ms between arrivals and predicts bounded local primary
+volley visuals from actual weapon/rank/cadence/reload contracts. Serverf82c200 adds
+optional burst/shot/pellet/muzzle metadata and additive combat_input_v_2. Server-owned
+latest validated aim avoids waiting behind movement backlog. Local/server identities
+join one flight, including carbine random heading; no duplicate confirmed bullet/cue.
+Cover/range/body guesses hide speculative travel without fake hits; confirmed pierce
+can resume beyond a guessed body, and ricochet updates reset the old direction.
+Primary ammo/damage/hits/procs remain authoritative; grenades unchanged. Legacy
+clients/reducers remain compatible; new speculation requires protocol2 capability.
+
+Analyzer clean,252 client tests/five skips;82 backend tests/build/typecheck and local
+prediction/projectile protocol smokes passed. Delayed native Carbine17ms visual versus
+287ms confirm; Shotgun14ms versus259ms,9 matched pellets and75 continuous peer frames.
+Hosted Carbine24ms versus203ms,11 matched projectiles,34 peer-between-update frames,
+zero duplicate visual keys, full combat/menu/reconnect regression passed. Test name
+length/capability detection issues were corrected before passing reruns. See
+ONLINE_PROJECTILE_PRESENTATION.md and retained validation reports. Physical feel,
+listening and WAN hit fairness remain open. Identity stays1.0.0+10; existing IPA is
+not regenerated by this correction.
+
+Projectile delivery: both normal simulator apps updated/launched. Signed release10
+device build prepared and verified, but the phone's CoreDevice connection timed out
+before installation. Phone remains on the previous client until reconnected; creator
+notified. IPA10 is unchanged. Local test server/proxy stopped.
+
+Phone retry: after creator reconnected the iPhone, CoreDevice confirmed successful in-place installation and launch of the signed build10 projectile correction. No profile/guest reset; physical playtest remains for creator review.
+
+### Full dash protection and lighter combat cues (21 October 2026)
+
+Creator reports late-dash hits, missing dash VFX, heavy Skitter/arc art and poorly
+attached angled Marshal lasers. Base immunity now covers the whole movement window;
+Phase Step adds brief recovery. Native active-dash damage gate and matching legacy/
+queued server timing prevent the last-frame gap. Grounded short dust, narrow scrape
+warnings and lower boss arc material stamps retain timing/collision/safe pockets.
+Marshal has separated planted-body/gun sprites and a shared articulated muzzle for
+each committed shot/counter. Online articulation capability-gates muzzleProtocol2.
+See docs/art/COMBAT_READABILITY_REVIEW.md. Identity stays1.0.0+10; no IPA/phone update
+or production deploy is implied. Physical comfort/readability/balance remains open.
+
+Dash/readability delivery: signed release1.0.0+10 rebuilt with Online enabled, installed in-place and successfully launched on creator iPhone12 via CoreDevice. No app-data clearing. Matching online server changes remain local; IPA unchanged. Physical feel/readability remains for creator review.
+
+### Scrapper speed (21 October 2026)
+
+Creator finalized +50% movement speed with the existing −15% direct-damage tradeoff.
+Scrapper base is450 (Rook300, Warden270); description states the actual bonus. Native
+saved runs migrate their stored speed by+150 once via survivorSpeedBalance1 while
+retaining movement upgrades. Speed reset returns the survivor's own base. Online
+prediction/fallback and authoritative server/paired contract fixtures agree; Versus
+still uses Rook. Targeted44 client tests and84 backend tests/build/typecheck pass.
+Phone installation and matching online server deployment are not part of this edit.
+
+Warden speed follow-up: creator finalized −13% speed (261 vs Rook300), with explicit
+loadout copy. Two extra hearts/guard remain. survivorSpeedBalance2 migrates older
+Warden saves by−9 once and preserves the version<1 Scrapper migration/upgrades.
+Online prediction/server and identical shared fixtures agree.45 targeted client
+tests and84 backend tests/typecheck/build pass. No installation or rollout implied.
+
+### Scrapper correction and installation candidate (21 October 2026)
+
+Creator clarified+15%, not+50%; final base345 (Rook300, Warden261). Copy and server/
+prediction/fixtures agree. survivorSpeedBalance3 preserves upgrades while migrating
+original speeds by+45 or reverting marker1/2 candidate speeds by−105 once; Warden's
+−9 migration remains. The+50% candidate was not installed.
+
+The left run artwork lacked passing poses despite advancing correctly. New original
+full-body8-pose left sequence includes narrow feet-under-body steps3/7; shared
+survivorRunFrame selects it for solo/online. Source generated through built-in image
+generation referencing existing Scrapper; generated RGBA copied unchanged, alpha
+measured for anchored metadata. Original source atlas retained. Decode320/new and
+832/original keep pair art budget.12fps/phase continuity and all other facings stay.
+Full pre-speed-clarification verify:261 pass/five skips, all boss pairs below32MiB.
+Final corrected speed/gait regression45 pass/one optional video skip; analyzer clean,
+84 backend tests/build/typecheck pass. Phone installation recorded separately below.
+
+Corrected-speed/left-run delivery: signed release1.0.0+10 rebuilt from final+15% source, successfully installed in-place and launched on creator iPhone12. Saved data not cleared. Online remains enabled, server speed/protection/muzzle changes still await deployment, IPA unchanged. Physical animation/feel approval remains open.
+
+### Build11 and remote Online availability (21 October 2026)
+
+Version is now1.0.0+11. Removed the compiled Online=true decision: the Home action
+reads /features from the public server, defaults closed, validates schemaVersion1 /
+booleanonlinePlay, coalesces4s checks and never persists an enabled policy. Refresh
+on entry/return/foreground,30s visible-Home cadence and before Online navigation.
+Pending checks only affect the Online action. Failed checks close new entry; solo
+controls remain usable. Server runtime REGUN_ONLINE_PLAY_ENABLED defaultsfalse and
+is rendered through validated nginx config: public no-store /features and server
+503 admission gate for identity/subscription whenoff. No database schema migration.
+Server environment/redeploy changes availability without another phone build.
+
+Analyzer clean;267 tests/five skips. Actual nginx template tests pass both states,
+cache headers/admission/health/admin isolation/invalid values; image builds. Full
+local named-volume toggle/reconnect check is recorded in validation. Production
+rollout remains pending verification of the existing persistent state/key mount.
+See ONLINE_REMOTE_TOGGLE.md. Artifact/device delivery recorded separately below.
+
+Build11 delivery: signed App Store IPA exported and embedded version/bundle verified as1.0.0+11 / dev.kiishi.regun; artifact build/ios/ipa/regun-1.0.0-11.ipa (106,971,381bytes), hash in validation/ipa-build11-2026-10-21.json. Signed device app also rebuilt/verified. Installation attempt failed before transfer with CoreDevice4016, iPhone unavailable; requested reconnect. Phone remains on prior build until retry succeeds. Production backend62fdf0a remains local; remote switch is not yet live.
+
+
+### Fifteen-weapon expansion — first Burst Rifle slice (21 October 2026)
+
+Creator approved implementation of the fifteen-primary plan, including Frost Shotgun's three-pellet true-freeze direction. The first native addition is Burst Rifle: three actual .10s-spaced rounds, .60s burst starts,18-round magazine,2.0s complete reload, own generated modular receiver/magazine/bolt sprite and recorded-source cues. Named weapon art mappings preserve all original four frames. Mirrored measured sockets and within-frame release offsets align travel/flash; full-volley capacity is claimed before ammo/audio. Pause/input/reset/reload cancel unissued intent appropriately. Optional validated recovery saves never replay pending rounds. Profile schema2 cumulative boss victories unlock Burst at3, counting repeated normal victories once per settled run; both profile schemas/backups remain readable, Training excluded.
+
+Analyzer clean;283 client tests/five skips;88 server tests plus typecheck/build. Unsigned iOS release build succeeded (113.5MB), no install/export/deploy. Shared art30.30MiB and existing boss-pair <=32MiB checks pass; audio previews pass. Burst's server model/fixtures exist but current online lobby selection rejects it until expanded-weapon negotiation/prediction is completed. Current solo roster isfive; remainingten additions, physical motion/audio/comfort/balance and full runtime/capability extraction remain open. Identity1.0.0+11. See ARSENAL_IMPLEMENTATION_PROGRESS.md and validation/arsenal-stage1-2026-10-21/summary.json.
+
+
+Burst Rifle phone delivery: creator explicitly requested installation. Signed release1.0.0+11 rebuilt with configured release defines, signature/bundle/version/Burst atlas verified, installed in place and launched successfully on creator iPhone12 through CoreDevice. No app-data clearing, IPA export or server rollout. Evidence: validation/arsenal-stage1-2026-10-21/phone-install.json and phone-launch.json. Physical feel/audio/readability acceptance remains for creator review.
+
+
+Burst Rifle reload follow-up: creator explicitly requested a faster chambered reload with distinct animation versus empty. Burst now joins Carbine's tactical rule: manual ammo-remaining swap uses.70 base duration (1.4s), seats at82%, no bolt; empty stays2.0s, seat42%/bolt82%. Full completion still gates held firing; Continue preserves duration/progress/consumed cues, old full-only Burst saves keep their full reload. Analyzer clean,284 client tests/five skips,89 server tests/build/typecheck pass. Signed1.0.0+11 installed in place and launched on creator iPhone12, data not cleared; server not deployed. See validation/burst-tactical-reload-2026-10-21/summary.json.
+
+## Fifteen primary weapons — native candidate (21 October 2026)
+
+The solo/Training arsenal now reaches fifteen. See
+[implementation progress](ARSENAL_IMPLEMENTATION_PROGRESS.md) and
+[phone review notes](FIFTEEN_WEAPON_PLAYTEST.md) for every packet, behavior,
+validation and remaining online/physical gates. This supersedes earlier five-
+and four-weapon counts without marking hosted multiplayer expansion complete.
+
+## Weapon device corrections (21 October 2026)
+
+Creator phone feedback replaces Breach Hammer with Longwatch Sniper, fixes stalled
+Reaper reservations, adds release aiming/near-far previews for both lobbers, flowing
+Cinder material, grounded ordnance/spores, Repeater motor/70 rounds/faster cadence,
+larger Frost pellets/longer Rail rounds, Prism18 capacity, Training pause weapon
+switching and subtle loadout idle motion. See WEAPON_DEVICE_REVIEW.md for exact
+contracts, save migration, art provenance and physical review requirements. The
+roster remains15 and the release identity1.0.0+11. Validation/device evidence is
+recorded under validation/weapon-device-review-2026-10-21/.
+
+Device correction validation: analyzer clean,361 Flutter tests pass/five optional
+skips;89 backend tests/typecheck/build pass. All74 expansion cues validate.
+Signed iOS release1.0.0+11 built (128.9MB), strict/deep signature and bundle/version
+verified. Installation could not begin: CoreDevice4016, paired iPhone unavailable.
+Latest corrections are **not installed**; prior phone candidate remains until a
+connected/unlocked retry succeeds. No data cleared, IPA export or server deployment.
+
+Phone delivery retry: creator reconnected the iPhone; the signed correction build1.0.0+11 successfully installed in place and launched. Data was not cleared. The earlier unavailable-device installation note is superseded by this successful retry. Physical playtest approval remains open. Evidence: validation/weapon-device-review-2026-10-21/install-retry.json and launch.json.
+
+## Combat and weapon correction — 22 October 2026
+
+See [COMBAT_MATERIAL_AND_WEAPON_REVIEW.md](COMBAT_MATERIAL_AND_WEAPON_REVIEW.md): grounded enemy/boss floor materials, committed Skitter route/landing warning, real Burster walk gait, subtle solo damage vignette, live-gun Reaper return,100-round accelerating Repeater, clearer stronger Rivet crowd payoff, Frost2.2/pellet, two-hit normal frontal shields for Sniper and reliable Spore ruptures under FX saturation. Release remains1.0.0+11. Physical acceptance remains open.
+
+22 October delivery: complete combat/weapon review including the later Burster
+walk, revised Skitter route/landing and subtle solo damage vignette is validated
+(analyzer clean,372 client tests/five skips;89 server tests/typecheck/build). Signed
+1.0.0+11 release133.5MB installed in place and launched successfully on creator
+iPhone12 after one connection-reset retry. Saved data not cleared. Shared decoded
+art30.06MiB; largest pair/Cinder budget remains <=32MiB. No IPA/server deployment.
+Evidence: validation/combat-review-2026-10-22/. Physical playtest approval open.
+
+## Universal tactical reload and sniper fatigue — 22 October 2026
+
+See [RELOAD_AND_SNIPER_FATIGUE.md](RELOAD_AND_SNIPER_FATIGUE.md). Every current
+weapon now has a70%-duration ammo-remaining manual reload without its final closing
+action/audio; empty reloads retain full timing. Sniper sight and actual shot share
+subtle.18→.85° fatigue over six seconds, with active rest recovery. The separate
+[SIX_WEAPONS_AND_WEIGHT_PLAN.md](SIX_WEAPONS_AND_WEIGHT_PLAN.md) proposes six stronger
+weapons and0–7% walking penalties. Those six and weapon weight are not implemented.
+
+Universal reload/sniper delivery: analyzer clean,391 client tests/five optional
+skips;90 server tests/typecheck/build pass. Signed133.5MB1.0.0+11 installed in place
+and launched on creator iPhone12, data intact. No server deployment/IPA export.
+Six additions and subtle weight modifiers are documented proposals, not live content.
+Evidence: validation/reload-sway-2026-10-22/. Physical approval remains open.

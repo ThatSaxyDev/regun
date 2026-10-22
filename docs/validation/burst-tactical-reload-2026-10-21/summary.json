@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-21",
+  "weapon": "Burst Rifle",
+  "loadedManualReloadSeconds": 1.4,
+  "emptyReloadSeconds": 2.0,
+  "loadedReloadCues": [
+    "magazine out",
+    "magazine seated at82%"
+  ],
+  "emptyReloadCues": [
+    "magazine out",
+    "magazine seated at42%",
+    "bolt at82%"
+  ],
+  "fullCommitment": true,
+  "oldFullReloadSnapshots": "preserved",
+  "newTacticalSnapshots": "preserve duration/progress/consumed cues",
+  "flutter": {
+    "analyzer": "clean",
+    "passed": 284,
+    "optionalSkipped": 5
+  },
+  "server": {
+    "passed": 89,
+    "typecheck": "passed",
+    "build": "passed",
+    "deployed": false
+  },
+  "physicalApproval": "pending",
+  "phoneDelivery": {
+    "status": "installed and launched",
+    "device": "creator iPhone12",
+    "version": "1.0.0+11",
+    "bundle": "dev.kiishi.regun",
+    "appDataCleared": false
+  }
+}

@@ -9,7 +9,9 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
   CombatEffect({
     required super.position,
     this.endpoint,
+    bool floorEffect = false,
     this.upgradePulse = false,
+    this.dashDirection,
     this.remains,
     this.flipRemains = false,
     this.radius = 90,
@@ -18,13 +20,16 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
     this.duration = 0.25,
   }) : super(
          priority:
-             material == AttackMaterial.ember &&
-                 endpoint == null &&
-                 remains == null
+             floorEffect ||
+                 dashDirection != null ||
+                 material == AttackMaterial.ember &&
+                     endpoint == null &&
+                     remains == null
              ? -10
              : 20010,
        );
   final bool upgradePulse;
+  final Vector2? dashDirection;
   final Vector2? endpoint;
   final Sprite? remains;
   final bool flipRemains;
@@ -48,6 +53,17 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
 
   @override
   void render(Canvas canvas) {
+    if (dashDirection != null) {
+      AttackVfx.dashDust(
+        canvas,
+        Offset.zero,
+        dashDirection!.toOffset(),
+        progress: (age / duration).clamp(0, 1),
+        ambient: BossArt.ambient(game.loadout.arena),
+        reducedMotion: game.preferences.reducedMotion,
+      );
+      return;
+    }
     if (upgradePulse) {
       AttackVfx.upgradePulse(
         canvas,
@@ -99,6 +115,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
         canvas,
         Offset.zero,
         radius,
+        ambient: BossArt.ambient(game.loadout.arena),
         warning: false,
         progress: game.preferences.reducedMotion
             ? .35
@@ -143,6 +160,7 @@ class BurningGround extends PositionComponent with HasGameReference<RegunGame> {
       canvas,
       Offset.zero,
       90,
+      ambient: BossArt.ambient(game.loadout.arena),
       warning: false,
       progress: (age / 2.5).clamp(0, 1),
       material: AttackMaterial.ember,

@@ -30,7 +30,9 @@ void main(){
     if(bytes.getUint8(i)>115 && bytes.getUint8(i+1)>105)bright++;
    }
    }
-   expect(bright,greaterThan(500));
+   // The new narrow scuffs deliberately occupy fewer pixels than the old claws.
+   expect(bright,greaterThan(200));
+   expect(bright,lessThan(2400));
   }
   await Directory('build/test-previews').create(recursive:true);
   final png=(await im.toByteData(format:ui.ImageByteFormat.png))!;

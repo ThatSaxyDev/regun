@@ -1,0 +1,165 @@
+[
+  {
+    "status": "passed",
+    "mode": "coop",
+    "players": 3,
+    "arena": "breach",
+    "compactAcknowledgements": true,
+    "activeSeconds": 4.0,
+    "maxPendingCommands": 11,
+    "stalledSamples": 0,
+    "samples": 48,
+    "maxServerQueued": 2,
+    "minimumSimulationRate": 0.6778768988106152,
+    "maxAckSilenceMs": 175,
+    "maxStoppedError": 0.0,
+    "applicationRttMs": [
+      465,
+      218,
+      152
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -300.0,
+        -100.0
+      ],
+      [
+        -300.0,
+        0.0
+      ],
+      [
+        -300.0,
+        100.0
+      ]
+    ],
+    "rostersAgree": true,
+    "testClientsClosed": true
+  },
+  {
+    "status": "passed",
+    "mode": "coop",
+    "players": 2,
+    "arena": "foundry",
+    "compactAcknowledgements": true,
+    "activeSeconds": 4.0,
+    "maxPendingCommands": 11,
+    "stalledSamples": 0,
+    "samples": 32,
+    "maxServerQueued": 4,
+    "minimumSimulationRate": 0.7387564419725838,
+    "maxAckSilenceMs": 177,
+    "maxStoppedError": 0.0,
+    "applicationRttMs": [
+      389,
+      178
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -300.0,
+        -50.0
+      ],
+      [
+        -300.0,
+        50.0
+      ]
+    ],
+    "rostersAgree": true,
+    "testClientsClosed": true
+  },
+  {
+    "status": "passed",
+    "mode": "versus",
+    "players": 4,
+    "arena": "ironworks_relay_2v2",
+    "compactAcknowledgements": true,
+    "activeSeconds": 10.0,
+    "maxPendingCommands": 11,
+    "stalledSamples": 0,
+    "samples": 160,
+    "maxServerQueued": 4,
+    "minimumSimulationRate": 0.7406652289987533,
+    "maxAckSilenceMs": 226,
+    "maxStoppedError": 0.0,
+    "applicationRttMs": [
+      249,
+      264,
+      232,
+      198
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -855.0,
+        -55.0
+      ],
+      [
+        855.0,
+        55.0
+      ],
+      [
+        -855.0,
+        55.0
+      ],
+      [
+        855.0,
+        -55.0
+      ]
+    ],
+    "rostersAgree": true,
+    "testClientsClosed": true
+  },
+  {
+    "status": "passed",
+    "mode": "versus",
+    "players": 6,
+    "arena": "ossuary_cross_3v3",
+    "compactAcknowledgements": true,
+    "activeSeconds": 10.0,
+    "maxPendingCommands": 10,
+    "stalledSamples": 0,
+    "samples": 240,
+    "maxServerQueued": 4,
+    "minimumSimulationRate": 0.8006587653546675,
+    "maxAckSilenceMs": 208,
+    "maxStoppedError": 0.0,
+    "applicationRttMs": [
+      274,
+      248,
+      314,
+      207,
+      196,
+      163
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -885.0,
+        -125.0
+      ],
+      [
+        885.0,
+        125.0
+      ],
+      [
+        -885.0,
+        0.0
+      ],
+      [
+        885.0,
+        0.0
+      ],
+      [
+        -885.0,
+        125.0
+      ],
+      [
+        885.0,
+        -125.0
+      ]
+    ],
+    "rostersAgree": true,
+    "testClientsClosed": true
+  }
+]

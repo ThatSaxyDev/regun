@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/presentation/weapon_feel.dart';
+import 'package:regun/presentation/weapon_art_spec.dart';
+import 'package:regun/systems/burst_fire_clock.dart';
 import 'package:regun/systems/weapon_ballistics.dart';
 import 'package:regun/systems/xp_progression.dart';
 import 'package:regun/multiplayer/combat_state.dart';
@@ -15,7 +17,7 @@ void main() {
     File('test/fixtures/multiplayer_combat.json').readAsStringSync(),
   ) as Map;
   test('Flutter and authoritative TypeScript share the current weapon, survivor, XP and boss contracts', () {
-    for (final w in WeaponType.values) {
+    for (final w in WeaponType.values.where((w) => !w.usesArsenalRuntime)) {
       final s = fixture['weapons'][w.name] as Map, b = WeaponBallistics.of(w);
       expect(
         [w.capacity, w.cadence, w.damage, w.range, w.speed, w.reloadMs / 1000],
@@ -29,6 +31,14 @@ void main() {
         ],
       );
       expect(WeaponFeel.of(w).muzzle + 8, closeTo(s['muzzle'] as num, 1e-6));
+      if (w == WeaponType.burstRifle) {
+        final art = WeaponArtSpec.of(w);
+        expect(
+          art.muzzleSocket.dy - art.gripSocket.dy,
+          closeTo(s['muzzleSide'] as num, 1e-6),
+        );
+        expect(s['burst'], [3, BurstFireClock.spacing, .3]);
+      }
       expect([
         b.closeDistance,
         b.farDistance,
@@ -36,8 +46,10 @@ void main() {
         b.farMultiplier,
       ], s['bands']);
     }
-    expect([ShotgunReload.firstShellMs / 1000, ShotgunReload.shellIntervalMs / 1000],
-        fixture['shotgunReload']);
+    expect([
+      ShotgunReload.firstShellMs / 1000,
+      ShotgunReload.shellIntervalMs / 1000,
+    ], fixture['shotgunReload']);
     for (final c in CharacterType.values) {
       expect([c.health, c.speed, c.damage], fixture['survivors'][c.name]);
     }

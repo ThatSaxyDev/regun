@@ -1,4 +1,6 @@
 import 'package:regun/widgets/app_update_gate.dart';
+import 'package:regun/services/online_availability.dart';
+import 'package:regun/widgets/online_coming_soon.dart';
 import 'package:regun/models/run_checkpoint.dart';
 
 import 'dart:async';
@@ -24,16 +26,68 @@ class MenuView extends ConsumerStatefulWidget {
   ConsumerState<MenuView> createState() => _MenuViewState();
 }
 
-class _MenuViewState extends ConsumerState<MenuView> {
+class _MenuViewState extends ConsumerState<MenuView>
+    with WidgetsBindingObserver {
+  late final OnlineAvailability _online;
+  Timer? _policyTimer;
+  bool _foreground = true, _openingOnline = false;
   Map<String, dynamic>? _saved;
   bool _ready = false;
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _online = ref.read(onlineAvailabilityProvider)..addListener(_policyChanged);
+    _policyTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_foreground && (ModalRoute.of(context)?.isCurrent ?? false)) {
+        unawaited(_online.refresh());
+      }
+    });
     unawaited(_refresh());
   }
 
+  void _policyChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground && (ModalRoute.of(context)?.isCurrent ?? false)) {
+      unawaited(_online.refresh());
+    }
+  }
+
+  @override
+  void dispose() {
+    _policyTimer?.cancel();
+    _online.removeListener(_policyChanged);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Future<void> _openOnline() async {
+    if (_openingOnline) return;
+    setState(() => _openingOnline = true);
+    try {
+      final allowed = await _online.refresh();
+      if (!mounted ||
+          !_foreground ||
+          !(ModalRoute.of(context)?.isCurrent ?? false)) {
+        return;
+      }
+      if (allowed) {
+        await _open(const OnlineView());
+      } else {
+        showOnlineComingSoon(context);
+      }
+    } finally {
+      if (mounted) setState(() => _openingOnline = false);
+    }
+  }
+
   Future<void> _refresh() async {
+    unawaited(_online.refresh());
     await LocalPreferences.shared.load();
     final saved = await RunStore.shared.read(validate: RunCheckpoint.valid);
     if (!mounted) return;
@@ -137,7 +191,10 @@ class _MenuViewState extends ConsumerState<MenuView> {
         reducedMotion: LocalPreferences.shared.reducedMotion,
         onContinue: _saved == null ? null : _continue,
         onPlay: _play,
-        onOnline: () => _open(const OnlineView()),
+        onlineAvailable: _online.enabled,
+        onlineChecking:
+            _openingOnline || _online.state == OnlineAvailabilityState.checking,
+        onOnline: _openOnline,
         onTraining: () => _open(const LoadoutView(training: true)),
         onCollection: () => _open(const CollectionView()),
         onSettings: () => _open(const SettingsView(allowProgressReset: true)),

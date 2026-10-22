@@ -6,7 +6,7 @@ import 'package:regun/notifiers/game_notifier.dart';
 
 class MineComponent extends PositionComponent with HasGameReference<RegunGame> {
   MineComponent({super.position})
-      : super(size: Vector2.all(32), anchor: Anchor.center);
+    : super(size: Vector2.all(32), anchor: Anchor.center);
   double age = 0;
   bool exploded = false;
   @override
@@ -25,20 +25,29 @@ class MineComponent extends PositionComponent with HasGameReference<RegunGame> {
       return;
     }
     if (age < 0.35 || exploded) return;
-    if (game.liveEnemies
-        .any((e) => e.position.distanceToSquared(position) < 75 * 75)) {
+    if (game.liveEnemies.any(
+      (e) => e.position.distanceToSquared(position) < 75 * 75,
+    )) {
       exploded = true;
-      game.explode(position,
-          radius: 185,
-          damage: (3.5 + game.gameState.effectRank(PowerUp.sprintMine)) *
-              (game.loadout.character.name == 'scrapper' ? 1.4 : 1));
+      game.explode(
+        position,
+        radius: 185,
+        damage:
+            (3.5 + game.gameState.effectRank(PowerUp.sprintMine)) *
+            (game.loadout.character.name == 'scrapper' ? 1.4 : 1),
+      );
       removeFromParent();
     }
   }
 
   @override
   void render(Canvas canvas) {
-    RegunArt.shared.rawSprite('items/items', age >= .35 ? 5 : 4).render(canvas,
-        size: size, overridePaint: Paint()..filterQuality = FilterQuality.none);
+    RegunArt.shared
+        .rawSprite('items/items', age >= .35 ? 5 : 4)
+        .render(
+          canvas,
+          size: size,
+          overridePaint: Paint()..filterQuality = FilterQuality.none,
+        );
   }
 }

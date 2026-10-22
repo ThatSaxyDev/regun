@@ -237,3 +237,112 @@ A pending home update check must leave taps, focus and underlying semantics enab
 Current release identity is now **1.0.0+8**, superseding +7 above. `lib/config/release_features.dart` owns the single `ReleaseFeatures.onlinePlay = false` release gate. Home Online stays visibly gray with Coming Soon and opens the dismissible custom stepped-metal notice; it must not navigate into OnlineView or connect a room. Set that constant true to restore the existing online flow on the next build; do not silently flip it before this candidate ships. Tests cover the release default, large-text/compact popup, dismissal and enabled callback.
 
 Home ambience must visibly vary within any five-second demo. Irregular power contacts now produce more frequent dips/recoveries; dust and brief cable sparks remain sparse. Never cover the bulb with an opaque gray quadrilateral: use a feathered, rotated local attenuation gradient so painted pixels survive the dim state. Preserve the darker surrounding grade, Reduced Motion steady frame, cached painting and unchanged menu layout.
+
+## Full dash protection and lighter warnings (2026-10-21)
+
+Build identity stays1.0.0+10. Dash now protects against every damage source for its entire movement window; `damagePlayer` also gates active boost against component/notifier order. Phase Step adds70ms recovery plus15ms per later rank. Shared damage paths must preserve guard/HP/feedback on avoided hits. Pause freezes protection/dust; lingering attacks can hurt after landing. Native grounded dust uses existing bounded CombatEffect lifetime; Reduced Motion emits one puff. Skitter's lighter `effects/ground_motion` scrape path retains committed heading/.75s warning and fairness timings. Boss arcs use sparse clipped scuffs and lower material stamps; preserve full damage/safe-pocket geometry. Marshal uses `effects/marshal_aim` separated planted body/gun and shared `MarshalAim`/server `marshalMuzzle`; each committed volley/counter originates at its own barrel. Select facing from the committed segment, including delayed shots crossing the body. Online articulation requires muzzleProtocol2. Keep continuous beam clipping and existing attack width/duration. Small new atlases decode192/256; five expansion atlases now decode576 to retain the32MiB pair budget. See docs/art/COMBAT_READABILITY_REVIEW.md. Online server rollout and physical approval remain open.
+
+## Scrapper speed (2026-10-21)
+
+The creator finalized Scrapper at **+50% movement speed** (base450 vs Rook300/Warden270), retaining −15% direct damage, pickup reach and mine benefits. Description must match. survivorSpeedBalance1 migrates old stored Scrapper speed by+150 once without losing upgrades; speed resets use character.speed. Online prediction/server/fixtures match; competitive mode remains Rook. Physical balance remains for creator review.
+
+Warden follow-up (2026-10-21): creator finalized **−13% movement speed**, base261, stated explicitly in the description. Keep two extra hearts and the guard. survivorSpeedBalance2 subtracts9 from older Warden stored speeds once while preserving upgrades; retain the version<1 Scrapper migration. Server/client prediction/fixtures agree. Scrapper450 and Rook300 remain.
+
+## Scrapper final speed clarification and left run (2026-10-21)
+
+The creator clarified **+15% speed**, base345, NOT the uninstalled +50% candidate. Description, server/prediction and fixtures must agree; retain−15% direct damage. survivorSpeedBalance3 adds45 to original Scrapper saves or subtracts105 from marker1/2 candidate saves once, preserving upgrades; keep Warden's prior−9 migration for marker<2. Scrapper's old west-facing row had wide strides in every frame: the dedicated full-body characters/scrapper_left_run atlas now supplies8 poses with narrow passing steps3/7. Both native and online use survivorRunFrame. Preserve12fps and facing-phase continuity, other facings and action/weapon timing. The new atlas decodes320 and original Scrapper run832 to retain32MiB boss-pair budget. No procedural leg rig. Native comfort/animation approval remains open.
+
+## Build11 remote Online policy (2026-10-21)
+
+Current version1.0.0+11. No compiled onlinePlay=true gate: Home reads public /features with schemaVersion1 / booleanonlinePlay from regunserver.kiishi.space. Runtime server REGUN_ONLINE_PLAY_ENABLED=true/false (defaultfalse, strict validation) controls policy plus nginx admission. Apply env by restarting/redeploying server, no phone rebuild. Keep no-store headers, fail-closed unknown/error/timeout behavior,4s coalesced checks, no persisted enabled value and passive Online-only checking state. Refresh on Home entry/return/foreground,30s visible Home and before opening Online; solo taps/semantics stay usable. Preserve authoritative auth/room checks. Do not claim rollout from local tests: actual production named volume/key continuity is still unverified, and server changes remain local pending that check. Read docs/ONLINE_REMOTE_TOGGLE.md.
+
+
+## Burst Rifle tactical reload correction (2026-10-21)
+
+The creator explicitly added Burst Rifle to the tactical-reload weapons after phone review. With ammo remaining, manual reload uses.70 of its2.0s base (1.4s before Sleight of Hand), seats the magazine at82% and skips bolt pose/audio. Empty reload remains2.0s with seating42%/bolt82%. Both finish completely before firing. `WeaponType.supportsTacticalReload` covers Carbine and Burst; restore their saved `reloadTactical` flags and existing durations, while older full-only Burst snapshots retain full timing/bolt cues. Keep shotgun/revolver/Arc reload contracts. This supersedes the earlier Carbine-alone rule only for Burst Rifle. Fifteen-weapon target is still active; current solo roster isfive and expanded online admission is pending.
+
+## Fifteen-weapon native candidate (2026-10-21)
+
+The solo roster now has fifteen primaries (four original plus eleven additions).
+Read docs/ARSENAL_IMPLEMENTATION_PROGRESS.md and docs/FIFTEEN_WEAPON_PLAYTEST.md.
+ArsenalSystem owns Rail/Rivet/Cinder/Disc/Mortar/Belt/Frost/Prism/Spore/Hammer modes;
+keep BurstFireClock's separate rounds and accepted tactical/empty reload. Frost
+fires three simultaneous pellets with a real .6s ordinary mobile-enemy freeze,
+.2s recovery and 1.2s post-thaw immunity. Planted roles/bosses resist freeze.
+Cinder's innate burn is separate from Hot Shot. Shared actor IDs, owner ledgers,
+finite flight/payload/patch saves, secondary damage and proc/population limits
+must remain authoritative. Selected weapon packets and hammer poses use leases;
+preserve pending-load disposal and the 32 MiB boss-pair art budget. Hammer hand
+sockets and hit sweep share measured pose geometry; do not rotate root actors.
+Aim Assist uses shared alignment/range/clear-sight checks. Prism shows heat/vent,
+large magazines use proportional markers, and Cinder/Prism own one sustain voice
+per firing interval. Stop/pause/reload/restart/disposal cancel late loads too.
+Training exposes all fifteen; normal unlocks use settled lifetime boss counts.
+The online lobby still admits only its four supported originals; ten new native
+modes are not authoritative online implementations. Keep capability gates until
+those server/client contracts are implemented and reviewed. Identity remains
+1.0.0+11. Physical motion, comfort, sound, balance and performance remain open.
+
+
+## Weapon phone feedback correction (2026-10-21)
+
+See docs/WEAPON_DEVICE_REVIEW.md. Live roster remains15; Longwatch Sniper replaces
+Breach Hammer (legacy keys alias). Hold primary aim then release for Sniper and
+near/far Mortar/Spore shots; cancellation/center return spends nothing. Preserve
+Cinder's bounded advected flame stream, cover clipping and post-release tail; never
+restore stationary painted stamps. Reaper outbound/return lifetimes must release
+all reservations. Repeater70/.085s with audible spin-up; Prism18/cap24. Pump draw28×14, Frost draw
+24×15 and Rail draw48 do not alter hitboxes. Training pause weapon changes preserve
+the run/build and replace primary resources safely across pending loads/disposal.
+Loadout portrait idle respects Reduced Motion. Original shotgun/reload contracts
+remain. arsenalReviewBalance:1 migrates changed base resources once. Physical
+review remains open; installation/automated tests are not physical acceptance.
+
+
+## Combat material and final weapon review (2026-10-22)
+
+Read docs/COMBAT_MATERIAL_AND_WEAPON_REVIEW.md. Reaper returns home to the live
+gun every step; retain bounded return/catch cleanup. Belt100 base rounds ramps
+.085→.040 over8 active firing seconds; release/reload cancels, pause freezes. Keep
+sampled bounded muzzle offsets aligned with the flash, including mirrored guns.
+Frost2.2/pellet versus Pump1.2; sniper primary armour-piercing rounds retain.40
+frontal shield damage, two hits versus normal8HP. Rivet remains a crowd-demolition
+gun:1.75 splash per charge/radius125, visible copper pins, dead-host.12s fuse,
+existing two-per-host/eight-total/grouped-secondary rules. Every Spore capsule
+ruptures: gameplay patch creation must not be discarded under decorative FX cap;
+evict a cosmetic cue while keeping40 total/four-patch limit. arsenalReviewBalance2
+migrates changed Belt resources once; its upgrade/save capacity limit is128.
+
+Grounded areas atlas replaces repeated tall circular stamps. Floor warnings and
+heavy impacts stay below actors; committed circle/sector/ring damage contracts
+remain. The creator superseded the previous Skitter claw-strip warning: use the
+shared fixed stone-notched route and landing footprint, like aimed weapon previews.
+No travelling/flashing arrows. Solo HP loss adds a subtle multiplayer-style edge
+vignette (.22/.11 Reduced Motion), preserving center clarity, pause/reset/gates.
+Bursters walk on boots: four-facing burster_walk atlas, actual-distance native
+gait, fixed feet; no float or procedural leg rig. Warning/death use original poses.
+Shared arsenal decode640, walk384/oldBurster320 and area256 retain32MiB pair budget.
+Current release1.0.0+11; new guns still online-gated. Physical review remains open.
+
+
+## Universal tactical reload and sniper fatigue (2026-10-22)
+
+Creator now explicitly requests both reload modes for ALL weapons, superseding
+Carbine/Burst-only restrictions and earlier non-Carbine timing preservation. Read
+docs/RELOAD_AND_SNIPER_FATIGUE.md. Manual with ammo uses.70 of existing/upgrade-adjusted
+duration and skips final pump/bolt/locking pose/audio. Empty retains full baseline.
+Keep full completion gating, missing-shell formula/five-shell cap, tactical shell
+spacing420ms, normal shell spacing600ms, existing Fast Reload cues, pause clocks and
+Continue's selected duration/consumed cues. Legacy staged plans still finish full.
+
+SniperSway is a ballistic heading offset shared by assisted sight/muzzle/shot:
+.18° initial envelope→.85° cap in6 active aiming seconds; rest recovers2s/s. Capture
+the release direction BEFORE cancelling aim. Preserve fatigue/phase across Continue
+without restoring input; old saves start rested. No camera sway/random release
+spread or Aim Assist erasure. Damage/range/cadence/pierce remain. Release1.0.0+11.
+
+The six additions/0–7% weapon-weight walking penalties are PROPOSALS ONLY in
+docs/SIX_WEAPONS_AND_WEIGHT_PLAN.md. Do not claim21 live weapons or apply movement
+weight yet. Native/server/prediction parity and unchanged dash are future gates.
+Local online reload parity is updated; no server rollout or expanded lobby admission
+is implied. Physical feel/motion/audio acceptance remains for creator review.

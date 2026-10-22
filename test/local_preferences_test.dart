@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:regun/data/loadout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/models/control_layout.dart';
 import 'package:regun/services/local_preferences.dart';
@@ -22,6 +24,23 @@ void main() {
     expect(second.bestScore, 123);
     expect(second.bestSeconds, 70);
   });
+
+  test(
+    'preferred online name persists without changing solo progress',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final first = LocalPreferences();
+      await first.load();
+      first.profile.scrap = 80;
+      await first.saveProfile();
+      await first.saveOnlineName('  Ada  ');
+      await first.saveOnlineName('   ');
+      final second = LocalPreferences();
+      await second.load();
+      expect(second.onlineName, 'Ada');
+      expect(second.profile.scrap, 80);
+    },
+  );
 
   test('corrupt control data keeps records and uses safe defaults', () async {
     SharedPreferences.setMockInitialValues(
@@ -52,4 +71,22 @@ void main() {
     expect(fresh.profile.challenges, isEmpty);
     expect(storage.getString('profile.backup.v1'), isNull);
   });
+  test('legacy profile upgrades retain entitlements and schema two boss progress', () async {
+    SharedPreferences.setMockInitialValues({'profile.v1': jsonEncode({
+      'schema': 1, 'scrap': 42, 'challenges': ['arcCaster', 'training']})});
+    final old = LocalPreferences();
+    await old.load();
+    expect(old.profile.weaponUnlocked(WeaponType.arcCaster), isTrue);
+    expect(old.profile.totalBossVictories, 0); // Never invent historic victories.
+    old.profile.totalBossVictories = 3;
+    old.profile.challenges.add('burstRifle');
+    expect(await old.saveProfile(), isTrue);
+    final loaded = LocalPreferences();
+    await loaded.load();
+    expect(loaded.profile.scrap, 42);
+    expect(loaded.profile.totalBossVictories, 3);
+    expect(loaded.profile.weaponUnlocked(WeaponType.arcCaster), isTrue);
+    expect(loaded.profile.weaponUnlocked(WeaponType.burstRifle), isTrue);
+  });
+
 }

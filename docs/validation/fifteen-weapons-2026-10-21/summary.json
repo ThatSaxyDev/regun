@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-21",
+  "nativeWeapons": 15,
+  "additions": 11,
+  "newThisPass": 10,
+  "trainingAccess": "all fifteen",
+  "aimAssist": "shared range/alignment/clear-sight helper; Off by default; Settings → Aim assist",
+  "flutter": {
+    "analyzer": "clean",
+    "passed": 349,
+    "optionalSkipped": 5,
+    "finalArtFocusedPassed": 22
+  },
+  "server": {
+    "passed": 89,
+    "typecheck": "passed",
+    "build": "passed",
+    "deployed": false,
+    "onlineAdmission": "original four; expansions gated"
+  },
+  "headlessSoak": {
+    "passed": [
+      30,
+      60
+    ],
+    "units": "simulated minutes",
+    "nativePerformanceProof": false
+  },
+  "audio": {
+    "expansionCues": 73,
+    "combatAssets": 92,
+    "reloadCues": 44,
+    "expansionReelPeak": 0.4348,
+    "nativeListeningApproval": false
+  },
+  "phoneDelivery": {
+    "status": "installed and launched",
+    "device": "creator iPhone12",
+    "version": "1.0.0+11",
+    "bundle": "dev.kiishi.regun",
+    "signature": "verified strict/deep",
+    "appDataCleared": false
+  },
+  "physicalApproval": "pending creator playtest"
+}

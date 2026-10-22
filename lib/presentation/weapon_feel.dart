@@ -3,8 +3,17 @@ import 'package:regun/data/loadout.dart';
 
 /// Presentation and bounded hit response; projectile stats/damage stay in loadout.
 class WeaponFeel {
-  const WeaponFeel(this.color, this.width, this.grip, this.kick, this.recovery,
-      this.flashLength, this.flashWidth, this.trail, this.impact);
+  const WeaponFeel(
+    this.color,
+    this.width,
+    this.grip,
+    this.kick,
+    this.recovery,
+    this.flashLength,
+    this.flashWidth,
+    this.trail,
+    this.impact,
+  );
   final Color color;
   final double width,
       grip,
@@ -17,29 +26,209 @@ class WeaponFeel {
   double get muzzle => width * (1 - grip);
   // Draw size is independent of the projectile's collision radius.
   static ({double length, double thickness, double trailWidth}) round(
-          WeaponType type) =>
-      switch (type) {
-        WeaponType.shotgun => (length: 22, thickness: 11, trailWidth: 7),
-        WeaponType.carbine => (length: 13, thickness: 5, trailWidth: 3),
-        WeaponType.revolver => (length: 15, thickness: 6, trailWidth: 4),
-        WeaponType.arcCaster => (length: 13, thickness: 6, trailWidth: 3),
-      };
+    WeaponType type,
+  ) => switch (type) {
+    WeaponType.shotgun => (length: 28, thickness: 14, trailWidth: 7),
+    WeaponType.carbine => (length: 13, thickness: 5, trailWidth: 3),
+    WeaponType.revolver => (length: 15, thickness: 6, trailWidth: 4),
+    WeaponType.burstRifle => (length: 14, thickness: 5, trailWidth: 3),
+    _ when type.usesArsenalRuntime => (
+      length: type == WeaponType.railLance
+          ? 48
+          : type == WeaponType.longwatchSniper
+          ? 30
+          : type == WeaponType.frostShotgun
+          ? 24
+          : 16,
+      thickness: type == WeaponType.frostShotgun ? 15 : 6,
+      trailWidth: 4,
+    ),
+    WeaponType.arcCaster => (length: 13, thickness: 6, trailWidth: 3),
+    _ => (length: 16, thickness: 6, trailWidth: 4),
+  };
 
   static ({double distance, double duration}) impactMotion(WeaponType type) =>
       switch (type) {
         WeaponType.shotgun => (distance: 34, duration: .12),
         WeaponType.carbine => (distance: 5, duration: .06),
         WeaponType.revolver => (distance: 16, duration: .1),
+        WeaponType.burstRifle => (distance: 7, duration: .07),
+        _ when type.usesArsenalRuntime => (
+          distance: type == WeaponType.frostShotgun
+              ? 14
+              : type == WeaponType.longwatchSniper
+              ? 24
+              : 8,
+          duration: .12,
+        ),
         WeaponType.arcCaster => (distance: 8, duration: .075),
+        _ => (distance: 8, duration: .12),
       };
   static WeaponFeel of(WeaponType type) => switch (type) {
-        WeaponType.shotgun =>
-          const WeaponFeel(Color(0xffE9BC75), 64, .44, 9, .14, 40, 20, 30, 42),
-        WeaponType.carbine =>
-          const WeaponFeel(Color(0xffF0D6A2), 57, .45, 4, .07, 23, 8, 36, 19),
-        WeaponType.revolver =>
-          const WeaponFeel(Color(0xffFFC588), 44, .23, 11, .19, 44, 13, 60, 40),
-        WeaponType.arcCaster =>
-          const WeaponFeel(Color(0xffA6E8D4), 54, .23, 9, .18, 38, 22, 54, 50),
-      };
+    WeaponType.shotgun => const WeaponFeel(
+      Color(0xffE9BC75),
+      64,
+      .44,
+      9,
+      .14,
+      40,
+      20,
+      30,
+      42,
+    ),
+    WeaponType.carbine => const WeaponFeel(
+      Color(0xffF0D6A2),
+      57,
+      .45,
+      4,
+      .07,
+      23,
+      8,
+      36,
+      19,
+    ),
+    WeaponType.revolver => const WeaponFeel(
+      Color(0xffFFC588),
+      44,
+      .23,
+      11,
+      .19,
+      44,
+      13,
+      60,
+      40,
+    ),
+    WeaponType.burstRifle => const WeaponFeel(
+      Color(0xffD9C692),
+      62,
+      .43,
+      5,
+      .08,
+      26,
+      9,
+      39,
+      23,
+    ),
+    WeaponType.arcCaster => const WeaponFeel(
+      Color(0xffA6E8D4),
+      54,
+      .23,
+      9,
+      .18,
+      38,
+      22,
+      54,
+      50,
+    ),
+    WeaponType.railLance => const WeaponFeel(
+      Color(0xffCDB995),
+      78,
+      0.43,
+      12,
+      0.17,
+      20,
+      8,
+      60,
+      45,
+    ),
+    WeaponType.rivetDriver => const WeaponFeel(
+      Color(0xffD5AA7E),
+      52,
+      0.44,
+      3,
+      0.07,
+      14,
+      4,
+      18,
+      16,
+    ),
+    WeaponType.cinderHose => const WeaponFeel(
+      Color(0xffE7A164),
+      58,
+      0.43,
+      1,
+      0.07,
+      0,
+      0,
+      0,
+      16,
+    ),
+    WeaponType.reaperDisc => const WeaponFeel(
+      Color(0xffB6C1B2),
+      59,
+      0.43,
+      6,
+      0.12,
+      10,
+      5,
+      0,
+      24,
+    ),
+    WeaponType.scrapMortar => const WeaponFeel(
+      Color(0xffE1BD7C),
+      54,
+      0.43,
+      10,
+      0.2,
+      18,
+      10,
+      0,
+      38,
+    ),
+    WeaponType.beltRepeater => const WeaponFeel(
+      Color(0xffD5C395),
+      70,
+      0.43,
+      2,
+      0.06,
+      16,
+      6,
+      24,
+      12,
+    ),
+    WeaponType.frostShotgun => const WeaponFeel(
+      Color(0xffB8DAD8),
+      65,
+      0.44,
+      9,
+      0.16,
+      20,
+      10,
+      26,
+      24,
+    ),
+    WeaponType.prismCutter => const WeaponFeel(
+      Color(0xffE4DEC0),
+      58,
+      0.43,
+      0,
+      0.08,
+      0,
+      0,
+      0,
+      14,
+    ),
+    WeaponType.sporeLobber => const WeaponFeel(
+      Color(0xffBAC482),
+      55,
+      0.43,
+      4,
+      0.13,
+      8,
+      6,
+      0,
+      18,
+    ),
+    WeaponType.longwatchSniper => const WeaponFeel(
+      Color(0xffD2C5A4),
+      86,
+      .34,
+      13,
+      .19,
+      34,
+      7,
+      65,
+      44,
+    ),
+  };
 }

@@ -198,3 +198,82 @@ The final home art is now **Rook's shelter**, replacing the rejected iron breach
 **Independent grenade aim:** Hold the grenade control without spending a charge. Drag backward while moving forward, verify the dotted arc/ground brackets, then release. Short drags should toss nearby; full drags keep the old maximum range. Weapon aim must remain untouched. Quick taps follow movement (stationary uses last aim). Drag back into the center for Cancel; pause/background or interrupted touches must discard the throw. Try mirrored/floating controls, reduced motion, multiple fingers, walls and enemies intercepting the arc. The landing marker predicts current contacts; enemies moving into the flight may detonate it sooner. Check online after the aim_grenade server deployment.
 
 **Rest aim / upgrade recovery:** Run while aiming backward, release aim and verify the gun holds briefly then turns toward running after .65s; re-aim must respond immediately. Try reload, idle, pause, Reduced Motion and multiplayer. Confirm an XP/supply/fusion choice while crowded: one short cool pressure pulse should shove ordinary enemies, deal light damage and destroy hostile bullets already nearby. Bosses stay planted. Later bullets and hazards can still hurt immediately—there is no added invulnerability. Reroll, ban, stale taps and ordinary pause/resume must not emit another pulse. Check walls, crowd body spacing, checkpoint/continue and three-player co-op overlapping selections. Judge whether the created space is enough to find the controls without trivializing combat.
+
+**Online preparation UI (21 October 2026):** The public Online gate remains off; exercise `OnlineView` in the private development/test flow. On a compact landscape phone, switch Create/Join; Join must hide host settings. Edit the name, paste a lowercase/spaced/dashed ten-character invitation, verify normalization and validation, and submit using the keyboard. Empty names, short codes and excluded characters must disable Join. Test outside-tap, scroll-drag and explicit Hide keyboard; reopen either plate without losing text. On iOS/Android, verify the active editor and exit remain reachable above the keyboard, including large text. The name should survive a completed create/join and relaunch.
+
+Open co-op and all three Versus sizes on two or more devices. Watch actual arrivals populate empty slots and announce briefly; change remote loadouts, Ready states and teams. Co-op may start at two of three players; Versus needs full balanced teams. The host's pinned Start must explain its blocker. Reconnect must preserve reserved members and avoid replaying the full roster as new arrivals. Leaving/room removal should return to preparation with a clear status. Copy should confirm near the code. Delay/fail schema, art and session opening: an active attempt must never offer Retry, automatic reconnection must be visible, errors must preserve entered name/code, and a terminal failure must expose Retry. Check reduced motion and screen reader field labels/status announcements. Automated widget and transport-state tests do not approve device keyboard comfort or live multiplayer reliability.
+
+**Online responsiveness/control follow-up:** On the simulator or phone candidate, compare the joystick ring/stepped knob and Dash/Reload glyphs directly with solo. Test88/96/112 control size, both handedness options, fixed/floating sticks and simultaneous move/aim/dash/grenade. Movement must stay held while reaching Dash with the aiming thumb. A saved guest rejected by the public server should show a specific explanation and Start new guest, without endless retries; that action can lose access to prior online records and must be deliberate. Confirm reconnect with a valid saved guest does not create another identity.
+
+Predicted movement requires the matching server deployment (`queue_motion`, `stop_motion`, `my_motion`). Once available, start/stop/reverse near walls, teammates and arena edges, and dash while latency varies. Self movement should appear promptly; remote players remain interpolated. Stop and verify convergence without repeated rubber-banding. Test local menu, shared choice, death/spectating, round transitions, reconnect, background/focus loss and Reduced Motion: no old movement/dash may replay. Under a long outage the bounded predictor must stop rather than run indefinitely. Combat still uses authoritative positions, so these tests do not approve hit rewind or balance. The public-endpoint simulators currently use legacy movement until the backend rollout; local200ms native prediction evidence must not be presented as deployed public behavior.
+
+
+Hosted online follow-up (21 October): explicitly authorized native private-room checks now cover touch prediction, server-confirmed combat controls and same-guest reconnect, plus co-op2/3 and Versus2v2/3v3. See `docs/validation` and `MULTIPLAYER_TEST_AND_DEPLOY.md` for successes and earlier queue stalls. Backend `afa88a8` compacts acknowledgements; client pacing follows observed simulation cadence. Before phone acceptance, use the matching fresh client, verify solo-style mirrored controls, try repeated reversals/dashes during RTT spikes, and exercise real foreground/network transitions. Current simulator results do not replace that review.
+
+
+Latency pass after build9: compare other players' turns/stops and dashes at cover
+edges; remote presentation now uses timestamped samples and short bounded
+extrapolation instead of trailing toward the latest point. Try long delayed gaps:
+remote actors must stop extrapolating after80ms, and local prediction remains bounded.
+First trigger should show/hear one immediate cue if eligible; verify no doubled
+shot sound when server confirmation arrives, no cues during empty/reload/cooldown,
+and actual ammo/hits remain server-confirmed. Check rapid trigger release/manual
+reload, lifecycle/round/choice/death/reconnect and Reduced Motion. Read the retained
+3v3 failure as well as the passing rerun in ONLINE_LATENCY_PLAN.md. Long delivery
+spikes and physical comfort/listening remain open; a simulator pass does not close them.
+
+
+Bullet correction after build10: hold fire with all four weapons while strafing,
+then release/repress rapidly. Rounds should travel continuously on both devices,
+start promptly from your muzzle, and join confirmed shots without duplicate pellets
+or repeated sound. Try shotgun Scattershot/high-velocity/Quick Trigger, last cartridge,
+manual/full reload, ricochet/pierce, near cover and an enemy touching the muzzle.
+Do not count guessed visual contact as a confirmed hit: health/damage remain server
+owned. Pause/background/death/shared-choice/reconnect must cancel guesses. During
+long update gaps visuals must stop rather than fly indefinitely. Review reduced
+motion, shot audio and both-device aim/impact alignment; automated simulator tests
+are not physical approval. See ONLINE_PROJECTILE_PRESENTATION.md.
+
+**Dash / lighter combat cues (21 October):** Dash across Magistrate chains, Marshal
+beams, enemy rounds, contact and ground attacks. The entire dash must avoid HP loss,
+shield use and hurt feedback; standing in an active hazard after landing can hurt.
+Phase Step should extend recovery, not be required for the dash itself. Pause should
+freeze protection/dust. Review the small floor dust wake (one modest cue in Reduced
+Motion), thinner Skitter scuffs from initial commitment and the lighter sweep sector,
+including its inside safe pocket. Check Marshal shots left/right/up/down/diagonally,
+delayed second shots, brace counter, near cover and death cleanup. The body must stay
+whole and the continuous beam begin at the rotating barrel. Online protection and
+articulated muzzle require the matching server deployment; physical review remains
+open. See art/COMBAT_READABILITY_REVIEW.md.
+
+
+## Arsenal expansion — first native Burst Rifle candidate
+
+Current local source offers a fifth solo weapon, Burst Rifle. Select it in Training, or settle3 normal boss victories to unlock it in Play; historic counts are not invented from old saves. Hold primary aim for three separate rounds, then a short gap; turn between rounds, release after one/two rounds, reload early/empty, pause during a burst/reload and test Restart/Continue. Capacity18, base burst period.60s, rounds.10s apart and full reload2.0s. Watch barrel/flash/pellet alignment, magazine seating and bolt timing at shallow/vertical/leftward angles and Reduced Motion; repeat with each survivor and independent grenade aim. Existing four guns retain their contracts.
+
+Burst remains excluded from online kit options pending expanded protocol support. Otherten proposed additions, including Frost Shotgun, are not live. The first-slice unsigned build was not installed on the phone; native moving art/listening/comfort/balance approval remains open. See ARSENAL_IMPLEMENTATION_PROGRESS.md for exact automated evidence and limitations.
+
+
+Burst reload correction now installed: shoot part of a magazine and tap Reload for a1.4-second magazine swap without bolt motion/sound. Empty reload takes2.0seconds and cycles the bolt. Times are before Sleight of Hand; both finish before held aim can fire. Compare the two animations/sounds, pause/Continue during each, and test Reduced Motion. Carbine retains its tactical behavior; Shotgun/Revolver/Arc remain unchanged.
+
+## Fifteen-weapon native review
+
+Training → Weapon now exposes all fifteen. Follow
+[FIFTEEN_WEAPON_PLAYTEST.md](FIFTEEN_WEAPON_PLAYTEST.md), including Aim Assist
+Off/On, Frost freeze, the sniper’s release shot and piercing, reload commitment,
+pause/background/Continue and Extended Tube. New weapons remain online-gated.
+
+Weapon correction pass: follow [WEAPON_DEVICE_REVIEW.md](WEAPON_DEVICE_REVIEW.md) for flowing fire, grounded blasts/spores, near/far lobbers, disc recovery and Training Pause weapon switching.
+
+## Combat and weapon correction — 22 October 2026
+
+See [COMBAT_MATERIAL_AND_WEAPON_REVIEW.md](COMBAT_MATERIAL_AND_WEAPON_REVIEW.md): grounded enemy/boss floor materials, committed Skitter route/landing warning, real Burster walk gait, subtle solo damage vignette, live-gun Reaper return,100-round accelerating Repeater, clearer stronger Rivet crowd payoff, Frost2.2/pellet, two-hit normal frontal shields for Sniper and reliable Spore ruptures under FX saturation. Release remains1.0.0+11. Physical acceptance remains open.
+
+## Universal tactical reload and sniper fatigue — 22 October 2026
+
+See [RELOAD_AND_SNIPER_FATIGUE.md](RELOAD_AND_SNIPER_FATIGUE.md). Every current
+weapon now has a70%-duration ammo-remaining manual reload without its final closing
+action/audio; empty reloads retain full timing. Sniper sight and actual shot share
+subtle.18→.85° fatigue over six seconds, with active rest recovery. The separate
+[SIX_WEAPONS_AND_WEIGHT_PLAN.md](SIX_WEAPONS_AND_WEIGHT_PLAN.md) proposes six stronger
+weapons and0–7% walking penalties. Those six and weapon weight are not implemented.

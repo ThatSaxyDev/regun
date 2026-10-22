@@ -29,6 +29,7 @@ Future<void> main() async {
           'scene',
           'online_account',
           'online_result',
+          'motion_state',
         ].contains(t['name']),
       )
       .toList();

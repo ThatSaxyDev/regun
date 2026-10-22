@@ -276,6 +276,42 @@ class Reducers {
     );
   }
 
+  /// Call the combat_input_v_2 reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> combatInputV2({
+    required Int64 roomid,
+    required Int64 generation,
+    required Int64 seq,
+    required Int64 reloadseq,
+    required bool firing,
+    required Int64 burst,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+    encoder.writeU64(seq);
+    encoder.writeU64(reloadseq);
+    encoder.writeBool(firing);
+    encoder.writeU64(burst);
+
+    return await _reducerCaller.call(
+      'combat_input_v_2',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
   /// Call the configure_room reducer
   ///
   /// Returns [TransactionResult] with execution metadata:
@@ -438,6 +474,46 @@ class Reducers {
     );
   }
 
+  /// Call the queue_motion reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> queueMotion({
+    required Int64 roomid,
+    required Int64 generation,
+    required Int64 seq,
+    required double movex,
+    required double movey,
+    required double aimx,
+    required double aimy,
+    required Int64 dashseq,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+    encoder.writeU64(seq);
+    encoder.writeF64(movex);
+    encoder.writeF64(movey);
+    encoder.writeF64(aimx);
+    encoder.writeF64(aimy);
+    encoder.writeU64(dashseq);
+
+    return await _reducerCaller.call(
+      'queue_motion',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
   /// Call the rematch reducer
   ///
   /// Returns [TransactionResult] with execution metadata:
@@ -565,6 +641,34 @@ class Reducers {
 
     return await _reducerCaller.call(
       'start_match',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the stop_motion reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> stopMotion({
+    required Int64 roomid,
+    required Int64 generation,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+
+    return await _reducerCaller.call(
+      'stop_motion',
       encoder.toBytes(),
       optimisticChanges: optimisticChanges,
     );
@@ -825,6 +929,40 @@ class Reducers {
     });
   }
 
+  StreamSubscription<void> onCombatInputV2(
+    void Function(
+      EventContext ctx,
+      Int64 roomid,
+      Int64 generation,
+      Int64 seq,
+      Int64 reloadseq,
+      bool firing,
+      Int64 burst,
+    )
+    callback,
+  ) {
+    return _reducerEmitter.on('combat_input_v_2').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! CombatInputV2Args) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(
+        ctx,
+        args.roomid,
+        args.generation,
+        args.seq,
+        args.reloadseq,
+        args.firing,
+        args.burst,
+      );
+    });
+  }
+
   StreamSubscription<void> onConfigureRoom(
     void Function(EventContext ctx, bool enemies) callback,
   ) {
@@ -943,6 +1081,44 @@ class Reducers {
     });
   }
 
+  StreamSubscription<void> onQueueMotion(
+    void Function(
+      EventContext ctx,
+      Int64 roomid,
+      Int64 generation,
+      Int64 seq,
+      double movex,
+      double movey,
+      double aimx,
+      double aimy,
+      Int64 dashseq,
+    )
+    callback,
+  ) {
+    return _reducerEmitter.on('queue_motion').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! QueueMotionArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(
+        ctx,
+        args.roomid,
+        args.generation,
+        args.seq,
+        args.movex,
+        args.movey,
+        args.aimx,
+        args.aimy,
+        args.dashseq,
+      );
+    });
+  }
+
   StreamSubscription<void> onRematch(void Function(EventContext ctx) callback) {
     return _reducerEmitter.on('rematch').listen((EventContext ctx) {
       // Pattern match to extract ReducerEvent
@@ -1030,6 +1206,23 @@ class Reducers {
 
       // Extract fields from strongly-typed object - NO CASTING
       callback(ctx);
+    });
+  }
+
+  StreamSubscription<void> onStopMotion(
+    void Function(EventContext ctx, Int64 roomid, Int64 generation) callback,
+  ) {
+    return _reducerEmitter.on('stop_motion').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! StopMotionArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.roomid, args.generation);
     });
   }
 

@@ -1,3 +1,6 @@
+import 'package:regun/systems/arsenal_system.dart';
+import 'package:regun/systems/burst_fire_clock.dart';
+import 'package:regun/presentation/weapon_art_spec.dart';
 import 'package:regun/components/weapons/grenade_component.dart';
 import 'package:regun/systems/grenades.dart';
 import 'package:regun/components/ui/damage_feedback.dart';
@@ -74,7 +77,7 @@ class RegunGame extends FlameGame
        );
 
   final BuildContext context;
-  final Loadout loadout;
+  Loadout loadout;
   final bool startPaused;
   final RunStore runStore;
   final Map<String, dynamic>? resumeSnapshot;
@@ -103,6 +106,11 @@ class RegunGame extends FlameGame
   late CombatSystem combat;
   final random = RunRandom(DateTime.now().microsecondsSinceEpoch);
   double _fireCooldown = 0;
+  final burstFire = BurstFireClock();
+  ArsenalSystem? arsenal;
+  int _nextCombatId = 1;
+  bool _weaponArtHeld = false, _cinderArtHeld = false;
+  int _trainingWeaponEpoch = 0;
   static const maxProjectiles = 256;
   static const maxHostileProjectiles = 128;
   final _projectiles = <BulletComponent>{};
@@ -125,6 +133,9 @@ class RegunGame extends FlameGame
     if (actor == null) {
       bossEncounter.clear();
     } else {
+      if (actor is CombatEnemy && actor.combatId == 0) {
+        actor.combatId = _nextCombatId++;
+      }
       bossEncounter.add(actor);
     }
   }
@@ -276,7 +287,7 @@ class RegunGame extends FlameGame
     world.add(burst);
   }
 
-  int get projectileCount => _projectiles.length;
+  int get projectileCount => _projectiles.length + (arsenal?.flightCount ?? 0);
   ({int arena, int visible, int pending}) get enemyPopulation {
     var arena = 0, visible = 0, pending = 0;
     final view = camera.visibleWorldRect.inflate(60);
@@ -299,7 +310,7 @@ class RegunGame extends FlameGame
 
   bool registerProjectile(BulletComponent bullet) {
     if (_projectiles.contains(bullet)) return true;
-    if (_projectiles.length >= maxProjectiles) return false;
+    if (projectileCount >= maxProjectiles) return false;
     _projectiles.add(bullet);
     return true;
   }
@@ -318,10 +329,12 @@ class RegunGame extends FlameGame
     return true;
   }
 
-  void clearHostileShots(Vector2 origin,double radius){
-    for(final shot in _hostileProjectiles.toList()){
-      final reach=radius+min(shot.size.x,shot.size.y)/2;
-      if(shot.position.distanceToSquared(origin)<=reach*reach)shot.removeFromParent();
+  void clearHostileShots(Vector2 origin, double radius) {
+    for (final shot in _hostileProjectiles.toList()) {
+      final reach = radius + min(shot.size.x, shot.size.y) / 2;
+      if (shot.position.distanceToSquared(origin) <= reach * reach) {
+        shot.removeFromParent();
+      }
     }
   }
 
@@ -350,9 +363,9 @@ class RegunGame extends FlameGame
     'pendingEnemies': enemyPopulation.pending,
     'populationLimit': director.populationLimit,
     'xp': _coins.length,
-    'playerProjectiles': _projectiles.length,
+    'playerProjectiles': projectileCount,
     'hostileProjectiles': _hostileProjectiles.length,
-    'effects': _effects.length,
+    'effects': _effects.length + (arsenal?.effectCount ?? 0),
     'fire': _fires.length,
     'mines': _mines.length,
     'hazards': _hazards.length + _bossAttacks.length,
@@ -552,17 +565,35 @@ class RegunGame extends FlameGame
     PositionComponent enemy,
     double amount, {
     bool primary = true,
+    bool allowChain = true,
+    bool armorPiercing = false,
     Vector2? direction,
-  }) => combat.hit(enemy, amount, primary: primary, direction: direction);
+  }) => combat.hit(
+    enemy,
+    amount,
+    primary: primary,
+    direction: direction,
+    allowChain: allowChain,
+    armorPiercing: armorPiercing,
+  );
   void explode(
     Vector2 position, {
     required double radius,
     required double damage,
   }) => combat.explode(position, radius: radius, damage: damage);
   void addCombatEffect(CombatEffect effect) {
-    if (_effects.length < 40) {
+    if ((runtimeCounts['effects'] ?? 0) < 40) {
       _effects.add(effect);
       world.add(effect);
+    }
+  }
+
+  /// A paid gameplay patch replaces a cosmetic cue at capacity, never gameplay.
+  void reserveWeaponPatch() {
+    if ((runtimeCounts['effects'] ?? 0) >= 40 && _effects.isNotEmpty) {
+      final cosmetic = _effects.first;
+      _effects.remove(cosmetic);
+      cosmetic.removeFromParent();
     }
   }
 
@@ -586,8 +617,8 @@ class RegunGame extends FlameGame
   late final BoostButtonComponent boostButtonComponent;
   late final ReloadButtonComponent reloadButtonComponent;
   late final GrenadeButtonComponent grenadeButtonComponent;
-  bool _upgradePulsePending=false;
-  void _queueUpgradePulse()=>_upgradePulsePending=true;
+  bool _upgradePulsePending = false;
+  void _queueUpgradePulse() => _upgradePulsePending = true;
   final grenades = GrenadeInventory();
   double get grenadeRecharge =>
       GrenadeSpec.recharge(gameState.effectRank(PowerUp.grenadeRecharge));
@@ -602,13 +633,16 @@ class RegunGame extends FlameGame
     direction = direction.normalized();
     if (direction.isZero()) direction.setValues(1, 0);
     final start = myPlayer.position + direction * 36;
-    if (geometry.obstacles.any((r) =>
-        ArenaGeometry.crosses(myPlayer.position, start, r.inflate(8)))) {
+    if (geometry.obstacles.any(
+      (r) => ArenaGeometry.crosses(myPlayer.position, start, r.inflate(8)),
+    )) {
       start.setFrom(myPlayer.position);
     }
     constrainActor(start, 8);
-    return GrenadeFlight(start.toOffset(),
-        direction.toOffset() * GrenadeSpec.speed * power.clamp(.4, 1));
+    return GrenadeFlight(
+      start.toOffset(),
+      direction.toOffset() * GrenadeSpec.speed * power.clamp(.4, 1),
+    );
   }
 
   bool throwGrenade({Vector2? aim, double power = 1}) {
@@ -621,7 +655,7 @@ class RegunGame extends FlameGame
     final direction = aim ?? quickGrenadeDirection;
     world.add(
       GrenadeComponent(
-        grenadeFlight(direction,power),
+        grenadeFlight(direction, power),
         damage: GrenadeSpec.damage(gameState.effectRank(PowerUp.grenadeDamage)),
         blastRadius: GrenadeSpec.radius(
           gameState.effectRank(PowerUp.grenadeRadius),
@@ -708,6 +742,22 @@ class RegunGame extends FlameGame
     await super.onLoad();
     await preferences.load();
     await RegunArt.shared.load();
+    if (loadout.weapon.hasLeasedArt) {
+      await RegunArt.shared.acquire(loadout.weapon.atlasName);
+      if (disposed) {
+        RegunArt.shared.release(loadout.weapon.atlasName);
+        return;
+      }
+      _weaponArtHeld = true;
+    }
+    if (loadout.weapon == WeaponType.cinderHose) {
+      await RegunArt.shared.acquire('effects/cinder_flame');
+      if (disposed) {
+        RegunArt.shared.release('effects/cinder_flame');
+        return;
+      }
+      _cinderArtHeld = true;
+    }
     controls = preferences.controls;
 
     map = await MapComponent.loadMap();
@@ -817,13 +867,17 @@ class RegunGame extends FlameGame
     _fires.clear();
     _mines.clear();
     grenades.reset();
-    _upgradePulsePending=false;
+    _upgradePulsePending = false;
     _hazards.clear();
     _bursts.clear();
     resetInput();
     gameNotifier.resetRun(loadout: loadout, seed: random.state);
     combat = CombatSystem(this);
+    arsenal?.dispose();
+    arsenal = ArsenalSystem(this);
+    _nextCombatId = 1;
     _fireCooldown = 0;
+    burstFire.reset();
     _ventClock = 0;
     supplyDrops.reset(random.state ^ 0x51a7);
     _syncSupplyArt(false);
@@ -835,6 +889,8 @@ class RegunGame extends FlameGame
     boostButtonComponent.reset();
     world.add(myPlayer = PlayerComponent(position: Vector2.zero()));
     world.addAll([
+      ArsenalOverlay(floor: true),
+      ArsenalOverlay(),
       GrenadeAimPreview(),
       DroneVisual(),
       ArenaScenery(),
@@ -860,6 +916,8 @@ class RegunGame extends FlameGame
       final enemy = entity as CombatEnemy;
       return {
         'kind': enemyId(entity),
+        'combatId': enemy.combatId,
+        'freeze': enemy.freezeState.toJson(),
         if (entity is BossEncounter) 'actor': bossEncounter.idOf(entity),
         if (entity is BossEncounter)
           'bossHit': _bossDamageTaken[entity] ?? _bossWasHit,
@@ -870,6 +928,8 @@ class RegunGame extends FlameGame
         'elite': entity is ArenaEnemy && entity.elite,
         'burn': enemy.burnRemaining,
         'burnDamage': enemy.burnDamage,
+        'cinder': enemy.cinderRemaining,
+        'cinderTick': enemy.cinderTick,
         'spread': enemy.burnCanSpread,
         'marked': enemy.marked,
       };
@@ -886,7 +946,7 @@ class RegunGame extends FlameGame
       'droneClock': combat.droneClock,
       'ventClock': _ventClock,
       'supplyDrops': supplyDrops.toJson(),
-      'upgradePulsePending':_upgradePulsePending,
+      'upgradePulsePending': _upgradePulsePending,
       'grenadeInventory': grenades.toJson(),
       'grenadeProjectiles': [
         for (final g in world.children.whereType<GrenadeComponent>())
@@ -897,6 +957,9 @@ class RegunGame extends FlameGame
       'aim': [myPlayer.aimDirection.x, myPlayer.aimDirection.y],
       'director': director.toJson(),
       'fireCooldown': _fireCooldown,
+      if (loadout.weapon == WeaponType.burstRifle)
+        'burstRecovery': burstFire.recovery,
+      if (loadout.weapon.usesArsenalRuntime) 'arsenal': arsenal!.checkpoint(),
       'breachCharged': _breachCharged,
       'bossWasHit': _bossWasHit,
       'enemies': [for (final e in liveEnemies) actor(e)],
@@ -970,6 +1033,7 @@ class RegunGame extends FlameGame
       scorpions: scorpionKills,
       elites: eliteKills,
       bosses: defeatedBosses,
+      bossVictories: gameState.bosses,
       noHitBosses: noHitBosses,
       foundFusions: state.evolutions,
       enemies: encounteredEnemies,
@@ -1082,6 +1146,11 @@ class RegunGame extends FlameGame
           _enemies.add(entity);
         }
         final enemy = entity as CombatEnemy;
+        enemy.combatId = record['combatId'] as int? ?? _nextCombatId++;
+        _nextCombatId = max(_nextCombatId, enemy.combatId + 1);
+        if (record['freeze'] case final Map raw) {
+          enemy.freezeState.restore(Map<String, dynamic>.from(raw));
+        }
         enemy.restoreHealth(
           (record['health'] as num).toDouble(),
           maximum: maximum,
@@ -1090,6 +1159,8 @@ class RegunGame extends FlameGame
         enemy.burnRemaining = (record['burn'] as num?)?.toDouble() ?? 0;
         enemy.burnDamage = (record['burnDamage'] as num?)?.toDouble() ?? 0;
         enemy.burnCanSpread = record['spread'] == true;
+        enemy.cinderRemaining = (record['cinder'] as num?)?.toDouble() ?? 0;
+        enemy.cinderTick = (record['cinderTick'] as num?)?.toDouble() ?? 0;
         world.add(entity);
       }
       director.bossActive = activeBoss != null;
@@ -1109,13 +1180,19 @@ class RegunGame extends FlameGame
       scorpionKills = snapshot['scorpions'] as int;
       eliteKills = snapshot['elites'] as int;
       _fireCooldown = (snapshot['fireCooldown'] as num).toDouble().clamp(0, 2);
+      burstFire.reset(
+        recovery: (snapshot['burstRecovery'] as num?)?.toDouble() ?? 0,
+      );
+      if (snapshot['arsenal'] case final Map raw) {
+        arsenal!.restore(Map<String, dynamic>.from(raw));
+      }
       assisted = snapshot['assisted'] == true;
       combat.droneClock = (snapshot['droneClock'] as num?)?.toDouble() ?? 0;
       _ventClock = (snapshot['ventClock'] as num?)?.toDouble() ?? 0;
       boostButtonComponent.restoreCheckpoint(
         Map<String, dynamic>.from(snapshot['dash'] as Map? ?? {}),
       );
-      _upgradePulsePending=snapshot['upgradePulsePending']==true;
+      _upgradePulsePending = snapshot['upgradePulsePending'] == true;
       if (snapshot['grenadeInventory'] case final Map raw) {
         grenades.restore(Map<String, dynamic>.from(raw));
       }
@@ -1194,6 +1271,9 @@ class RegunGame extends FlameGame
   bool registerEnemy(PositionComponent enemy) {
     if (!_enemies.contains(enemy) && _enemies.length >= maxEnemies) {
       return false;
+    }
+    if (enemy is CombatEnemy && enemy.combatId == 0) {
+      enemy.combatId = _nextCombatId++;
     }
     _enemies.add(enemy);
     encounteredEnemies.add(enemyId(enemy));
@@ -1379,6 +1459,9 @@ class RegunGame extends FlameGame
     if (!reserveEnemySpace(actor, minPlayerDistance: 220)) {
       return;
     }
+    if (actor is CombatEnemy && actor.combatId == 0) {
+      actor.combatId = _nextCombatId++;
+    }
     bossEncounter.add(actor);
     _bossDamageTaken[actor] = false;
     encounteredEnemies.add(kind.name);
@@ -1464,7 +1547,107 @@ class RegunGame extends FlameGame
     revision.value++;
   }
 
-  bool spawnShotgunBullets() {
+  bool consumeBreachCharge() {
+    final charged = _breachCharged;
+    _breachCharged = false;
+    return charged;
+  }
+
+  Future<bool> changeTrainingWeapon(WeaponType next) async {
+    if (disposed ||
+        !loadout.training ||
+        gameState.gameplayState != GameplayState.paused) {
+      return false;
+    }
+    if (next == loadout.weapon) return true;
+    final epoch = ++_trainingWeaponEpoch;
+    final names = [
+      if (next.hasLeasedArt) next.atlasName,
+      if (next == WeaponType.cinderHose) 'effects/cinder_flame',
+    ];
+    for (final name in names) {
+      await RegunArt.shared.acquire(name);
+    }
+    if (disposed ||
+        epoch != _trainingWeaponEpoch ||
+        gameState.gameplayState != GameplayState.paused) {
+      for (final name in names) {
+        RegunArt.shared.release(name);
+      }
+      return false;
+    }
+    resetInput();
+    arsenal?.dispose();
+    for (final shot in _projectiles.toList()) {
+      shot.removeFromParent();
+    }
+    _projectiles.clear();
+    if (_weaponArtHeld) RegunArt.shared.release(loadout.weapon.atlasName);
+    if (_cinderArtHeld) RegunArt.shared.release('effects/cinder_flame');
+    loadout = Loadout(
+      weapon: next,
+      character: loadout.character,
+      arena: loadout.arena,
+      training: true,
+    );
+    _weaponArtHeld = next.hasLeasedArt;
+    _cinderArtHeld = next == WeaponType.cinderHose;
+    gameNotifier.changeTrainingWeapon(next);
+    arsenal = ArsenalSystem(this);
+    burstFire.reset();
+    _fireCooldown = 0;
+    _breachCharged = false;
+    myPlayer.recoil = 0;
+    unawaited(audio.warmCombat(next));
+    revision.value++;
+    return true;
+  }
+
+  void requestReload() {
+    if (playerEntrance.active ||
+        gameState.gameplayState != GameplayState.playing) {
+      return;
+    }
+    arsenal?.cancelAim();
+    final fullRivets =
+        loadout.weapon == WeaponType.rivetDriver &&
+        (arsenal?.hasRivets ?? false);
+    if (!gameState.reloading &&
+        (gameState.noOfBullets < gameState.maxBullets || fullRivets)) {
+      manualReloads++;
+    }
+    gameNotifier.reloadBullets(manual: true, allowFull: fullRivets);
+  }
+
+  Vector2 assistedWeaponDirection(Vector2 raw, {required double range}) {
+    if (raw.isZero()) return Vector2.zero();
+    final direction = raw.normalized();
+    if (!preferences.aimAssist) return direction;
+    assisted = true;
+    PositionComponent? target;
+    var best = .94;
+    for (final enemy in liveEnemies) {
+      final delta = enemy.position - myPlayer.position;
+      if (delta.isZero() ||
+          delta.length > range ||
+          segmentBlocked(myPlayer.position, enemy.position)) {
+        continue;
+      }
+      final alignment = delta.normalized().dot(direction);
+      if (alignment > best) {
+        best = alignment;
+        target = enemy;
+      }
+    }
+    return target == null
+        ? direction
+        : (direction * .8 +
+                  (target.position - myPlayer.position).normalized() * .2)
+              .normalized();
+  }
+
+  bool spawnShotgunBullets({double releaseOffset = 0}) {
+    if (loadout.weapon.usesArsenalRuntime) return false;
     if (playerEntrance.active) return false;
     final state = gameState;
     if (state.gameplayState != GameplayState.playing || state.reloading) {
@@ -1474,35 +1657,29 @@ class RegunGame extends FlameGame
       gameNotifier.reloadBullets();
       return false;
     }
-    final baseDirection = weaponJoystick.relativeDelta.normalized();
+    final baseDirection = assistedWeaponDirection(
+      weaponJoystick.relativeDelta,
+      range: state.bulletRange.toDouble(),
+    );
     if (baseDirection.isZero()) return false;
-    if (preferences.aimAssist) {
-      assisted = true;
-      PositionComponent? target;
-      var best = 0.94;
-      for (final enemy in liveEnemies) {
-        final delta = enemy.position - myPlayer.position;
-        if (delta.length > state.bulletRange ||
-            segmentBlocked(myPlayer.position, enemy.position)) {
-          continue;
-        }
-        final alignment = delta.normalized().dot(baseDirection);
-        if (alignment > best) {
-          best = alignment;
-          target = enemy;
-        }
-      }
-      if (target != null) {
-        baseDirection.setFrom(
-          (baseDirection * 0.8 +
-                  (target.position - myPlayer.position).normalized() * 0.2)
-              .normalized(),
-        );
+    if (loadout.weapon == WeaponType.burstRifle) {
+      final socket = WeaponArtSpec.of(loadout.weapon)
+          .releaseOffset(baseDirection.toOffset());
+      if (segmentBlocked(
+        myPlayer.position + Vector2(0, 6),
+        myPlayer.position + Vector2(socket.dx, socket.dy),
+      )) {
+        return false;
       }
     }
+    final count = loadout.weapon == WeaponType.shotgun
+        ? state.bulletNumberRange * 2 + 1
+        : 1 + min(3, state.rank(PowerUp.numberOfBulletsPerShotIncrease));
+    if (projectileCount + count > maxProjectiles) return false;
     audio.play('shot_${loadout.weapon.name}_${shotsFired % 3}.wav');
     shotsFired++;
-    myPlayer.recoil = 1;
+    myPlayer.recoil =
+        1 + releaseOffset / WeaponFeel.of(loadout.weapon).recovery;
     var damage =
         state.shotDamage * loadout.weapon.damage * loadout.character.damage;
     breachEngine = state.fused('breachEngine');
@@ -1518,9 +1695,7 @@ class RegunGame extends FlameGame
           GameState.scaledRank(state.breachRank) * (breachEngine ? 0.8 : 0.5);
     }
     _breachCharged = false;
-    final count = loadout.weapon == WeaponType.shotgun
-        ? state.bulletNumberRange * 2 + 1
-        : 1 + min(3, state.rank(PowerUp.numberOfBulletsPerShotIncrease));
+
     final spread =
         (loadout.weapon == WeaponType.shotgun ? pi / 20 : pi / 32) *
         (1 -
@@ -1539,14 +1714,16 @@ class RegunGame extends FlameGame
             side * ((random.nextDouble() * 2 - 1) * 2) +
             baseDirection * ((random.nextDouble() * 2 - 1) * 1.25);
       }
+      final socket = WeaponArtSpec.of(loadout.weapon).releaseOffset(
+        (loadout.weapon == WeaponType.burstRifle ? baseDirection : direction)
+            .toOffset(),
+      );
       addProjectile(
         BulletComponent(
           position:
-              myPlayer.position +
-              Vector2(0, 6) +
-              muzzleOffset +
-              direction * (8 + WeaponFeel.of(loadout.weapon).muzzle),
+              myPlayer.position + muzzleOffset + Vector2(socket.dx, socket.dy),
           weapon: loadout.weapon,
+          initialDelay: releaseOffset,
           damage:
               damage /
               (loadout.weapon != WeaponType.shotgun && count > 1 ? 1.3 : 1),
@@ -1615,18 +1792,50 @@ class RegunGame extends FlameGame
     }
     // Gameplay timers use simulation time; pause and restart cannot leak work.
     _reloadWasActive = gameState.reloading;
+    final reloadWait = gameNotifier.reloadRemainingSeconds;
     gameNotifier.advanceTime(dt * timeScale);
     if (_reloadWasActive && !gameState.reloading) _breachCharged = true;
     if (gameState.gameplayState == GameplayState.playing) {
-      _fireCooldown = max(0, _fireCooldown - dt);
       final firing = !weaponJoystick.relativeDelta.isZero();
-      if (_fireCooldown <= 0 && firing && spawnShotgunBullets()) {
-        _fireCooldown =
-            loadout.weapon.cadence *
-            pow(0.85, gameState.effectRank(PowerUp.quickTrigger));
+      if (loadout.weapon.usesArsenalRuntime) {
+        arsenal!.advance(dt, blockedFor: min(dt, reloadWait));
+      } else if (loadout.weapon == WeaponType.burstRifle) {
+        final wait = min(dt, reloadWait);
+        if (wait > 0) {
+          burstFire.advance(
+            wait,
+            held: false,
+            interval: .6,
+            ready: () => false,
+            release: (_) => false,
+          );
+        }
+        burstFire.advance(
+          max(0, dt - wait),
+          held: firing,
+          interval:
+              loadout.weapon.cadence *
+              pow(.85, gameState.effectRank(PowerUp.quickTrigger)),
+          ready: () =>
+              !gameState.reloading &&
+              gameState.noOfBullets > 0 &&
+              gameState.gameplayState == GameplayState.playing,
+          release: (offset) =>
+              spawnShotgunBullets(releaseOffset: wait + offset),
+        );
+        if (firing && gameState.noOfBullets == 0 && !gameState.reloading) {
+          gameNotifier.reloadBullets();
+        }
+      } else {
+        _fireCooldown = max(0, _fireCooldown - dt);
+        if (_fireCooldown <= 0 && firing && spawnShotgunBullets()) {
+          _fireCooldown =
+              loadout.weapon.cadence *
+              pow(0.85, gameState.effectRank(PowerUp.quickTrigger));
+        }
       }
-      if(_upgradePulsePending){
-        _upgradePulsePending=false;
+      if (_upgradePulsePending) {
+        _upgradePulsePending = false;
         combat.upgradePulse();
       }
       grenades.advance(dt, grenadeRecharge);
@@ -1853,7 +2062,9 @@ class RegunGame extends FlameGame
   }
 
   bool damagePlayer({int amount = 1, String cause = 'The horde'}) {
-    if (playerEntrance.active || (loadout.training && !trainingDamage)) {
+    if (playerEntrance.active ||
+        boostButtonComponent.tapped ||
+        (loadout.training && !trainingDamage)) {
       return false;
     }
     final health = gameState.health;
@@ -1899,6 +2110,8 @@ class RegunGame extends FlameGame
   void gameOver() => gameNotifier.gameOver();
 
   void resetInput() {
+    burstFire.cancelIntent();
+    arsenal?.cancelIntent();
     grenadeButtonComponent.cancelAim();
     movementJoystick.onDragStop();
     movementJoystick.delta.setZero();
@@ -1948,6 +2161,16 @@ class RegunGame extends FlameGame
   @override
   void onRemove() {
     disposed = true;
+    _trainingWeaponEpoch++;
+    if (_cinderArtHeld) {
+      _cinderArtHeld = false;
+      RegunArt.shared.release('effects/cinder_flame');
+    }
+    arsenal?.dispose();
+    if (_weaponArtHeld) {
+      _weaponArtHeld = false;
+      RegunArt.shared.release(loadout.weapon.atlasName);
+    }
     _syncSupplyArt(false);
     for (final boss in world.children.whereType<ExpansionBoss>()) {
       boss.releaseArt();

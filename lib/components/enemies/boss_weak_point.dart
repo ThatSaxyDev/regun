@@ -14,14 +14,14 @@ enum BossPropKind { clasp, mirror, valve, blade, bell }
 class BossWeakPoint extends PositionComponent
     with HasGameReference<RegunGame>
     implements Damageable {
-  BossWeakPoint(
-      {required this.owner,
-      required super.position,
-      required this.kind,
-      required this.onBroken,
-      double health = 5})
-      : combatHealth = CombatHealth(health),
-        super(size: Vector2.all(58), anchor: Anchor.center, priority: 20000);
+  BossWeakPoint({
+    required this.owner,
+    required super.position,
+    required this.kind,
+    required this.onBroken,
+    double health = 5,
+  }) : combatHealth = CombatHealth(health),
+       super(size: Vector2.all(58), anchor: Anchor.center, priority: 20000);
   final PositionComponent owner;
   final BossPropKind kind;
   final VoidCallback onBroken;
@@ -30,11 +30,14 @@ class BossWeakPoint extends PositionComponent
   bool _broken = false;
   @override
   Future<void> onLoad() async {
-    add(CircleHitbox(
+    add(
+      CircleHitbox(
         radius: 26,
         position: size / 2,
         anchor: Anchor.center,
-        collisionType: CollisionType.passive));
+        collisionType: CollisionType.passive,
+      ),
+    );
   }
 
   @override
@@ -85,20 +88,34 @@ class BossWeakPoint extends PositionComponent
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
     canvas.drawRect(
-        Rect.fromCenter(
-            center: center + const Offset(4, 8), width: 46, height: 42),
-        Paint()..color = const Color(0x99120F17));
-    canvas.drawRect(Rect.fromCenter(center: center, width: 42, height: 42),
-        Paint()..color = const Color(0xff302A30));
+      Rect.fromCenter(
+        center: center + const Offset(4, 8),
+        width: 46,
+        height: 42,
+      ),
+      Paint()..color = const Color(0x99120F17),
+    );
+    canvas.drawRect(
+      Rect.fromCenter(center: center, width: 42, height: 42),
+      Paint()..color = const Color(0xff302A30),
+    );
     switch (kind) {
       case BossPropKind.mirror:
         AttackVfx.shard(
-            canvas, center + const Offset(0, 15), 54, const Color(0xffA9C0C3),
-            lean: 8);
+          canvas,
+          center + const Offset(0, 15),
+          54,
+          const Color(0xffA9C0C3),
+          lean: 8,
+        );
         canvas.drawRect(
-            Rect.fromCenter(
-                center: center + const Offset(0, 18), width: 38, height: 8),
-            Paint()..color = const Color(0xff827361));
+          Rect.fromCenter(
+            center: center + const Offset(0, 18),
+            width: 38,
+            height: 8,
+          ),
+          Paint()..color = const Color(0xff827361),
+        );
       case BossPropKind.valve:
         canvas.drawCircle(center, 18, brass);
         for (final end in [const Offset(18, 0), const Offset(0, 18)]) {
@@ -112,20 +129,29 @@ class BossWeakPoint extends PositionComponent
           ..lineTo(center.dx + 9, center.dy - 8);
         canvas.drawPath(blade, brass..strokeWidth = 6);
       case BossPropKind.bell:
-        canvas.drawArc(Rect.fromCenter(center: center, width: 32, height: 42),
-            3.14, 3.14, false, brass);
+        canvas.drawArc(
+          Rect.fromCenter(center: center, width: 32, height: 42),
+          3.14,
+          3.14,
+          false,
+          brass,
+        );
         canvas.drawLine(
-            center + const Offset(-20, 6), center + const Offset(20, 6), brass);
+          center + const Offset(-20, 6),
+          center + const Offset(20, 6),
+          brass,
+        );
       case BossPropKind.clasp:
         AttackVfx.anchor(canvas, center, -1.57, .85);
     }
     for (var i = 0; i < 3; i++) {
       canvas.drawRect(
-          Rect.fromLTWH(center.dx - 16 + i * 12, center.dy - 35, 9, 4),
-          Paint()
-            ..color = i < (combatHealth.fraction * 3).ceil()
-                ? const Color(0xffE5C27F)
-                : const Color(0xff302A30));
+        Rect.fromLTWH(center.dx - 16 + i * 12, center.dy - 35, 9, 4),
+        Paint()
+          ..color = i < (combatHealth.fraction * 3).ceil()
+              ? const Color(0xffE5C27F)
+              : const Color(0xff302A30),
+      );
     }
   }
 }

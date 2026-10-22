@@ -9,10 +9,13 @@ import 'package:regun/notifiers/game_notifier.dart';
 /// Hostile, non-homing bolt. Aiming is snapshotted when the boss commits.
 class ShadowProjectile extends PositionComponent
     with HasGameReference<RegunGame> {
-  ShadowProjectile(
-      {super.position, Vector2? direction, this.speed = 260, this.ownerHealth})
-      : direction = direction?.normalized(),
-        super(size: Vector2.all(22), anchor: Anchor.center, priority: 20000);
+  ShadowProjectile({
+    super.position,
+    Vector2? direction,
+    this.speed = 260,
+    this.ownerHealth,
+  }) : direction = direction?.normalized(),
+       super(size: Vector2.all(22), anchor: Anchor.center, priority: 20000);
 
   final CombatHealth? ownerHealth;
   Vector2? direction;
@@ -46,7 +49,10 @@ class ShadowProjectile extends PositionComponent
     position.addScaled(direction!, speed * dt);
     _distance += speed * dt;
     if (BulletComponent.segmentDistanceSquared(
-                game.myPlayer.position, before, position) <=
+              game.myPlayer.position,
+              before,
+              position,
+            ) <=
             39 * 39 &&
         !game.segmentBlocked(before, game.myPlayer.position)) {
       game.damagePlayer(cause: 'Shadow bolt');
@@ -75,7 +81,9 @@ class ShadowProjectile extends PositionComponent
       ..lineTo(0, 11)
       ..close();
     canvas.drawPath(path, Paint()..color = const Color(0xffBD7397));
-    canvas.drawRect(const Rect.fromLTWH(7, 7, 8, 8),
-        Paint()..color = const Color(0xffFFF0CD));
+    canvas.drawRect(
+      const Rect.fromLTWH(7, 7, 8, 8),
+      Paint()..color = const Color(0xffFFF0CD),
+    );
   }
 }

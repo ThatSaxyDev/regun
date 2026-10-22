@@ -11,6 +11,8 @@ class SoloudPlay {
   final _lastPlayed = <String, int>{};
   final _clock = Stopwatch()..start();
   SoundHandle? _musicHandle;
+  final _weaponLoops = <String, SoundHandle>{};
+  final _loopRequests = <String, int>{};
   String? _music;
   int _musicRequest = 0;
   double _musicVolume = 0.6, _sfxVolume = 0.8;
@@ -38,6 +40,9 @@ class SoloudPlay {
       final names = [
         for (var i = 0; i < 3; i++) 'shot_${weapon.name}_$i.wav',
         'impact_${weapon.name}.wav',
+        if (weapon == WeaponType.beltRepeater) 'spin_beltRepeater.wav',
+        if (weapon.isContinuous || weapon == WeaponType.beltRepeater)
+          'sustain_${weapon.name}.wav',
         'hurt_player.wav',
         'blast.wav',
         'upgrade_pulse.wav',
@@ -68,10 +73,18 @@ class SoloudPlay {
 
   Future<void> warmSupply() async {
     if (!_soloud.isInitialized) return;
-    for (final name in ['land', 'incoming', 'break', 'claim',
-        for (var i = 0; i < 8; i++) 'charge_$i']) {
-      try { await _source('supply_$name.wav'); }
-      catch (_) { _sources.remove('supply_$name.wav'); }
+    for (final name in [
+      'land',
+      'incoming',
+      'break',
+      'claim',
+      for (var i = 0; i < 8; i++) 'charge_$i',
+    ]) {
+      try {
+        await _source('supply_$name.wav');
+      } catch (_) {
+        _sources.remove('supply_$name.wav');
+      }
     }
   }
 
@@ -97,7 +110,11 @@ class SoloudPlay {
     try {
       if (!_soloud.isInitialized || _sfxVolume == 0) return;
       final now = _clock.elapsedMilliseconds;
-      final limit = assetPath == 'upgrade_pulse.wav' ? 120 : assetPath == 'blast.wav' ? 120 : assetPath == 'enemy3projectile.wav'
+      final limit = assetPath == 'upgrade_pulse.wav'
+          ? 120
+          : assetPath == 'blast.wav'
+          ? 120
+          : assetPath == 'enemy3projectile.wav'
           ? 100
           : assetPath.startsWith('impact_')
           ? 65
@@ -108,9 +125,18 @@ class SoloudPlay {
       _lastPlayed[assetPath] = now;
       final source = await _source(assetPath);
       if (_soloud.isInitialized) {
-        final gain = assetPath == 'upgrade_pulse.wav' ? .35 : assetPath == 'blast.wav' ? .65 : assetPath == 'grenade_throw.wav' ? .3 : assetPath == 'supply_land.wav' ? .8
-            : assetPath.startsWith('supply_charge_') ? .16
-            : assetPath.startsWith('supply_') ? .4
+        final gain = assetPath == 'upgrade_pulse.wav'
+            ? .35
+            : assetPath == 'blast.wav'
+            ? .65
+            : assetPath == 'grenade_throw.wav'
+            ? .3
+            : assetPath == 'supply_land.wav'
+            ? .8
+            : assetPath.startsWith('supply_charge_')
+            ? .16
+            : assetPath.startsWith('supply_')
+            ? .4
             : assetPath == 'enemy3projectile.wav'
             ? .30
             : assetPath.startsWith('shot_')
@@ -133,6 +159,34 @@ class SoloudPlay {
       if (_reportedFailures.add(assetPath)) {
         Logger('audio').warning('Could not play $assetPath: $error');
       }
+    }
+  }
+
+  Future<void> startWeaponLoop(String owner, String asset) async {
+    final request = (_loopRequests[owner] ?? 0) + 1;
+    _loopRequests[owner] = request;
+    try {
+      if (!_soloud.isInitialized || _sfxVolume == 0) return;
+      final source = await _source(asset);
+      if (_loopRequests[owner] != request || !_soloud.isInitialized) return;
+      final old = _weaponLoops.remove(owner);
+      if (old != null) await _soloud.stop(old);
+      if (_loopRequests[owner] != request) return;
+      _weaponLoops[owner] = _soloud.play(
+        source,
+        volume: _sfxVolume * .15,
+        looping: true,
+      );
+    } catch (_) {
+      _sources.remove(asset);
+    }
+  }
+
+  void stopWeaponLoop(String owner) {
+    _loopRequests[owner] = (_loopRequests[owner] ?? 0) + 1;
+    final handle = _weaponLoops.remove(owner);
+    if (handle != null && _soloud.isInitialized) {
+      _soloud.stop(handle);
     }
   }
 

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flame/components.dart';
 
 /// Live body occupancy, separate from the immutable steering snapshot. Each
@@ -34,8 +35,10 @@ class CrowdOccupancy {
     _cells.putIfAbsent(next, () => {}).add(actor);
   }
 
-  void rebuild(Iterable<PositionComponent> actors,
-      double Function(PositionComponent) radiusOf) {
+  void rebuild(
+    Iterable<PositionComponent> actors,
+    double Function(PositionComponent) radiusOf,
+  ) {
     clear();
     for (final actor in actors) {
       if (actor.isRemoving || actor.isRemoved) continue;
@@ -68,8 +71,11 @@ class CrowdOccupancy {
 
   /// Bounded search for a free, wall-valid spawn, including pending arrivals.
   bool place(
-      PositionComponent actor, double radius, void Function(Vector2) constrain,
-      {bool Function(Vector2)? allowed}) {
+    PositionComponent actor,
+    double radius,
+    void Function(Vector2) constrain, {
+    bool Function(Vector2)? allowed,
+  }) {
     if (_radii.containsKey(actor) &&
         _free(actor, actor.position, radius) &&
         (allowed == null || allowed(actor.position))) {
@@ -96,7 +102,11 @@ class CrowdOccupancy {
   }
 
   PositionComponent? _blocker(
-      PositionComponent actor, Vector2 from, Vector2 to, double radius) {
+    PositionComponent actor,
+    Vector2 from,
+    Vector2 to,
+    double radius,
+  ) {
     final delta = to - from;
     final length2 = delta.length2;
     for (final other in _near(from)) {
@@ -124,11 +134,14 @@ class CrowdOccupancy {
 
   /// Substeps prevent fast actors crossing a body. Committed attacks stop at
   /// occupied space; ordinary pursuit can slide along the blocking body.
-  void move(PositionComponent actor, Vector2 delta,
-      {required double radius,
-      required void Function(Vector2) constrain,
-      bool slide = true,
-      double side = 1}) {
+  void move(
+    PositionComponent actor,
+    Vector2 delta, {
+    required double radius,
+    required void Function(Vector2) constrain,
+    bool slide = true,
+    double side = 1,
+  }) {
     if (!_radii.containsKey(actor) && !place(actor, radius, constrain)) return;
     final steps = (delta.length / 12).ceil().clamp(1, 256);
     final step = delta / steps.toDouble();
