@@ -6,6 +6,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/game.dart';
+import 'package:regun/presentation/mummy_walk.dart';
 
 class Enemy2Component extends SpriteAnimationComponent
     with HasGameReference<RegunGame>, CollisionCallbacks, CombatEnemy {
@@ -25,6 +26,7 @@ class Enemy2Component extends SpriteAnimationComponent
   bool isAttacking = false;
   bool isDying = false;
   double _deathElapsed = 0;
+  final walk = MummyWalk();
 
   double attackInterval = 0.6; // Time between health reductions in seconds
   double timeSinceLastAttack = 0.0; // Timer to track the interval
@@ -34,8 +36,9 @@ class Enemy2Component extends SpriteAnimationComponent
     await super.onLoad();
     initializeHealth(6 * game.director.healthScale);
     moveLeftAnimation = moveRightAnimation = RegunArt.shared.animation(
-      'enemies/mummy',
-      step: 1 / 12,
+      'enemies/mummy_walk',
+      count: 8,
+      step: .1,
     );
     attackLeftAnimation = attackRightAnimation = RegunArt.shared.animation(
       'enemies/mummy',
@@ -85,9 +88,6 @@ class Enemy2Component extends SpriteAnimationComponent
     }
 
     if (freezeHeld || impactHeld) return;
-    final facingLeft = game.myPlayer.position.x < position.x;
-    if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
-
     //! PLAYER POSITION
     final playerPosition = game.myPlayer.position;
 
@@ -105,7 +105,10 @@ class Enemy2Component extends SpriteAnimationComponent
       isAttacking = false;
       timeSinceLastAttack = 0.0; // Reset the attack timer
       const speed = 90;
+      walk.follow(position.toOffset(), walking: false);
       game.moveActor(this, direction, speed.toDouble(), dt);
+      walk.follow(position.toOffset(), walking: true);
+      if (isFlippedHorizontally != walk.left) flipHorizontallyAroundCenter();
 
       // Set move animation if not attacking
       if (playerPosition.x > position.x) {
@@ -113,8 +116,13 @@ class Enemy2Component extends SpriteAnimationComponent
       } else {
         animation = moveLeftAnimation;
       }
+      playing = false;
+      animationTicker!.currentIndex = walk.frame;
     } else {
       isAttacking = true;
+      playing = true;
+      final facingLeft = playerPosition.x < position.x;
+      if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
 
       // Reduce health at regular intervals
       timeSinceLastAttack += dt;
@@ -138,6 +146,7 @@ class Enemy2Component extends SpriteAnimationComponent
     isAttacking = false;
     timeSinceLastAttack = 0;
     animation = moveRightAnimation;
+    playing = false;
     animationTicker?.reset();
   }
 
@@ -149,6 +158,7 @@ class Enemy2Component extends SpriteAnimationComponent
   @override
   void onCombatDeath() {
     isDying = true;
+    playing = true;
     isAttacking = false;
     animation = game.myPlayer.position.x > position.x
         ? deathRightAnimation

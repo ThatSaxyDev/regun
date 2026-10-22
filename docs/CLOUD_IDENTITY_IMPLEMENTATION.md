@@ -47,9 +47,12 @@ expire after 15 minutes, and the online socket renews before expiry. JWKS overla
 supports deliberate signing-key rotation. Failed account requests never hold a
 local gameplay entry future.
 
-Settings supports username changes, new-email verification (preserving account
-UUID/progress), explicit re-verification, sign-out, cloud reset and deletion.
-Sensitive email change/deletion requires a fresh code. Offline sign-out retains
+Settings shows Account below Gameplay, with identity, concise backup status,
+sync/setup, username changes, news preference, sign-out and deletion. Email is
+fixed after account creation: both new requests and pending legacy email-change
+codes are blocked by the server. Account deletion still verifies a fresh code
+inside that action; there is no standalone re-verification or legacy-recovery row.
+Rename allowance is shown only inside the rename flow. Offline sign-out retains
 pending progress and an encrypted revocation queue for reconnection. Owner changes
 wait until local play ends, so a dismissed network action cannot change the
 profile underneath a running game. The loadout/game return future is carried
@@ -90,11 +93,17 @@ has no billing SDK/products yet; the UI does not advertise a fake restore action
 
 The full service setup and provider contract are documented in
 [the sibling identity README](../../regun-server/identity/README.md).
-Set `EMAIL_PROVIDER=sendbyte` or `resend`; the adapter boundary is `EmailSender`.
+The repository-root `regun-server/Dockerfile` now packages the account process
+inside the existing server deployment; see `../../regun-server/deploy/ACCOUNTS.md`.
+Use the same `https://regunserver.kiishi.space` origin in the app, with account
+routes enabled on the server. Set `EMAIL_PROVIDER=sendbyte` or `resend`; the
+adapter boundary is `EmailSender`.
 Sendbyte uses its canonical `/v1/emails` API and body idempotency key; Resend uses
 its own endpoint/header. Build the app with public `REGUN_IDENTITY_URL` only after
 the HTTPS service, verified sending domain, signing/HMAC secrets and database
-operator are provisioned. Empty checked-in server pins close online admission;
+operator are provisioned. The integrated startup generates public issuer/operator pins from the persistent
+publisher before building/publishing, without secrets in Docker build arguments.
+Empty checked-in server pins close online admission in manual/unconfigured builds;
 coordinate server/client rollout and capability policy before deployment.
 
 Validation passes Flutter analyzer and 505 tests (five optional skips), backend type/tests/
@@ -110,3 +119,9 @@ verify proxy/IP limits, actual inbox delivery, native secure-storage/keyboard/
 foreground behavior, pre-upgrade guest history and backup recovery. Check session
 renewal and multiple-device conflicts with real builds. No phone installation or
 physical/native acceptance is claimed by this source pass.
+
+The account dialog ignores accidental barrier taps while dismissing the keyboard;
+code, resend countdown and current step stay mounted until an explicit exit.
+Verification messages always send a `Regun` display name while preserving the
+configured mailbox, even if `EMAIL_FROM` uses a bare `hello@…` address. Existing
+received email is unchanged; the backend update affects subsequent messages.

@@ -8,7 +8,7 @@ import {
   useCurrentFrame,
   Easing,
 } from "remotion";
-import { Audio } from "@remotion/media";
+import { Audio, Video } from "@remotion/media";
 import "./style.css";
 import { loadFont } from "@remotion/fonts";
 void loadFont({
@@ -625,79 +625,217 @@ function Bosses() {
     </Scene>
   );
 }
+function BetaBadge() {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        right: 140,
+        top: 66,
+        display: "flex",
+        alignItems: "center",
+        gap: 15,
+        fontFamily: "Pixel",
+        fontSize: 14,
+        letterSpacing: 2,
+        color: gold,
+      }}
+    >
+      <div style={{ width: 9, height: 9, background: gold }} />
+      BETA TESTING
+    </div>
+  );
+}
+function Gameplay() {
+  return (
+    <Scene length={180}>
+      <AbsoluteFill style={{ background: "#161b18" }} />
+      <div style={{ position: "absolute", left: 140, top: 125 }}>
+        <Label>MOBILE SURVIVAL SHOOTER</Label>
+        <Head style={{ marginTop: 22, fontSize: 65 }}>ONE MORE RUN.</Head>
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 185,
+          top: 285,
+          width: 1550,
+          padding: 8,
+          border: "2px solid #625a44",
+          background: "#1e241e",
+          boxShadow: "16px 16px 0 #111611",
+        }}
+      >
+        <Video
+          src={file("beta-gameplay.mp4")}
+          trimBefore={120}
+          objectFit="contain"
+          muted
+          style={{
+            width: "100%",
+            aspectRatio: "1440/666",
+            display: "block",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: -2,
+            top: -3,
+            width: 38,
+            height: 5,
+            background: gold,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            right: -2,
+            bottom: -3,
+            width: 38,
+            height: 5,
+            background: gold,
+          }}
+        />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 140,
+          bottom: 50,
+          fontFamily: "Pixel",
+          fontSize: 14,
+          letterSpacing: 2,
+          color: muted,
+        }}
+      >
+        ACTUAL GAMEPLAY{" "}
+        <span style={{ color: gold, marginLeft: 30 }}>BETA</span>
+      </div>
+    </Scene>
+  );
+}
 function End() {
   const f = useCurrentFrame();
   return (
-    <Scene length={150}>
-      <Floor />
-      <AbsoluteFill
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 42%,#273c3355,#080d0bef 75%)",
-        }}
-      />
-      <Img
-        src={file("rook_mark.png")}
-        style={{
-          position: "absolute",
-          width: 270,
-          height: 270,
-          objectFit: "contain",
-          left: 825,
-          top: 105,
-          opacity: interpolate(f, [5, 25], [0, 1], clamp),
-          transform: `translateY(${interpolate(f, [0, 30], [20, 0], { ...clamp, easing: ease })}px)`,
-        }}
-      />
+    <Scene length={210}>
+      <AbsoluteFill style={{ background: "#161b18" }} />
       <div
         style={{
           position: "absolute",
-          top: 390,
-          width: "100%",
-          textAlign: "center",
-          fontSize: 205,
-          fontWeight: 900,
-          letterSpacing: 20,
-          lineHeight: 1,
-          color: cream,
+          left: 140,
+          top: 120,
+          display: "flex",
+          alignItems: "center",
+          gap: 24,
         }}
       >
-        REGUN
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          top: 650,
-          width: "100%",
-          textAlign: "center",
-        }}
-      >
-        <Label style={{ fontSize: 23 }}>ONE MORE ROUND.</Label>
-        <div
-          style={{
-            marginTop: 52,
-            fontSize: 20,
-            letterSpacing: 7,
-            color: muted,
-          }}
-        >
-          AIM. SURVIVE. EVOLVE.
+        <Img
+          src={file("rook_mark.png")}
+          style={{ width: 110, height: 110, objectFit: "contain" }}
+        />
+        <div style={{ fontFamily: "Pixel", fontSize: 34, letterSpacing: 1 }}>
+          RE<span style={{ color: gold }}>—</span>GUN
+          <span style={{ color: gold, marginLeft: 16 }}>▪</span>
         </div>
       </div>
-      <Dust />
-      <Grain />
       <div
         style={{
           position: "absolute",
-          bottom: 65,
-          width: "100%",
-          textAlign: "center",
-          fontSize: 12,
-          letterSpacing: 4,
-          color: "#78877d",
+          left: 150,
+          top: 284,
+          transform: `translateY(${interpolate(f, [0, 22], [18, 0], { ...clamp, easing: ease })}px)`,
         }}
       >
-        IN-GAME ART & SOUND • CINEMATIC TEASER
+        <Head style={{ fontSize: 118, lineHeight: 1.12 }}>
+          One more
+          <br />
+          <span style={{ color: gold }}>run.</span>
+        </Head>
+      </div>
+      <div style={{ position: "absolute", left: 150, top: 602 }}>
+        <Label style={{ fontSize: 24 }}>JOIN THE BETA</Label>
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 150,
+          top: 664,
+          display: "flex",
+          gap: 22,
+        }}
+      >
+        {["iOS", "Android"].map((platform, i) => (
+          <div
+            key={platform}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 24,
+              width: i === 0 ? 370 : 450,
+              height: 110,
+              padding: "20px 26px",
+              background: i === 0 ? gold : "transparent",
+              border: `2px solid ${i === 0 ? gold : "#726449"}`,
+              color: i === 0 ? "#161b18" : cream,
+            }}
+          >
+            <Img
+              src={file(i === 0 ? "apple.svg" : "android.svg")}
+              style={{ width: 42, height: 48 }}
+            />
+            <div>
+              <div style={{ fontSize: 16, marginBottom: 12 }}>
+                {i === 0 ? "TestFlight" : "Firebase App Tester"}
+              </div>
+              <div style={{ fontSize: 24 }}>Join {platform} beta</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 150,
+          top: 838,
+          fontSize: 42,
+          color: cream,
+          letterSpacing: 2,
+        }}
+      >
+        regun.kiishi.space
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          right: 170,
+          top: 320,
+          width: 340,
+          textAlign: "center",
+        }}
+      >
+        <Img
+          src={file("beta-qr.png")}
+          style={{ width: 340, height: 340, imageRendering: "pixelated" }}
+        />
+        <Label style={{ fontSize: 15, marginTop: 25 }}>SCAN TO JOIN</Label>
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 150,
+          right: 150,
+          bottom: 63,
+          borderTop: "1px solid #353c32",
+          paddingTop: 28,
+          display: "flex",
+          justifyContent: "space-between",
+          color: muted,
+          fontSize: 18,
+        }}
+      >
+        <span>Currently in beta. The game is still evolving.</span>
+        <span>iOS & Android</span>
       </div>
     </Scene>
   );
@@ -736,9 +874,12 @@ export function Trailer() {
         <Build />
       </Sequence>
       <Sequence from={750} durationInFrames={180}>
+        <Gameplay />
+      </Sequence>
+      <Sequence from={930} durationInFrames={180}>
         <Bosses />
       </Sequence>
-      <Sequence from={930} durationInFrames={150}>
+      <Sequence from={1110} durationInFrames={210}>
         <End />
       </Sequence>
       <Audio
@@ -746,19 +887,20 @@ export function Trailer() {
         loop
         loopVolumeCurveBehavior="extend"
         volume={(v) =>
-          interpolate(v, [0, 12, 1045, 1079], [0, 0.56, 0.56, 0], clamp)
+          interpolate(v, [0, 12, 1285, 1319], [0, 0.56, 0.56, 0], clamp)
         }
       />
       <Cue at={180} src="upgrade_pulse.wav" volume={0.3} />
       <Cue at={365} src="shot_shotgun_0.wav" />
       <Cue at={411} src="shot_railLance_0.wav" volume={0.32} />
       <Cue at={570} src="upgrade_pulse.wav" volume={0.35} />
-      <Cue at={752} src="blast.wav" volume={0.28} />
-      <Cue at={930} src="shot_shotgun_0.wav" volume={0.45} />
+      <Cue at={932} src="blast.wav" volume={0.28} />
+      <Cue at={1110} src="shot_shotgun_0.wav" volume={0.45} />
+      <BetaBadge />
       <AbsoluteFill
         style={{
           background: "#080d0b",
-          opacity: interpolate(f, [0, 14, 1060, 1079], [1, 0, 0, 1], clamp),
+          opacity: interpolate(f, [0, 14, 1300, 1319], [1, 0, 0, 1], clamp),
           pointerEvents: "none",
         }}
       />

@@ -4,5 +4,5 @@
   "REGUN_SERVER_HOST": "regunserver.kiishi.space",
   "REGUN_DATABASE": "regun",
   "REGUN_SERVER_TLS": true,
-  "REGUN_IDENTITY_URL": ""
+  "REGUN_IDENTITY_URL": "https://regunserver.kiishi.space"
 }

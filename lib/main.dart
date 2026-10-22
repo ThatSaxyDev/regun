@@ -1,4 +1,5 @@
 import 'package:regun/widgets/game_presentation.dart';
+import 'package:regun/navigation/game_page_route.dart';
 
 import 'dart:developer' as dev;
 import 'dart:async';
@@ -99,7 +100,8 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
       builder: (context, child) => GamePresentation(child: child!),
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(useMaterial3: true),
+      theme: ThemeData.dark(useMaterial3: true)
+          .copyWith(pageTransitionsTheme: gamePageTransitionsTheme),
       home: const FlameSplashView(),
       // home: kDebugMode ? const BaseView() : const FlameSplashView(),
     );

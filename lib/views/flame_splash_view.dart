@@ -1,3 +1,4 @@
+import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/services/account/account_controller.dart';
 
 import 'dart:math';
@@ -28,16 +29,8 @@ class _FlameSplashViewState extends State<FlameSplashView> {
     if (!mounted) return;
     await precacheImage(_mark, context);
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder<void>(
-        transitionDuration: LocalPreferences.shared.reducedMotion
-            ? Duration.zero
-            : const Duration(milliseconds: 280),
-        pageBuilder: (_, _, _) => const MenuView(),
-        transitionsBuilder: (_, animation, _, child) =>
-            FadeTransition(opacity: animation, child: child),
-      ),
-    );
+    Navigator.of(context)
+        .pushReplacement(GamePageRoute<void>(builder: (_) => const MenuView()));
   }
 
   @override

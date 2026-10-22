@@ -425,9 +425,34 @@ reserved/harmful/obfuscated names and benign exceptions. Recover older records
 only with the original guest credential and verify repeated claims do not add
 balances/rewards again. Preserve original guest credentials for rollback review.
 
-Test email change, fresh-code deletion, offline sign-out/reconnection and cloud
+Test fixed-email enforcement, fresh-code deletion, offline sign-out/reconnection and cloud
 reset. Account A/B profiles, pending saves and Continue must not cross. A reset or
 deleted account must not be revived by an older pending device. Start local play
 while an account request is still running: late completion must not switch its
 profile in mid-run. Verify actual inbox delivery and native Keychain/keyboard/
 foreground behavior separately from captured-mail/local socket tests.
+
+Account production follow-up: Gameplay precedes Account. Email-change, quota,
+legacy-record recovery and standalone re-verification rows must be absent. Open
+OTP entry, type part of the code and tap outside to hide the keyboard: the dialog,
+code and resend timer must remain; Not now/Back still explicitly exits. Confirm
+new messages show Regun as sender, including a server configured with a bare
+hello mailbox. Review compact phone/large text after scrolling through Account.
+
+## Screen changes and Mummy gait — 22 October 2026
+
+Move between Home, Loadout/Training, Settings, Controls, Collection and Online;
+open Settings from Pause and return. Screens should fade briefly through the
+dark game surface, remain planted and never slide sideways. Back/Start and
+replaced-route returns must keep their normal destination and local run scope.
+Reduced Motion (game and OS) cuts straight to the destination. Test rapid back,
+background/resume during navigation and both landscape orientations.
+
+At25 seconds the gray bandaged Mummy joins the scorpions. Watch it approach from
+both sides, turn, walk vertically, get blocked by another body/cover and resume.
+Its eight-pose stride should keep its body scale/ground baseline, advance with
+travel and retain phase through a turn. The old attack/hurt/death poses and
+.6-second close-strike cadence remain. Review online co-op too: snapshot movement
+drives the same walk art without changing server combat. The runtime contact
+sheet is `build/test-previews/mummy-walk-both-directions.png`. Physical gait,
+transition comfort and sustained performance still require device review.

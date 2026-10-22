@@ -1,4 +1,3 @@
-import 'package:regun/multiplayer/secure_online_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/services/account/account_api.dart';
@@ -57,7 +56,7 @@ class _AccountSettingsState extends State<AccountSettings> {
         color: Color(0xffB2A8B4),
       );
       return SettingsSection(
-        title: 'Save progress',
+        title: 'Account',
         children: [
           Text(
             account.username.isNotEmpty
@@ -71,11 +70,6 @@ class _AccountSettingsState extends State<AccountSettings> {
           ),
           if (account.email.isNotEmpty) Text(account.email, style: style),
           if (account.verified) Text(account.saveLabel, style: style),
-          if (account.account?['cloud']?['savedAt'] != null)
-            Text(
-              'Last cloud save: ${DateTime.tryParse(account.account!['cloud']['savedAt'] as String)?.toLocal()}',
-              style: style,
-            ),
           if (!widget.manage)
             const Text(
               'Manage your account from the main menu Settings.',
@@ -116,70 +110,6 @@ class _AccountSettingsState extends State<AccountSettings> {
                         : () => showAccountFlow(context, account, rename: true),
                   ),
                 ],
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: busy
-                      ? null
-                      : () => run(() async {
-                          final verified = await showAccountFlow(
-                            context,
-                            account,
-                            reverify: true,
-                          );
-                          if (!verified || !context.mounted) return;
-                          await showAccountFlow(
-                            context,
-                            account,
-                            changeEmail: true,
-                          );
-                        }),
-                  child: const Text('Change email', style: style),
-                ),
-              ),
-              Text(
-                '${account.account?['changesRemaining'] ?? 2} username changes left this month.',
-                style: style,
-              ),
-              if ((account.account?['changesRemaining'] as num? ?? 2) == 0)
-                Text(
-                  'Available again: ${DateTime.tryParse(account.account?['resetAt'] as String? ?? '')?.toLocal()}',
-                  style: style,
-                ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: busy
-                      ? null
-                      : () => run(() async {
-                          final token = await SecureOnlineTokens().loadToken();
-                          if (token == null) {
-                            throw const AccountError(
-                              'No older online identity was found on this device.',
-                            );
-                          }
-                          await account.claimGuest(token);
-                          if (mounted) {
-                            setState(
-                              () => error = 'Older online records recovered.',
-                            );
-                          }
-                        }),
-                  child: const Text(
-                    'Recover older online records',
-                    style: style,
-                  ),
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: busy
-                      ? null
-                      : () => showAccountFlow(context, account, reverify: true),
-                  child: const Text('Verify email again', style: style),
-                ),
               ),
               SettingsChoice(
                 label: 'Send me Regun news and offers',
@@ -222,7 +152,7 @@ class _AccountSettingsState extends State<AccountSettings> {
                             final accepted = await confirmRunAction(
                               context,
                               title: 'DELETE ACCOUNT?',
-                              message: 'Your cloud profile and progress will be deleted. This cannot be undone. Store purchases and billing are managed separately.',
+                              message: 'Your cloud profile and progress will be deleted. This cannot be undone.',
                               action: 'Delete account',
                               destructive: true,
                             );

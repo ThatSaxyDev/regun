@@ -26,11 +26,14 @@ with only `config/telling.local.json` remain supported by the Make targets.
 - `REGUN_SERVER_HOST`: multiplayer hostname, without `https://`.
 - `REGUN_DATABASE` / `REGUN_SERVER_TLS`: database and TLS selection.
 - `REGUN_IDENTITY_URL`: HTTPS origin of the email/account service, without a path.
-  Leave empty until that service is deployed. This is separate from Telling and
-  the multiplayer socket. Never substitute the Sendbyte API URL.
+  Uses `https://regunserver.kiishi.space`, served by the same root backend Docker
+  deployment as multiplayer. Telling remains separate. Never substitute the
+  Sendbyte API URL. Account routes need the updated server deployment enabled.
 
 On 22 October 2026, `https://regunserver.kiishi.space/` and `/health` returned 200,
 and `/features` reported online play enabled. Its root OIDC discovery endpoint
 returned 403, consistent with the current multiplayer-only proxy configuration;
-this does not establish a working account service at that origin. Offline play
-does not require an identity URL.
+the root backend Docker build now packages the account service for that same
+origin. Redeploy it with the server email variables described in
+`../regun-server/deploy/ACCOUNTS.md` before testing sign-in. Offline play remains
+available while those routes are unavailable.

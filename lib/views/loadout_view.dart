@@ -1,3 +1,5 @@
+import 'package:regun/navigation/game_page_route.dart';
+
 import 'dart:async';
 
 import 'package:regun/systems/weapon_mobility.dart';
@@ -363,7 +365,7 @@ class _LoadoutViewState extends State<LoadoutView> {
                   try {
                     await Navigator.of(context)
                         .pushReplacement<void, Future<void>>(
-                          MaterialPageRoute<void>(
+                          GamePageRoute<void>(
                             builder: (_) => BaseView(
                               loadout: Loadout(
                                 weapon: weapon,

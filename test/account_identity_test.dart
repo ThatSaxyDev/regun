@@ -18,6 +18,7 @@ import 'package:regun/services/account/account_storage.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/widgets/account_flow.dart';
+import 'package:regun/views/settings_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _Secrets implements AccountSecrets {
@@ -263,6 +264,158 @@ void main() {
       await tester.pump();
     },
   );
+  testWidgets('outside taps hide the keyboard and preserve the code step', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(844, 390);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var requests = 0;
+    final account = AccountController(
+      api: AccountApi(
+        endpoint: Uri.parse('https://identity.example'),
+        client: () => MockClient((_) async {
+          requests++;
+          return http.Response(
+            jsonEncode({
+              'requestId': owner,
+              'resendAfter': 60,
+              'expiresIn': 600,
+            }),
+            200,
+          );
+        }),
+      ),
+      secrets: _Secrets(),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => showAccountFlow(context, account),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'player@example.com');
+    await tester.tap(find.text('SEND CODE'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '123');
+    expect(tester.testTextInput.isVisible, isTrue);
+    await tester.tapAt(const Offset(3, 3));
+    await tester.pumpAndSettle();
+    expect(tester.testTextInput.isVisible, isFalse);
+    expect(find.byType(AccountFlow), findsOneWidget);
+    expect(find.text('CHECK YOUR EMAIL'), findsOneWidget);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      '123',
+    );
+    expect(requests, 1);
+    await tester.tapAt(const Offset(3, 3));
+    await tester.pumpAndSettle();
+    expect(find.byType(AccountFlow), findsOneWidget);
+    await tester.tap(find.text('NOT NOW'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AccountFlow), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets(
+    'production settings put Gameplay before a concise Account section',
+    (tester) async {
+      tester.view.physicalSize = const Size(844, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final account = AccountController(secrets: _Secrets());
+      account.session = session(owner);
+      account.account = {
+        'username': 'rook_12',
+        'email': 'player@example.com',
+        'changesRemaining': 2,
+      };
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            accountProvider.overrideWithValue(account),
+            soloudPlayProvider.overrideWithValue(_Quiet()),
+          ],
+          child: const MaterialApp(
+            home: RepaintBoundary(
+              key: Key('capture-settings'),
+              child: SettingsView(allowProgressReset: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester.getTopLeft(find.text('GAMEPLAY')).dy,
+        lessThan(tester.getTopLeft(find.text('ACCOUNT')).dy),
+      );
+      expect(find.text('SAVE PROGRESS'), findsNothing);
+      for (final text in [
+        'Change email',
+        'Recover older online records',
+        'Verify email again',
+        '2 username changes left this month.',
+      ]) {
+        expect(find.text(text), findsNothing);
+      }
+      expect(find.text('CHANGE USERNAME'), findsOneWidget);
+      expect(find.text('player@example.com'), findsOneWidget);
+      expect(find.text('Sign out'), findsOneWidget);
+      expect(find.text('Delete account'), findsOneWidget);
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+        find.byKey(const Key('capture-settings')),
+      );
+      await tester.runAsync(() async {
+        final image = await boundary.toImage(pixelRatio: 1.5);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        await Directory('build/test-previews').create(recursive: true);
+        await File('build/test-previews/account-settings.png')
+            .writeAsBytes(bytes!.buffer.asUint8List());
+        image.dispose();
+      });
+      for (final size in [const Size(844, 390), const Size(568, 320)]) {
+        tester.view.physicalSize = size;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              accountProvider.overrideWithValue(account),
+              soloudPlayProvider.overrideWithValue(_Quiet()),
+            ],
+            child: MaterialApp(
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: const TextScaler.linear(1.5)),
+                child: child!,
+              ),
+              home: const SettingsView(allowProgressReset: true),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('Delete account'));
+        await tester.pumpAndSettle();
+        expect(find.text('Delete account').hitTestable(), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
   testWidgets('account notice renders with real fonts and inline code entry', (
     tester,
   ) async {

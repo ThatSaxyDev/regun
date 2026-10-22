@@ -1,3 +1,4 @@
+import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/upgrade_offer_copy.dart';
 import 'package:regun/systems/upgrade_details.dart';
 import 'package:regun/presentation/game_layout.dart';
@@ -173,7 +174,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     try {
       final next = await Navigator.of(context)
           .pushReplacement<dynamic, Future<void>>(
-            MaterialPageRoute<dynamic>(builder: (_) => const LoadoutView()),
+            GamePageRoute<dynamic>(builder: (_) => const LoadoutView()),
             result: completion.future,
           );
       if (next is Future<void>) await next;
@@ -683,7 +684,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
 
   Future<void> _openSettings() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      GamePageRoute(
         builder: (_) => SettingsView(onControlsChanged: _myGame.setControls),
       ),
     );

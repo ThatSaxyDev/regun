@@ -1,3 +1,4 @@
+import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/services/account/account_api.dart';
@@ -168,7 +169,7 @@ class _MenuViewState extends ConsumerState<MenuView>
     try {
       if (!mounted) return;
       final completion = await Navigator.of(context)
-          .push<dynamic>(MaterialPageRoute<dynamic>(builder: (_) => view));
+          .push<dynamic>(GamePageRoute<dynamic>(builder: (_) => view));
       // Loadout replacement passes the actual game's completion, not just catalog disposal.
       if (completion is Future<void>) await completion;
     } finally {

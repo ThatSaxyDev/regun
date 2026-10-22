@@ -1,41 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:regun/navigation/game_page_route.dart';
 
-void goBack(BuildContext context) {
-  // killKeyboard(context);
-  Navigator.of(context).pop();
-}
-
-// void goBack(BuildContext context) {
-//   killKeyboard(context);
-//   Routemaster.of(context).pop();
-// }
-
-// void goTo({
-//   required BuildContext context,
-//   required String route,
-// }) {
-//   Routemaster.of(context).push(route);
-// }
+void goBack(BuildContext context) => Navigator.of(context).pop();
 
 void goTo({required BuildContext context, required Widget view}) {
-  Navigator.of(context).push(MaterialPageRoute(builder: (context) => view));
+  Navigator.of(context).push(GamePageRoute<void>(builder: (_) => view));
 }
 
-//! fade page transition
-fadeTo({required BuildContext context, required Widget view}) {
-  Navigator.of(context).push(
-    PageRouteBuilder(
-      pageBuilder: (context, animation, anotherAnimation) {
-        return view;
-      },
-      transitionDuration: const Duration(milliseconds: 1000),
-      transitionsBuilder: (context, animation, anotherAnimation, child) {
-        animation = CurvedAnimation(
-          curve: Curves.linearToEaseOut,
-          parent: animation,
-        );
-        return FadeTransition(opacity: animation, child: child);
-      },
-    ),
-  );
-}
+void fadeTo({required BuildContext context, required Widget view}) =>
+    goTo(context: context, view: view);

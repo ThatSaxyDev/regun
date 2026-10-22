@@ -1,3 +1,4 @@
+import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/widgets/account_settings.dart';
@@ -49,7 +50,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             width: 200,
             height: 48,
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
+              GamePageRoute(
                 builder: (_) =>
                     ControlsView(onChanged: widget.onControlsChanged),
               ),
@@ -82,12 +83,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             ],
           ),
           const SizedBox(height: 32),
-          if (_accountIssue != null) GameNoticeStrip(message: _accountIssue!),
-          AccountSettings(
-            account: ref.read(accountProvider),
-            manage: widget.allowProgressReset,
-          ),
-          const SizedBox(height: 32),
           SettingsSection(
             title: 'Gameplay',
             children: [
@@ -103,6 +98,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 (v) => settings.aimAssist = v,
               ),
             ],
+          ),
+          const SizedBox(height: 32),
+          if (_accountIssue != null) GameNoticeStrip(message: _accountIssue!),
+          AccountSettings(
+            account: ref.read(accountProvider),
+            manage: widget.allowProgressReset,
           ),
           const SizedBox(height: 24),
           if (widget.allowProgressReset)

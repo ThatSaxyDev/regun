@@ -1067,3 +1067,70 @@ five optional skips). Backend97 tests/module build, identity service four tests/
 production compilation and disposable real-host OTP/JWKS/TypeScript+Dart socket
 proof pass. Sendbyte delivery is contract-tested against the documented request;
 real inbox delivery and native device acceptance remain open.
+
+Single-server deployment correction: the root `regun-server/Dockerfile` now
+packages the account process beside SpacetimeDB behind the existing port3000
+proxy. Accounts use `https://regunserver.kiishi.space`; the combined ignored
+release config retains Telling and that origin. Persistent publisher/signing
+bootstrap, account-route allowlisting and process supervision are included.
+The real root Docker image passes disposable startup/restart, public JWKS,
+private-admin isolation and signing-key continuity checks; five service tests
+and the original signing-state regression (inside Linux) pass. No hosted
+redeployment or real email was performed. See sibling `deploy/ACCOUNTS.md`.
+
+## 22 October 2026 — production Account settings
+
+Settings now places Gameplay above Account. Removed email changes, standing
+rename quotas/reset dates, legacy-record recovery, standalone re-verification
+and the raw last-save timestamp. Username edits retain the server quota, shown
+only when editing; deletion retains fresh-code confirmation within that action.
+Email is fixed at the service and reducer boundary, including already pending
+legacy email-change challenges. Keyboard-dismissal taps preserve the account
+dialog, code and timer; explicit exits remain available during pending requests.
+Email adapters always send the Regun display name with the configured mailbox.
+
+Validation: analyzer clean;507 Flutter tests pass/five optional skips; focused
+compact/large-text account checks and rendered Settings review pass. Backend97
+tests/module build and nine service tests pass, alongside production compilation
+and real-host OTP/TypeScript+Dart socket/reset/refresh checks. No live email,
+hosted deployment or phone installation was performed in this pass.
+
+## 22 October 2026 — planted screen transitions and Mummy walking
+
+All active screen routes now use GamePageRoute:240ms entrance/180ms return,
+fading through the existing dark game surface without horizontal motion, zoom
+or interactive edge swipe. The global transition theme covers the root and
+library-created Material routes; legacy navigation/router helpers agree.
+Game/OS Reduced Motion cuts directly. Loadout/game replacement completion and
+account local-play ownership boundaries remain intact.
+
+The gray close-striking Mummy now uses an eight-pose, transparently generated
+walk atlas referenced from its existing identity. Measured pelvis/ground
+registration and reference height retain body scale; actual travel advances the
+gait and facing changes retain phase. Walls, pauses and relocation do not run
+the feet. Online snapshot presentation uses the same atlas and per-entity gait,
+cleaned on removal/reconnection. Old attack/hurt/death art,90 movement speed,
+.6-second strike cadence, collision and combat authority remain. See
+art/source/enemy-animation/README.md and tool/register_mummy_walk.py.
+
+Validation: make verify passes; analyzer clean,513 tests pass/five optional
+skips. New checks cover stationary route geometry, edge drag, route results,
+game/OS Reduced Motion and live Mummy turning/attack cadence. Runtime left/right
+walk contact sheet inspected; art contracts pass with shared decoded art20.97MiB
+under32MiB in that test. No native comfort/performance claim or phone installation
+is implied; physical gait and transition review remain open.
+
+Mummy gait correction after creator review: the first eight-pose candidate was
+not accepted; leg spread/closure is not a walk. The replacement uses an explicit
+contact/down/passing/up guide with swapped near/far support, visibly raised boots
+in3/7 and a lowered pre-contact heel in8. Re-registered without changing body
+scale or runtime combat. Runtime left/right clip and phase snapshots are in
+build/test-previews/mummy-walk-corrected.mp4 and mummy-walk-motion/. Six focused
+gait/art tests and analyzer pass. Shared decoded art remains20.97MiB in the
+contract test; tests do not constitute creator motion acceptance.
+
+Creator-requested phone installation: signed iOS release1.0.0+14 built in41.3s,
+installed on the connected iPhone12 and launched successfully via devicectl. The
+packaged Mummy walk atlas SHA-256 matches the corrected source asset. Combined
+release configuration (including Telling) was used. Installation/launch does not
+constitute physical gait, transition comfort or sustained performance approval.

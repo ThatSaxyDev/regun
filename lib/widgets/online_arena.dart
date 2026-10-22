@@ -1,3 +1,4 @@
+import 'package:regun/presentation/mummy_walk.dart';
 import 'package:regun/presentation/game_layout.dart';
 import 'package:regun/systems/weapon_heading.dart';
 import 'package:regun/multiplayer/local_fire_feedback.dart';
@@ -53,6 +54,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     with SingleTickerProviderStateMixin {
   late final Ticker ticker;
   late SoloudPlay audio;
+  final mummyWalks = <String, MummyWalk>{};
   final weaponHeadings = <String, WeaponHeading>{};
   final restingAim = <String, Offset>{};
   final grenadeAim = GrenadeAim();
@@ -79,6 +81,23 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   String? _music;
   int? _offerCue;
   void _sceneCues() {
+    final liveMummies = <String>{};
+    for (final entity in session.scene.where(
+      (e) =>
+          e.kind == 'enemy' &&
+          e.data['kind'] == 'mummy' &&
+          e.number('health') > 0,
+    )) {
+      liveMummies.add(entity.key);
+      mummyWalks
+          .putIfAbsent(entity.key, MummyWalk.new)
+          .follow(
+            Offset(entity.x, entity.y),
+            walking: entity.number('phase') == 0,
+            facingX: entity.number('dx', 1),
+          );
+    }
+    mummyWalks.removeWhere((key, _) => !liveMummies.contains(key));
     final audio = ref.read(soloudPlayProvider);
     if (_warmed.add('supply')) unawaited(audio.warmSupply());
     for (final e in session.scene.where(
@@ -277,6 +296,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       restingAim.clear();
       weaponHeadings.clear();
       _worldCues.clear();
+      mummyWalks.clear();
       _offerCue = null;
       _shots.clear();
       _reloads.clear();
@@ -589,6 +609,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         hurtTimes: hurtTimes,
                         grenadeAim: grenadeAim,
                         restingAim: restingAim,
+                        mummyWalks: mummyWalks,
                       ),
                     ),
                   ),
@@ -829,10 +850,12 @@ class _ArenaPainter extends CustomPainter {
     required this.hurtTimes,
     required this.grenadeAim,
     required this.restingAim,
+    required this.mummyWalks,
   });
   final OnlineSession session;
   final GrenadeAim grenadeAim;
   final Map<String, Offset> restingAim;
+  final Map<String, MummyWalk> mummyWalks;
   final Map<String, Offset> positions;
   final double seconds;
   final bool artReady;
@@ -980,6 +1003,7 @@ class _ArenaPainter extends CustomPainter {
       OnlineWorldArt.enemy(
         canvas,
         enemy,
+        mummyWalk: mummyWalks[enemy.key],
         laserAim: aim,
         laserOrigin: beams.isEmpty
             ? null

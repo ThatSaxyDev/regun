@@ -1,3 +1,4 @@
+import 'package:regun/presentation/mummy_walk.dart';
 import 'package:regun/presentation/burster_walk.dart';
 
 import 'dart:math' as math;
@@ -272,6 +273,7 @@ class OnlineWorldArt {
     OnlineEntity entity, {
     required bool foundry,
     required bool reducedMotion,
+    MummyWalk? mummyWalk,
     Offset? laserAim,
     Offset? laserOrigin,
   }) {
@@ -341,8 +343,14 @@ class OnlineWorldArt {
     }
     canvas.save();
     canvas.translate(p.dx, p.dy);
-    if (kind != 'burster' && entity.number('dx', 1) < 0) canvas.scale(-1, 1);
-    final sprite = !dead && kind == 'burster' && phase == 0
+    final facingLeft =
+        !dead && kind == 'mummy' && phase == 0 && mummyWalk != null
+        ? mummyWalk.left
+        : entity.number('dx', 1) < 0;
+    if (kind != 'burster' && facingLeft) canvas.scale(-1, 1);
+    final sprite = !dead && kind == 'mummy' && phase == 0
+        ? art.sprite('enemies/mummy_walk', mummyWalk?.frame ?? 0)
+        : !dead && kind == 'burster' && phase == 0
         ? art.sprite(
             'enemies/burster_walk',
             BursterWalk.frame(

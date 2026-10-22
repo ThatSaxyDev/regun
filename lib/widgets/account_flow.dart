@@ -14,19 +14,22 @@ Future<bool> showAccountFlow(
   bool online = false,
   bool rename = false,
   bool reverify = false,
-  bool changeEmail = false,
   VoidCallback? onShown,
 }) async =>
     await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       barrierColor: const Color(0xD9100D14),
-      builder: (_) => AccountFlow(
-        account: account,
-        online: online,
-        rename: rename,
-        reverify: reverify,
-        changeEmail: changeEmail,
-        onShown: onShown,
+      builder: (_) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: AccountFlow(
+          account: account,
+          online: online,
+          rename: rename,
+          reverify: reverify,
+          onShown: onShown,
+        ),
       ),
     ) ??
     false;
@@ -47,6 +50,7 @@ class AccountField extends StatelessWidget {
   Widget build(BuildContext context) => TextField(
     controller: controller,
     enabled: enabled,
+    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
     autocorrect: false,
     enableSuggestions: false,
     textCapitalization: TextCapitalization.none,
@@ -104,11 +108,10 @@ class AccountFlow extends StatefulWidget {
     this.online = false,
     this.rename = false,
     this.reverify = false,
-    this.changeEmail = false,
     this.onShown,
   });
   final AccountController account;
-  final bool online, rename, reverify, changeEmail;
+  final bool online, rename, reverify;
   final VoidCallback? onShown;
   @override
   State<AccountFlow> createState() => _AccountFlowState();
@@ -130,12 +133,10 @@ class _AccountFlowState extends State<AccountFlow> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) widget.onShown?.call();
     });
-    expectedAccount = widget.reverify || widget.changeEmail
-        ? account.session?.accountId
-        : null;
-    email.text = widget.changeEmail ? '' : account.email;
+    expectedAccount = widget.reverify ? account.session?.accountId : null;
+    email.text = account.email;
     name.text = account.username;
-    if (!widget.reverify && !widget.changeEmail && account.verified) {
+    if (!widget.reverify && account.verified) {
       step = widget.rename || !account.ready
           ? 'name'
           : account.conflict
@@ -185,10 +186,7 @@ class _AccountFlowState extends State<AccountFlow> {
   }
 
   Future<void> send() => run(() async {
-    final data = await account.requestCode(
-      email.text.trim(),
-      changeEmail: widget.changeEmail,
-    );
+    final data = await account.requestCode(email.text.trim());
     if (!mounted) return;
     requestId = data['requestId'] as String;
     resendAt = DateTime.now().add(
@@ -204,7 +202,7 @@ class _AccountFlowState extends State<AccountFlow> {
       expectedAccount: expectedAccount,
     );
     if (!mounted) return;
-    if (widget.reverify || widget.changeEmail) {
+    if (widget.reverify) {
       Navigator.pop(context, true);
       return;
     }
@@ -242,12 +240,7 @@ class _AccountFlowState extends State<AccountFlow> {
         account.pending || account.issue.isNotEmpty
             ? 'BACKUP PENDING'
             : 'PROGRESS SAVED',
-      _ =>
-        widget.changeEmail
-            ? 'CHANGE EMAIL'
-            : widget.online
-            ? 'SET UP YOUR ONLINE ID'
-            : 'SAVE YOUR PROGRESS',
+      _ => widget.online ? 'SET UP YOUR ONLINE ID' : 'SAVE YOUR PROGRESS',
     };
     final message = switch (step) {
       'code' => 'Enter the 6-digit code sent to ${email.text.trim()}.',

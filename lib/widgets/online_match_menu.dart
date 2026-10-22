@@ -1,3 +1,4 @@
+import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
 import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/theme/pixel_glyph.dart';
@@ -87,9 +88,8 @@ class _OnlineMatchMenuState extends State<OnlineMatchMenu> {
                 glyph: PixelGlyph.settings,
                 buttonColor: const Color(0xffB2A8B4),
                 height: 48,
-                onTap: () => Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (_) => const SettingsView())),
+                onTap: () => Navigator.of(context)
+                    .push(GamePageRoute(builder: (_) => const SettingsView())),
               ),
               const SizedBox(height: 12),
               ClickButton(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:regun/navigation/game_page_route.dart';
 import 'package:go_router/go_router.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:regun/views/menu_view.dart';
@@ -16,14 +16,9 @@ GoRouter goRouter() {
           return CustomTransitionPage(
             key: state.pageKey,
             child: const MenuView(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(
-                    opacity: CurveTween(curve: Curves.easeInOutCirc)
-                        .animate(animation),
-                    child: child,
-                  );
-                },
+            transitionDuration: GameScreenTransition.enter,
+            reverseTransitionDuration: GameScreenTransition.leave,
+            transitionsBuilder: GameScreenTransition.build,
           );
         },
         // builder: (context, state) {
@@ -37,14 +32,9 @@ GoRouter goRouter() {
           return CustomTransitionPage(
             key: state.pageKey,
             child: const BaseView(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(
-                    opacity: CurveTween(curve: Curves.easeInOutCirc)
-                        .animate(animation),
-                    child: child,
-                  );
-                },
+            transitionDuration: GameScreenTransition.enter,
+            reverseTransitionDuration: GameScreenTransition.leave,
+            transitionsBuilder: GameScreenTransition.build,
           );
         },
       ),

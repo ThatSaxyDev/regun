@@ -181,14 +181,8 @@ class AccountController extends ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> requestCode(
-    String email, {
-    bool changeEmail = false,
-  }) async => api.request(
-    '/request',
-    token: changeEmail ? await accessToken() : null,
-    body: {'email': email, if (changeEmail) 'changeEmail': true},
-  );
+  Future<Map<String, dynamic>> requestCode(String email) async =>
+      api.request('/request', body: {'email': email});
   Future<void> verifyCode(
     String requestId,
     String code, {
