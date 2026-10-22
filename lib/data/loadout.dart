@@ -150,6 +150,66 @@ enum WeaponType {
     1200,
     1900,
     2800,
+  ),
+  twinVerdict(
+    'Twin Verdict',
+    'Alternate barrels. Pair hits for extra damage.',
+    12,
+    .48,
+    2.5,
+    780,
+    1450,
+    2600,
+  ),
+  flakRegent(
+    'Flak Regent',
+    'Heavy shells split into four forward fragments.',
+    16,
+    .32,
+    2.4,
+    650,
+    1050,
+    3000,
+  ),
+  anchorEngine(
+    'Anchor Engine',
+    'Aim a magnetic trap. Gather, then crush.',
+    4,
+    1.1,
+    8,
+    600,
+    600,
+    3400,
+  ),
+  faultlineDriver(
+    'Faultline Driver',
+    'Aim, release. Fracture a piercing ground lane.',
+    5,
+    1.15,
+    6,
+    720,
+    1000,
+    3200,
+  ),
+  cycloneBreacher(
+    'Cyclone Breacher',
+    'Five heavy pellets. Rapid close-range volleys.',
+    8,
+    .50,
+    1.2,
+    300,
+    850,
+    3000,
+  ),
+  mourningBell(
+    'Mourning Bell',
+    'Strike a cone. Lingering enemies take an echo.',
+    6,
+    1.0,
+    4.5,
+    400,
+    1000,
+    3000,
   );
 
   const WeaponType(
@@ -185,6 +245,12 @@ enum WeaponType {
         WeaponType.prismCutter => 'prism_cutter',
         WeaponType.sporeLobber => 'spore_lobber',
         WeaponType.longwatchSniper => 'longwatch_sniper',
+        WeaponType.twinVerdict => 'twin_verdict',
+        WeaponType.flakRegent => 'flak_regent',
+        WeaponType.anchorEngine => 'anchor_engine',
+        WeaponType.faultlineDriver => 'faultline_driver',
+        WeaponType.cycloneBreacher => 'cyclone_breacher',
+        WeaponType.mourningBell => 'mourning_bell',
         _ => 'arsenal',
       }}';
   int get victoryRequirement => switch (this) {
@@ -199,6 +265,12 @@ enum WeaponType {
     WeaponType.sporeLobber => 24,
     WeaponType.scrapMortar => 27,
     WeaponType.longwatchSniper => 30,
+    WeaponType.twinVerdict => 33,
+    WeaponType.flakRegent => 36,
+    WeaponType.anchorEngine => 40,
+    WeaponType.faultlineDriver => 44,
+    WeaponType.cycloneBreacher => 48,
+    WeaponType.mourningBell => 52,
     _ => 0,
   };
   bool get supportsScatter =>
@@ -208,6 +280,8 @@ enum WeaponType {
         WeaponType.rivetDriver,
         WeaponType.beltRepeater,
         WeaponType.frostShotgun,
+        WeaponType.twinVerdict,
+        WeaponType.cycloneBreacher,
       }.contains(this);
   bool get supportsPierce =>
       supportsScatter ||
@@ -219,19 +293,24 @@ enum WeaponType {
         WeaponType.railLance,
         WeaponType.rivetDriver,
         WeaponType.beltRepeater,
+        WeaponType.twinVerdict,
+        WeaponType.cycloneBreacher,
       }.contains(this);
   bool get supportsVelocity =>
       supportsScatter ||
       {WeaponType.reaperDisc, WeaponType.sporeLobber}.contains(this);
   bool get isContinuous =>
       this == WeaponType.cinderHose || this == WeaponType.prismCutter;
-  bool get hasDirectHits => this != WeaponType.scrapMortar;
+  bool get hasDirectHits =>
+      this != WeaponType.scrapMortar && this != WeaponType.anchorEngine;
   bool get hasLastRound => this != WeaponType.prismCutter;
   bool get supportsRange => true;
   bool get firesOnRelease =>
       this == WeaponType.longwatchSniper ||
       this == WeaponType.scrapMortar ||
-      this == WeaponType.sporeLobber;
+      this == WeaponType.sporeLobber ||
+      this == WeaponType.anchorEngine ||
+      this == WeaponType.faultlineDriver;
 }
 
 /// Shell cadence shared by the reload clock and visible shotgun mechanism.

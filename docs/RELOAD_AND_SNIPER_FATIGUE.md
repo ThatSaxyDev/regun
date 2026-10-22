@@ -1,8 +1,8 @@
 # Universal reload modes and sniper fatigue
 
-22 October 2026. Implemented for the current **fifteen** solo/Training weapons.
-Release remains1.0.0+11. The six additions and weapon-weight movement penalties
-in [the expansion plan](SIX_WEAPONS_AND_WEIGHT_PLAN.md) remain proposals only.
+22 October 2026. Implemented for the current **twenty-one** solo/Training weapons.
+Release remains1.0.0+11. The six additions and weapon-weight walking multipliers are now implemented;
+see [the expansion review](ENDGAME_WEAPONS_REVIEW.md).
 
 ## Reload contract
 

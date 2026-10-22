@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-22",
+  "version": "1.0.0+11",
+  "bundle": "dev.kiishi.regun",
+  "checkpointClient": "6f9f2b3",
+  "checkpointBackend": "810244b",
+  "flutterPassed": 443,
+  "flutterSkippedOptional": 5,
+  "backendPassed": 91,
+  "buildMiB": 142.8,
+  "decodedLargestBossPairAndSelectedMiB": 31.84375,
+  "files": {
+    "audio-review.log": "1e701ea71f8abc2e168e77664cfd03408a4cc1f8fab37ea2beb78e154e1b1dd4",
+    "survivor-mounts.png": "a49f65a262d5579558a4b923eed27933b5f005cab201e731e40d0b6a00ae5b79",
+    "backend-verify.log": "d852c53ee5f7d8150ab414b40497b467c8c358ee35894d4ade0659e0aa0624e5",
+    "flutter-verify.log": "3a48a289388fc1814ee66a637193e351b347348ccbea369de2ee5867f4546bb0",
+    "phone-launch.json": "1c4bf392366d7ace10273f571ab5844e69e64414ae186d0929e8de07e33875e4",
+    "phone-install.json": "27e014d11260094e9b94ffb5c8706c2ecea29368a509b8a1b7890636b6fc1b84",
+    "ios-build.log": "03f10a29928d7617060514f2bcd5b7cbb6ed85027260d3cdb20bff7e5e999d22",
+    "reload-modes.png": "6913523d87f96d82889ea83bb55559fa86f68e9174e1598953e51619edce1420",
+    "expansion_audio.csv": "5a4015b95655516f1ce081775190e48e37c20cb5782dde3a8f44f90d18ac5c6b",
+    "pack-cycles.json": "d6d3ad3246bf9f6c0dae3b29aaf31e8c0422ade3c54053e69aa2854fbc2ef64e"
+  },
+  "phoneInstall": "success",
+  "phoneLaunch": "success"
+}

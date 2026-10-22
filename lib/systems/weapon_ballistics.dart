@@ -19,6 +19,7 @@ class WeaponBallistics {
     WeaponType.revolver => const WeaponBallistics(110, 750, 1.12, .98),
     WeaponType.burstRifle => const WeaponBallistics(100, 700, 1, 1),
     WeaponType.arcCaster => const WeaponBallistics(100, 520, 1.08, .98),
+    WeaponType.cycloneBreacher => const WeaponBallistics(210, 300, 1, .60),
     _ => const WeaponBallistics(100, 600, 1, 1),
   };
 

@@ -122,7 +122,7 @@ class ShadowBossComponent extends PositionComponent
     if (!game.claimBossAttack(this)) return;
     final delta = game.myPlayer.position - position;
     final lead =
-        game.movementJoystick.relativeDelta * game.gameState.movementSpeed * .7;
+        game.movementJoystick.relativeDelta * game.playerWalkSpeed * .7;
     if (lead.length > 230) lead.scale(230 / lead.length);
     _aim.setFrom((delta + lead).normalized());
     if (_aim.isZero()) _aim.setValues(1, 0);

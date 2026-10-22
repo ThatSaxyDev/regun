@@ -1,0 +1,122 @@
+[
+  {
+    "weapon": "twinVerdict",
+    "build": "base",
+    "seconds": 20,
+    "shots": 33,
+    "packDamage": 96.5,
+    "peakProjectiles": 1,
+    "peakEffects": 1,
+    "walkSpeed": 297.0
+  },
+  {
+    "weapon": "twinVerdict",
+    "build": "VIII",
+    "seconds": 20,
+    "shots": 75,
+    "packDamage": 3920.834346153849,
+    "peakProjectiles": 12,
+    "peakEffects": 27,
+    "walkSpeed": 504.9
+  },
+  {
+    "weapon": "flakRegent",
+    "build": "base",
+    "seconds": 20,
+    "shots": 45,
+    "packDamage": 147.6000000000031,
+    "peakProjectiles": 6,
+    "peakEffects": 2,
+    "walkSpeed": 282.0
+  },
+  {
+    "weapon": "flakRegent",
+    "build": "VIII",
+    "seconds": 20,
+    "shots": 106,
+    "packDamage": 883.2800000000079,
+    "peakProjectiles": 11,
+    "peakEffects": 5,
+    "walkSpeed": 479.4
+  },
+  {
+    "weapon": "anchorEngine",
+    "build": "base",
+    "seconds": 20,
+    "shots": 11,
+    "packDamage": 160.0,
+    "peakProjectiles": 1,
+    "peakEffects": 3,
+    "walkSpeed": 279.0
+  },
+  {
+    "weapon": "anchorEngine",
+    "build": "VIII",
+    "seconds": 20,
+    "shots": 17,
+    "packDamage": 613.9999999999991,
+    "peakProjectiles": 2,
+    "peakEffects": 3,
+    "walkSpeed": 474.3
+  },
+  {
+    "weapon": "faultlineDriver",
+    "build": "base",
+    "seconds": 20,
+    "shots": 13,
+    "packDamage": 390.0,
+    "peakProjectiles": 0,
+    "peakEffects": 6,
+    "walkSpeed": 282.0
+  },
+  {
+    "weapon": "faultlineDriver",
+    "build": "VIII",
+    "seconds": 20,
+    "shots": 31,
+    "packDamage": 1899.1999999999944,
+    "peakProjectiles": 0,
+    "peakEffects": 5,
+    "walkSpeed": 479.4
+  },
+  {
+    "weapon": "cycloneBreacher",
+    "build": "base",
+    "seconds": 20,
+    "shots": 25,
+    "packDamage": 120.00000000000455,
+    "peakProjectiles": 5,
+    "peakEffects": 4,
+    "walkSpeed": 282.0
+  },
+  {
+    "weapon": "cycloneBreacher",
+    "build": "VIII",
+    "seconds": 20,
+    "shots": 71,
+    "packDamage": 2711.4239529536835,
+    "peakProjectiles": 18,
+    "peakEffects": 28,
+    "walkSpeed": 479.4
+  },
+  {
+    "weapon": "mourningBell",
+    "build": "base",
+    "seconds": 20,
+    "shots": 16,
+    "packDamage": 384.0,
+    "peakProjectiles": 0,
+    "peakEffects": 5,
+    "walkSpeed": 285.0
+  },
+  {
+    "weapon": "mourningBell",
+    "build": "VIII",
+    "seconds": 20,
+    "shots": 39,
+    "packDamage": 2966.3750000000114,
+    "peakProjectiles": 0,
+    "peakEffects": 8,
+    "walkSpeed": 484.5
+  }
+]

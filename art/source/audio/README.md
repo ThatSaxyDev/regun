@@ -63,3 +63,13 @@ using the existing CC0 cannon/impact and rifle mechanism sources in
 `generate_expansion_audio.py`. `spin_beltRepeater.wav` is an original .4s rising
 geared-motor waveform, played before the first bullet. Expansion preview now
 validates74 cues including that spin-up; no additional recording/license.
+
+
+22 October2026: generate_expansion_audio.py adds Twin Verdict, Flak Regent, Anchor
+Engine, Faultline Driver, Cyclone Breacher and Mourning Bell using the same recorded
+CC0 sources attributed above. No new third-party source recording is added.
+Mourning Bell uses a low-passed mechanical pump extract, not a ringing oscillator.
+The six add42 shot/impact/reload cues; preview_expansion_audio.py validates116 cues
+in total. Expansion mix peak .4339 at runtime review gains. Native listening remains
+for creator review. SHA manifests: docs/art/WEAPON_AUDIO_MANIFEST.csv and the preview
+CSV under docs/validation/endgame-2026-10-22.

@@ -138,7 +138,7 @@ class ArenaEnemy extends PositionComponent
             if (game.random.nextDouble() < .4) {
               final lead =
                   game.movementJoystick.relativeDelta *
-                  game.gameState.movementSpeed *
+                  game.playerWalkSpeed *
                   .8;
               if (lead.length > 200) lead.scale(200 / lead.length);
               aim.add(lead);

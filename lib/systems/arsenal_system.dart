@@ -1,3 +1,4 @@
+import 'package:regun/components/weapons/combat_effect.dart';
 import 'package:regun/systems/sniper_sway.dart';
 import 'package:regun/systems/flame_flow.dart';
 import 'package:regun/presentation/grenade_art.dart';
@@ -20,7 +21,9 @@ import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/presentation/weapon_art_spec.dart';
 
-enum ArsenalFlightKind { disc, mortar, spore }
+part 'endgame_arsenal.dart';
+
+enum ArsenalFlightKind { disc, mortar, spore, flak, anchor }
 
 class ArsenalFlight {
   ArsenalFlight(
@@ -94,6 +97,7 @@ class SporePatch {
 /// Fixed substeps resolve charge/heat/melee/flight events, including long frames.
 class ArsenalSystem {
   ArsenalSystem(this.game) : audio = game.audio;
+  late final endgame = EndgameArsenal(this);
   final SoloudPlay audio;
   final RegunGame game;
   final flights = <ArsenalFlight>[],
@@ -118,7 +122,11 @@ class ArsenalSystem {
   GameState get state => game.gameState;
   String get loopOwner => 'arsenal:${identityHashCode(this)}';
   int get flightCount => flights.where((f) => !f.spent).length;
+  int get projectileReservations => flights
+      .where((f) => !f.spent)
+      .fold(0, (sum, f) => sum + (f.kind == ArsenalFlightKind.flak ? 4 : 1));
   int get effectCount =>
+      endgame.effectCount +
       rivets.length +
       patches.length +
       (_loopOn || flame.tongues.isNotEmpty ? 1 : 0);
@@ -168,6 +176,7 @@ class ArsenalSystem {
     patches.clear();
     flame.clear();
     sniperSway.reset();
+    endgame.clear();
   }
 
   void cancelAim() {
@@ -187,6 +196,8 @@ class ArsenalSystem {
     }
     final fired = weapon == WeaponType.longwatchSniper
         ? _rounds(directionOverride: releaseDirection)
+        : weapon == WeaponType.faultlineDriver
+        ? endgame.fireLane(releaseDirection)
         : _launch(released: released);
     if (fired) {
       cooldown = math.max(
@@ -221,10 +232,13 @@ class ArsenalSystem {
     WeaponType.frostShotgun => math.min(480, state.bulletRange.toDouble()),
     WeaponType.prismCutter => math.min(560, state.bulletRange.toDouble()),
     WeaponType.sporeLobber => math.min(600, state.bulletRange.toDouble()),
+    WeaponType.anchorEngine => math.min(760, state.bulletRange.toDouble()),
     _ => state.bulletRange.toDouble(),
   };
   int get pelletCount => !weapon.supportsScatter
       ? 1
+      : weapon == WeaponType.cycloneBreacher
+      ? 5 + math.min(2, state.rank(PowerUp.numberOfBulletsPerShotIncrease)) * 2
       : weapon == WeaponType.frostShotgun
       ? 3 + math.min(3, state.rank(PowerUp.numberOfBulletsPerShotIncrease)) * 2
       : weapon == WeaponType.railLance || weapon == WeaponType.beltRepeater
@@ -290,6 +304,7 @@ class ArsenalSystem {
     if (state.reloading && !_wasReloading) {
       charge = spool = sustainedFire = 0;
       cancelAim();
+      endgame.resetForReload();
       if (weapon == WeaponType.rivetDriver) {
         for (final r in rivets) {
           r.remaining = math.min(r.remaining, .12);
@@ -298,6 +313,7 @@ class ArsenalSystem {
     }
     _wasReloading = state.reloading;
     _advanceTransients(dt);
+    endgame.advance(dt);
     if (weapon == WeaponType.cinderHose) {
       final direction = rawAim.isZero() ? game.myPlayer.aimDirection : aim;
       flame.advance(
@@ -368,6 +384,10 @@ class ArsenalSystem {
               weapon == WeaponType.scrapMortar ||
               weapon == WeaponType.sporeLobber
           ? _launch()
+          : weapon == WeaponType.flakRegent
+          ? endgame.fireFlak()
+          : weapon == WeaponType.mourningBell
+          ? endgame.fireBell()
           : _rounds();
       if (fired) {
         cooldown = math.max(switch (weapon) {
@@ -395,14 +415,22 @@ class ArsenalSystem {
         (game.random.nextDouble() * 2 - 1) * 4,
       );
     }
+    if (weapon == WeaponType.twinVerdict) {
+      muzzleJitter.y = nextAttack.isOdd ? -2.2 : 2.2;
+    }
     final offset =
         direction * muzzleJitter.x +
         Vector2(-direction.y, direction.x) * muzzleJitter.y;
     final origin = muzzle(direction) + offset;
     if (game.segmentBlocked(game.myPlayer.position, origin)) return false;
     final amount = _releaseDamage();
+    if (weapon == WeaponType.twinVerdict) {
+      endgame.beginShot(nextAttack, pelletCount);
+    }
     final spread =
-        (weapon == WeaponType.frostShotgun ? math.pi / 20 : math.pi / 32) *
+        ({WeaponType.frostShotgun, WeaponType.cycloneBreacher}.contains(weapon)
+            ? math.pi / 20
+            : math.pi / 32) *
         (1 -
             math.max(
                   0,
@@ -424,9 +452,16 @@ class ArsenalSystem {
           direction: d,
           initialDelay: _frameOffset,
           weapon: weapon,
+          shotSequence: nextAttack,
           damage:
               amount /
-              (weapon != WeaponType.frostShotgun && pelletCount > 1 ? 1.3 : 1),
+              (!{
+                        WeaponType.frostShotgun,
+                        WeaponType.cycloneBreacher,
+                      }.contains(weapon) &&
+                      pelletCount > 1
+                  ? 1.3
+                  : 1),
           angle: math.atan2(d.y, d.x),
           speed: math.min(2000, state.bulletSpeed),
           maxTravelDistance: effectiveRange,
@@ -509,6 +544,10 @@ class ArsenalSystem {
 
   bool _launch({Vector2? released}) {
     final maxFlights = weapon == WeaponType.reaperDisc ? 3 : 4;
+    if (weapon == WeaponType.anchorEngine &&
+        flightCount + endgame.anchors.length >= 2) {
+      return false;
+    }
     if (!ready ||
         flightCount >= maxFlights ||
         game.projectileCount >= RegunGame.maxProjectiles) {
@@ -522,6 +561,8 @@ class ArsenalSystem {
     if (game.segmentBlocked(game.myPlayer.position, origin)) return false;
     final kind = weapon == WeaponType.reaperDisc
         ? ArsenalFlightKind.disc
+        : weapon == WeaponType.anchorEngine
+        ? ArsenalFlightKind.anchor
         : weapon == WeaponType.scrapMortar
         ? ArsenalFlightKind.mortar
         : ArsenalFlightKind.spore;
@@ -772,7 +813,12 @@ class ArsenalSystem {
   }
 
   void _flightStep(ArsenalFlight f, double dt) {
-    if (f.kind == ArsenalFlightKind.mortar) {
+    if (f.kind == ArsenalFlightKind.flak) {
+      endgame.advanceFlak(f, dt);
+      return;
+    }
+    if (f.kind == ArsenalFlightKind.mortar ||
+        f.kind == ArsenalFlightKind.anchor) {
       if (!f.impactPending) {
         final left = math.max(0, f.duration - f.age), step = math.min(dt, left);
         f.position.add(
@@ -781,9 +827,14 @@ class ArsenalSystem {
         f.age += step;
         f.impactPending = f.age >= f.duration - 1e-8;
       }
-      if (f.impactPending && _effectRoom) {
+      if (f.impactPending &&
+          (f.kind == ArsenalFlightKind.anchor || _effectRoom)) {
         f.spent = true;
-        game.explode(f.position, radius: 145, damage: f.damage);
+        if (f.kind == ArsenalFlightKind.anchor) {
+          endgame.plantAnchor(f);
+        } else {
+          game.explode(f.position, radius: 145, damage: f.damage);
+        }
       }
       return;
     }
@@ -909,6 +960,7 @@ class ArsenalSystem {
     ],
     'rivets': [for (final r in rivets) r.toJson()],
     'patches': [for (final p in patches) p.toJson()],
+    'endgame': endgame.checkpoint(),
   };
 
   static void validate(Map<String, dynamic> map, WeaponType weapon) {
@@ -922,6 +974,7 @@ class ArsenalSystem {
       }
       SniperSway.validate(map['sniperSway'] as Map);
     }
+    EndgameArsenal.validate(map['endgame'], weapon);
     if (map['schema'] != 1 || map['weapon'] != weapon.name) {
       throw const FormatException('Invalid arsenal state');
     }
@@ -958,6 +1011,14 @@ class ArsenalSystem {
         map['wasReloading'] is! bool) {
       throw const FormatException('Invalid arsenal event');
     }
+    if (weapon == WeaponType.anchorEngine &&
+        map['flights'] is List &&
+        ((map['flights'] as List).length +
+                ((map['endgame'] as Map?)?['anchors'] as List? ?? const [])
+                    .length >
+            2)) {
+      throw const FormatException('Anchor cap');
+    }
     for (final name in ['flights', 'rivets', 'patches']) {
       final list = map[name];
       if (list is! List || list.length > (name == 'rivets' ? 8 : 4)) {
@@ -982,6 +1043,10 @@ class ArsenalSystem {
               ? 'disc'
               : weapon == WeaponType.scrapMortar
               ? 'mortar'
+              : weapon == WeaponType.anchorEngine
+              ? 'anchor'
+              : weapon == WeaponType.flakRegent
+              ? 'flak'
               : weapon == WeaponType.sporeLobber
               ? 'spore'
               : '';
@@ -1039,6 +1104,7 @@ class ArsenalSystem {
     _patchTick = n('patchTick');
     nextAttack = map['nextAttack'] as int;
     _wasReloading = map['wasReloading'] as bool;
+    endgame.restore(map['endgame']);
     sniperSway.reset();
     if (map['sniperSway'] is Map) sniperSway.restore(map['sniperSway'] as Map);
     for (final raw in map['flights'] as List) {
@@ -1096,6 +1162,7 @@ class ArsenalOverlay extends PositionComponent
     final spec = WeaponArtSpec.of(weapon);
     final view = canvas.getLocalClipBounds().inflate(300);
     final grade = BossArt.ambient(game.loadout.arena);
+    system.endgame.render(canvas, floor: floor, view: view, grade: grade);
     if (floor) {
       for (final p in system.patches) {
         if (!view.contains(p.position.toOffset())) continue;
@@ -1122,7 +1189,8 @@ class ArsenalOverlay extends PositionComponent
           system.ready &&
           !game.playerEntrance.active) {
         final direction = system.aim, from = system.muzzle(direction);
-        if (weapon == WeaponType.longwatchSniper) {
+        if (weapon == WeaponType.longwatchSniper ||
+            weapon == WeaponType.faultlineDriver) {
           final end = system.clip(
             from,
             from + direction * system.effectiveRange,
@@ -1142,7 +1210,8 @@ class ArsenalOverlay extends PositionComponent
             for (var i = 0; i <= 16; i++)
               GrenadePreviewPoint(
                 (from + delta * (i / 16)).toOffset(),
-                weapon == WeaponType.scrapMortar
+                (weapon == WeaponType.scrapMortar ||
+                        weapon == WeaponType.anchorEngine)
                     ? math.sin(i / 16 * math.pi) * 60
                     : math.sin(i / 16 * math.pi) * 12,
               ),
@@ -1150,7 +1219,9 @@ class ArsenalOverlay extends PositionComponent
         }
       }
       for (final f in system.flights.where(
-        (f) => f.kind == ArsenalFlightKind.mortar,
+        (f) =>
+            f.kind == ArsenalFlightKind.mortar ||
+            f.kind == ArsenalFlightKind.anchor,
       )) {
         canvas.drawOval(
           Rect.fromCenter(center: f.position.toOffset(), width: 20, height: 7),
@@ -1165,7 +1236,9 @@ class ArsenalOverlay extends PositionComponent
       }
       canvas.save();
       final lift =
-          f.kind == ArsenalFlightKind.mortar && !game.preferences.reducedMotion
+          (f.kind == ArsenalFlightKind.mortar ||
+                  f.kind == ArsenalFlightKind.anchor) &&
+              !game.preferences.reducedMotion
           ? math.sin(
                   (f.age / math.max(.001, f.duration)).clamp(0, 1) * math.pi,
                 ) *
@@ -1179,7 +1252,10 @@ class ArsenalOverlay extends PositionComponent
       );
       final sprite = art.rawSprite(
         spec.atlas,
-        f.kind == ArsenalFlightKind.mortar ? 1 : 2,
+        (f.kind == ArsenalFlightKind.mortar ||
+                f.kind == ArsenalFlightKind.anchor)
+            ? 1
+            : 2,
       );
       final size = f.kind == ArsenalFlightKind.disc
           ? Vector2.all(34)

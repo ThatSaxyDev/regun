@@ -16,6 +16,12 @@ SPECS={
  'frostShotgun':('shot_01.ogg',1.13,3200,.24,'revolver'),
  'prismCutter':('rifle_reload_springyspringo.wav',1.6,3100,.10,'arcCaster'),
  'sporeLobber':('shot_01.ogg',.72,1500,.25,'revolver'),
+ 'twinVerdict':('shot_01.ogg',1.08,2300,.24,'revolver'),
+ 'flakRegent':('cannon_01.ogg',.89,2000,.29,'carbine'),
+ 'anchorEngine':('cannon_01.ogg',.63,1200,.34,'revolver'),
+ 'faultlineDriver':('cannon_01.ogg',.77,1600,.32,'arcCaster'),
+ 'cycloneBreacher':('shot_01.ogg',.88,2600,.25,'carbine'),
+ 'mourningBell':('shotgun_pump_springyspringo.wav',.65,1100,.28,'arcCaster'),
  'longwatchSniper':('cannon_01.ogg',.95,2300,.38,'carbine')}
 
 def pcm(source,pitch,cutoff,seconds):

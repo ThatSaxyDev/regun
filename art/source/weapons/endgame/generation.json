@@ -1,0 +1,222 @@
+[
+  {
+    "id": "twin_verdict",
+    "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-a01d72ff-8882-4518-8966-472006358d01.png",
+    "prompt": "Non-graphic fantasy game-prop sprite sheet. Use case: stylized-concept. Regun has a dark tactile worn pixel-art aesthetic; create an isolated inventory/equipment asset only, no action scene or violence, no characters or hands. Reference images establish materials only. Landscape transparent modular atlas with THREE separate objects: upper60% shows Twin Verdict: one compact twin-bore steampunk hand-held game equipment item, two short parallel forward tubes stacked vertically, dark wood grip and brass paired cylinder. Completely side-on, facing RIGHT, flat 2D sprite profile. Grip around40% from left. Leave the detachable feed socket empty rather than baking in the cartridge. Lower left shows paired removable cylinder; lower right shows short twin-striker insert. Equal visual scale, generous transparent gutters, full outlines inside frame, no labels/text. Deliberate low-resolution pixel clusters, worn iron/copper/wood, no shiny 3D/neon, actual transparent alpha background. Preserve tangible sockets for attaching the separate pieces in a game animation. This is artwork for fictional equipment only.",
+    "sha256": "663f7bc4d10a865636dae16f4cd6f37b04c66f7ccc136be8fdbb5abf3400a36b",
+    "size": [
+      1774,
+      887
+    ],
+    "alphaBounds": [
+      [
+        281,
+        53,
+        1617,
+        579
+      ],
+      [
+        82,
+        591,
+        728,
+        856
+      ],
+      [
+        997,
+        590,
+        1693,
+        856
+      ]
+    ],
+    "drawSize": [
+      50,
+      19.69
+    ],
+    "grip": 0.29,
+    "muzzleHeight": 0.344
+  },
+  {
+    "id": "flak_regent",
+    "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-7e698c9b-3177-4a6e-bac8-c395583dbe71.png",
+    "prompt": "Non-graphic fantasy game-prop sprite sheet. Use case: stylized-concept. Regun has a dark tactile worn pixel-art aesthetic; create an isolated inventory/equipment asset only, no action scene or violence, no characters or hands. Reference images establish materials only. Landscape transparent modular atlas with THREE separate objects: upper60% shows Flak Regent: one chunky fantasy arcade equipment item with a broad short forward tube, boxy worn olive receiver, bronze feed rails, square detachable drum socket and stock. Completely side-on, facing RIGHT, flat 2D sprite profile. Grip around40% from left. Leave the detachable feed socket empty rather than baking in the cartridge. Lower left shows heavy square drum cartridge; lower right shows short thick feed insert. Equal visual scale, generous transparent gutters, full outlines inside frame, no labels/text. Deliberate low-resolution pixel clusters, worn iron/copper/wood, no shiny 3D/neon, actual transparent alpha background. Preserve tangible sockets for attaching the separate pieces in a game animation. This is artwork for fictional equipment only.",
+    "sha256": "a928b3f5e417956d2415047aefa260486cb951bdde249b592091457ff64d1206",
+    "size": [
+      1774,
+      887
+    ],
+    "alphaBounds": [
+      [
+        272,
+        23,
+        1601,
+        548
+      ],
+      [
+        160,
+        534,
+        714,
+        867
+      ],
+      [
+        1016,
+        605,
+        1647,
+        821
+      ]
+    ],
+    "drawSize": [
+      68,
+      26.86
+    ],
+    "grip": 0.285,
+    "muzzleHeight": 0.337
+  },
+  {
+    "id": "anchor_engine",
+    "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-07d1296b-5e4f-49ba-9053-3c8758d96f5c.png",
+    "prompt": "Edit this non-graphic fantasy game inventory sprite sheet; there are no characters, action or injuries. An industrial magnetic cartridge launcher. Give the main object a distinctive open U-shaped iron jaw at the RIGHT nose, with two short thick inward-pointing prongs and a broad low box receiver. No bullet tip at the nose, no conventional rifle tube. Compact heavy silhouette. Lower left: ONE detachable copper magnetic cartridge, not a belt of bullets. Lower right: ONE small two-jaw mechanism module. The jaw module repeats the U-shaped iron nose. Keep the grip/trigger around 30 percent of body width from the left. Preserve the worn dark pixel-art steel, restrained copper and olive palette with opaque clustered highlights. Three separate isolated objects on transparent alpha: main side-on prop pointing RIGHT entirely in the upper 63 percent, detached cartridge lower left, detached mechanism lower right. No text, labels, shadows or scene. Leave transparent gaps so each object can be extracted by metadata. Deliberately change silhouette as specified; do not keep the source rifle nose or cartridge belt.",
+    "sha256": "a96354ddc09c39c856721c445c42d7700b7bbc3a678d08a88786300044cc5ad1",
+    "size": [
+      1774,
+      887
+    ],
+    "alphaBounds": [
+      [
+        218,
+        56,
+        1732,
+        639
+      ],
+      [
+        128,
+        665,
+        595,
+        852
+      ],
+      [
+        1217,
+        570,
+        1732,
+        860
+      ]
+    ],
+    "drawSize": [
+      66,
+      25.41
+    ],
+    "grip": 0.27,
+    "muzzleHeight": 0.335,
+    "initialPrompt": "Non-graphic fantasy game-prop sprite sheet. Use case: stylized-concept. Regun has a dark tactile worn pixel-art aesthetic; create an isolated inventory/equipment asset only, no action scene or violence, no characters or hands. Reference images establish materials only. Landscape transparent modular atlas with THREE separate objects: upper60% shows Anchor Engine: one industrial magnetic anchor deployment tool for an arcade game, two folded iron jaws around a thick forward tube, copper coils, dark steel shoulder-stock and pistol-style grip. Completely side-on, facing RIGHT, flat 2D sprite profile. Grip around40% from left. Leave the detachable feed socket empty rather than baking in the cartridge. Lower left shows anchor cartridge with folded iron jaws; lower right shows heavy winding insert. Equal visual scale, generous transparent gutters, full outlines inside frame, no labels/text. Deliberate low-resolution pixel clusters, worn iron/copper/wood, no shiny 3D/neon, actual transparent alpha background. Preserve tangible sockets for attaching the separate pieces in a game animation. This is artwork for fictional equipment only.",
+    "initialSha256": "84cd0fa6a6e343654e9281fd71c1a4942980730533a359924d34bfe966715baf"
+  },
+  {
+    "id": "faultline_driver",
+    "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-d4871a18-c616-427a-b411-2dad804092cb.png",
+    "prompt": "Edit this non-graphic fantasy game inventory sprite sheet; there are no characters, action or injuries. An industrial ground-driving ram cannon. Give the main object an extremely LONG rectangular reinforced steel ram at RIGHT, a squared vertical impact plate nose, and visible stacked short copper capacitor blocks along the TOP. Low angular block receiver, short shoulder brace, downward grip around 30 percent from left. No bullet tip or round tube nose, no brass ornamental pipe along top. Lower left: ONE rectangular copper capacitor cartridge. Lower right: ONE sliding solid square ram mechanism. A severe angular factory tool silhouette. Preserve the worn dark pixel-art steel, restrained copper and olive palette with opaque clustered highlights. Three separate isolated objects on transparent alpha: main side-on prop pointing RIGHT entirely in the upper 63 percent, detached cartridge lower left, detached mechanism lower right. No text, labels, shadows or scene. Leave transparent gaps so each object can be extracted by metadata. Deliberately change silhouette as specified; do not keep the source rifle nose or cartridge belt.",
+    "sha256": "055aeab2f888c4cb83904efe8a60e232c0d098f10f71d7b5a1a1979c33a5d21d",
+    "size": [
+      1774,
+      887
+    ],
+    "alphaBounds": [
+      [
+        61,
+        93,
+        1739,
+        595
+      ],
+      [
+        95,
+        616,
+        666,
+        819
+      ],
+      [
+        887,
+        604,
+        1737,
+        824
+      ]
+    ],
+    "drawSize": [
+      80,
+      23.93
+    ],
+    "grip": 0.22,
+    "muzzleHeight": 0.375,
+    "initialPrompt": "Non-graphic fantasy game-prop sprite sheet. Use case: stylized-concept. Regun has a dark tactile worn pixel-art aesthetic; create an isolated inventory/equipment asset only, no action scene or violence, no characters or hands. Reference images establish materials only. Landscape transparent modular atlas with THREE separate objects: upper60% shows Faultline Driver: one industrial seismic tool for an arcade game, long rectangular front tube, dull copper capacitor rails and heavy rear ram, dark iron stock and grip. Completely side-on, facing RIGHT, flat 2D sprite profile. Grip around40% from left. Leave the detachable feed socket empty rather than baking in the cartridge. Lower left shows rectangular copper capacitor cartridge; lower right shows long solid mechanical ram insert. Equal visual scale, generous transparent gutters, full outlines inside frame, no labels/text. Deliberate low-resolution pixel clusters, worn iron/copper/wood, no shiny 3D/neon, actual transparent alpha background. Preserve tangible sockets for attaching the separate pieces in a game animation. This is artwork for fictional equipment only.",
+    "initialSha256": "2c47652311a11d716ce4c41ef4585b00db33fd12429ae30508fa09d804f1ad89"
+  },
+  {
+    "id": "cyclone_breacher",
+    "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-0a27def3-6d94-47c6-ae8a-b362bbde3274.png",
+    "prompt": "Non-graphic fantasy game-prop sprite sheet. Use case: stylized-concept. Regun has a dark tactile worn pixel-art aesthetic; create an isolated inventory/equipment asset only, no action scene or violence, no characters or hands. Reference images establish materials only. Landscape transparent modular atlas with THREE separate objects: upper60% shows Cyclone Breacher: one fantasy rotary arcade equipment item with three compact parallel forward tubes in a triangular cluster, dark steel, wood stock, brass receiver and a cassette socket. Completely side-on, facing RIGHT, flat 2D sprite profile. Grip around40% from left. Leave the detachable feed socket empty rather than baking in the cartridge. Lower left shows compact rotating cassette; lower right shows short feed slide insert. Equal visual scale, generous transparent gutters, full outlines inside frame, no labels/text. Deliberate low-resolution pixel clusters, worn iron/copper/wood, no shiny 3D/neon, actual transparent alpha background. Preserve tangible sockets for attaching the separate pieces in a game animation. This is artwork for fictional equipment only.",
+    "sha256": "3704c0498ba5249e44b30c8670bbfbc658dbb01e170a5e059e676ce9a070c741",
+    "size": [
+      1774,
+      887
+    ],
+    "alphaBounds": [
+      [
+        121,
+        83,
+        1660,
+        572
+      ],
+      [
+        129,
+        584,
+        762,
+        832
+      ],
+      [
+        916,
+        617,
+        1642,
+        820
+      ]
+    ],
+    "drawSize": [
+      66,
+      20.97
+    ],
+    "grip": 0.324,
+    "muzzleHeight": 0.342
+  },
+  {
+    "id": "mourning_bell",
+    "path": "/Users/kiishidavid/.codex/generated_images/01a15ec4-0541-7ac2-a31b-88b0d5f1c2b1/exec-1f462bdc-ee84-49f6-b288-54892bfaf142.png",
+    "prompt": "Non-graphic fantasy game-prop sprite sheet. Use case: stylized-concept. Regun has a dark tactile worn pixel-art aesthetic; create an isolated inventory/equipment asset only, no action scene or violence, no characters or hands. Reference images establish materials only. Landscape transparent modular atlas with THREE separate objects: upper60% shows Mourning Bell: one handheld industrial sound-wave resonator tool for an arcade game, flared iron forward mouth with enclosed clapper, battered iron cradle, copper coils, wood shoulder stock and grip. Not a standalone handbell. Completely side-on, facing RIGHT, flat 2D sprite profile. Grip around40% from left. Leave the detachable feed socket empty rather than baking in the cartridge. Lower left shows thick brass resonator cartridge; lower right shows compact iron striker insert. Equal visual scale, generous transparent gutters, full outlines inside frame, no labels/text. Deliberate low-resolution pixel clusters, worn iron/copper/wood, no shiny 3D/neon, actual transparent alpha background. Preserve tangible sockets for attaching the separate pieces in a game animation. This is artwork for fictional equipment only.",
+    "sha256": "58d1abcbe10a5af93e498a60cccc97d6d4ee504e998a4161f9caa491760cf65a",
+    "size": [
+      1774,
+      887
+    ],
+    "alphaBounds": [
+      [
+        54,
+        45,
+        1708,
+        594
+      ],
+      [
+        57,
+        624,
+        875,
+        833
+      ],
+      [
+        1044,
+        624,
+        1711,
+        833
+      ]
+    ],
+    "drawSize": [
+      65,
+      21.57
+    ],
+    "grip": 0.36,
+    "muzzleHeight": 0.385
+  }
+]

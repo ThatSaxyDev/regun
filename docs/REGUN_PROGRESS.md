@@ -907,3 +907,22 @@ skips;90 server tests/typecheck/build pass. Signed133.5MB1.0.0+11 installed in p
 and launched on creator iPhone12, data intact. No server deployment/IPA export.
 Six additions and subtle weight modifiers are documented proposals, not live content.
 Evidence: validation/reload-sway-2026-10-22/. Physical approval remains open.
+
+
+## 22 October 2026 — six endgame weapons and subtle weight
+
+User-approved implementation follows checkpoint commits game6f9f2b3/backend810244b.
+The live solo/Training catalog is21. Twin Verdict pairs alternating-barrel hits;
+Flak Regent reserves/releases four secondary fragments; Anchor Engine pulls through
+occupancy then crushes; Faultline Driver commits three piercing ground sections;
+Cyclone Breacher fires5–9 centered heavy pellets; Mourning Bell echoes only original
+owners still in its committed cone. All have leased generated mechanisms, measured
+mounts, recorded-source audio and tactical/empty reloads. WeaponMobility applies
+0–7% to walking after survivor/upgrades, preserving saved stats and1450 dash.
+Fast-projectile stat upgrades/swaps now respect the existing2000 save ceiling.
+Native analyzer/tests:443 passed,5 optional skipped. Backend parity:91 passed,
+typecheck/build passed locally; no rollout or expanded online admission. Signed
+1.0.0+11 iOS candidate built142.8MB and verified. See ENDGAME_WEAPONS_REVIEW.md and
+validation/endgame-2026-10-22 for tests,12 base/VIII pack samples,144 survivor/facing
+mounts, both reload sheets and device records. Final physical feel/balance remain
+for creator playtesting.

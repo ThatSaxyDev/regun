@@ -112,7 +112,7 @@ class PatternBoss extends PositionComponent
     _sequence++;
     _origin.setFrom(position);
     final lead =
-        game.movementJoystick.relativeDelta * game.gameState.movementSpeed * .7;
+        game.movementJoystick.relativeDelta * game.playerWalkSpeed * .7;
     if (lead.length > 240) lead.scale(240 / lead.length);
     _target.setFrom(game.myPlayer.position + lead);
     _direction.setFrom((_target - position).normalized());
@@ -162,9 +162,7 @@ class PatternBoss extends PositionComponent
       }
       game.addHostileArea(
         game.myPlayer.position +
-            game.movementJoystick.relativeDelta *
-                game.gameState.movementSpeed *
-                .7,
+            game.movementJoystick.relativeDelta * game.playerWalkSpeed * .7,
         radius: 155,
         warning: 1.05,
         active: 1.3,

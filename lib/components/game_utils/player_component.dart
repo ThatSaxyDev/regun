@@ -174,7 +174,7 @@ class PlayerComponent extends SpriteAnimationComponent
       game.moveActor(
         this,
         movement,
-        game.gameState.movementSpeed,
+        game.playerWalkSpeed,
         dt,
         radius: collisionRadius,
       );
@@ -290,7 +290,9 @@ class PlayerComponent extends SpriteAnimationComponent
             : -1,
         recoil: recoil,
         charge: game.arsenal?.visualCharge ?? 0,
-        muzzleJitter: game.loadout.weapon == WeaponType.beltRepeater
+        muzzleJitter:
+            (game.loadout.weapon == WeaponType.beltRepeater ||
+                game.loadout.weapon == WeaponType.twinVerdict)
             ? Offset(
                 game.arsenal!.muzzleJitter.x,
                 game.arsenal!.muzzleJitter.y * (heading.x < 0 ? -1 : 1),

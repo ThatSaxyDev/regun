@@ -1,3 +1,5 @@
+import 'package:regun/systems/weapon_mobility.dart';
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -63,6 +65,22 @@ void main() {
     expect([
       for (var level = 1; level <= 8; level++) XPProgression.cost(level),
     ], fixture['xp']);
+  });
+  test('weapon walking multipliers match the authoritative fixture for all 21 guns', () {
+    expect(WeaponMobility.multipliers, fixture['weaponMobility']);
+    expect(
+      WeaponMobility.multipliers.keys.toSet(),
+      WeaponType.values.map((w) => w.name).toSet(),
+    );
+    for (final c in CharacterType.values) {
+      for (final w in WeaponType.values) {
+        expect(
+          WeaponMobility.speed(w, c.speed),
+          closeTo(c.speed * WeaponMobility.of(w), 1e-8),
+        );
+        expect(WeaponMobility.of(w), inInclusiveRange(.93, 1));
+      }
+    }
   });
   test('identity foreign keys normalize once; enemy owners are preserved and upgraded capacity is bounded', () {
     final canonical = 'c200${'01' * 30}';

@@ -1,10 +1,14 @@
 # Regun: six stronger weapons and subtle weapon weight
 
-22 October 2026 · **Proposal only.** This document plans six additions to the
-current fifteen, bringing the proposed roster to **21**. None of these six guns,
-weapon-weight penalties, unlocks or new art is implemented by this planning pass.
-The separately requested universal tactical reload and sniper fatigue work is
-implemented/documented in RELOAD_AND_SNIPER_FATIGUE.md.
+22 October 2026 · **Approved and implemented.** Six additions bring the live
+solo/Training roster to **21**, with the walking multipliers below. The user first
+requested checkpoint commits: client `6f9f2b3`, backend `810244b`; this expansion
+follows those commits. Release identity remains1.0.0+11. Online admission stays
+limited to supported weapons; backend walking parity is prepared locally, not
+rolled out. Universal reload and sniper fatigue remain documented in
+RELOAD_AND_SNIPER_FATIGUE.md. See ENDGAME_WEAPONS_REVIEW.md for implementation,
+validation and hands-on checks. The design targets below remain tuning targets;
+automated damage samples do not certify final balance.
 
 ## Design target and current contracts
 
@@ -27,7 +31,7 @@ All proposed numbers are **base Rook tuning seeds**, before upgrades and distanc
 modifiers. The six are mechanically stronger while weight imposes a small,
 predictable movement cost. Weight must not be the only balancing tool.
 
-## Proposed roster
+## Implemented roster
 
 | Weapon / class | Equip promise | Base seed | Full / tactical reload | Mobility |
 |---|---|---|---|---:|
@@ -138,7 +142,7 @@ Tactical reload exchanges the resonator cartridge while retaining striker tensio
 empty reload additionally resets the striker. Both follow the shared .70-duration
 and final-action/audio rules.
 
-## Weapon-weight model — plan only
+## Weapon-weight model — implemented
 
 Use one `WeaponMobility` contract keyed by weapon. Apply its multiplier **once**
 to normal player walking intent after survivor/upgrade speed is derived, before
@@ -216,8 +220,7 @@ merely to pass a memory assertion: revise packing/selection and inspect native o
 
 ## Shared systems and caps
 
-Add the six enum/data entries only when their actual behavior and art packet are
-ready. Update upgrade eligibility deliberately: Scatter/Ricochet mainly suit Twin
+The six enum/data entries include their behavior and leased art packets. Update upgrade eligibility deliberately: Scatter/Ricochet mainly suit Twin
 and Cyclone; Flak fragments, Anchor fields, Faultline sections and Bell echoes must
 not inherit generic projectile duplicators blindly. Explicitly test Extended Tube,
 fast reload, damage, range, pierce, fusions and utility-only grenade perks. Heavy

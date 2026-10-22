@@ -1,4 +1,8 @@
 import 'dart:io';
+import 'dart:convert';
+
+import 'package:regun/components/weapons/weapon_art.dart';
+
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
@@ -64,6 +68,18 @@ class _Target extends EnemyComponent {
   double get impactResponse => .01;
 }
 
+class _PullTarget extends _Target {
+  _PullTarget(super.at);
+  @override
+  double get impactResponse => 1;
+}
+
+class _PlantedTarget extends _Target {
+  _PlantedTarget(super.at);
+  @override
+  double get impactResponse => 0;
+}
+
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -79,8 +95,10 @@ void main() {
   Future<RegunGame> mount(
     WidgetTester tester,
     WeaponType weapon,
-    _Audio audio,
-  ) async {
+    _Audio audio, {
+    CharacterType character = CharacterType.rook,
+    ArenaType arena = ArenaType.breach,
+  }) async {
     late RegunGame game;
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -91,7 +109,12 @@ void main() {
               key: const Key("weapon-review"),
               child: BaseView(
                 key: ValueKey(weapon),
-                loadout: Loadout(weapon: weapon, training: true),
+                loadout: Loadout(
+                  weapon: weapon,
+                  training: true,
+                  character: character,
+                  arena: arena,
+                ),
               ),
             ),
           ),
@@ -126,11 +149,30 @@ void main() {
     if (held && game.loadout.weapon.firesOnRelease) {
       game.arsenal!.releaseAim(Vector2(1, 0));
       game.weaponJoystick.delta.setZero();
-      for (var i = 0; i < 40; i++) {
+      for (
+        var i = 0;
+        i < (game.loadout.weapon == WeaponType.anchorEngine ? 84 : 40);
+        i++
+      ) {
         game.update(.025);
         await game.ready();
       }
     }
+  }
+
+  void grant(RegunGame game, PowerUp power) {
+    final snapshot = game.gameNotifier.checkpoint();
+    snapshot['state'] = game.gameState
+        .copyWith(
+          gameplayState: GameplayState.powerup,
+          powerUpChoices: [power],
+          evolutionChoices: const [],
+          offerId: game.gameState.offerId + 1,
+        )
+        .toJson();
+    game.gameNotifier.restoreCheckpoint(snapshot);
+    game.gameNotifier.playGame();
+    game.gameNotifier.applyPowerUp(power, offerId: game.gameState.offerId);
   }
 
   testWidgets(
@@ -225,9 +267,9 @@ void main() {
     );
   });
   test(
-    'all fifteen have meaningful upgrade capabilities and packaged cues',
+    'all twenty-one have meaningful upgrade capabilities and packaged cues',
     () {
-      expect(WeaponType.values.length, 15);
+      expect(WeaponType.values.length, 21);
       for (final w in WeaponType.values) {
         for (final p in PowerUp.values) {
           if (!weaponSupportsPowerUp(w, p)) {
@@ -259,6 +301,446 @@ void main() {
       );
     },
   );
+  testWidgets(
+    'Twin Verdict pairs once, breaks on miss/reload and separates barrels',
+    (tester) async {
+      final game = await mount(tester, WeaponType.twinVerdict, _Audio());
+      await tester.runAsync(() async {
+        final target = _Target(game.myPlayer.position + Vector2(140, 0));
+        await game.world.add(target);
+        await game.ready();
+        await advance(game, .55);
+        game.weaponJoystick.delta.setZero();
+        await advance(game, .2, held: false);
+        expect(1000 - target.combatHealth.current, closeTo(6, 1e-6));
+        final endgame = game.arsenal!.endgame;
+        endgame.acceptPair(target, 100);
+        expect(endgame.pairMultiplier(target, 101), 1.4);
+        endgame.acceptPair(target, 101);
+        expect(endgame.pairMultiplier(target, 101), 1);
+        expect(endgame.pairMultiplier(target, 102), 1);
+        endgame.acceptPair(target, 102);
+        endgame.miss(103);
+        expect(endgame.pairMultiplier(target, 105), 1);
+        endgame.acceptPair(target, 104);
+        game.requestReload();
+        game.arsenal!.advance(.02);
+        expect(endgame.pairMultiplier(target, 105), 1);
+        endgame.acceptPair(target, 106);
+        expect(endgame.pairMultiplier(target, 107), 1);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Flak reserves all four fragments before ammo and excludes the direct owner',
+    (tester) async {
+      final game = await mount(tester, WeaponType.flakRegent, _Audio());
+      await tester.runAsync(() async {
+        final added = <BulletComponent>[];
+        for (var i = 0; i < RegunGame.maxProjectiles - 3; i++) {
+          final bullet = BulletComponent(
+            position: game.myPlayer.position.clone(),
+            direction: Vector2(1, 0),
+            speed: 0,
+            damage: 0,
+          );
+          expect(game.addProjectile(bullet), true);
+          added.add(bullet);
+        }
+        await game.ready();
+        game.weaponJoystick.delta.setValues(70, 0);
+        game.arsenal!.advance(.01);
+        expect(game.shotsFired, 0);
+        expect(game.gameState.noOfBullets, 16);
+        for (final b in added) {
+          b.removeFromParent();
+        }
+        await game.ready();
+        final target = _Target(game.myPlayer.position + Vector2(140, 0));
+        await game.world.add(target);
+        await game.ready();
+        game.arsenal!.advance(.01);
+        game.weaponJoystick.delta.setZero();
+        expect(game.arsenal!.projectileReservations, 4);
+        await advance(game, .8, held: false);
+        expect(1000 - target.combatHealth.current, closeTo(2.4, 1e-6));
+        expect(game.arsenal!.flights, isEmpty);
+        expect(game.projectileCount, 0);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Anchor overlap pulls one bounded intent, leaves planted bodies and saves crush once',
+    (tester) async {
+      final game = await mount(tester, WeaponType.anchorEngine, _Audio());
+      await tester.runAsync(() async {
+        final center = game.myPlayer.position + Vector2(400, 0);
+        final mobile = _PullTarget(center + Vector2(120, 0));
+        final planted = _PlantedTarget(center + Vector2(0, 130));
+        await game.world.addAll([mobile, planted]);
+        await game.ready();
+        final start = mobile.position.clone(), fixed = planted.position.clone();
+        for (var id = 1; id <= 2; id++) {
+          game.arsenal!.endgame.plantAnchor(
+            ArsenalFlight(
+              id,
+              ArsenalFlightKind.anchor,
+              center.clone(),
+              Vector2(1, 0),
+              8,
+              600,
+              600,
+            ),
+          );
+        }
+        game.arsenal!.nextAttack = 3;
+        await advance(game, 1, held: false);
+        expect(mobile.position.distanceTo(start), inInclusiveRange(40, 55));
+        expect(planted.position, fixed);
+        for (final a in game.arsenal!.endgame.anchors) {
+          expect(a.owners.values.every((v) => v <= 55.001), true);
+        }
+        await advance(game, .10, held: false);
+        final hp = mobile.combatHealth.current;
+        final saved = game.arsenal!.checkpoint();
+        game.arsenal!.restore(saved);
+        await advance(game, .45, held: false);
+        expect(mobile.combatHealth.current, hp);
+        game.pauseGame();
+        final age = game.arsenal!.endgame.anchors.first.age;
+        game.update(1);
+        expect(game.arsenal!.endgame.anchors.first.age, age);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Faultline commits three sections, clips cover and preserves one-hit ledgers through Continue',
+    (tester) async {
+      final game = await mount(tester, WeaponType.faultlineDriver, _Audio());
+      await tester.runAsync(() async {
+        final s = game.arsenal!, origin = s.muzzle(Vector2(1, 0));
+        final near = _Target(origin + Vector2(230, 0)),
+            far = _Target(origin + Vector2(500, 0));
+        await game.world.addAll([near, far]);
+        await game.ready();
+        expect(s.releaseAim(Vector2(1, 0)), true);
+        expect(near.combatHealth.current, 994);
+        expect(far.combatHealth.current, 1000);
+        final saved = s.checkpoint();
+        s.restore(saved);
+        await advance(game, .3, held: false);
+        expect(near.combatHealth.current, 994);
+        expect(far.combatHealth.current, 994);
+        expect(s.endgame.lanes.single.owners.length, 2);
+        final malformed = s.checkpoint();
+        (malformed['endgame']['lanes'][0]['owners'] as List).add([
+          1,
+          double.nan,
+        ]);
+        expect(
+          () => ArsenalSystem.validate(malformed, WeaponType.faultlineDriver),
+          throwsFormatException,
+        );
+        await advance(game, 1, held: false);
+        game.geometry = ArenaGeometry(
+          game.geometry.bounds,
+          obstacles: [Rect.fromLTWH(origin.x + 300, origin.y - 100, 40, 200)],
+        );
+        expect(s.releaseAim(Vector2(1, 0)), true);
+        await advance(game, .3, held: false);
+        expect(far.combatHealth.current, 994);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Bell echoes only original owners still in its original cone, capped at five',
+    (tester) async {
+      final game = await mount(tester, WeaponType.mourningBell, _Audio());
+      await tester.runAsync(() async {
+        final s = game.arsenal!, origin = s.muzzle(Vector2(1, 0));
+        final targets = [
+          for (var i = 0; i < 7; i++)
+            _Target(origin + Vector2(100 + i * 25, 0)),
+        ];
+        final outsider = _Target(origin + Vector2(0, 250));
+        await game.world.addAll([...targets, outsider]);
+        await game.ready();
+        game.weaponJoystick.delta.setValues(70, 0);
+        s.advance(.01);
+        game.weaponJoystick.delta.setZero();
+        expect(s.endgame.echoes.single.owners.length, 5);
+        expect(
+          targets.take(5).every((t) => t.combatHealth.current == 995.5),
+          true,
+        );
+        targets.first.position.setFrom(origin + Vector2(0, -300));
+        outsider.position.setFrom(origin + Vector2(100, 10));
+        s.restore(s.checkpoint());
+        await advance(game, .6, held: false);
+        expect(targets.first.combatHealth.current, 995.5);
+        expect(targets[1].combatHealth.current, 994);
+        expect(outsider.combatHealth.current, 1000);
+        expect(targets.last.combatHealth.current, 1000);
+        final hp = targets[1].combatHealth.current;
+        s.restore(s.checkpoint());
+        await advance(game, .2, held: false);
+        expect(targets[1].combatHealth.current, hp);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'Cyclone volleys are centered, cap at nine and reserve all pellets before spending',
+    (tester) async {
+      final game = await mount(tester, WeaponType.cycloneBreacher, _Audio());
+      await tester.runAsync(() async {
+        final s = game.arsenal!;
+        expect(s.pelletCount, 5);
+        for (var i = 0; i < 8; i++) {
+          grant(game, PowerUp.numberOfBulletsPerShotIncrease);
+        }
+        expect(s.pelletCount, 9);
+        final bullets = <BulletComponent>[];
+        for (var i = 0; i < RegunGame.maxProjectiles - 8; i++) {
+          final b = BulletComponent(
+            position: game.myPlayer.position.clone(),
+            direction: Vector2(1, 0),
+            speed: 0,
+          );
+          game.addProjectile(b);
+          bullets.add(b);
+        }
+        await game.ready();
+        game.weaponJoystick.delta.setValues(70, 0);
+        s.advance(.01);
+        expect(game.shotsFired, 0);
+        expect(game.gameState.noOfBullets, 8);
+        for (final b in bullets) {
+          b.removeFromParent();
+        }
+        await game.ready();
+        s.advance(.01);
+        expect(game.shotsFired, 1);
+        expect(game.projectileCount, 9);
+        await game.ready();
+        final rounds = game.world.children
+            .whereType<BulletComponent>()
+            .toList();
+        expect(rounds.any((b) => b.direction.y.abs() < 1e-9), true);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'walking weight preserves saved/upgraded baseline and dash speed',
+    (tester) async {
+      final game = await mount(tester, WeaponType.anchorEngine, _Audio());
+      await tester.runAsync(() async {
+        expect(game.gameState.movementSpeed, 300);
+        expect(game.playerWalkSpeed, 279);
+        final start = game.myPlayer.position.clone();
+        game.movementJoystick.delta.setValues(90, 0);
+        game.myPlayer.update(.1);
+        expect(game.myPlayer.position.distanceTo(start), closeTo(27.9, .001));
+        final before = game.myPlayer.position.clone();
+        game.boostButtonComponent.tapped = true;
+        game.myPlayer.dashDirection.setValues(1, 0);
+        game.myPlayer.update(.1);
+        expect(game.myPlayer.position.distanceTo(before), closeTo(145, .001));
+        game.boostButtonComponent.tapped = false;
+        for (var i = 0; i < 8; i++) {
+          grant(game, PowerUp.walkingSpeedIncrease);
+        }
+        expect(game.gameState.movementSpeed, 510);
+        expect(game.playerWalkSpeed, closeTo(474.3, 1e-8));
+        final saved = game.checkpoint();
+        expect((saved['state'] as Map)['movementSpeed'], 510);
+        game.pauseGame();
+        expect(await game.changeTrainingWeapon(WeaponType.carbine), true);
+        expect(game.gameState.movementSpeed, 510);
+        expect(game.playerWalkSpeed, 510);
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'render all six on three survivors in four facings and both reload modes',
+    (tester) async {
+      final recorder = ui.PictureRecorder(),
+          reloadRecorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder), reloadCanvas = Canvas(reloadRecorder);
+      canvas.drawColor(const Color(0xff242B25), BlendMode.src);
+      reloadCanvas.drawColor(const Color(0xff242B25), BlendMode.src);
+      final weapons = WeaponType.values.skip(15).toList();
+      for (var row = 0; row < weapons.length; row++) {
+        for (final character in CharacterType.values) {
+          final game = await mount(
+            tester,
+            weapons[row],
+            _Audio(),
+            character: character,
+          );
+          await tester.runAsync(() async {
+            final headings = [
+              Vector2(1, 0),
+              Vector2(0, 1),
+              Vector2(-1, 0),
+              Vector2(0, -1),
+            ];
+            for (var facing = 0; facing < 4; facing++) {
+              game.weaponJoystick.delta.setFrom(headings[facing] * 90);
+              game.myPlayer.update(0);
+              canvas.save();
+              canvas.translate(
+                30 + (character.index * 4 + facing) * 130.0,
+                35 + row * 150.0,
+              );
+              game.myPlayer.render(canvas);
+              canvas.restore();
+            }
+            if (character == CharacterType.rook) {
+              for (var col = 0; col < 8; col++) {
+                reloadCanvas.save();
+                reloadCanvas.translate(75 + col * 150.0, 75 + row * 135.0);
+                reloadCanvas.scale(1.6);
+                paintWeapon(
+                  reloadCanvas,
+                  weapons[row],
+                  reload: [.1, .42, .82, .94][col % 4],
+                  tactical: col >= 4,
+                );
+                reloadCanvas.restore();
+              }
+            }
+          });
+          await tester.pumpWidget(const SizedBox());
+        }
+      }
+      await tester.runAsync(() async {
+        await Directory('build/test-previews').create(recursive: true);
+        for (final entry in [
+          (recorder, 'endgame-survivor-mounts', 1620, 900),
+          (reloadRecorder, 'endgame-reload-modes', 1240, 810),
+        ]) {
+          final picture = entry.$1.endRecording();
+          final image = await picture.toImage(entry.$3, entry.$4);
+          final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+          await File('build/test-previews/${entry.$2}.png')
+              .writeAsBytes(bytes!.buffer.asUint8List());
+          image.dispose();
+          picture.dispose();
+        }
+      });
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'base and VIII endgame reload cycles retain finite budgets and record pack damage',
+    (tester) async {
+      final rows = <Map<String, dynamic>>[];
+      for (final weapon in WeaponType.values.skip(15)) {
+        for (final developed in [false, true]) {
+          final game = await mount(
+            tester,
+            weapon,
+            _Audio(),
+            arena: developed ? ArenaType.foundry : ArenaType.breach,
+          );
+          await tester.runAsync(() async {
+            if (developed) {
+              for (final p in [
+                PowerUp.heavyLoad,
+                PowerUp.quickTrigger,
+                PowerUp.maxBulletsIncrease,
+                PowerUp.fastReload,
+                PowerUp.numberOfBulletsPerShotIncrease,
+                PowerUp.bulletsPhaseThrough,
+                PowerUp.ricochet,
+                PowerUp.bulletRangeIncrease,
+                PowerUp.rapidFire,
+                PowerUp.walkingSpeedIncrease,
+              ]) {
+                if (weaponSupportsPowerUp(weapon, p)) {
+                  for (var rank = 0; rank < 8; rank++) {
+                    grant(game, p);
+                  }
+                }
+              }
+            }
+            final targets = [
+              for (var i = 0; i < 5; i++)
+                _Target(
+                  game.myPlayer.position +
+                      Vector2(110 + i * 110, (i % 3 - 1) * 35.0),
+                ),
+            ];
+            await game.world.addAll(targets);
+            await game.ready();
+            var peakProjectiles = 0, peakEffects = 0;
+            for (var frame = 0; frame < 400; frame++) {
+              game.weaponJoystick.delta.setValues(90, 0);
+              if (weapon.firesOnRelease && frame % 12 == 11) {
+                game.arsenal!.releaseAim(Vector2(1, 0));
+                game.weaponJoystick.delta.setZero();
+              }
+              game.update(.05);
+              await game.ready();
+              final projectiles = game.projectileCount,
+                  effects = game.runtimeCounts['effects']!;
+              if (projectiles > peakProjectiles) peakProjectiles = projectiles;
+              if (effects > peakEffects) peakEffects = effects;
+              expect(projectiles, lessThanOrEqualTo(RegunGame.maxProjectiles));
+              expect(effects, lessThanOrEqualTo(40));
+            }
+            expect(game.shotsFired, greaterThan(weapon.capacity));
+            final snapshot = game.checkpoint();
+            ArsenalSystem.validate(
+              Map<String, dynamic>.from(snapshot['arsenal'] as Map),
+              weapon,
+            );
+            expect(
+              RunCheckpoint.valid(snapshot),
+              true,
+              reason: '${weapon.name} / $developed',
+            );
+            rows.add({
+              'weapon': weapon.name,
+              'build': developed ? 'VIII' : 'base',
+              'seconds': 20,
+              'shots': game.shotsFired,
+              'packDamage': targets.fold<double>(
+                0,
+                (sum, t) => sum + 1000 - t.combatHealth.current,
+              ),
+              'peakProjectiles': peakProjectiles,
+              'peakEffects': peakEffects,
+              'walkSpeed': game.playerWalkSpeed,
+            });
+            game.weaponJoystick.delta.setZero();
+            await advance(game, 5, held: false);
+            expect(game.arsenal!.endgame.effectCount, 0);
+          });
+          await tester.pumpWidget(const SizedBox());
+          expect(tester.takeException(), isNull);
+        }
+      }
+      await tester.runAsync(() async {
+        await File('build/test-previews/endgame-pack-cycles.json')
+            .writeAsString(const JsonEncoder.withIndent('  ').convert(rows));
+      });
+    },
+  );
   for (final weapon in WeaponType.values.where((w) => w.usesArsenalRuntime)) {
     testWidgets(
       '${weapon.name}: real firing, damage, pause, reload, save and bounded cleanup',
@@ -270,7 +752,15 @@ void main() {
             _Target(game.myPlayer.position + Vector2(100, 0)),
             _Target(
               game.myPlayer.position +
-                  Vector2(weapon == WeaponType.scrapMortar ? 620 : 260, 0),
+                  Vector2(
+                    {
+                          WeaponType.scrapMortar,
+                          WeaponType.anchorEngine,
+                        }.contains(weapon)
+                        ? 600
+                        : 260,
+                    0,
+                  ),
             ),
           ];
           await game.world.addAll(targets);

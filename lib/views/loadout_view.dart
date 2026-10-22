@@ -1,3 +1,5 @@
+import 'package:regun/systems/weapon_mobility.dart';
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -186,7 +188,8 @@ class _LoadoutViewState extends State<LoadoutView> {
             (w) => _option(
               id: 'weapon-${w.name}',
               title: w.title,
-              description: w.description,
+              description:
+                  '${w.description}${WeaponMobility.label(w).isEmpty ? '' : '\n${WeaponMobility.label(w)}'}',
               selected: weapon == w,
               unlocked: widget.training || profile.weaponUnlocked(w),
               lock: switch (w) {
@@ -315,7 +318,7 @@ class _LoadoutViewState extends State<LoadoutView> {
       children: [
         Expanded(
           child: Text(
-            '${character.title} / ${weapon.title} / ${arena.title}',
+            '${character.title} / ${weapon.title} / ${arena.title}${WeaponMobility.label(weapon).isEmpty ? '' : ' · ${WeaponMobility.label(weapon)}'}',
             key: const Key('loadout-summary'),
             style: const TextStyle(
               fontFamily: FontFam.orbitron,

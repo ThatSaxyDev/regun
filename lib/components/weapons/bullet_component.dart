@@ -31,6 +31,8 @@ class BulletComponent extends PositionComponent
     this.bounces = 0,
     this.primary = true,
     this.weapon = WeaponType.shotgun,
+    this.shotSequence = 0,
+    this.ignoreTarget,
   })
     // The public named delay describes a release within the current frame.
     // ignore: prefer_initializing_formals
@@ -48,6 +50,8 @@ class BulletComponent extends PositionComponent
   final Vector2 direction;
   final bool primary;
   final WeaponType weapon;
+  final int shotSequence;
+  final PositionComponent? ignoreTarget;
   int pierce, bounces;
   double _travelled = 0;
   double _initialDelay;
@@ -60,11 +64,17 @@ class BulletComponent extends PositionComponent
       removeFromParent();
       return;
     }
+    if (ignoreTarget != null) {
+      _hitEnemies.add(game.projectileOwner(ignoreTarget!));
+    }
     add(CircleHitbox(collisionType: CollisionType.active));
   }
 
   @override
   void onRemove() {
+    if (primary && weapon == WeaponType.twinVerdict) {
+      game.arsenal?.endgame.miss(shotSequence);
+    }
     game.unregisterProjectile(this);
     super.onRemove();
   }
@@ -231,8 +241,11 @@ class BulletComponent extends PositionComponent
         ? WeaponBallistics.of(weapon).multiplier(distance)
         : 1.0;
     // Preserve the existing hard Bank Shot ceiling after the close bonus too.
-    final amount = min(_baseDamage * 2, damage * factor);
     final owner = game.projectileOwner(other);
+    final pair = primary && weapon == WeaponType.twinVerdict
+        ? game.arsenal?.endgame.pairMultiplier(owner, shotSequence) ?? 1.0
+        : 1.0;
+    final amount = min(_baseDamage * 2, damage * factor * pair);
     if (_hitEnemies.contains(owner) ||
         !game.hitEnemy(
           other,
@@ -242,6 +255,9 @@ class BulletComponent extends PositionComponent
           armorPiercing: weapon == WeaponType.longwatchSniper,
         )) {
       return;
+    }
+    if (primary && weapon == WeaponType.twinVerdict) {
+      game.arsenal?.endgame.acceptPair(owner, shotSequence);
     }
     _hitEnemies.add(owner);
     if (primary && owner is CombatEnemy) {

@@ -1,3 +1,4 @@
+import 'package:regun/systems/weapon_mobility.dart';
 import 'package:regun/systems/arsenal_system.dart';
 import 'package:regun/systems/burst_fire_clock.dart';
 import 'package:regun/presentation/weapon_art_spec.dart';
@@ -287,7 +288,10 @@ class RegunGame extends FlameGame
     world.add(burst);
   }
 
-  int get projectileCount => _projectiles.length + (arsenal?.flightCount ?? 0);
+  double get playerWalkSpeed =>
+      WeaponMobility.speed(loadout.weapon, gameState.movementSpeed);
+  int get projectileCount =>
+      _projectiles.length + (arsenal?.projectileReservations ?? 0);
   ({int arena, int visible, int pending}) get enemyPopulation {
     var arena = 0, visible = 0, pending = 0;
     final view = camera.visibleWorldRect.inflate(60);

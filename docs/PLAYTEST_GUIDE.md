@@ -277,3 +277,22 @@ action/audio; empty reloads retain full timing. Sniper sight and actual shot sha
 subtle.18→.85° fatigue over six seconds, with active rest recovery. The separate
 [SIX_WEAPONS_AND_WEIGHT_PLAN.md](SIX_WEAPONS_AND_WEIGHT_PLAN.md) proposes six stronger
 weapons and0–7% walking penalties. Those six and weapon weight are not implemented.
+
+
+## Six endgame weapons and weight — 22 October
+
+Training → Pause → Weapon Practice now offers all21. Try Twin Verdict's paired
+barrels on one enemy, then deliberately miss/change target; compare with Revolver.
+Flak should split forward once and never multiply its damage inside a boss. Aim
+Anchor near/far, walk enemies into its jaws, and verify planted enemies stay put.
+Release Faultline through a pack and at cover; each body takes one section hit.
+Compare Cyclone's rapid five-pellet volleys with Frost's freeze; range matters past
+210. Bell's echo should miss an enemy that leaves the original cone before .55s.
+Manual reload with rounds uses70% time and skips the closing action on every gun;
+empty automatically uses the full action. Hold cannot interrupt either.
+
+Blind-swap Rook with Carbine/Repeater/Anchor:300/282/279 normal walking, same1450
+dash. Check Mobility in the loadout details/summary; upgrades should survive swaps.
+Review all three survivors, left/up/down shots, aiming-thumb mirrored/floating
+controls, Reduced Motion, pause/background, Continue, repeated Training swaps and
+weapon sounds. Performance, comfort and final balance need actual phone play.

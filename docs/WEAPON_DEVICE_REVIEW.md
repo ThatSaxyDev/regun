@@ -66,3 +66,9 @@ iPhone was unavailable (CoreDevice4016 before transfer), so the previous install
 candidate remains. Reconnect/unlock to install this correction without clearing data.
 
 Phone delivery retry: creator reconnected the iPhone; the signed correction build1.0.0+11 successfully installed in place and launched. Data was not cleared. The earlier unavailable-device installation note is superseded by this successful retry. Physical playtest approval remains open. Evidence: validation/weapon-device-review-2026-10-21/install-retry.json and launch.json.
+
+
+22 October follow-up: the six endgame additions and0–7% walking weight are now
+implemented; the catalog is21. See ENDGAME_WEAPONS_REVIEW.md for the latest signed
+phone candidate,443 passing tests and playtest tasks. Earlier15-weapon
+entries above document their own delivery stage.

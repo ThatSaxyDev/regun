@@ -84,7 +84,10 @@ class GameNotifier extends Notifier<GameState> {
       noOfBullets: capacity,
       reloading: false,
       bulletRange: next.range + max(0, state.bulletRange - old.range),
-      bulletSpeed: next.speed + max(0, state.bulletSpeed - old.speed),
+      bulletSpeed: min(
+        2000,
+        next.speed + max(0, state.bulletSpeed - old.speed),
+      ),
       baseProjectileSpeed: next.speed,
     );
   }
@@ -862,7 +865,7 @@ class GameNotifier extends Notifier<GameState> {
       state = state.copyWith(bulletsPhaseThrough: false);
   void rapidFire() => state = state.copyWith(
     bulletSpeed: min(
-      state.baseProjectileSpeed + 800,
+      min(2000, state.baseProjectileSpeed + 800),
       state.bulletSpeed + (state.rank(PowerUp.rapidFire) <= 3 ? 200 : 40),
     ),
   );

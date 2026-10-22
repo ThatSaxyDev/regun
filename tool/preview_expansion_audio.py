@@ -7,7 +7,7 @@ def read(name):
  with wave.open(str(ROOT/'assets/audio'/name),'rb') as f:
   assert (f.getnchannels(),f.getsampwidth(),f.getframerate())==(1,2,RATE),name
   return [x/32768 for x in struct.unpack('<'+'h'*f.getnframes(),f.readframes(f.getnframes()))]
-rows=[];mix=[0.0]*(61*RATE)
+rows=[];mix=[0.0]*((len(SPECS)*6+1)*RATE)
 def add(name,start,gain):
  a=read(name)
  for i,x in enumerate(a):
@@ -30,7 +30,7 @@ for index,(weapon,spec) in enumerate(SPECS.items()):
   if not loop or weapon=='beltRepeater' or i==0:add(f'shot_{weapon}_{i}.wav',start+i*.22,.72)
   add(f'impact_{weapon}.wav',start+i*.22+.12,.25)
  if loop:add(f'sustain_{weapon}.wav',start,.15)
- duration={'railLance':2.6,'rivetDriver':2.2,'cinderHose':2.3,'reaperDisc':2.4,'scrapMortar':2.8,'beltRepeater':3.6,'frostShotgun':2.6,'prismCutter':1.8,'sporeLobber':2.7,'longwatchSniper':2.8}[weapon]
+ duration={'twinVerdict':2.6,'flakRegent':3.0,'anchorEngine':3.4,'faultlineDriver':3.2,'cycloneBreacher':3.0,'mourningBell':3.0,'railLance':2.6,'rivetDriver':2.2,'cinderHose':2.3,'reaperDisc':2.4,'scrapMortar':2.8,'beltRepeater':3.6,'frostShotgun':2.6,'prismCutter':1.8,'sporeLobber':2.7,'longwatchSniper':2.8}[weapon]
  for cue,phase in enumerate([0,.42,.82]):add(f'reload_{weapon}_{cue}.wav',start+1.2+phase*duration,.32)
 assert max(map(abs,mix))<1
 with wave.open(str(OUT/'expansion_mix.wav'),'wb')as f:

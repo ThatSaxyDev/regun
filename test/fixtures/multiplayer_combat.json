@@ -155,5 +155,28 @@
   "shotgunReload": [
     0.8,
     0.6
-  ]
+  ],
+  "weaponMobility": {
+    "shotgun": 1.0,
+    "carbine": 1.0,
+    "revolver": 1.0,
+    "arcCaster": 0.99,
+    "burstRifle": 1.0,
+    "railLance": 0.96,
+    "rivetDriver": 0.98,
+    "cinderHose": 0.96,
+    "reaperDisc": 0.98,
+    "scrapMortar": 0.95,
+    "beltRepeater": 0.94,
+    "frostShotgun": 0.99,
+    "prismCutter": 0.97,
+    "sporeLobber": 0.97,
+    "longwatchSniper": 0.97,
+    "twinVerdict": 0.99,
+    "flakRegent": 0.94,
+    "anchorEngine": 0.93,
+    "faultlineDriver": 0.94,
+    "cycloneBreacher": 0.94,
+    "mourningBell": 0.95
+  }
 }

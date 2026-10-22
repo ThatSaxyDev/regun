@@ -341,8 +341,38 @@ the release direction BEFORE cancelling aim. Preserve fatigue/phase across Conti
 without restoring input; old saves start rested. No camera sway/random release
 spread or Aim Assist erasure. Damage/range/cadence/pierce remain. Release1.0.0+11.
 
-The six additions/0–7% weapon-weight walking penalties are PROPOSALS ONLY in
-docs/SIX_WEAPONS_AND_WEIGHT_PLAN.md. Do not claim21 live weapons or apply movement
-weight yet. Native/server/prediction parity and unchanged dash are future gates.
+The six-weapon proposal below was subsequently approved and implemented; see the
+latest addendum and docs/ENDGAME_WEAPONS_REVIEW.md for the current21-weapon roster.
 Local online reload parity is updated; no server rollout or expanded lobby admission
 is implied. Physical feel/motion/audio acceptance remains for creator review.
+
+
+## Endgame arsenal and walking weight (2026-10-22)
+
+The creator approved implementation after checkpoint commits client6f9f2b3 /
+backend810244b. **21** solo/Training weapons now include Twin Verdict, Flak Regent,
+Anchor Engine, Faultline Driver, Cyclone Breacher and Mourning Bell. Append-only
+IDs and provisional33/36/40/44/48/52 boss-victory unlocks preserve old progress.
+Read docs/ENDGAME_WEAPONS_REVIEW.md and the approved SIX_WEAPONS_AND_WEIGHT_PLAN.md.
+WeaponMobility applies0–7% walking penalties ONCE after the survivor/upgrade
+baseline; never modify saved movementSpeed. Dash remains1450. Authoritative server
+walking uses the same fixture; local prediction consumes server snapshot speed.
+No new online weapon admission or server rollout is implied.
+
+EndgameArsenal owns bounded committed fields/lanes/echoes. Reserve FOUR projectile
+slots for each Flak shell before ammo; fragment fans are secondary and exclude the
+direct owner. Anchor pull selects one intent/body/step, caps55 units/device through
+moveTo occupancy and leaves bosses/zero-response bodies planted; two devices incl.
+flights/residue. Faultline has three committed sections, six owners, one hit/owner.
+Bell has five original owners and echoes only survivors still in its original
+cover-respecting cone. Validate/save finite phases and ledgers, never held input.
+Twin has one combo application per original shot, .8s alternating-barrel pairing;
+miss/reload/Continue clears uncommitted combo state. Cyclone5 pellets grows to9,
+then tightens, with deliberate .60 far floor beyond its210–300 falloff band.
+All use70% tactical reloads without empty-only closing motion/audio. Fast-projectile
+upgrades and Training swaps cap stored speed at2000 so developed saves remain valid.
+Generated alpha masters/prompts/measured sockets live in art/source/weapons/endgame;
+all six224×112 packets lease individually. Shared+largest boss pair+one packet is
+31.84375MiB, under32. No procedural replacement of sprite mechanisms/material VFX.
+Automated coverage443 passed/5 optional skips; backend91 passed. Physical feel,
+audio, balance and sustained device performance remain creator review gates.

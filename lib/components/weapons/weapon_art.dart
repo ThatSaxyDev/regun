@@ -302,6 +302,43 @@ void paintWeapon(
             ),
             size: Vector2(11, 5),
           );
+    case WeaponType.twinVerdict:
+    case WeaponType.flakRegent:
+    case WeaponType.anchorEngine:
+    case WeaponType.faultlineDriver:
+    case WeaponType.cycloneBreacher:
+    case WeaponType.mourningBell:
+      // Measured receiver cavities and matching source part aspect ratios.
+      final assembly = switch (type) {
+        WeaponType.twinVerdict => (x: 17.0, y: -5.0, w: 13.5, h: 5.54),
+        WeaponType.flakRegent => (x: 25.0, y: -4.0, w: 14.0, h: 8.42),
+        WeaponType.anchorEngine => (x: 25.0, y: -4.0, w: 16.0, h: 4.31),
+        WeaponType.faultlineDriver => (x: 2.0, y: -9.0, w: 18.0, h: 6.40),
+        WeaponType.cycloneBreacher => (x: 19.0, y: -4.0, w: 13.0, h: 4.97),
+        _ => (x: 19.0, y: 1.0, w: 18.0, h: 4.60),
+      };
+      part.render(
+        canvas,
+        position: Vector2(
+          assembly.x - assembly.w / 2,
+          assembly.y - assembly.h / 2 + (movingReload ? swapTravel * 19 : 0),
+        ),
+        size: Vector2(assembly.w, assembly.h),
+      );
+      final close = loading
+          ? (movingReload && !tactical ? pulse(p, .82, .86, .94) * 7 : 0.0)
+          : reducedMotion
+          ? 0.0
+          : recoil * (type == WeaponType.faultlineDriver ? 7 : 3);
+      canvas.save();
+      canvas.translate(4 - close, -7);
+      if (type == WeaponType.cycloneBreacher && !loading && !reducedMotion) {
+        canvas.scale(1, .9 + .1 * cos((1 - recoil) * pi));
+      }
+      art
+          .rawSprite(spec.atlas, spec.bolt!)
+          .render(canvas, size: Vector2(11, 3.8));
+      canvas.restore();
     case WeaponType.arcCaster:
       final lift = movingReload ? swapTravel * 10 : 0.0;
       part.render(
