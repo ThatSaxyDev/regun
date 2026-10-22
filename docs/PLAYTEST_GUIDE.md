@@ -401,3 +401,33 @@ full breakdown starts open. Check later Scattershot ranks describe tighter sprea
 not additional projectiles. Check supply offers too. Repeat at larger text:
 Details, Ban, Reroll and every card must remain reachable by scrolling; cards in
 the same row keep aligned edges. Review readability and decision speed on a phone.
+
+## Email identity and offline independence — 22 October 2026
+
+With identity/online services unreachable or slow, enter Solo, Training and local
+Continue. Gameplay must start without waiting for verification. Open account
+setup, request a code, then dismiss while the request is pending; local play must
+remain available. Background/email foregrounding, keyboard and larger text must
+keep fields, Verify, Resend, Change email and the exit reachable.
+
+With a staged HTTPS identity service and test sender configured, finish Training
+and return Home: invitation appears once, never on first fresh launch or over an
+update notice. Not now persists; Settings retains Connect email. Verify a six-digit
+code, choose username, acknowledge the first cloud backup, then sign in on another
+device. Check earned gear/records/cosmetics/selected kit; Continue/controls remain
+local. Exercise two-device offline progress conflicts and explicit save choice.
+
+Online must refuse unverified/incomplete accounts even if an old guest credential
+exists. Room names are read-only and cannot override the account username. Change
+only in Home Settings: initial naming is free; two changes consume allowance,
+no-op/rejected names do not, and the server UTC reset is shown locally. Test
+reserved/harmful/obfuscated names and benign exceptions. Recover older records
+only with the original guest credential and verify repeated claims do not add
+balances/rewards again. Preserve original guest credentials for rollback review.
+
+Test email change, fresh-code deletion, offline sign-out/reconnection and cloud
+reset. Account A/B profiles, pending saves and Continue must not cross. A reset or
+deleted account must not be revived by an older pending device. Start local play
+while an account request is still running: late completion must not switch its
+profile in mid-run. Verify actual inbox delivery and native Keychain/keyboard/
+foreground behavior separately from captured-mail/local socket tests.

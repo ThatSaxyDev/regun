@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:regun/systems/weapon_mobility.dart';
 
 import 'dart:math' as math;
@@ -34,6 +36,22 @@ class _LoadoutViewState extends State<LoadoutView> {
   final _selectedOption = GlobalKey();
   bool _starting = false;
   PlayerProfile get profile => LocalPreferences.shared.profile;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.training) {
+      if (profile.weaponUnlocked(profile.preferredWeapon)) {
+        weapon = profile.preferredWeapon;
+      }
+      if (profile.characterUnlocked(profile.preferredCharacter)) {
+        character = profile.preferredCharacter;
+      }
+      if (profile.arenaUnlocked(profile.preferredArena)) {
+        arena = profile.preferredArena;
+      }
+    }
+  }
 
   void _browse(_Catalog catalog) {
     if (_catalog == catalog) return;
@@ -333,20 +351,33 @@ class _LoadoutViewState extends State<LoadoutView> {
               ? null
               : () async {
                   setState(() => _starting = true);
-                  if (!widget.training) await RunStore.shared.clear();
+                  if (!widget.training) {
+                    profile.preferredWeapon = weapon;
+                    profile.preferredCharacter = character;
+                    profile.preferredArena = arena;
+                    await LocalPreferences.shared.saveProfile();
+                    await RunStore.shared.clear();
+                  }
                   if (!mounted) return;
-                  await Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => BaseView(
-                        loadout: Loadout(
-                          weapon: weapon,
-                          character: character,
-                          arena: arena,
-                          training: widget.training,
-                        ),
-                      ),
-                    ),
-                  );
+                  final completion = Completer<void>();
+                  try {
+                    await Navigator.of(context)
+                        .pushReplacement<void, Future<void>>(
+                          MaterialPageRoute<void>(
+                            builder: (_) => BaseView(
+                              loadout: Loadout(
+                                weapon: weapon,
+                                character: character,
+                                arena: arena,
+                                training: widget.training,
+                              ),
+                            ),
+                          ),
+                          result: completion.future,
+                        );
+                  } finally {
+                    completion.complete();
+                  }
                 },
         ),
       ],

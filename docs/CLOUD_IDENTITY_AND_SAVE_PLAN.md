@@ -83,7 +83,8 @@ Add a **Save progress** Settings section, reachable from Home and existing setti
 entry points. Unconnected: “Saved on this device” + Connect email. Connected:
 username, private email, latest acknowledged save time and one of Saved to cloud /
 Saving / Saved on device · waiting for connection / Sign in again. Actions: Sync
-now, Edit username, Change email, Email updates, Sign out, Delete account. Show
+now, Edit username, Change email, Email updates, Sign out, Delete account. Username
+editing is available only here, with the remaining monthly changes shown. Show
 Restore purchases only once supported by actual store integration.
 
 Account switching/sign-out from a live match is deferred until the match is left
@@ -197,8 +198,79 @@ fallback on an auth outage. Guest credentials remain only for the controlled
 legacy-claim path. Deploy a capability/minimum-version gate with the server change
 so old clients cannot bypass the new requirement. Keep one authoritative public
 username per account; propose 3–16 ASCII letters/digits/underscores, case-insensitive
-uniqueness, reserved-name checks and transactional reservation. Final naming rules
-are a product default to validate with real players.
+uniqueness, reserved-name checks and transactional reservation. The following
+username policy is required; the proposed character/length limits remain a product
+default to validate with real players.
+
+### Username changes and moderation
+
+**Settings is the only player-facing place to change an existing username.**
+Initial account setup chooses the first username. Online rooms/lobbies/rosters
+show the authoritative account username as read-only: remove the current local
+name editor and never let room creation, joining, reconnecting or member updates
+override it with a supplied display name. A Settings shortcut may open the same
+account Settings flow; it must not introduce a separate room rename control.
+Clients cannot bypass this through legacy room arguments or local preferences.
+The server owns a dedicated authenticated rename operation; a client claim that
+an action originated in Settings is not an authorization mechanism.
+
+**Allow at most two successful username changes per account per calendar month.**
+Use server UTC month boundaries consistently across devices; show the next reset
+in the player's local date/time. Initial username selection does not consume a
+change. Settings shows, for example, “2 changes left this month”, then “1 change
+left this month”, and after the second change, “You can change your username again
+on {date}.” Show the limit before confirmation. No-op submissions, rejected/taken
+names, network failures and retries must not spend quota. Count a committed rename
+exactly once using an idempotency key. Canonically equivalent names, including
+case-only edits, are no-ops under the proposed case-insensitive naming policy.
+
+Reserve the new unique name, release/reserve the old name according to a documented
+anti-impersonation hold, update the account and consume quota in one server
+transaction. Concurrent renames from two devices cannot exceed the limit. Do not
+use client clocks, editable preferences or a fresh installation to reset it.
+Publish the acknowledged name to connected lobby/roster views; do not display an
+unacknowledged optimistic name as final. Keep existing match-result snapshots
+historical and bind all records to the account ID, not the mutable username.
+
+Maintain a **versioned, server-owned username moderation list**, seeded from a
+reviewed configuration in `regun-server` and updated through trusted administration.
+The implementation must create and document the list, its update process and
+regression fixtures. Do not rely on an undocumented hard-coded check in Flutter.
+Keep categories for:
+
+- Reserved staff/system/brand identities and deceptive variants: e.g. `admin`,
+  `administrator`, `moderator`, `support`, `regun_official`, `system`.
+- Hateful slurs and extremist identifiers, including reviewed obfuscated variants.
+- Explicit sexual names, sexual exploitation references and targeted harassment.
+- Credible threats, promotion of violence or encouragement of self-harm.
+- Scam/phishing identities, deceptive reward/support claims and malicious contact
+  or link patterns.
+
+Each rule records an ID, category, match mode, normalized pattern, reason and list
+version. Distinguish exact reserved names from token/pattern rules; do not block
+all innocent words containing a short banned fragment. Keep a reviewed exception
+list and benign-name regression cases to prevent false positives. Evaluate names
+through one shared normalization pipeline: trim, normalize Unicode, apply the
+allowed-character policy and case-fold; use a separate comparison form for
+reviewed separator/leet/confusable evasions. Validate the submitted name itself
+as well as comparison forms. Avoid aggressive substitutions that create arbitrary
+false matches. Rate-limit availability checks and rename attempts.
+
+Apply the same authoritative checks at initial username creation, legacy-name
+migration and every rename. The app can preflight for speed, but only the server
+may reserve/approve a name. Check existing names after moderation-list updates:
+flag newly disallowed identities for review and use a neutral public placeholder
+when necessary. Require a replacement through Settings; a moderation-required
+replacement does not use the player's monthly allowance. Staff actions are
+restricted and audited. Record rename history privately for abuse investigation
+with a defined retention policy; do not expose prior names or moderation patterns
+in public player data.
+
+Use concise copy: “That username isn't allowed. Try another.” Do not reveal the
+specific triggering pattern. Provide a report/review path for false positives and
+missed harmful names. A blocklist reduces abuse but cannot detect every harmful
+username; maintain it as a supported moderation feature rather than a one-time
+filter.
 
 ## 6. Cloud data and ownership
 
@@ -218,7 +290,8 @@ ownership/settlement design. **Do not promise unfinished-run transfer in v1.**
 
 Suggested private tables: `account_profiles`, `profile_snapshots`,
 `profile_operations`, `legacy_imports`, `entitlements`, `purchase_transactions`,
-`marketing_preferences`, `device_registrations`. Snapshots carry schema, revision,
+`marketing_preferences`, `device_registrations`, `username_reservations`,
+`username_change_events`, `username_moderation_rules`, `username_moderation_exceptions`. Snapshots carry schema, revision,
 account/reset epoch and server timestamps. Operations carry globally unique IDs,
 run/transaction references, account, payload version and server acknowledgement.
 Email lives in Auth/private account data; any public username directory exposes
@@ -324,8 +397,8 @@ an offline local reset must not silently wipe a remote account later.
 | --- | --- | --- |
 | 1. Identity proof | Dev/staging email identity service and sender, numeric OTP, secure persisted sessions, deployed-host token/claim prototype | Send/verify/refresh on two devices; wrong/expired/replayed codes, throttles, invalid issuer/audience and key rotation tested; existing guest history can be linked once without duplication. |
 | 2. Private data + local migration | Private SpacetimeDB account tables, authorized reducers/owner views, generated bindings, transactional local profile/outbox, versioned legacy import, revisions/epochs | Cross-account reads/writes denied; migration preserves schema-3 data/backups; repeated import/settlement/spend does not duplicate anything; crash recovery passes. |
-| 3. Designed account flow | Account fields and shared notices, email/code/username views, Settings states, first-return invitation | Render review in current design system; keyboard/large text/Reduced Motion/accessibility; skip persists; returning accounts bypass username; no notice stacking. |
-| 4. Online requirement | Account-backed connection, server admission/membership checks, username authority, capability rollout | Unsigned/guest/incomplete/forged clients cannot join/create/play even via direct reducers; verified player can reconnect; private rows/email stay private. Canceling auth preserves offline play. |
+| 3. Designed account flow | Account fields and shared notices, email/code/username views, Settings states, first-return invitation | Render review in current design system; keyboard/large text/Reduced Motion/accessibility; skip persists; returning accounts bypass username; Settings shows rename allowance/reset; room names are read-only; no notice stacking. |
+| 4. Online requirement | Account-backed connection, server admission/membership checks, username authority, capability rollout | Unsigned/guest/incomplete/forged clients cannot join/create/play even via direct reducers; verified player can reconnect; private rows/email stay private. Room-name overrides are rejected; two concurrent devices cannot exceed two monthly renames; retries/no-ops do not consume quota; UTC month rollover works; unsafe/reserved/obfuscated names are rejected while benign exceptions pass. Canceling auth preserves offline play. |
 | 5. Device recovery | Two-device restore, event reconciliation, conflict UI, owner-scoped checkpoints/sign-out, reset/delete/email controls | New phone restores earned kit/records; concurrent offline runs dedupe; spend conflicts resolve; A/B switching and stale callbacks cannot cross saves; deleted/reset progress cannot return. |
 | 6. Purchase integration | Real platform billing + verifier/ledger + Restore purchases, when real-money products exist | Sandbox purchase/restore/refund, repeat receipts, account binding and consumable nonduplication pass; only then expose purchase-restoration copy. |
 | 7. Release | Staging→limited rollout, monitored health, backup restore drill, docs/store disclosures | Physical keyboard/OTP email delivery and foregrounding checks; service outage preserves offline play; no secrets in logs; ability to disable invite/sync writes without deleting accounts or reopening anonymous online play. |

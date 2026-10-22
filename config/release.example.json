@@ -1,0 +1,8 @@
+{
+  "TELLING_PROJECT_KEY": "",
+  "TELLING_API_URL": "https://telling-api.kiishi.space/api/v1",
+  "REGUN_SERVER_HOST": "regunserver.kiishi.space",
+  "REGUN_DATABASE": "regun",
+  "REGUN_SERVER_TLS": true,
+  "REGUN_IDENTITY_URL": ""
+}

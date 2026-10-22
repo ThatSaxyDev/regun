@@ -20,6 +20,9 @@ class PlayerProfile {
     Set<String>? settledRuns,
     Set<String>? owned,
     this.cosmetic = 'standard',
+    this.preferredWeapon = WeaponType.shotgun,
+    this.preferredCharacter = CharacterType.rook,
+    this.preferredArena = ArenaType.breach,
   }) : survivorCounters = survivorCounters ?? {},
        challenges = challenges ?? {},
        discoveredEnemies = discoveredEnemies ?? {},
@@ -40,6 +43,9 @@ class PlayerProfile {
       settledRuns,
       owned;
   String cosmetic;
+  WeaponType preferredWeapon;
+  CharacterType preferredCharacter;
+  ArenaType preferredArena;
   bool get tutorialComplete => challenges.contains('training');
   bool weaponUnlocked(WeaponType weapon) => switch (weapon) {
     WeaponType.shotgun => true,
@@ -199,6 +205,9 @@ class PlayerProfile {
     'settledRuns': settledRuns.toList(),
     'owned': owned.toList(),
     'cosmetic': cosmetic,
+    'preferredWeapon': preferredWeapon.name,
+    'preferredCharacter': preferredCharacter.name,
+    'preferredArena': preferredArena.name,
   };
   factory PlayerProfile.fromJson(Map<String, dynamic> json) {
     int number(String key) =>
@@ -206,6 +215,21 @@ class PlayerProfile {
     Set<String> strings(String key) =>
         (json[key] as List? ?? []).whereType<String>().toSet();
     return PlayerProfile(
+      preferredWeapon:
+          WeaponType.values
+              .where((v) => v.name == json['preferredWeapon'])
+              .firstOrNull ??
+          WeaponType.shotgun,
+      preferredCharacter:
+          CharacterType.values
+              .where((v) => v.name == json['preferredCharacter'])
+              .firstOrNull ??
+          CharacterType.rook,
+      preferredArena:
+          ArenaType.values
+              .where((v) => v.name == json['preferredArena'])
+              .firstOrNull ??
+          ArenaType.breach,
       survivorCounters: {
         for (final e in (json['survivorCounters'] as Map? ?? {}).entries)
           if (e.key is String && e.value is int && e.value >= 0)

@@ -1,3 +1,5 @@
+import 'package:regun/services/local_preferences.dart';
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -12,11 +14,15 @@ class RunStore {
   Directory? _directory;
   Future<void> _pending = Future.value();
 
-  Future<File?> _file() async {
+  Future<File?> _file(String owner) async {
+    if (owner != 'guest' && !RegExp(r'^[a-f0-9-]{36}$').hasMatch(owner)) {
+      return null;
+    }
     try {
       _directory ??= await getApplicationSupportDirectory();
       await _directory!.create(recursive: true);
-      return File('${_directory!.path}/regun-run-v1.json');
+      final suffix = owner == 'guest' ? '' : '-$owner';
+      return File('${_directory!.path}/regun-run-v1$suffix.json');
     } on MissingPluginException {
       return null;
     } on PlatformException {
@@ -29,8 +35,9 @@ class RunStore {
   Future<Map<String, dynamic>?> read({
     bool Function(Map<String, dynamic>)? validate,
   }) async {
+    final owner = LocalPreferences.shared.profileOwner;
     await _pending;
-    final file = await _file();
+    final file = await _file(owner);
     if (file == null) return null;
     for (final candidate in [file, File('${file.path}.bak')]) {
       try {
@@ -56,11 +63,12 @@ class RunStore {
   }
 
   Future<bool> write(Map<String, dynamic> snapshot) {
+    final owner = LocalPreferences.shared.profileOwner;
     // Encode before queueing: callers can no longer mutate this snapshot.
     final payload = jsonEncode(snapshot);
     var saved = false;
     final operation = _pending.then((_) async {
-      final file = await _file();
+      final file = await _file(owner);
       if (file == null) return;
       try {
         final temporary = File('${file.path}.tmp');
@@ -76,9 +84,14 @@ class RunStore {
     return operation.then((_) => saved);
   }
 
-  Future<void> clear({String? expectedRunId}) {
+  Future<void> clear({String? expectedRunId}) => _clear(
+    LocalPreferences.shared.profileOwner,
+    expectedRunId: expectedRunId,
+  );
+  Future<void> clearOwner(String owner) => _clear(owner);
+  Future<void> _clear(String owner, {String? expectedRunId}) {
     final operation = _pending.then((_) async {
-      final file = await _file();
+      final file = await _file(owner);
       if (file == null) return;
       try {
         if (expectedRunId != null && await file.exists()) {

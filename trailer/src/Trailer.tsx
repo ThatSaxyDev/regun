@@ -145,12 +145,24 @@ function Floor({ foundry = false }: { foundry?: boolean }) {
   return (
     <AbsoluteFill
       style={{
-        backgroundImage: `url(${file(foundry ? "foundry_floor.jpg" : "breach_floor.jpg")})`,
-        backgroundSize: "850px",
         transform: `scale(1.12) translate(${-f * 0.05}px,${f * 0.03}px)`,
         filter: "brightness(.40) saturate(.78)",
       }}
-    />
+    >
+      {Array.from({ length: 6 }, (_, i) => (
+        <Img
+          key={i}
+          src={file(foundry ? "foundry_floor.jpg" : "breach_floor.jpg")}
+          style={{
+            position: "absolute",
+            left: (i % 3) * 850,
+            top: Math.floor(i / 3) * 850,
+            width: 850,
+            height: 850,
+          }}
+        />
+      ))}
+    </AbsoluteFill>
   );
 }
 function Label({
@@ -283,7 +295,7 @@ function Survivors() {
       <Floor />
       <div style={{ position: "absolute", top: 104, left: 140 }}>
         <Label>CHOOSE YOUR SURVIVOR</Label>
-        <Head style={{ marginTop: 23 }}>TEN WAYS TO FIGHT BACK.</Head>
+        <Head style={{ marginTop: 23 }}>MEET THE SURVIVORS.</Head>
       </div>
       {chars.map((c, i) => {
         const arrival = interpolate(f, [8 + i * 3, 28 + i * 3], [0, 1], {
@@ -346,7 +358,7 @@ function Survivors() {
           letterSpacing: 5,
         }}
       >
-        PICK A FIGHTING CHANCE.
+        YOUR NEXT RUN STARTS HERE.
       </div>
     </Scene>
   );
@@ -354,9 +366,9 @@ function Survivors() {
 function Arsenal() {
   const f = useCurrentFrame();
   const focus = Math.min(3, Math.floor(f / 48));
-  const selected = ["arsenal", "rail_lance", "frost_shotgun", "mourning_bell"][
-    focus
-  ];
+  const selectedIndex = [0, 5, 9, 20][focus];
+  const selected = weapons[selectedIndex];
+  const focusFrame = f - focus * 48;
   const titles = ["SHOTGUN", "RAIL LANCE", "FROST SHOTGUN", "MOURNING BELL"];
   const tags = [
     "MAKE SOME ROOM.",
@@ -380,7 +392,7 @@ function Arsenal() {
           position: "absolute",
           left: 1000,
           top: 165,
-          transform: `rotate(-9deg) translateX(${interpolate(f % 48, [0, 14], [50, 0], { ...clamp, easing: ease })}px)`,
+          transform: `rotate(-9deg) translateX(${interpolate(focusFrame, [0, 14], [50, 0], { ...clamp, easing: ease })}px)`,
         }}
       >
         <Sprite kind={`weapons/${selected}`} size={720} />
@@ -409,17 +421,49 @@ function Arsenal() {
           gap: 0,
         }}
       >
-        {weapons.map((w, i) => (
-          <Sprite
-            key={i}
-            kind={`weapons/${w}`}
-            frame={i < 4 ? i : 0}
-            size={110}
-            style={{
-              opacity: interpolate(f, [i * 2, 20 + i * 2], [0, 0.8], clamp),
-            }}
-          />
-        ))}
+        {weapons.map((w, i) => {
+          const active = i === selectedIndex;
+          return (
+            <div
+              key={i}
+              style={{
+                width: 110,
+                height: 110,
+                position: "relative",
+                border: `3px solid ${active ? gold : "transparent"}`,
+                background: active ? "#e7bd7222" : "transparent",
+                boxShadow: active
+                  ? "inset 0 0 22px #e7bd7218, 0 0 16px #e7bd7222"
+                  : "none",
+                opacity: active
+                  ? 1
+                  : interpolate(f, [i * 2, 20 + i * 2], [0, 0.48], clamp),
+              }}
+            >
+              <Sprite
+                kind={`weapons/${w}`}
+                frame={i < 4 ? i : 0}
+                size={104}
+                style={{
+                  filter: active ? "brightness(1.3)" : "brightness(.85)",
+                  transform: active ? "scale(1.1)" : "none",
+                }}
+              />
+              {active && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 6,
+                    left: 41,
+                    width: 22,
+                    height: 4,
+                    background: gold,
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
       <Dust />
       <Grain />
@@ -547,7 +591,7 @@ function Bosses() {
             opacity: interpolate(
               f,
               [i * 3, 16 + i * 3],
-              [0, i === index ? 1 : 0.46],
+              [0, i === index ? 1 : 0.7],
               clamp,
             ),
             transform: `translateY(${i === index ? -16 : 0}px)`,
@@ -558,7 +602,7 @@ function Bosses() {
             frame={Math.floor(f / 6) % 4}
             size={340}
             style={{
-              filter: i === index ? "brightness(1.14)" : "brightness(.68)",
+              filter: i === index ? "brightness(1.14)" : "brightness(.9)",
             }}
           />
         </div>
@@ -697,28 +741,14 @@ export function Trailer() {
       <Sequence from={930} durationInFrames={150}>
         <End />
       </Sequence>
-      <Sequence durationInFrames={186}>
-        <Audio
-          src={file("music_menu.wav")}
-          volume={(v) =>
-            interpolate(v, [0, 18, 150, 186], [0, 0.52, 0.52, 0], clamp)
-          }
-        />
-      </Sequence>
-      <Sequence from={172}>
-        <Audio
-          src={file("music_boss.wav")}
-          loop
-          volume={(v) =>
-            interpolate(
-              v,
-              [0, 16, 735, 770, 850, 908],
-              [0, 0.56, 0.56, 0.38, 0.38, 0],
-              clamp,
-            )
-          }
-        />
-      </Sequence>
+      <Audio
+        src={file("music_boss.wav")}
+        loop
+        loopVolumeCurveBehavior="extend"
+        volume={(v) =>
+          interpolate(v, [0, 12, 1045, 1079], [0, 0.56, 0.56, 0], clamp)
+        }
+      />
       <Cue at={180} src="upgrade_pulse.wav" volume={0.3} />
       <Cue at={365} src="shot_shotgun_0.wav" />
       <Cue at={411} src="shot_railLance_0.wav" volume={0.32} />

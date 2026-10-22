@@ -1,3 +1,5 @@
+import 'package:regun/services/account/account_controller.dart';
+
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -22,6 +24,7 @@ class _FlameSplashViewState extends State<FlameSplashView> {
 
   Future<void> _openMenu() async {
     await LocalPreferences.shared.load();
+    await AccountController.shared.initialize();
     if (!mounted) return;
     await precacheImage(_mark, context);
     if (!mounted) return;

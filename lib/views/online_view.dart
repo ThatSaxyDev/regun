@@ -1,3 +1,4 @@
+import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/widgets/game_notice.dart';
 
 import 'dart:async';
@@ -7,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/multiplayer/generated/member.dart';
 import 'package:regun/multiplayer/online_session.dart';
-import 'package:regun/services/local_preferences.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/click_button.dart';
 import 'package:regun/widgets/menu_layout.dart';
@@ -28,7 +28,7 @@ class OnlineView extends StatefulWidget {
 class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
   late final session = widget.session ?? OnlineSession();
   late final name = TextEditingController(
-    text: LocalPreferences.shared.onlineName,
+    text: AccountController.shared.username,
   );
   final code = TextEditingController();
   final nameFocus = FocusNode(), codeFocus = FocusNode();
@@ -184,7 +184,7 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
       return;
     }
     FocusManager.instance.primaryFocus?.unfocus();
-    unawaited(LocalPreferences.shared.saveOnlineName(name.text));
+
     if (path == _EntryPath.join) {
       unawaited(session.join(code.text, name.text));
     } else {
@@ -286,7 +286,7 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
               ),
             ],
           ),
-          if (session.guestRejected)
+          if (session.guestRejected && !session.usesAccountIdentity)
             button(
               'Start new guest',
               () => unawaited(session.recoverGuest()),
@@ -349,12 +349,25 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
             final twoColumns =
                 box.maxWidth >= 520 &&
                 MediaQuery.textScalerOf(context).scale(1) < 1.4;
-            final player = OnlineInput(
-              controller: name,
-              focusNode: nameFocus,
-              label: 'Player name',
-              hint: 'Your name',
-              maxLength: 20,
+            final player = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const OnlineCaption('Username'),
+                const SizedBox(height: 8),
+                Text(
+                  name.text,
+                  style: const TextStyle(
+                    fontFamily: FontFam.orbitron,
+                    color: onlineInk,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Change your username in Settings.',
+                  style: TextStyle(fontSize: 12, color: onlineMuted),
+                ),
+              ],
             );
             final invitation = Column(
               crossAxisAlignment: CrossAxisAlignment.start,

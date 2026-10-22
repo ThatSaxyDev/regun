@@ -1,3 +1,6 @@
+import 'package:regun/services/account/account_controller.dart';
+import 'package:regun/models/account/account_session.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -80,6 +83,18 @@ Future<void> capture(WidgetTester tester, String name) async {
 }
 
 void main() {
+  setUp(() {
+    AccountController.shared.session = const AccountSession(
+      accountId: '11111111-1111-4111-8111-111111111111',
+      accessToken: 'test-account-token',
+      refreshToken: 'test-refresh-token',
+      expiresAt: 4102444800,
+    );
+    AccountController.shared.account = {
+      'username': 'ada',
+      'changesRemaining': 2,
+    };
+  });
   setUpAll(() async {
     await RegunArt.shared.load();
     for (final font in [
@@ -192,7 +207,7 @@ void main() {
   );
 
   testWidgets(
-    'initial attempt hides retry; failure exposes one retry without losing edits',
+    'initial attempt hides retry; failure preserves the read-only account username',
     (tester) async {
       final s = ControlledSession()
         ..inFlight = true
@@ -202,14 +217,16 @@ void main() {
       expect(s.attempts, 1);
       expect(find.text('RETRY CONNECTION'), findsNothing);
       expect(find.textContaining('connection test'), findsNothing);
-      await tester.enterText(find.byType(TextField), 'Ada');
+      expect(find.byType(TextField), findsNothing);
+      expect(find.text('ada'), findsOneWidget);
+      expect(find.text('Change your username in Settings.'), findsOneWidget);
       s.inFlight = false;
       s.status = 'Connection failed';
       s.error = 'Online service is unavailable. Please try again shortly.';
       s.changes.add(null);
       await tester.pumpAndSettle();
       expect(find.text('RETRY CONNECTION'), findsOneWidget);
-      expect(find.text('Ada'), findsOneWidget);
+      expect(find.text('ada'), findsOneWidget);
       await tester.tap(find.text('RETRY CONNECTION'));
       await tester.pump();
       expect(s.attempts, 2);
@@ -217,22 +234,21 @@ void main() {
     },
   );
 
-  testWidgets('rejected guest stops retries and requires explicit recovery', (
+  testWidgets('rejected account never offers an anonymous guest fallback', (
     tester,
   ) async {
     final s = ControlledSession()
       ..guestRejected = true
       ..status = 'Connection failed'
       ..error =
-          'This device’s saved online guest is no longer accepted. Start a new guest to reconnect. Previous online records may be unavailable.';
+          'Sign in again from Settings to reconnect. Solo and Training are available.';
     await tester.pumpWidget(wrap(s));
     await tester.pumpAndSettle();
     expect(find.text('RETRY CONNECTION'), findsNothing);
-    expect(find.text('START NEW GUEST'), findsOneWidget);
+    expect(find.text('START NEW GUEST'), findsNothing);
+    expect(find.textContaining('Sign in again from Settings'), findsOneWidget);
     expect(s.recoveries, 0);
-    await tester.tap(find.text('START NEW GUEST'));
-    await tester.pump();
-    expect(s.recoveries, 1);
+    expect(s.recoveries, 0);
     await tester.pumpWidget(const SizedBox());
   });
 

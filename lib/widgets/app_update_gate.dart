@@ -11,8 +11,9 @@ import 'package:regun/widgets/click_button.dart';
 
 /// Lives on the home route: never interrupts a live run or an upgrade choice.
 class AppUpdateGate extends ConsumerStatefulWidget {
-  const AppUpdateGate({super.key, required this.child});
+  const AppUpdateGate({super.key, required this.child, this.onBusyChanged});
   final Widget child;
+  final ValueChanged<bool>? onBusyChanged;
   @override
   ConsumerState<AppUpdateGate> createState() => _AppUpdateGateState();
 }
@@ -50,6 +51,7 @@ class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
     final service = ref.read(appUpdatesProvider);
     if (!service.enabled || _requestRunning) return;
     _requestRunning = true;
+    widget.onBusyChanged?.call(true);
     setState(() {
       _checking = true;
       _error = null;
@@ -68,7 +70,10 @@ class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
       }
     } finally {
       _requestRunning = false;
-      if (mounted) setState(() => _checking = false);
+      if (mounted) {
+        setState(() => _checking = false);
+        widget.onBusyChanged?.call(_prompt != null);
+      }
     }
   }
 
@@ -84,6 +89,7 @@ class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
     }
     if (mounted && identical(_prompt, prompt)) {
       setState(() => _prompt = null);
+      widget.onBusyChanged?.call(false);
     }
   }
 

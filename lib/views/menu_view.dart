@@ -1,3 +1,8 @@
+import 'package:regun/widgets/game_notice.dart';
+import 'package:regun/services/account/account_controller.dart';
+import 'package:regun/services/account/account_api.dart';
+import 'package:regun/widgets/account_flow.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
 import 'package:regun/widgets/app_update_gate.dart';
 import 'package:regun/services/online_availability.dart';
@@ -28,8 +33,10 @@ class MenuView extends ConsumerStatefulWidget {
 class _MenuViewState extends ConsumerState<MenuView>
     with WidgetsBindingObserver {
   late final OnlineAvailability _online;
-  Timer? _policyTimer;
+  Timer? _policyTimer, _accountIssueTimer;
+  String? _accountIssue;
   bool _foreground = true, _openingOnline = false;
+  bool _noticeBusy = false;
   Map<String, dynamic>? _saved;
   bool _ready = false;
   @override
@@ -54,12 +61,14 @@ class _MenuViewState extends ConsumerState<MenuView>
     _foreground = state == AppLifecycleState.resumed;
     if (_foreground && (ModalRoute.of(context)?.isCurrent ?? false)) {
       unawaited(_online.refresh());
+      unawaited(ref.read(accountProvider).sync());
     }
   }
 
   @override
   void dispose() {
     _policyTimer?.cancel();
+    _accountIssueTimer?.cancel();
     _online.removeListener(_policyChanged);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -76,9 +85,46 @@ class _MenuViewState extends ConsumerState<MenuView>
         return;
       }
       if (allowed) {
+        final account = ref.read(accountProvider);
+        await account.initialize();
+        if (!mounted) return;
+        if (!account.ready || !account.attached) {
+          final completed = await showAccountFlow(
+            context,
+            account,
+            online: true,
+          );
+          if (!completed || !mounted) return;
+        }
+        try {
+          await account.accessToken();
+          await account.status();
+        } on AccountError {
+          if (!mounted) return;
+          final completed = await showAccountFlow(
+            context,
+            account,
+            online: true,
+            reverify: true,
+          );
+          if (!completed || !mounted) return;
+          await account.status();
+        }
+        if (!account.ready || !account.attached || !mounted) return;
         await _open(const OnlineView());
       } else {
         showOnlineComingSoon(context);
+      }
+    } on AccountError {
+      if (mounted) {
+        setState(
+          () => _accountIssue =
+              'Online sign-in is unavailable. Solo and Training are ready.',
+        );
+        _accountIssueTimer?.cancel();
+        _accountIssueTimer = Timer(const Duration(seconds: 5), () {
+          if (mounted) setState(() => _accountIssue = null);
+        });
       }
     } finally {
       if (mounted) setState(() => _openingOnline = false);
@@ -87,6 +133,7 @@ class _MenuViewState extends ConsumerState<MenuView>
 
   Future<void> _refresh() async {
     unawaited(_online.refresh());
+    await ref.read(accountProvider).localProfileReady;
     await LocalPreferences.shared.load();
     final saved = await RunStore.shared.read(validate: RunCheckpoint.valid);
     if (!mounted) return;
@@ -104,11 +151,68 @@ class _MenuViewState extends ConsumerState<MenuView>
           : null;
       _ready = true;
     });
+    // Background, optional, bounded: neither Home readiness nor local Play waits.
+    unawaited(ref.read(accountProvider).sync());
+    if (LocalPreferences.shared.profile.tutorialComplete ||
+        LocalPreferences.shared.profile.settledRuns.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_inviteAfterPlay());
+      });
+    }
   }
 
   Future<void> _open(Widget view) async {
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => view));
+    final account = ref.read(accountProvider);
+    final localPlay = view is BaseView || view is LoadoutView;
+    if (localPlay) await account.beginLocalPlay();
+    try {
+      if (!mounted) return;
+      final completion = await Navigator.of(context)
+          .push<dynamic>(MaterialPageRoute<dynamic>(builder: (_) => view));
+      // Loadout replacement passes the actual game's completion, not just catalog disposal.
+      if (completion is Future<void>) await completion;
+    } finally {
+      if (localPlay) account.endLocalPlay();
+    }
     if (mounted) await _refresh();
+  }
+
+  bool _inviting = false;
+  Future<void> _inviteAfterPlay() async {
+    final account = ref.read(accountProvider);
+    if (_inviting ||
+        _noticeBusy ||
+        account.verified ||
+        !account.api.configured ||
+        !_foreground ||
+        !mounted ||
+        !(ModalRoute.of(context)?.isCurrent ?? false)) {
+      return;
+    }
+    _inviting = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('cloudInvite.v1.shown') == true) return;
+      if (!mounted ||
+          _noticeBusy ||
+          !_foreground ||
+          !(ModalRoute.of(context)?.isCurrent ?? false)) {
+        _inviting = false;
+        return;
+      }
+      await showAccountFlow(
+        context,
+        account,
+        onShown: () => unawaited(
+          prefs
+              .setBool('cloudInvite.v1.shown', true)
+              .catchError((Object _) => false),
+        ),
+      );
+      if (mounted) await _refresh();
+    } catch (_) {
+      /* Optional identity invitation must not interrupt local play. */
+    }
   }
 
   Future<void> _play() async {
@@ -131,8 +235,14 @@ class _MenuViewState extends ConsumerState<MenuView>
           showTrainingIntro: true,
         ),
       );
+      if (mounted) unawaited(_inviteAfterPlay());
     } else {
+      final before = LocalPreferences.shared.profile.settledRuns.length;
       await _open(const LoadoutView());
+      if (mounted &&
+          LocalPreferences.shared.profile.settledRuns.length > before) {
+        unawaited(_inviteAfterPlay());
+      }
     }
   }
 
@@ -149,21 +259,53 @@ class _MenuViewState extends ConsumerState<MenuView>
 
   @override
   Widget build(BuildContext context) => AppUpdateGate(
+    onBusyChanged: (busy) {
+      _noticeBusy = busy;
+      if (!busy &&
+          _ready &&
+          (LocalPreferences.shared.profile.tutorialComplete ||
+              LocalPreferences.shared.profile.settledRuns.isNotEmpty)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_inviteAfterPlay());
+        });
+      }
+    },
     child: Scaffold(
       backgroundColor: const Color(0xff171319),
-      body: HomeMenu(
-        ready: _ready,
-        bestScore: LocalPreferences.shared.bestScore,
-        reducedMotion: LocalPreferences.shared.reducedMotion,
-        onContinue: _saved == null ? null : _continue,
-        onPlay: _play,
-        onlineAvailable: _online.enabled,
-        onlineChecking:
-            _openingOnline || _online.state == OnlineAvailabilityState.checking,
-        onOnline: _openOnline,
-        onTraining: () => _open(const LoadoutView(training: true)),
-        onCollection: () => _open(const CollectionView()),
-        onSettings: () => _open(const SettingsView(allowProgressReset: true)),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          HomeMenu(
+            ready: _ready,
+            bestScore: LocalPreferences.shared.bestScore,
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+            onContinue: _saved == null ? null : _continue,
+            onPlay: _play,
+            onlineAvailable: _online.enabled,
+            onlineChecking:
+                _openingOnline ||
+                _online.state == OnlineAvailabilityState.checking,
+            onOnline: _openOnline,
+            onTraining: () async {
+              await _open(const LoadoutView(training: true));
+              if (mounted && LocalPreferences.shared.profile.tutorialComplete) {
+                unawaited(_inviteAfterPlay());
+              }
+            },
+            onCollection: () => _open(const CollectionView()),
+            onSettings: () =>
+                _open(const SettingsView(allowProgressReset: true)),
+          ),
+          if (_accountIssue != null)
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 24,
+              child: IgnorePointer(
+                child: GameNoticeStrip(message: _accountIssue!),
+              ),
+            ),
+        ],
       ),
     ),
   );

@@ -169,9 +169,17 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     await _myGame.completeTraining();
     await _myGame.leaveRun();
     if (!mounted) return;
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const LoadoutView()));
+    final completion = Completer<void>();
+    try {
+      final next = await Navigator.of(context)
+          .pushReplacement<dynamic, Future<void>>(
+            MaterialPageRoute<dynamic>(builder: (_) => const LoadoutView()),
+            result: completion.future,
+          );
+      if (next is Future<void>) await next;
+    } finally {
+      completion.complete();
+    }
   }
 
   @override

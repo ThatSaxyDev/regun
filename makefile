@@ -1,6 +1,6 @@
 FLUTTER ?= flutter
 DART ?= dart
-RELEASE_CONFIG ?= config/telling.local.json
+RELEASE_CONFIG ?= $(if $(wildcard config/release.local.json),config/release.local.json,config/telling.local.json)
 RELEASE_DEFINES = $(if $(wildcard $(RELEASE_CONFIG)),--dart-define-from-file=$(RELEASE_CONFIG),)
 DEVICE ?=
 

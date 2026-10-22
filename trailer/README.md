@@ -26,12 +26,13 @@ renders are ignored. Source artwork and runtime code are never modified.
 | --- | --- |
 | 0–6 s | Rook's shelter: The world fell. You're still here. |
 | 6–12 s | Ten survivors |
-| 12–19 s | 21 weapons; four featured guns |
+| 12–19 s | 21 weapons; four featured guns with synchronized grid highlights |
 | 19–25 s | 41 upgrades and build combinations |
 | 25–31 s | Eight-boss lineup |
 | 31–36 s | Regun / One more round |
 
-Music: `music_menu.wav`, then `music_boss.wav`. Effects: shotgun, rail lance,
+Music: one continuous upbeat `music_boss.wav` loop throughout, with only opening
+and closing fades. Effects: shotgun, rail lance,
 upgrade recovery pulse and ordnance blast, with trailer-specific volume envelopes.
 Original game audio provenance remains in `art/source/audio/README.md` and
 `docs/art/ACTION_MUSIC_REVIEW.md`.

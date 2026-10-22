@@ -1047,3 +1047,23 @@ Native readability remains for creator review; no installation in this pass.
 
 Upgrade-copy verification: `make verify` passes (analyzer clean;498 tests pass,
 five optional skips). No gameplay balance changes or phone installation.
+
+## 22 October 2026 — email identity and cloud-save implementation
+
+Optional email/code/username setup and account Settings now use the existing pixel
+notice/field/button system. Account data and owner-scoped local outboxes preserve
+existing PlayerProfile progression plus selected normal-play kit. Offline Play,
+Training and Continue do not await verification or cloud availability; profile
+switches wait until local play ends. Online admission/server names are account-
+authoritative. Two monthly renames and a versioned moderation list are enforced
+on the server. The sibling backend includes private SpacetimeDB account/challenge/
+session/profile tables and a Node signing/delivery service with Sendbyte/Resend
+adapters. See CLOUD_IDENTITY_IMPLEMENTATION.md for scope, configuration, migration,
+validation and operational gates. No production deployment, live email or phone
+installation is implied. Paid billing/restore remains separate and unadvertised.
+
+Identity verification: `make verify` passes (analyzer clean;505 tests pass,
+five optional skips). Backend97 tests/module build, identity service four tests/
+production compilation and disposable real-host OTP/JWKS/TypeScript+Dart socket
+proof pass. Sendbyte delivery is contract-tested against the documented request;
+real inbox delivery and native device acceptance remain open.

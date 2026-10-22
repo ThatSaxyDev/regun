@@ -1,3 +1,6 @@
+import 'package:regun/services/account/account_api.dart';
+import 'package:regun/services/account/account_controller.dart';
+
 import 'dart:ui';
 import 'dart:async';
 import 'dart:convert';
@@ -26,7 +29,8 @@ import 'geometry.dart';
 /// No offline mutation replay. Native startup installs secure durable storage;
 /// standalone tests inject an isolated memory token store.
 class OnlineSession {
-  OnlineSession({AuthTokenStore? tokens}) : tokens = tokens ?? appTokens;
+  OnlineSession({AuthTokenStore? tokens})
+    : tokens = tokens ?? AccountOnlineTokens(AccountController.shared);
   static AuthTokenStore appTokens = InMemoryTokenStore();
   static Future<void> Function()? prepareAssets;
   bool _assetsReady = false;
@@ -43,6 +47,7 @@ class OnlineSession {
     defaultValue: true,
   );
   final AuthTokenStore tokens;
+  bool get usesAccountIdentity => tokens is AccountOnlineTokens;
   bool grenadesAvailable = false, grenadeAimingAvailable = false;
   bool predictionAvailable = false;
   bool predictionReducedMotion = false;
@@ -453,8 +458,12 @@ class OnlineSession {
       connectionDiagnostic = connectionDiagnostic.isNotEmpty
           ? connectionDiagnostic
           : '${stage}_${failure.runtimeType}';
-      guestRejected = failure is SpacetimeDbAuthException;
-      error = guestRejected
+      guestRejected =
+          failure is SpacetimeDbAuthException ||
+          (usesAccountIdentity && failure is AccountError);
+      error = guestRejected && usesAccountIdentity
+          ? 'Sign in again from Settings to reconnect. Solo and Training are available.'
+          : guestRejected
           ? 'This device’s saved online guest is no longer accepted. Start a new guest to reconnect. Previous online records may be unavailable.'
           : switch (stage) {
               'assets' => 'Arena preparation failed. Try connecting again.',
@@ -480,7 +489,13 @@ class OnlineSession {
   }
 
   Future<void> recoverGuest() async {
-    if (!guestRejected || busy || _closed || _connecting) return;
+    if (usesAccountIdentity ||
+        !guestRejected ||
+        busy ||
+        _closed ||
+        _connecting) {
+      return;
+    }
     busy = true;
     _notify();
     try {
@@ -852,8 +867,45 @@ class OnlineSession {
     }());
   }
 
+  bool _renewingAccount = false;
+  DateTime? _nextAccountRenewal;
+  Future<void> _renewAccountSocket() async {
+    if (_renewingAccount || tokens is! AccountOnlineTokens) return;
+    _renewingAccount = true;
+    _nextAccountRenewal = DateTime.now().add(const Duration(seconds: 20));
+    try {
+      await (tokens as AccountOnlineTokens).account.accessToken();
+      if (_closed || suspended) return;
+      connected = false;
+      _lostAt ??= DateTime.now();
+      await connect();
+    } catch (_) {
+      final expires =
+          (tokens as AccountOnlineTokens).account.session?.expiresAt ?? 0;
+      if (expires <= DateTime.now().millisecondsSinceEpoch ~/ 1000) {
+        connected = false;
+        guestRejected = true;
+        status = 'Sign in again';
+        error = 'Sign in again from Settings. Solo and Training are available.';
+        _notify();
+      }
+    } finally {
+      _renewingAccount = false;
+    }
+  }
+
   void _tick() {
     if (!connected || suspended || _closed) return;
+    if (tokens is AccountOnlineTokens &&
+        !_renewingAccount &&
+        (_nextAccountRenewal == null ||
+            DateTime.now().isAfter(_nextAccountRenewal!))) {
+      final expires =
+          (tokens as AccountOnlineTokens).account.session?.expiresAt ?? 0;
+      if (expires <= DateTime.now().millisecondsSinceEpoch ~/ 1000 + 45) {
+        unawaited(_renewAccountSocket());
+      }
+    }
     if (++_pulse % 40 == 0 &&
         !_probing &&
         room != null &&
@@ -1107,4 +1159,22 @@ String pingLabel(
       ? 'Fair'
       : 'Poor';
   return '${member.pingMs} ms | $quality';
+}
+
+/// Account service owns refresh credentials; the socket may only reuse its JWT.
+class AccountOnlineTokens implements AuthTokenStore {
+  AccountOnlineTokens(this.account);
+  final AccountController account;
+  @override
+  Future<String?> loadToken() async {
+    if (!account.ready) {
+      throw StateError('Verify your email and choose a username in Settings.');
+    }
+    return account.accessToken();
+  }
+
+  @override
+  Future<void> saveToken(String token) async {}
+  @override
+  Future<void> clearToken() async {}
 }

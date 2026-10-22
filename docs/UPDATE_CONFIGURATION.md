@@ -27,14 +27,14 @@ The adapter accepts HTTPS platform store listings, official iOS TestFlight invit
 
 ## Builds and configuration
 
-The key is stored locally in ignored `config/telling.local.json`, not copied from Wolka or committed into the repository. This is an embedded mobile SDK project key, not an administrative credential. Keep administrative tokens out of this file.
+The key is stored locally in ignored `config/release.local.json`, not copied from Wolka or committed into the repository. This is an embedded mobile SDK project key, not an administrative credential. Keep administrative tokens out of this file.
 
 ```
-flutter build ipa --release --export-method app-store --dart-define-from-file=config/telling.local.json
-flutter build ios --release --dart-define-from-file=config/telling.local.json
+flutter build ipa --release --export-method app-store --dart-define-from-file=config/release.local.json
+flutter build ios --release --dart-define-from-file=config/release.local.json
 ```
 
-`make buildIPA`, `make buildIOS`, `make buildAPK`, `make build` and `make runRelease` use that local file when present. CI must provide the same file/defines. A build without a project key leaves release checks disabled. `TELLING_API_URL` can override the HTTPS API base; default is `https://telling-api.kiishi.space/api/v1`.
+`make buildIPA`, `make buildIOS`, `make buildAPK`, `make build` and `make runRelease` use the combined local release file when present, falling back to the older `config/telling.local.json`. See [release configuration](../config/README.md) for all service defines and the phone command. CI must provide the same file/defines. A build without a project key leaves release checks disabled. `TELLING_API_URL` can override the HTTPS API base; default is `https://telling-api.kiishi.space/api/v1`.
 
 `telling_logger` is pinned to **1.5.0**. Its version-only helper is in an internal library, isolated in `AppUpdates`; full SDK initialization would also collect device/session data and start telemetry timers, contrary to this feature's scope. Review that adapter when updating the dependency. `package_info_plus` uses 9.x to satisfy the SDK's dependency range. Wolka's separate release-check/snooze approach was used as reference; its code and configuration were not changed. Package reference: https://pub.dev/packages/telling_logger#remote-config--force-update.
 

@@ -1,3 +1,6 @@
+import 'package:regun/widgets/game_notice.dart';
+import 'package:regun/services/account/account_controller.dart';
+import 'package:regun/widgets/account_settings.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
 import 'package:regun/widgets/settings_section.dart';
 import 'package:regun/models/control_layout.dart';
@@ -24,6 +27,7 @@ class SettingsView extends ConsumerStatefulWidget {
 }
 
 class _SettingsViewState extends ConsumerState<SettingsView> {
+  String? _accountIssue;
   LocalPreferences get settings => LocalPreferences.shared;
   Future<void> _save() async {
     ref
@@ -78,6 +82,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             ],
           ),
           const SizedBox(height: 32),
+          if (_accountIssue != null) GameNoticeStrip(message: _accountIssue!),
+          AccountSettings(
+            account: ref.read(accountProvider),
+            manage: widget.allowProgressReset,
+          ),
+          const SizedBox(height: 32),
           SettingsSection(
             title: 'Gameplay',
             children: [
@@ -119,7 +129,21 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       destructive: true,
     );
     if (confirmed == true) {
-      await settings.resetProgress();
+      final account = ref.read(accountProvider);
+      if (settings.profileOwner != 'guest') {
+        try {
+          await account.resetProgress();
+        } catch (_) {
+          if (mounted) {
+            setState(
+              () => _accountIssue = 'Connect to reset cloud progress. You can still play offline.',
+            );
+          }
+          return;
+        }
+      } else {
+        await settings.resetProgress();
+      }
       await RunStore.shared.clear();
       if (mounted) setState(() {});
     }
