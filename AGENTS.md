@@ -491,3 +491,19 @@ lease guards. Loadout holds the selected real weapon at the gameplay mount; do n
 restore a detached floating gun. Keep charcoal/brass pixel UI,brief player copy,
 Reduced Motion and release identity1.0.0+12. Physical balance/animation/comfort and
 sustained performance remain creator gates; no installation or rollout is implied.
+
+
+## All-weapon power candidate — 23 October 2026
+
+Read `docs/WEAPON_POWER_IMPLEMENTATION_REVIEW.md` for all21 decisions. Fresh runs
+record `weaponPowerBalance:2`; Continue without a marker retains revision1 and
+paid damage exactly. Do not use current enum values to silently upgrade legacy
+runs. Pump1.7 per pellet; Spore1 direct/2.4 DPS, radius150,3s,12 targets per patch,
+four patches/nonstacking. Field stride .75 ordinary/.85 elite, planted/boss and
+committed leaps unchanged; strongest slow wins. Paid AoE/stream damage is independent
+of cosmetic capacity. Bell6+2 at unchanged .55s echo; coherent stepped wave/quiet
+outer resonance, unchanged weapon artwork. Four weapons retain base damage after
+review (Belt/Frost/Longwatch/Cyclone); the review specifies the other numerical gains.
+Server parity is prepared locally with preserved PvP damage and is not deployed.
+Release identity remains1.0.0+15. Native balance, comfort and long-run performance
+remain human acceptance gates; new-run power must not be inferred from legacy Continue.

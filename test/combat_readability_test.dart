@@ -14,6 +14,38 @@ import 'package:regun/presentation/regun_art.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('export enlarged Spore field against the previous footprint', () async {
+    await RegunArt.shared.load();
+    final recorder = ui.PictureRecorder(), c = Canvas(recorder);
+    for (var row = 0; row < 2; row++) {
+      for (var col = 0; col < 2; col++) {
+        final arena = row == 0 ? ArenaType.breach : ArenaType.foundry;
+        c.save();
+        c.translate(col * 360.0, row * 320.0);
+        c.clipRect(const Rect.fromLTWH(0, 0, 360, 320));
+        Sprite(RegunArt.shared.image('arenas/${arena.name}_floor'))
+            .render(c, size: Vector2(360, 320));
+        AttackVfx.sporePatch(
+          c,
+          const Offset(180, 160),
+          col == 0 ? 100 : 150,
+          progress: .35,
+          ambient: BossArt.ambient(arena),
+          fullFootprint: col == 1,
+          reducedMotion: true,
+        );
+        c.restore();
+      }
+    }
+    final picture = recorder.endRecording(),
+        image = await picture.toImage(720, 640);
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    await Directory('build/test-previews').create(recursive: true);
+    await File('build/test-previews/spore-power-footprint.png')
+        .writeAsBytes(data!.buffer.asUint8List());
+    image.dispose();
+    picture.dispose();
+  });
   test(
     'companion link recedes below weapon chains and exports floor comparison',
     () async {

@@ -334,6 +334,7 @@ class AttackVfx {
     required double progress,
     required ColorFilter ambient,
     bool reducedMotion = false,
+    bool fullFootprint = false,
   }) {
     final p = progress.clamp(0.0, 1.0), fade = ((1 - p) / .25).clamp(0.0, 1.0);
     groundMaterial(
@@ -341,7 +342,7 @@ class AttackVfx {
       3,
       point,
       radius * 2,
-      height: radius * 1.25,
+      height: radius * (fullFootprint ? 2 : 1.25),
       alpha: .62 * fade,
       ambient: ambient,
     );

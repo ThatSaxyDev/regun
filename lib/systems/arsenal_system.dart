@@ -1,3 +1,5 @@
+import 'package:regun/data/weapon_power_balance.dart';
+import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/presentation/endgame_vfx.dart';
 import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/systems/sniper_sway.dart';
@@ -81,11 +83,12 @@ class RivetPayload {
 }
 
 class SporePatch {
-  SporePatch(this.id, this.position, this.damage);
+  SporePatch(this.id, this.position, this.damage, {double? lifetime})
+    : remaining = lifetime ?? WeaponPowerBalance.current.sporeLifetime;
   final int id;
   final Vector2 position;
   final double damage;
-  double remaining = 2.5;
+  double remaining;
   Map<String, dynamic> toJson() => {
     'id': id,
     'position': [position.x, position.y],
@@ -122,6 +125,8 @@ class ArsenalSystem {
   Vector2? beamFrom, beamTo;
   WeaponType get weapon => game.loadout.weapon;
   GameState get state => game.gameState;
+  WeaponPowerBalance get balance => game.gameNotifier.weaponPower;
+  Map<PositionComponent, SporePatch> _sporeContacts = {};
   String get loopOwner => 'arsenal:${identityHashCode(this)}';
   int get flightCount => flights.where((f) => !f.spent).length;
   int get projectileReservations => flights
@@ -145,17 +150,17 @@ class ArsenalSystem {
   double get _trigger =>
       math.pow(.85, state.effectRank(PowerUp.quickTrigger)).toDouble();
   double get _damageScale => state.shotDamage * game.loadout.character.damage;
-  double get _baseDamage => weapon.damage * _damageScale;
+  double get _baseDamage => balance.damage(weapon) * _damageScale;
   bool get ready =>
       _blocked <= 1e-8 &&
       !state.reloading &&
       state.noOfBullets > 0 &&
       state.gameplayState == GameplayState.playing &&
       !game.playerEntrance.active;
-  bool get _effectRoom => (game.runtimeCounts['effects'] ?? 0) < 40;
 
   void _loop(bool wanted) {
     if (wanted == _loopOn) return;
+    if (wanted) game.reserveWeaponPatch();
     _loopOn = wanted;
     if (wanted) {
       audio.startWeaponLoop(loopOwner, 'sustain_${weapon.name}.wav');
@@ -178,6 +183,7 @@ class ArsenalSystem {
     flights.clear();
     rivets.clear();
     patches.clear();
+    _sporeContacts.clear();
     flame.clear();
     sniperSway.reset();
     endgame.clear();
@@ -299,6 +305,7 @@ class ArsenalSystem {
       left -= step;
     }
     _procAt.removeWhere((id, at) => clock - at > 1);
+    _sporeContacts = _collectSporeContacts();
   }
 
   void _step(double dt) {
@@ -610,7 +617,7 @@ class ArsenalSystem {
       target == null ? effectiveRange : origin.distanceTo(target),
       destination: target,
     );
-    f.patchDamage = .8 * _damageScale;
+    f.patchDamage = balance.sporeDps * _damageScale;
     f.duration = (.55 + .3 * origin.distanceTo(f.destination) / 620).clamp(
       .55,
       1.0,
@@ -669,7 +676,7 @@ class ArsenalSystem {
   }
 
   void _continuous() {
-    if (!ready || !_effectRoom) return;
+    if (!ready) return;
     final direction = aim;
     if (direction.isZero()) return;
     final origin = muzzle(direction),
@@ -758,18 +765,18 @@ class ArsenalSystem {
   }
 
   void lodge(PositionComponent target) {
-    if (!_effectRoom ||
-        target is! CombatEnemy ||
+    if (target is! CombatEnemy ||
         rivets.length >= 8 ||
         rivets.where((r) => r.host == target.combatId).length >= 2) {
       return;
     }
+    game.reserveWeaponPatch();
     rivets.add(
       RivetPayload(
         nextAttack++,
         target.combatId,
         target.position.clone(),
-        1.75 * _damageScale,
+        balance.rivetDamage * _damageScale,
       ),
     );
   }
@@ -789,7 +796,7 @@ class ArsenalSystem {
     }
     final due = rivets.where((r) => r.remaining <= 0).toList();
     for (final r in due) {
-      if (!rivets.contains(r) || !_effectRoom) continue;
+      if (!rivets.contains(r)) continue;
       final group = due
           .where(
             (v) =>
@@ -803,7 +810,7 @@ class ArsenalSystem {
       }
       game.explode(
         r.position,
-        radius: 125,
+        radius: balance.rivetRadius,
         damage: amount,
         reaction: WeaponReaction.rivetBlast,
       );
@@ -817,40 +824,80 @@ class ArsenalSystem {
     }
     patches.removeWhere((p) => p.remaining <= 1e-8);
     _patchTick += dt;
-    if (_patchTick >= .25 - 1e-8) {
-      _patchTick = math.max(0, _patchTick - .25);
-      final strongest = <PositionComponent, double>{};
-      for (final p in patches) {
-        var count = 0;
-        final targets = game.liveEnemies.toList()
-          ..sort(
-            (a, b) => a.position
-                .distanceToSquared(p.position)
-                .compareTo(b.position.distanceToSquared(p.position)),
-          );
-        for (final target in targets) {
-          final reach = 100 + game.crowdRadius(target);
-          if (target.position.distanceToSquared(p.position) > reach * reach ||
-              game.segmentBlocked(p.position, target.position)) {
-            continue;
-          }
-          strongest[target] = math.max(strongest[target] ?? 0, p.damage * .25);
-          if (++count >= 8) break;
-        }
-      }
-      for (final e in strongest.entries) {
-        game.hitEnemy(e.key, e.value, primary: false);
+    if (_patchTick >= balance.sporeTick - 1e-8) {
+      _patchTick = math.max(0, _patchTick - balance.sporeTick);
+      for (final e in _collectSporeContacts().entries) {
+        game.hitEnemy(
+          e.key,
+          e.value.damage * balance.sporeTick,
+          primary: false,
+        );
       }
     }
   }
 
+  bool _inSpore(PositionComponent target, SporePatch patch) {
+    final reach = balance.sporeRadius + game.crowdRadius(target);
+    return patch.remaining > 1e-8 &&
+        target.position.distanceToSquared(patch.position) <= reach * reach &&
+        !game.segmentBlocked(patch.position, target.position);
+  }
+
+  Map<PositionComponent, SporePatch> _collectSporeContacts() {
+    final strongest = <PositionComponent, SporePatch>{};
+    if (patches.isEmpty) return strongest;
+    final live = game.liveEnemies
+        .where((e) => !(e as CombatEnemy).combatHealth.isDead && !e.isRemoving)
+        .toList();
+    for (final patch in patches) {
+      final eligible = live.where((e) => _inSpore(e, patch)).toList()
+        ..sort(
+          (a, b) => a.position
+              .distanceToSquared(patch.position)
+              .compareTo(b.position.distanceToSquared(patch.position)),
+        );
+      for (final target in eligible.take(balance.sporeTargets)) {
+        if ((strongest[target]?.damage ?? -1) < patch.damage) {
+          strongest[target] = patch;
+        }
+      }
+    }
+    return strongest;
+  }
+
+  /// Rebuilt from surviving paid patches, not saved as a sticky status. Checking
+  /// the current body/cover makes exit and expiry clear it immediately.
+  double sporeStride(CombatEnemy enemy) {
+    if (!balance.upgraded ||
+        enemy.isBoss ||
+        enemy.impactResponse <= 0 ||
+        enemy.combatHealth.isDead) {
+      return 1;
+    }
+    final actor = enemy as PositionComponent;
+    final patch = _sporeContacts[actor];
+    if (patch == null || !patches.contains(patch) || !_inSpore(actor, patch)) {
+      return 1;
+    }
+    return enemy is ArenaEnemy && enemy.elite
+        ? balance.eliteSporeStride
+        : balance.sporeStride;
+  }
+
   void _patchAt(ArsenalFlight f) {
-    if (patches.length >= 4) patches.removeAt(0);
+    if (patches.length >= balance.sporeCapacity) patches.removeAt(0);
     game.reserveWeaponPatch();
     // Gameplay patches have their own four-slot budget; visual FX saturation
     // must never discard a paid capsule impact.
     audio.play('impact_sporeLobber.wav');
-    patches.add(SporePatch(f.id, f.position.clone(), f.patchDamage));
+    patches.add(
+      SporePatch(
+        f.id,
+        f.position.clone(),
+        f.patchDamage,
+        lifetime: balance.sporeLifetime,
+      ),
+    );
   }
 
   void _flightStep(ArsenalFlight f, double dt) {
@@ -868,15 +915,14 @@ class ArsenalSystem {
         f.age += step;
         f.impactPending = f.age >= f.duration - 1e-8;
       }
-      if (f.impactPending &&
-          (f.kind == ArsenalFlightKind.anchor || _effectRoom)) {
+      if (f.impactPending) {
         f.spent = true;
         if (f.kind == ArsenalFlightKind.anchor) {
           endgame.plantAnchor(f);
         } else {
           game.explode(
             f.position,
-            radius: 145,
+            radius: balance.mortarRadius,
             damage: f.damage,
             releaseId: _releaseContexts[f.id]?.$1 ?? 0,
             releaseBonus: _releaseContexts[f.id]?.$2 ?? 0,
@@ -1009,6 +1055,7 @@ class ArsenalSystem {
 
   Map<String, dynamic> checkpoint() => {
     'schema': 1,
+    'powerBalance': balance.revision,
     'weapon': weapon.name,
     'cooldown': cooldown,
     'clock': clock,
@@ -1033,6 +1080,7 @@ class ArsenalSystem {
   };
 
   static void validate(Map<String, dynamic> map, WeaponType weapon) {
+    final savedBalance = WeaponPowerBalance.read(map['powerBalance']);
     if (map.containsKey('releaseContexts') && map['releaseContexts'] is! Map) {
       throw const FormatException('Invalid release contexts');
     }
@@ -1167,7 +1215,10 @@ class ArsenalSystem {
             }
           }
         } else {
-          n(raw['remaining'], name == 'rivets' ? 3 : 2.5);
+          n(
+            raw['remaining'],
+            name == 'rivets' ? 3 : savedBalance.sporeLifetime,
+          );
           if (name == 'rivets' && (raw['host'] is! int || raw['host'] < 1)) {
             throw const FormatException('Invalid rivet host');
           }
@@ -1184,10 +1235,15 @@ class ArsenalSystem {
 
   void restore(Map<String, dynamic> map) {
     validate(map, weapon);
+    if (WeaponPowerBalance.read(map['powerBalance']).revision !=
+        balance.revision) {
+      throw const FormatException('Mismatched weapon power balance');
+    }
     cancelIntent();
     flights.clear();
     rivets.clear();
     patches.clear();
+    _sporeContacts.clear();
     double n(String key) => (map[key] as num).toDouble();
     Vector2 point(dynamic raw) =>
         Vector2((raw[0] as num).toDouble(), (raw[1] as num).toDouble());
@@ -1247,6 +1303,7 @@ class ArsenalSystem {
           raw['id'],
           point(raw['position']),
           (raw['damage'] as num).toDouble(),
+          lifetime: balance.sporeLifetime,
         )..remaining = (raw['remaining'] as num).toDouble(),
       );
     }
@@ -1273,16 +1330,21 @@ class ArsenalOverlay extends PositionComponent
         AttackVfx.sporePatch(
           canvas,
           p.position.toOffset(),
-          100,
-          progress: 1 - p.remaining / 2.5,
+          system.balance.sporeRadius,
+          progress: 1 - p.remaining / system.balance.sporeLifetime,
           ambient: grade,
           reducedMotion: game.preferences.reducedMotion,
+          fullFootprint: system.balance.upgraded,
         );
         // Small brass corners distinguish a friendly patch from hostile poison.
         for (final side in [-1, 1]) {
           AttackVfx.chip(
             canvas,
-            p.position.toOffset() + Offset(side * 70, 30),
+            p.position.toOffset() +
+                Offset(
+                  side * system.balance.sporeRadius * .7,
+                  system.balance.sporeRadius * .3,
+                ),
             4,
             const Color(0x80939372),
           );

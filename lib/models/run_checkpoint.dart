@@ -1,3 +1,4 @@
+import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/systems/survivor_runtime.dart';
 import 'package:regun/systems/arsenal_system.dart';
 import 'package:regun/systems/freeze_state.dart';
@@ -20,14 +21,20 @@ class RunCheckpoint {
       final loadout = Loadout.fromJson(
         Map<String, dynamic>.from(map['loadout'] as Map),
       );
+      final power = WeaponPowerBalance.read(map['weaponPowerBalance']);
       if (map['arsenal'] case final Map raw) {
+        if (WeaponPowerBalance.read(raw['powerBalance']).revision !=
+            power.revision) {
+          return false;
+        }
         ArsenalSystem.validate(Map<String, dynamic>.from(raw), loadout.weapon);
       }
       if (map.containsKey('buildBalance') &&
           ![1, 2].contains(map['buildBalance'])) {
         return false;
       }
-      if (map.containsKey('survivorRuntime') && map['survivorRuntime'] is! Map) {
+      if (map.containsKey('survivorRuntime') &&
+          map['survivorRuntime'] is! Map) {
         return false;
       }
       if (map['survivorRuntime'] case final Map raw) {

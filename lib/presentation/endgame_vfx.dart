@@ -94,101 +94,74 @@ class EndgameVfx {
     bool Function(Offset, Offset) clear, {
     bool echo = false,
   }) {
-    final p = progress.clamp(0.0, 1.0), fade = math.pow(1 - p, .65).toDouble();
+    final p = progress.clamp(0.0, 1.0);
     if (p >= 1) return;
+    final fade = math.pow(1 - p, .65).toDouble();
+    // The delayed echo is a settling resonance of the first compression front,
+    // rather than another projectile starting at the muzzle.
     final reach =
-        range * (reducedMotion ? .78 : .12 + .86 * (1 - math.pow(1 - p, 2)));
+        range *
+        (reducedMotion
+            ? .82
+            : echo
+            ? .68 + .28 * p
+            : .16 + .80 * (1 - math.pow(1 - p, 2)));
     final angle = math.atan2(direction.dy, direction.dx);
+    const halfAngle = 35 * math.pi / 180;
+    final count = (reach * halfAngle * 2 / 5).ceil().clamp(12, 110);
+    Offset point(double a, double radius) {
+      final raw = origin + Offset(math.cos(a), math.sin(a)) * radius;
+      return Offset((raw.dx / 3).round() * 3, (raw.dy / 3).round() * 3);
+    }
+
+    canvas.save();
     final sector = Path()
       ..moveTo(origin.dx, origin.dy)
       ..arcTo(
         Rect.fromCircle(center: origin, radius: range),
-        angle - 35 * math.pi / 180,
-        70 * math.pi / 180,
+        angle - halfAngle,
+        halfAngle * 2,
         false,
       )
       ..close();
-    canvas.save();
     canvas.clipPath(sector);
-    // Authored stepped pressure contour: dark edge, muted body, sparse warm
-    // compression pixels. It is constructed at world-pixel scale, not a clean
-    // vector ring or an atlas stretched into a circle.
-    final count = (reach * 70 * math.pi / 180 / 6).ceil().clamp(12, 80);
-    for (var i = 0; i <= count; i++) {
-      final a = angle - 35 * math.pi / 180 + i / count * 70 * math.pi / 180;
-      final d = Offset(math.cos(a), math.sin(a));
-      final radius = reach + ((i * 7) % 5 - 2) * 1.5;
-      final at = origin + d * radius;
-      if (!clear(origin, at)) continue;
-      final point = Offset((at.dx / 3).round() * 3, (at.dy / 3).round() * 3);
-      canvas.drawRect(
-        Rect.fromCenter(
-          center: point + const Offset(0, 2),
-          width: 9,
-          height: 9,
-        ),
-        Paint()..color = Color.fromRGBO(24, 30, 26, fade * .75),
-      );
-      canvas.drawRect(
-        Rect.fromCenter(center: point, width: 6, height: 6),
-        Paint()
-          ..color = Color.fromRGBO(
-            echo ? 212 : 242,
-            echo ? 230 : 215,
-            echo ? 218 : 163,
-            fade * .95,
-          ),
-      );
-      if (i % 4 == 0) {
-        canvas.drawRect(
-          Rect.fromCenter(center: point - d * 3, width: 3, height: 3),
-          Paint()..color = Color.fromRGBO(255, 245, 216, fade * .95),
+    // Adjacent stepped facets form a solid crescent. No confetti, radial
+    // arrow tails or isolated white sparks compete with the wave silhouette.
+    for (var band = 0; band < 2; band++) {
+      final radius = reach - band * 18;
+      if (radius < 10) continue;
+      final strength = fade * (echo ? .55 : .82) * (band == 0 ? 1 : .22);
+      final width = band == 0 ? (echo ? 7.0 : 11.0) : 5.0;
+      for (var i = 0; i < count; i++) {
+        final a = angle - halfAngle + i / count * halfAngle * 2;
+        final b = angle - halfAngle + (i + 1) / count * halfAngle * 2;
+        final middle =
+            origin +
+            Offset(math.cos((a + b) / 2), math.sin((a + b) / 2)) * radius;
+        if (!clear(origin, middle)) continue;
+        void facet(double outer, double inner, Color color) {
+          final shape = Path()
+            ..addPolygon([
+              point(a, outer),
+              point(b, outer),
+              point(b, inner),
+              point(a, inner),
+            ], true);
+          canvas.drawPath(shape, Paint()..color = color);
+        }
+
+        facet(
+          radius + 4,
+          radius - width - 4,
+          Color.fromRGBO(24, 30, 26, strength * .8),
+        );
+        facet(radius, radius - width, Color.fromRGBO(191, 169, 122, strength));
+        facet(
+          radius - 2,
+          radius - 5,
+          Color.fromRGBO(226, 207, 162, strength * .72),
         );
       }
-    }
-    // Airborne pixel wake: short compression shards, not floor rubble or
-    // persistent area paint. The bright face belongs to a weapon discharge.
-    for (var i = -5; i <= 5; i++) {
-      if ((i + 5) % 3 == 2) continue;
-      final a = angle + i * math.pi / 30;
-      final d = Offset(math.cos(a), math.sin(a));
-      final desired = origin + d * reach;
-      if (!clear(origin, desired)) continue;
-      canvas.save();
-      canvas.translate(desired.dx, desired.dy);
-      canvas.rotate(a);
-      final length =
-          (echo ? 52.0 : 65.0) * (1 - p * .4) * (.60 + ((i + 5) * 7 % 6) * .09);
-      final tail = Path()
-        ..addPolygon([
-          const Offset(3, -3),
-          const Offset(-12, -3),
-          const Offset(-12, -5),
-          Offset(-length * .65, -5),
-          Offset(-length * .65, -2),
-          Offset(-length, -2),
-          Offset(-length, 2),
-          Offset(-length * .65, 2),
-          Offset(-length * .65, 5),
-          const Offset(-12, 5),
-          const Offset(-12, 3),
-          const Offset(3, 3),
-        ], true);
-      canvas.drawPath(
-        tail,
-        Paint()
-          ..color = Color.fromRGBO(
-            echo ? 198 : 231,
-            echo ? 220 : 205,
-            echo ? 211 : 150,
-            fade * .46,
-          ),
-      );
-      canvas.drawRect(
-        Rect.fromLTWH(-length * .65, -1.5, length * .65, 3),
-        Paint()..color = Color.fromRGBO(255, 242, 208, fade * .8),
-      );
-      canvas.restore();
     }
     canvas.restore();
   }

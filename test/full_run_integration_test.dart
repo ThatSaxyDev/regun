@@ -529,7 +529,7 @@ void main() {
             await tester.runAsync(() => practice.ready());
             expect(
               practice.world.children.whereType<BulletComponent>().first.damage,
-              closeTo(4.44, 0.001),
+              closeTo(6.29, 0.001),
             );
           case 'hunterSwarm':
             practice.combat.update(1.1);

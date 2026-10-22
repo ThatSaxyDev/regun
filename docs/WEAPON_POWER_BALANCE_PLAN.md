@@ -1,7 +1,7 @@
 # Weapon power and area-effect balance plan
 
-22 October 2026. Investigation of build15. **Proposed combat values below are not
-applied.** Companion brightness and the Rail Lance sight are separate presentation
+22 October 2026. Investigation of build15. **Historical investigation/proposal; the approved implementation is now documented
+in [the all-21 weapon implementation review](WEAPON_POWER_IMPLEMENTATION_REVIEW.md).** Companion brightness and the Rail Lance sight are separate presentation
 fixes. The aim is a powerful player facing dangerous encounters, without replacing
 weapon controls, firing patterns, reload mechanisms or committed attacks.
 

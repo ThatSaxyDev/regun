@@ -464,7 +464,12 @@ class RegunGame extends FlameGame
       speed *= 1 + min(0.5, (director.cycle - 1) * 0.08);
       if (actor is ArenaEnemy && actor.elite) speed *= 1.15;
     }
-    if (actor is CombatEnemy) speed *= actor.impactStride;
+    if (actor is CombatEnemy) {
+      // Committed leaps retain their exact travel timing; ordinary pursuit is
+      // braked by the stronger response, never multiplicatively immobilized.
+      final fieldStride = avoidCrowd ? arsenal?.sporeStride(actor) ?? 1.0 : 1.0;
+      speed *= min(actor.impactStride, fieldStride);
+    }
     if (actor is CombatEnemy && !actor.isBoss && avoidCrowd) {
       final boss = activeBoss;
       final yielding = boss == null || !boss.isLoaded || boss.isRemoving
@@ -1746,7 +1751,9 @@ class RegunGame extends FlameGame
     myPlayer.recoil =
         1 + releaseOffset / WeaponFeel.of(loadout.weapon).recovery;
     var damage =
-        state.shotDamage * loadout.weapon.damage * loadout.character.damage;
+        state.shotDamage *
+        gameNotifier.weaponPower.damage(loadout.weapon) *
+        loadout.character.damage;
     breachEngine = state.fused('breachEngine');
     if (state.noOfBullets == 1) {
       damage *=

@@ -1,3 +1,4 @@
+import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/systems/survivor_runtime.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/systems/run_random.dart';
@@ -15,6 +16,7 @@ final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(
 
 class GameNotifier extends Notifier<GameState> {
   SurvivorRuntime survivor = SurvivorRuntime();
+  WeaponPowerBalance weaponPower = WeaponPowerBalance.current;
   int buildBalance = 2;
   double _reloadElapsedMs = 0;
   double _reloadDurationMs = 0;
@@ -52,6 +54,7 @@ class GameNotifier extends Notifier<GameState> {
     weapon = loadout.weapon;
     character = loadout.character;
     buildBalance = 2;
+    weaponPower = WeaponPowerBalance.current;
     _offerRandom.state = seed;
     state = GameState(
       maxBullets: weapon.capacity,
@@ -117,6 +120,7 @@ class GameNotifier extends Notifier<GameState> {
   Map<String, dynamic> checkpoint() => {
     'xpCurve': 3,
     'buildBalance': buildBalance,
+    'weaponPowerBalance': weaponPower.revision,
     'survivorRuntime': survivor.toJson(),
     'choiceGrace': _choiceGrace,
     'weaponBalance': 2,
@@ -138,6 +142,9 @@ class GameNotifier extends Notifier<GameState> {
   };
 
   void restoreCheckpoint(Map<String, dynamic> snapshot) {
+    final restoredPower = WeaponPowerBalance.read(
+      snapshot['weaponPowerBalance'],
+    );
     var restored = GameState.fromJson(
       Map<String, dynamic>.from(snapshot['state'] as Map),
     );
@@ -285,6 +292,7 @@ class GameNotifier extends Notifier<GameState> {
         (snapshot['reloadTactical'] == true &&
             (oldPlan == null || weapon == WeaponType.carbine));
     buildBalance = snapshot['buildBalance'] as int? ?? 1;
+    weaponPower = restoredPower;
     if (snapshot['survivorRuntime'] case final Map raw) {
       survivor.restore(Map<String, dynamic>.from(raw));
     }

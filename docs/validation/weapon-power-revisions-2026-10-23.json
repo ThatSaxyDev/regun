@@ -1,0 +1,383 @@
+{
+  "scope": "Stationary unarmored Rook target; one round/charged shot/burst or short continuous sample and finite secondary completion. Not equal trigger time or a DPS/win-rate comparison. All21 paths use their actual runtime, including burn/echo/return.",
+  "rows": [
+    {
+      "revision": 1,
+      "weapon": "shotgun",
+      "distance": 130.0,
+      "damageAfter4s": 4.320000000000164,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "carbine",
+      "distance": 300.0,
+      "damageAfter4s": 0.8189036014399562,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "revolver",
+      "distance": 300.0,
+      "damageAfter4s": 3.322304246523231,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "arcCaster",
+      "distance": 300.0,
+      "damageAfter4s": 3.180072914788525,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "burstRifle",
+      "distance": 300.0,
+      "damageAfter4s": 3.1499999999998636,
+      "unitsSpent": 3,
+      "shotCount": 3,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "railLance",
+      "distance": 300.0,
+      "damageAfter4s": 7.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "rivetDriver",
+      "distance": 300.0,
+      "damageAfter4s": 2.5,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "cinderHose",
+      "distance": 130.0,
+      "damageAfter4s": 1.3599999999999,
+      "unitsSpent": 3,
+      "shotCount": 3,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "reaperDisc",
+      "distance": 300.0,
+      "damageAfter4s": 3.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "scrapMortar",
+      "distance": 300.0,
+      "damageAfter4s": 4.5,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "beltRepeater",
+      "distance": 300.0,
+      "damageAfter4s": 0.7000000000000455,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "frostShotgun",
+      "distance": 130.0,
+      "damageAfter4s": 6.600000000000136,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "prismCutter",
+      "distance": 300.0,
+      "damageAfter4s": 0.4800000000000182,
+      "unitsSpent": 0,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "sporeLobber",
+      "distance": 300.0,
+      "damageAfter4s": 2.5000000000004547,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "longwatchSniper",
+      "distance": 300.0,
+      "damageAfter4s": 12.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "twinVerdict",
+      "distance": 300.0,
+      "damageAfter4s": 2.5,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "flakRegent",
+      "distance": 300.0,
+      "damageAfter4s": 2.3999999999999773,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "anchorEngine",
+      "distance": 300.0,
+      "damageAfter4s": 8.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "faultlineDriver",
+      "distance": 300.0,
+      "damageAfter4s": 6.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "cycloneBreacher",
+      "distance": 130.0,
+      "damageAfter4s": 6.000000000000227,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 1,
+      "weapon": "mourningBell",
+      "distance": 300.0,
+      "damageAfter4s": 6.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "shotgun",
+      "distance": 130.0,
+      "damageAfter4s": 6.119999999999891,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "carbine",
+      "distance": 300.0,
+      "damageAfter4s": 0.9658196500176928,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "revolver",
+      "distance": 300.0,
+      "damageAfter4s": 3.9867650958278773,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "arcCaster",
+      "distance": 300.0,
+      "damageAfter4s": 3.710085067253317,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "burstRifle",
+      "distance": 300.0,
+      "damageAfter4s": 3.75,
+      "unitsSpent": 3,
+      "shotCount": 3,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "railLance",
+      "distance": 300.0,
+      "damageAfter4s": 9.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "rivetDriver",
+      "distance": 300.0,
+      "damageAfter4s": 3.25,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "cinderHose",
+      "distance": 130.0,
+      "damageAfter4s": 1.5199999999999818,
+      "unitsSpent": 3,
+      "shotCount": 3,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "reaperDisc",
+      "distance": 300.0,
+      "damageAfter4s": 4.2000000000000455,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "scrapMortar",
+      "distance": 300.0,
+      "damageAfter4s": 7.5,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "beltRepeater",
+      "distance": 300.0,
+      "damageAfter4s": 0.7000000000000455,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "frostShotgun",
+      "distance": 130.0,
+      "damageAfter4s": 6.600000000000136,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "prismCutter",
+      "distance": 300.0,
+      "damageAfter4s": 0.6000000000000227,
+      "unitsSpent": 0,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "sporeLobber",
+      "distance": 300.0,
+      "damageAfter4s": 8.200000000000273,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "longwatchSniper",
+      "distance": 300.0,
+      "damageAfter4s": 12.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "twinVerdict",
+      "distance": 300.0,
+      "damageAfter4s": 3.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "flakRegent",
+      "distance": 300.0,
+      "damageAfter4s": 3.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "anchorEngine",
+      "distance": 300.0,
+      "damageAfter4s": 10.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "faultlineDriver",
+      "distance": 300.0,
+      "damageAfter4s": 8.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "cycloneBreacher",
+      "distance": 130.0,
+      "damageAfter4s": 6.000000000000227,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    },
+    {
+      "revision": 2,
+      "weapon": "mourningBell",
+      "distance": 300.0,
+      "damageAfter4s": 8.0,
+      "unitsSpent": 1,
+      "shotCount": 1,
+      "effects": 0
+    }
+  ]
+}

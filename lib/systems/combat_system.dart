@@ -360,6 +360,7 @@ class CombatSystem {
     double releaseBonus = 0,
   }) {
     game.audio.play('blast.wav');
+    game.reserveWeaponPatch();
     game.addCombatEffect(
       CombatEffect(
         position: position.clone(),

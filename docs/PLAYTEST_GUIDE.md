@@ -456,3 +456,14 @@ travel and retain phase through a turn. The old attack/hurt/death poses and
 drives the same walk art without changing server combat. The runtime contact
 sheet is `build/test-previews/mummy-walk-both-directions.png`. Physical gait,
 transition comfort and sustained performance still require device review.
+
+
+## All-weapon power candidate — 23 October 2026
+
+Start a new run (Continue deliberately preserves revision1). Use the matrix and
+acceptance procedure in `WEAPON_POWER_IMPLEMENTATION_REVIEW.md`. Compare Pump's
+three close connections, Spore ground occupancy/exit, delayed Mortar/Rivet/Anchor
+payoff and Bell's single coherent strike with quieter .55s resonance. No weapon
+body art or firing/reload pattern should have changed. Verify Reduced Motion,
+cover, pause/resume and saturation. Normal unprotected runs and multi-seed boss
+comparisons are still required; stationary probes are not win-rate evidence.

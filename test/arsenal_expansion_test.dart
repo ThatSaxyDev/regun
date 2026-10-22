@@ -1,3 +1,6 @@
+import 'package:regun/components/enemies/combat_enemy.dart';
+import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/systems/weapon_reaction.dart';
 
 import 'dart:io';
@@ -100,8 +103,23 @@ class _CrossingTarget extends _Target {
   @override
   void update(double dt) {
     super.update(dt);
-    position.x -= speed * dt;
+    position.x -= speed * (game.arsenal?.sporeStride(this) ?? 1) * dt;
   }
+}
+
+class _PowerProbe extends PositionComponent
+    with HasGameReference<RegunGame>, CombatEnemy {
+  _PowerProbe(Vector2 at)
+    : super(position: at, size: Vector2.all(85), anchor: Anchor.center);
+  @override
+  double get impactResponse => 0;
+  @override
+  Future<void> onLoad() async {
+    initializeHealth(1000);
+  }
+
+  @override
+  void onCombatDeath() {}
 }
 
 void main() {
@@ -198,6 +216,413 @@ void main() {
     game.gameNotifier.playGame();
     game.gameNotifier.applyPowerUp(power, offerId: game.gameState.offerId);
   }
+
+  testWidgets(
+    'new Pump blast kills a fresh close Mummy without extra pellets',
+    (tester) async {
+      final game = await mount(tester, WeaponType.shotgun, _Audio());
+      await tester.runAsync(() async {
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+        final mummy = Enemy2Component(
+          position: game.myPlayer.position + Vector2(130, 0),
+        );
+        game.world.add(mummy);
+        await game.ready();
+        expect(mummy.combatHealth.current, 6);
+        game.weaponJoystick.delta.setValues(70, 0);
+        expect(game.spawnShotgunBullets(), true);
+        game.weaponJoystick.delta.setZero();
+        await advance(game, .5, held: false);
+        expect(mummy.combatHealth.isDead, true);
+        expect(game.shotsFired, 1);
+        expect(game.gameState.noOfBullets, 4);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  for (final weapon in [
+    WeaponType.scrapMortar,
+    WeaponType.rivetDriver,
+    WeaponType.cinderHose,
+    WeaponType.prismCutter,
+  ]) {
+    testWidgets('${weapon.name} paid damage survives forty cosmetic effects', (
+      tester,
+    ) async {
+      final game = await mount(tester, weapon, _Audio());
+      await tester.runAsync(() async {
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+        final landing = weapon == WeaponType.scrapMortar
+            ? game.arsenal!.mortarTarget(
+                Vector2(1, 0),
+                released: Vector2(.4, 0),
+              )
+            : game.myPlayer.position + Vector2(130, 0);
+        final target = _Target(landing);
+        game.world.add(target);
+        await game.ready();
+        for (var i = 0; i < 40; i++) {
+          game.addCombatEffect(
+            CombatEffect(
+              position: game.myPlayer.position.clone(),
+              duration: 10,
+            ),
+          );
+        }
+        await game.ready();
+        expect(game.runtimeCounts['effects'], 40);
+        final ammo = game.gameState.noOfBullets;
+        if (weapon == WeaponType.scrapMortar) {
+          expect(game.arsenal!.releaseAim(Vector2(.4, 0)), true);
+          await advance(game, .3, held: false);
+          expect(target.combatHealth.current, 1000);
+          await advance(game, .7, held: false);
+          expect(1000 - target.combatHealth.current, closeTo(7.5, .001));
+          expect(game.arsenal!.flights, isEmpty);
+          await advance(game, .5, held: false);
+          expect(1000 - target.combatHealth.current, closeTo(7.5, .001));
+        } else if (weapon == WeaponType.rivetDriver) {
+          await advance(game, .025);
+          await advance(game, .25, held: false);
+          expect(game.arsenal!.rivets.length, 1);
+          game.requestReload();
+          await advance(game, .3, held: false);
+          expect(1000 - target.combatHealth.current, closeTo(3.25, .001));
+          expect(game.arsenal!.rivets, isEmpty);
+        } else {
+          await advance(game, .125);
+          expect(target.combatHealth.current, lessThan(1000));
+        }
+        expect(game.gameState.noOfBullets, lessThan(ammo));
+        expect(game.runtimeCounts['effects'], lessThanOrEqualTo(40));
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
+  testWidgets(
+    'Spore coverage slows without stacking and clears on exit cover expiry and pause',
+    (tester) async {
+      final game = await mount(tester, WeaponType.sporeLobber, _Audio());
+      await tester.runAsync(() async {
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+        final center = game.myPlayer.position + Vector2(400, 0),
+            body = _PullTarget(game.myPlayer.position + Vector2(400, 0));
+        game.world.add(body);
+        await game.ready();
+        final s = game.arsenal!;
+        s.patches.addAll([
+          SporePatch(1, center.clone(), s.balance.sporeDps),
+          SporePatch(2, center.clone(), s.balance.sporeDps),
+        ]);
+        s.nextAttack = 3;
+        await advance(game, .025, held: false);
+        expect(s.sporeStride(body), .75);
+        final before = body.position.clone();
+        game.moveActor(body, Vector2(0, 1), 60, 1);
+        expect(body.position.y - before.y, closeTo(45, .01));
+        body.receiveWeaponImpact(
+          Vector2(1, 0),
+          const WeaponReaction(0, .2, slow: .9),
+        );
+        final braked = body.position.clone();
+        game.moveActor(body, Vector2(0, 1), 60, .1);
+        expect(body.position.y - braked.y, lessThan(2));
+        body.position.setFrom(center + Vector2(250, 0));
+        expect(s.sporeStride(body), 1);
+        body.position.setFrom(center + Vector2(40, 0));
+        game.geometry = ArenaGeometry(
+          game.map.bounds,
+          obstacles: [Rect.fromLTWH(center.x + 10, center.y - 50, 10, 100)],
+        );
+        expect(s.sporeStride(body), 1);
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+        body.position.setFrom(center);
+        final duration = s.patches.first.remaining;
+        game.pauseGame();
+        game.update(1);
+        expect(s.patches.first.remaining, duration);
+        game.gameNotifier.playGame();
+        final health = body.combatHealth.current;
+        await advance(game, .25, held: false);
+        expect(health - body.combatHealth.current, closeTo(.6, .001));
+        // Identical overlaps neither double damage nor compound braking.
+        expect(s.sporeStride(body), .75);
+        for (final patch in s.patches) {
+          patch.remaining = 0;
+        }
+        expect(s.sporeStride(body), 1);
+        await advance(game, .025, held: false);
+        expect(s.patches, isEmpty);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'Spore resists elites and planted bodies and does not retime a committed leap',
+    (tester) async {
+      final game = await mount(tester, WeaponType.sporeLobber, _Audio());
+      await tester.runAsync(() async {
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+        final center = game.myPlayer.position + Vector2(400, 0);
+        final elite = ArenaEnemy(
+          EnemyKind.burster,
+          elite: true,
+          position: center + Vector2(-60, -60),
+        );
+        final nest = ArenaEnemy(
+          EnemyKind.nest,
+          position: center + Vector2(60, 60),
+        );
+        final body = _PullTarget(center + Vector2(60, -60));
+        game.world.addAll([elite, nest, body]);
+        await game.ready();
+        game.arsenal!.patches.add(SporePatch(1, center, 2.4));
+        await advance(game, .025, held: false);
+        expect(game.arsenal!.sporeStride(elite), .85);
+        expect(game.arsenal!.sporeStride(nest), 1);
+        final before = body.position.clone();
+        game.moveActor(body, Vector2(1, 0), 60, .2, avoidCrowd: false);
+        expect(body.position.x - before.x, closeTo(12, .01));
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'weapon balance Continue preserves legacy numbers and paid patches exactly',
+    (tester) async {
+      final game = await mount(tester, WeaponType.sporeLobber, _Audio());
+      await tester.runAsync(() async {
+        final s = game.arsenal!;
+        s.patches.add(
+          SporePatch(1, game.myPlayer.position + Vector2(200, 0), 2.4)
+            ..remaining = 2.8,
+        );
+        s.nextAttack = 2;
+        final fresh = game.checkpoint();
+        expect(RunCheckpoint.valid(fresh), true);
+        game.gameNotifier.restoreCheckpoint(fresh);
+        s.restore(Map<String, dynamic>.from(fresh['arsenal'] as Map));
+        expect(s.patches.single.damage, 2.4);
+        expect(s.patches.single.remaining, 2.8);
+        expect(s.balance.sporeRadius, 150);
+        final old = jsonDecode(jsonEncode(fresh)) as Map<String, dynamic>;
+        old.remove('weaponPowerBalance');
+        final oldArsenal = old['arsenal'] as Map<String, dynamic>;
+        oldArsenal.remove('powerBalance');
+        oldArsenal['patches'][0]['damage'] = .8;
+        oldArsenal['patches'][0]['remaining'] = 2.0;
+        expect(RunCheckpoint.valid(old), true);
+        game.gameNotifier.restoreCheckpoint(old);
+        s.restore(oldArsenal);
+        expect(s.balance.damage(WeaponType.shotgun), 1.2);
+        expect(s.balance.damage(WeaponType.sporeLobber), .5);
+        expect(s.balance.sporeRadius, 100);
+        expect(s.patches.single.damage, .8);
+        expect(s.patches.single.remaining, 2);
+        // Re-saving and reloading does not convert or multiply an old paid field.
+        final roundTrip = game.checkpoint();
+        game.gameNotifier.restoreCheckpoint(roundTrip);
+        s.restore(Map<String, dynamic>.from(roundTrip['arsenal'] as Map));
+        expect(s.patches.single.damage, .8);
+        final invalid =
+            jsonDecode(jsonEncode(roundTrip)) as Map<String, dynamic>;
+        invalid['weaponPowerBalance'] = 2;
+        expect(RunCheckpoint.valid(invalid), false);
+        invalid['weaponPowerBalance'] = 3;
+        expect(RunCheckpoint.valid(invalid), false);
+        game.gameNotifier.resetRun(loadout: game.loadout);
+        expect(game.gameNotifier.weaponPower.revision, 2);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'audit all 21 real weapon paths before and after the numerical revision',
+    (tester) async {
+      final rows = <Map<String, dynamic>>[];
+      for (final balance in [
+        WeaponPowerBalance.legacy,
+        WeaponPowerBalance.current,
+      ]) {
+        for (final weapon in WeaponType.values) {
+          final game = await mount(tester, weapon, _Audio());
+          await tester.runAsync(() async {
+            game.gameNotifier.weaponPower = balance;
+            game.preferences.aimAssist = false;
+            game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+            final distance =
+                {
+                  WeaponType.shotgun,
+                  WeaponType.frostShotgun,
+                  WeaponType.cinderHose,
+                  WeaponType.cycloneBreacher,
+                }.contains(weapon)
+                ? 130.0
+                : 300.0;
+            final target = _PowerProbe(
+              game.myPlayer.position + Vector2(distance, 0),
+            );
+            game.world.add(target);
+            await game.ready();
+            final startingAmmo = game.gameState.noOfBullets;
+            if (!weapon.usesArsenalRuntime && weapon != WeaponType.burstRifle) {
+              game.weaponJoystick.delta.setValues(70, 0);
+              expect(game.spawnShotgunBullets(), true);
+              game.weaponJoystick.delta.setZero();
+            } else if (weapon.firesOnRelease) {
+              final minRange = math.max(
+                55.0,
+                WeaponArtSpec.of(weapon)
+                        .releaseOffset(const Offset(1, 0))
+                        .distance +
+                    12,
+              );
+              final strength =
+                  ((distance - minRange) /
+                          (game.arsenal!.effectiveRange - minRange))
+                      .clamp(0.0, 1.0);
+              final input =
+                  game.controls.deadZone +
+                  strength * (1 - game.controls.deadZone);
+              expect(game.arsenal!.releaseAim(Vector2(input, 0)), true);
+            } else {
+              await advance(
+                game,
+                weapon == WeaponType.railLance
+                    ? .46
+                    : weapon == WeaponType.beltRepeater
+                    ? .425
+                    : weapon == WeaponType.burstRifle
+                    ? .225
+                    : weapon == WeaponType.cinderHose
+                    ? .225
+                    : .025,
+              );
+            }
+            await advance(game, 4, held: false);
+            final damage = 1000 - target.combatHealth.current;
+            expect(
+              damage,
+              greaterThan(0),
+              reason: '${weapon.name} revision${balance.revision}',
+            );
+            rows.add({
+              'revision': balance.revision,
+              'weapon': weapon.name,
+              'distance': distance,
+              'damageAfter4s': damage,
+              'unitsSpent': startingAmmo - game.gameState.noOfBullets,
+              'shotCount': game.shotsFired,
+              'effects': game.runtimeCounts['effects'],
+            });
+          });
+          await tester.pumpWidget(const SizedBox.shrink());
+        }
+      }
+      await tester.runAsync(() async {
+        await Directory('build/balance-review').create(recursive: true);
+        await File('build/balance-review/all-weapon-power-revisions.json')
+            .writeAsString(
+              const JsonEncoder.withIndent('  ').convert({
+                'scope': 'Stationary unarmored Rook target; one round/charged shot/burst or short continuous sample and finite secondary completion. Not equal trigger time or a DPS/win-rate comparison. All21 paths use their actual runtime, including burn/echo/return.',
+                'rows': rows,
+              }),
+            );
+      });
+    },
+  );
+
+  testWidgets(
+    'a base Spore field kills an ordinary pursuing Mummy without primary procs',
+    (tester) async {
+      final game = await mount(tester, WeaponType.sporeLobber, _Audio());
+      await tester.runAsync(() async {
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+        final at = game.myPlayer.position + Vector2(400, 0);
+        final mummy = Enemy2Component(position: at.clone());
+        game.world.add(mummy);
+        await game.ready();
+        game.arsenal!.patches.add(
+          SporePatch(1, at, game.arsenal!.balance.sporeDps),
+        );
+        game.arsenal!.nextAttack = 2;
+        await advance(game, 1, held: false);
+        expect(mummy.position.x, greaterThan(at.x - 75));
+        expect(mummy.combatHealth.current, lessThan(4.3));
+        expect(mummy.burning, false);
+        expect(mummy.marked, false);
+        await advance(game, 1.8, held: false);
+        expect(mummy.combatHealth.isDead, true);
+        expect(game.shotsFired, 0);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets('a lethal Bell echo can unregister the final boss safely', (
+    tester,
+  ) async {
+    final game = await mount(tester, WeaponType.mourningBell, _Audio());
+    await tester.runAsync(() async {
+      game.practiceBoss(BossKind.bellkeeper);
+      await game.ready();
+      final boss = game.activeBoss!;
+      boss.position.setFrom(
+        game.arsenal!.muzzle(Vector2(1, 0)) + Vector2(100, 0),
+      );
+      (boss as CombatEnemy).restoreHealth(8);
+      game.weaponJoystick.delta.setValues(70, 0);
+      game.arsenal!.advance(.01);
+      game.weaponJoystick.delta.setZero();
+      expect(boss.combatHealth.current, 2);
+      await advance(game, .6, held: false);
+      expect(boss.combatHealth.isDead, true);
+    });
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('four overlapping fields retain the twelve-target damage bound', (
+    tester,
+  ) async {
+    final game = await mount(tester, WeaponType.sporeLobber, _Audio());
+    await tester.runAsync(() async {
+      game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+      final center = game.myPlayer.position + Vector2(500, 0);
+      final targets = [
+        for (var i = 0; i < 13; i++)
+          _PowerProbe(
+            center + Vector2((i % 4 - 1.5) * 80, (i ~/ 4 - 1.5) * 80),
+          ),
+      ];
+      game.world.addAll(targets);
+      await game.ready();
+      // Deliberately saturate one footprint after occupancy's spawn placement;
+      // this verifies contact selection rather than the crowd placer.
+      for (var i = 0; i < targets.length; i++) {
+        targets[i].position.setFrom(
+          center + Vector2((i % 4 - 1.5) * 80, (i ~/ 4 - 1.5) * 80),
+        );
+      }
+      for (var i = 0; i < 4; i++) {
+        game.arsenal!.patches.add(SporePatch(i + 1, center.clone(), 2.4));
+      }
+      game.arsenal!.nextAttack = 5;
+      await advance(game, .275, held: false);
+      expect(targets.where((e) => e.combatHealth.current < 1000).length, 12);
+      for (final target in targets.where(
+        (e) => e.combatHealth.current < 1000,
+      )) {
+        expect(1000 - target.combatHealth.current, closeTo(.6, .001));
+      }
+      expect(game.arsenal!.patches.length, 4);
+    });
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   testWidgets(
     'Rail sight follows charge direction and cover without spending ammo',
@@ -307,6 +732,7 @@ void main() {
         final game = await mount(tester, weapon, _Audio());
         await tester.runAsync(() async {
           game.preferences.aimAssist = false;
+          game.gameNotifier.weaponPower = WeaponPowerBalance.legacy;
           game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
           final target = _Target(game.myPlayer.position + Vector2(distance, 0));
           game.world.add(target);
@@ -351,6 +777,7 @@ void main() {
     for (final speed in [0.0, 60.0, 90.0, 105.0]) {
       final game = await mount(tester, WeaponType.sporeLobber, _Audio());
       await tester.runAsync(() async {
+        game.gameNotifier.weaponPower = WeaponPowerBalance.legacy;
         game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
         final center = game.myPlayer.position + Vector2(350, 0);
         final target = _CrossingTarget(
@@ -359,7 +786,7 @@ void main() {
         );
         game.world.add(target);
         await game.ready();
-        game.arsenal!.patches.add(SporePatch(987, center, .8));
+        game.arsenal!.patches.add(SporePatch(987, center, .8, lifetime: 2.5));
         await advance(game, 2.6, held: false);
         (report['sporeCrossing'] as List).add({
           'speed': speed,
@@ -513,7 +940,7 @@ void main() {
         await advance(game, .55);
         game.weaponJoystick.delta.setZero();
         await advance(game, .2, held: false);
-        expect(1000 - target.combatHealth.current, closeTo(7, 1e-6));
+        expect(1000 - target.combatHealth.current, closeTo(8.4, 1e-6));
         final endgame = game.arsenal!.endgame;
         endgame.acceptPair(target, 100);
         expect(endgame.pairMultiplier(target, 101), 1.8);
@@ -551,11 +978,11 @@ void main() {
         await game.ready();
         await advance(game, .55);
         await advance(game, .2, held: false);
-        expect(host.combatHealth.current, closeTo(993, 1e-6));
+        expect(host.combatHealth.current, closeTo(991.6, 1e-6));
         expect(
           others
               .take(2)
-              .every((t) => (t.combatHealth.current - 998.2).abs() < 1e-6),
+              .every((t) => (t.combatHealth.current - 997.84).abs() < 1e-6),
           true,
         );
         expect(others.last.combatHealth.current, 1000);
@@ -568,10 +995,10 @@ void main() {
         );
         s.endgame.acceptPair(host, 100, direction: Vector2(1, 0), amount: 2.5);
         s.endgame.acceptPair(host, 101, direction: Vector2(1, 0), amount: 4.5);
-        expect(others.first.combatHealth.current, closeTo(998.2, 1e-6));
+        expect(others.first.combatHealth.current, closeTo(997.84, 1e-6));
         // The same original shot cannot create another burst through a ricochet.
         s.endgame.acceptPair(host, 101, direction: Vector2(1, 0), amount: 4.5);
-        expect(others.first.combatHealth.current, closeTo(998.2, 1e-6));
+        expect(others.first.combatHealth.current, closeTo(997.84, 1e-6));
         expect(audio.loops, isEmpty);
       });
       await tester.pumpWidget(const SizedBox());
@@ -594,8 +1021,8 @@ void main() {
         await advance(game, .55);
         await advance(game, .2, held: false);
         expect(weak.combatHealth.isDead, true);
-        expect(next.combatHealth.current, closeTo(995.5, 1e-6));
-        expect(spill.combatHealth.current, closeTo(998.2, 1e-6));
+        expect(next.combatHealth.current, closeTo(994.6, 1e-6));
+        expect(spill.combatHealth.current, closeTo(997.84, 1e-6));
         expect(
           audio.cues.where((c) => c == 'verdict_twinVerdict.wav').length,
           1,
@@ -757,7 +1184,7 @@ void main() {
         game.weaponJoystick.delta.setZero();
         expect(game.arsenal!.projectileReservations, 4);
         await advance(game, .8, held: false);
-        expect(1000 - target.combatHealth.current, closeTo(2.4, 1e-6));
+        expect(1000 - target.combatHealth.current, closeTo(3, 1e-6));
         expect(game.arsenal!.flights, isEmpty);
         expect(game.projectileCount, 0);
       });
@@ -822,13 +1249,13 @@ void main() {
         await game.world.addAll([near, far]);
         await game.ready();
         expect(s.releaseAim(Vector2(1, 0)), true);
-        expect(near.combatHealth.current, 994);
+        expect(near.combatHealth.current, 992);
         expect(far.combatHealth.current, 1000);
         final saved = s.checkpoint();
         s.restore(saved);
         await advance(game, .3, held: false);
-        expect(near.combatHealth.current, 994);
-        expect(far.combatHealth.current, 994);
+        expect(near.combatHealth.current, 992);
+        expect(far.combatHealth.current, 992);
         expect(s.endgame.lanes.single.owners.length, 2);
         final malformed = s.checkpoint();
         (malformed['endgame']['lanes'][0]['owners'] as List).add([
@@ -846,7 +1273,7 @@ void main() {
         );
         expect(s.releaseAim(Vector2(1, 0)), true);
         await advance(game, .3, held: false);
-        expect(far.combatHealth.current, 994);
+        expect(far.combatHealth.current, 992);
       });
       await tester.pumpWidget(const SizedBox());
       expect(tester.takeException(), isNull);
@@ -870,15 +1297,15 @@ void main() {
         game.weaponJoystick.delta.setZero();
         expect(s.endgame.echoes.single.owners.length, 5);
         expect(
-          targets.take(5).every((t) => t.combatHealth.current == 995.5),
+          targets.take(5).every((t) => t.combatHealth.current == 994),
           true,
         );
         targets.first.position.setFrom(origin + Vector2(0, -300));
         outsider.position.setFrom(origin + Vector2(100, 10));
         s.restore(s.checkpoint());
         await advance(game, .6, held: false);
-        expect(targets.first.combatHealth.current, 995.5);
-        expect(targets[1].combatHealth.current, 994);
+        expect(targets.first.combatHealth.current, 994);
+        expect(targets[1].combatHealth.current, 992);
         expect(targets[1].reactions.map((r) => r.distance), [112, 34]);
         expect(outsider.combatHealth.current, 1000);
         expect(targets.last.combatHealth.current, 1000);
@@ -1536,7 +1963,10 @@ void main() {
           armorPiercing: true,
         );
         expect(shield.combatHealth.isDead, true);
-        expect(WeaponType.frostShotgun.damage, WeaponType.shotgun.damage + 1);
+        expect(
+          WeaponType.frostShotgun.damage,
+          greaterThan(WeaponType.shotgun.damage),
+        );
       });
       await tester.pumpWidget(const SizedBox.shrink());
     },
@@ -1560,7 +1990,7 @@ void main() {
         final before = nearby.combatHealth.current;
         await advance(game, .2, held: false);
         expect(game.arsenal!.rivets, isEmpty);
-        expect(nearby.combatHealth.current, before - 3.5);
+        expect(nearby.combatHealth.current, before - 5);
       });
       await tester.pumpWidget(const SizedBox.shrink());
     },

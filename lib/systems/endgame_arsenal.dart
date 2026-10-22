@@ -443,7 +443,7 @@ class EndgameArsenal {
         a.resolved = true;
         game.explode(
           a.position,
-          radius: 165,
+          radius: system.balance.anchorRadius,
           damage: a.damage,
           releaseId: system._releaseContexts[a.id]?.$1 ?? 0,
           releaseBonus: system._releaseContexts[a.id]?.$2 ?? 0,
@@ -477,7 +477,9 @@ class EndgameArsenal {
       if (echo.resolved || echo.age < .55 - 1e-8) continue;
       echo.resolved = true;
       final seen = <int>{};
-      for (final target in game.projectileTargets) {
+      // A lethal echo unregisters its victim (including the last boss). Keep
+      // this committed release stable while the live target collection changes.
+      for (final target in game.projectileTargets.toList()) {
         final id = ownerId(target);
         if (!echo.owners.containsKey(id) ||
             !seen.add(id) ||
@@ -677,7 +679,7 @@ class EndgameArsenal {
           echo.position.toOffset(),
           echo.direction.toOffset(),
           echo.range,
-          (echo.age / .38).clamp(0.0, 1.0),
+          (echo.age / .60).clamp(0.0, 1.0),
           grade,
           game.preferences.reducedMotion,
           clear,
