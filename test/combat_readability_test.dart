@@ -15,6 +15,66 @@ import 'package:regun/presentation/regun_art.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
+    'companion link recedes below weapon chains and exports floor comparison',
+    () async {
+      Future<double> brightness(bool support) async {
+        final recorder = ui.PictureRecorder(), c = Canvas(recorder);
+        const from = Offset(20, 60), to = Offset(280, 60);
+        if (support) {
+          AttackVfx.companionLightning(c, from, to, 1);
+        } else {
+          AttackVfx.lightning(c, from, to, 1, heavy: true);
+        }
+        final picture = recorder.endRecording(),
+            image = await picture.toImage(300, 120);
+        final data = (await image.toByteData())!;
+        var sum = 0.0;
+        for (var i = 0; i < data.lengthInBytes; i += 4) {
+          sum +=
+              (.2126 * data.getUint8(i) +
+                  .7152 * data.getUint8(i + 1) +
+                  .0722 * data.getUint8(i + 2)) *
+              data.getUint8(i + 3) /
+              255;
+        }
+        image.dispose();
+        picture.dispose();
+        return sum;
+      }
+
+      expect(await brightness(true), lessThan(await brightness(false) * .25));
+      await RegunArt.shared.load();
+      final recorder = ui.PictureRecorder(), c = Canvas(recorder);
+      for (var row = 0; row < 2; row++) {
+        for (var col = 0; col < 2; col++) {
+          final arena = row == 0 ? ArenaType.breach : ArenaType.foundry;
+          c.save();
+          c.translate(col * 400.0, row * 180.0);
+          Sprite(RegunArt.shared.image('arenas/${arena.name}_floor'))
+              .render(c, size: Vector2(400, 180));
+          for (var i = 0; i < 3; i++) {
+            final start = Offset(35, 65 + i * 25.0),
+                end = Offset(365, 45 + i * 50.0);
+            if (col == 0) {
+              AttackVfx.lightning(c, start, end, 1, heavy: true);
+            } else {
+              AttackVfx.companionLightning(c, start, end, 1);
+            }
+          }
+          c.restore();
+        }
+      }
+      final picture = recorder.endRecording(),
+          image = await picture.toImage(800, 360);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      await Directory('build/test-previews').create(recursive: true);
+      await File('build/test-previews/companion-link-quiet.png')
+          .writeAsBytes(data!.buffer.asUint8List());
+      image.dispose();
+      picture.dispose();
+    },
+  );
+  test(
     'Marshal muzzle follows the barrel in eight directions and both facings',
     () {
       for (final left in [false, true]) {

@@ -1,0 +1,95 @@
+{
+  "scope": "unupgraded Rook, no defenses, controlled target; not a full-run win test",
+  "singleRelease": [
+    {
+      "weapon": "shotgun",
+      "distance": 130.0,
+      "damage": 4.320000000000164,
+      "mummyHealthCycle1": 6,
+      "mummyHealthCycle2": 9.9
+    },
+    {
+      "weapon": "shotgun",
+      "distance": 330.0,
+      "damage": 1.247016818845168,
+      "mummyHealthCycle1": 6,
+      "mummyHealthCycle2": 9.9
+    },
+    {
+      "weapon": "carbine",
+      "distance": 300.0,
+      "damage": 0.8182276365115513,
+      "mummyHealthCycle1": 6,
+      "mummyHealthCycle2": 9.9
+    },
+    {
+      "weapon": "revolver",
+      "distance": 300.0,
+      "damage": 3.322304246523231,
+      "mummyHealthCycle1": 6,
+      "mummyHealthCycle2": 9.9
+    },
+    {
+      "weapon": "railLance",
+      "distance": 300.0,
+      "damage": 7.0,
+      "mummyHealthCycle1": 6,
+      "mummyHealthCycle2": 9.9
+    },
+    {
+      "weapon": "scrapMortar",
+      "distance": 300.0,
+      "damage": 4.5,
+      "mummyHealthCycle1": 6,
+      "mummyHealthCycle2": 9.9
+    },
+    {
+      "weapon": "sporeLobber",
+      "distance": 300.0,
+      "damage": 2.5000000000004547,
+      "mummyHealthCycle1": 6,
+      "mummyHealthCycle2": 9.9
+    },
+    {
+      "weapon": "anchorEngine",
+      "distance": 300.0,
+      "damage": 8.0,
+      "mummyHealthCycle1": 6,
+      "mummyHealthCycle2": 9.9
+    }
+  ],
+  "sporeCrossing": [
+    {
+      "speed": 0.0,
+      "damage": 1.8000000000004093,
+      "movementMultiplier": 1.0
+    },
+    {
+      "speed": 60.0,
+      "damage": 1.8000000000004093,
+      "movementMultiplier": 1.0
+    },
+    {
+      "speed": 90.0,
+      "damage": 1.6000000000003638,
+      "movementMultiplier": 1.0
+    },
+    {
+      "speed": 105.0,
+      "damage": 1.4000000000003183,
+      "movementMultiplier": 1.0
+    }
+  ],
+  "date": "2026-10-22",
+  "build": "1.0.0+15",
+  "sporeCrossingStartOffset": 45,
+  "patchDamagePerSecond": 0.8,
+  "patchRadius": 100,
+  "patchLifetime": 2.5,
+  "notes": [
+    "Actual Flutter/Flame damage path; target has1000HP so overkill cannot hide applied damage.",
+    "Crossing target follows a controlled straight line; no crowd or player pursuit.",
+    "Patch tick phase explains1.8 standalone damage versus nominal2.0; the full capsule test produced2.5.",
+    "Not a full-run viability or human accuracy test."
+  ]
+}

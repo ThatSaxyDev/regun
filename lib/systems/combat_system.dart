@@ -48,6 +48,7 @@ class CombatSystem {
           position: center,
           endpoint: target.position.clone(),
           color: const Color(0xffBBC6A5),
+          companion: true,
           duration: 0.12,
         ),
       );

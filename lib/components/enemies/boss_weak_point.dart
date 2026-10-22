@@ -1,4 +1,5 @@
-import 'package:regun/presentation/attack_vfx.dart';
+import 'package:regun/presentation/boss_vfx.dart';
+import 'package:regun/presentation/boss_art.dart';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
@@ -99,9 +100,10 @@ class BossWeakPoint extends PositionComponent
       Rect.fromCenter(center: center, width: 42, height: 42),
       Paint()..color = const Color(0xff302A30),
     );
+    final vfx = BossVfx(ambient: BossArt.ambient(game.loadout.arena));
     switch (kind) {
       case BossPropKind.mirror:
-        AttackVfx.shard(
+        vfx.shard(
           canvas,
           center + const Offset(0, 15),
           54,
@@ -142,7 +144,7 @@ class BossWeakPoint extends PositionComponent
           brass,
         );
       case BossPropKind.clasp:
-        AttackVfx.anchor(canvas, center, -1.57, .85);
+        vfx.anchor(canvas, center, -1.57, .85);
     }
     for (var i = 0; i < 3; i++) {
       canvas.drawRect(

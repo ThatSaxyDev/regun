@@ -528,6 +528,24 @@ class ArsenalSystem {
     );
   }
 
+  /// Sight only: follows the firing muzzle/assisted heading and solid clipping.
+  /// It cannot spend ammo, charge, or alter the authoritative shot direction.
+  (Vector2, Vector2)? get targetingBeam {
+    if (!{
+          WeaponType.railLance,
+          WeaponType.longwatchSniper,
+          WeaponType.faultlineDriver,
+        }.contains(weapon) ||
+        rawAim.isZero() ||
+        !ready ||
+        game.playerEntrance.active) {
+      return null;
+    }
+    final direction = aim, from = muzzle(direction);
+    if (game.segmentBlocked(game.myPlayer.position, from)) return null;
+    return (from, clip(from, from + direction * effectiveRange));
+  }
+
   Vector2 previewLanding(Vector2 direction) {
     final origin = muzzle(direction), end = mortarTarget(direction);
     if (weapon != WeaponType.sporeLobber) return end;
@@ -1270,24 +1288,31 @@ class ArsenalOverlay extends PositionComponent
           );
         }
       }
-      if (weapon.firesOnRelease &&
+      if ((weapon.firesOnRelease || weapon == WeaponType.railLance) &&
           !system.rawAim.isZero() &&
           system.ready &&
           !game.playerEntrance.active) {
         final direction = system.aim, from = system.muzzle(direction);
-        if (weapon == WeaponType.longwatchSniper ||
-            weapon == WeaponType.faultlineDriver) {
-          final end = system.clip(
-            from,
-            from + direction * system.effectiveRange,
-          );
+        if ({
+          WeaponType.railLance,
+          WeaponType.longwatchSniper,
+          WeaponType.faultlineDriver,
+        }.contains(weapon)) {
+          final sight = system.targetingBeam;
+          if (sight == null) return;
+          final from = sight.$1, end = sight.$2;
           final distance = from.distanceTo(end);
           for (var d = 12.0; d < distance; d += 28) {
+            final point = (from + direction * d).toOffset();
+            final rail = weapon == WeaponType.railLance;
+            if (rail) {
+              AttackVfx.chip(canvas, point, 5, const Color(0x99171E19));
+            }
             AttackVfx.chip(
               canvas,
-              (from + direction * d).toOffset(),
-              2,
-              const Color(0x779DAD9F),
+              point,
+              rail ? 3 : 2,
+              rail ? const Color(0xB0AAB6A3) : const Color(0x779DAD9F),
             );
           }
         } else {

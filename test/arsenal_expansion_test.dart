@@ -1,6 +1,10 @@
 import 'package:regun/systems/weapon_reaction.dart';
 
 import 'dart:io';
+import 'dart:math' as math;
+
+import 'package:regun/presentation/weapon_art_spec.dart';
+
 import 'dart:convert';
 
 import 'package:regun/components/weapons/weapon_art.dart';
@@ -87,6 +91,17 @@ class _PlantedTarget extends _Target {
   _PlantedTarget(super.at);
   @override
   double get impactResponse => 0;
+}
+
+// Controlled walk-through probe: no pursuit/force confounds ground exposure.
+class _CrossingTarget extends _Target {
+  _CrossingTarget(super.at, this.speed);
+  final double speed;
+  @override
+  void update(double dt) {
+    super.update(dt);
+    position.x -= speed * dt;
+  }
 }
 
 void main() {
@@ -183,6 +198,183 @@ void main() {
     game.gameNotifier.playGame();
     game.gameNotifier.applyPowerUp(power, offerId: game.gameState.offerId);
   }
+
+  testWidgets(
+    'Rail sight follows charge direction and cover without spending ammo',
+    (tester) async {
+      final game = await mount(tester, WeaponType.railLance, _Audio());
+      await tester.runAsync(() async {
+        game.preferences.aimAssist = false;
+        expect(game.arsenal!.targetingBeam, isNull);
+        await advance(game, .20);
+        game.weaponJoystick.delta.setValues(70, 0);
+        final sight = game.arsenal!.targetingBeam!;
+        expect(game.shotsFired, 0);
+        expect(game.gameState.noOfBullets, 3);
+        expect(sight.$2.y, closeTo(sight.$1.y, .001));
+        final sightRecorder = ui.PictureRecorder(),
+            sightCanvas = Canvas(sightRecorder);
+        for (var panel = 0; panel < 2; panel++) {
+          game.geometry = ArenaGeometry(
+            game.map.bounds,
+            obstacles: panel == 0
+                ? []
+                : [Rect.fromLTWH(sight.$1.x + 350, sight.$1.y - 80, 50, 160)],
+          );
+          sightCanvas.save();
+          sightCanvas.translate(0, panel * 220.0);
+          sightCanvas.clipRect(const Rect.fromLTWH(0, 0, 800, 220));
+          Sprite(RegunArt.shared.image('arenas/breach_floor'))
+              .render(sightCanvas, size: Vector2(800, 220));
+          sightCanvas.translate(
+            100 - game.myPlayer.position.x * .65,
+            110 - game.myPlayer.position.y * .65,
+          );
+          sightCanvas.scale(.65);
+          if (panel == 1) {
+            sightCanvas.drawRect(
+              Rect.fromLTWH(sight.$1.x + 350, sight.$1.y - 80, 50, 160),
+              Paint()..color = const Color(0xff353A32),
+            );
+          }
+          game.world.children
+              .whereType<ArsenalOverlay>()
+              .firstWhere((e) => e.floor)
+              .render(sightCanvas);
+          game.myPlayer.renderTree(sightCanvas);
+          sightCanvas.restore();
+        }
+        final sightPicture = sightRecorder.endRecording(),
+            sightImage = await sightPicture.toImage(800, 440);
+        final sightData = await sightImage.toByteData(
+          format: ui.ImageByteFormat.png,
+        );
+        await Directory('build/test-previews').create(recursive: true);
+        await File('build/test-previews/rail-lance-sight.png')
+            .writeAsBytes(sightData!.buffer.asUint8List());
+        sightImage.dispose();
+        sightPicture.dispose();
+        final wall = Rect.fromLTWH(sight.$1.x + 150, sight.$1.y - 60, 40, 120);
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: [wall]);
+        final clipped = game.arsenal!.targetingBeam!;
+        expect(clipped.$2.x, closeTo(wall.left, .2));
+        game.geometry = ArenaGeometry(
+          game.map.bounds,
+          obstacles: [
+            Rect.fromLTWH(
+              game.myPlayer.position.x + 5,
+              game.myPlayer.position.y - 80,
+              10,
+              160,
+            ),
+          ],
+        );
+        expect(game.arsenal!.targetingBeam, isNull);
+        expect(game.gameState.noOfBullets, 3);
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: [wall]);
+        await advance(game, .30);
+        expect(game.shotsFired, 1);
+        expect(game.gameState.noOfBullets, 2);
+        await advance(game, .01, held: false);
+        expect(game.arsenal!.targetingBeam, isNull);
+        game.weaponJoystick.delta.setValues(70, 0);
+        game.gameNotifier.reloadBullets(manual: true);
+        expect(game.arsenal!.targetingBeam, isNull);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets('record real base shot damage and spore walk-through exposure', (
+    tester,
+  ) async {
+    final report = <String, dynamic>{
+      'scope': 'unupgraded Rook, no defenses, controlled target; not a full-run win test',
+      'singleRelease': <Map<String, dynamic>>[],
+      'sporeCrossing': <Map<String, dynamic>>[],
+    };
+    for (final weapon in [
+      WeaponType.shotgun,
+      WeaponType.carbine,
+      WeaponType.revolver,
+      WeaponType.railLance,
+      WeaponType.scrapMortar,
+      WeaponType.sporeLobber,
+      WeaponType.anchorEngine,
+    ]) {
+      for (final distance
+          in weapon == WeaponType.shotgun ? [130.0, 330.0] : [300.0]) {
+        final game = await mount(tester, weapon, _Audio());
+        await tester.runAsync(() async {
+          game.preferences.aimAssist = false;
+          game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+          final target = _Target(game.myPlayer.position + Vector2(distance, 0));
+          game.world.add(target);
+          await game.ready();
+          if (!weapon.usesArsenalRuntime) {
+            game.weaponJoystick.delta.setValues(70, 0);
+            expect(game.spawnShotgunBullets(), true);
+            game.weaponJoystick.delta.setZero();
+          } else if (weapon == WeaponType.railLance) {
+            await advance(game, .46);
+          } else {
+            final minRange = math.max(
+              55.0,
+              WeaponArtSpec.of(weapon)
+                      .releaseOffset(const Offset(1, 0))
+                      .distance +
+                  12,
+            );
+            final strength =
+                ((distance - minRange) /
+                        (game.arsenal!.effectiveRange - minRange))
+                    .clamp(0.0, 1.0);
+            final input =
+                game.controls.deadZone +
+                strength * (1 - game.controls.deadZone);
+            expect(game.arsenal!.releaseAim(Vector2(input, 0)), true);
+          }
+          await advance(game, 4, held: false);
+          final damage = 1000 - target.combatHealth.current;
+          expect(damage, greaterThan(0), reason: weapon.name);
+          (report['singleRelease'] as List).add({
+            'weapon': weapon.name,
+            'distance': distance,
+            'damage': damage,
+            'mummyHealthCycle1': 6,
+            'mummyHealthCycle2': 9.9,
+          });
+        });
+        await tester.pumpWidget(const SizedBox.shrink());
+      }
+    }
+    for (final speed in [0.0, 60.0, 90.0, 105.0]) {
+      final game = await mount(tester, WeaponType.sporeLobber, _Audio());
+      await tester.runAsync(() async {
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+        final center = game.myPlayer.position + Vector2(350, 0);
+        final target = _CrossingTarget(
+          center + Vector2(speed == 0 ? 0 : 45, 0),
+          speed,
+        );
+        game.world.add(target);
+        await game.ready();
+        game.arsenal!.patches.add(SporePatch(987, center, .8));
+        await advance(game, 2.6, held: false);
+        (report['sporeCrossing'] as List).add({
+          'speed': speed,
+          'damage': 1000 - target.combatHealth.current,
+          'movementMultiplier': target.impactStride,
+        });
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    }
+    await tester.runAsync(() async {
+      await Directory('build/balance-review').create(recursive: true);
+      await File('build/balance-review/current-weapon-damage.json')
+          .writeAsString(const JsonEncoder.withIndent('  ').convert(report));
+    });
+  });
 
   testWidgets(
     'primary stick releases one sniper shot and cancellation spends nothing',
@@ -316,7 +508,7 @@ void main() {
       final game = await mount(tester, WeaponType.twinVerdict, _Audio());
       await tester.runAsync(() async {
         final target = _Target(game.myPlayer.position + Vector2(140, 0));
-        await game.world.add(target);
+        game.world.add(target);
         await game.ready();
         await advance(game, .55);
         game.weaponJoystick.delta.setZero();
@@ -559,7 +751,7 @@ void main() {
         }
         await game.ready();
         final target = _Target(game.myPlayer.position + Vector2(140, 0));
-        await game.world.add(target);
+        game.world.add(target);
         await game.ready();
         game.arsenal!.advance(.01);
         game.weaponJoystick.delta.setZero();
@@ -1028,7 +1220,7 @@ void main() {
     final game = await mount(tester, WeaponType.railLance, _Audio());
     await tester.runAsync(() async {
       final target = _Target(game.myPlayer.position + Vector2(300, 60));
-      await game.world.add(target);
+      game.world.add(target);
       await game.ready();
       game.preferences.aimAssist = true;
       expect(

@@ -736,6 +736,33 @@ class AttackVfx {
     }
   }
 
+  /// Companion support stays below the primary weapon's electrical accents.
+  /// No pale core, forks or endpoint flash; fixed bends also suit Reduced Motion.
+  static void companionLightning(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    double fade,
+  ) {
+    final delta = end - start, length = delta.distance;
+    if (length < 1) return;
+    final normal = Offset(-delta.dy, delta.dx) / length;
+    final count = (length / 48).ceil().clamp(2, 16);
+    final points = [
+      start,
+      for (var i = 1; i < count; i++)
+        start + delta * (i / count) + normal * (i.isEven ? -4 : 4),
+      end,
+    ];
+    stroke(canvas, points, _dark.withValues(alpha: fade * .50), 4);
+    stroke(
+      canvas,
+      points,
+      const Color(0xff80998B).withValues(alpha: fade * .70),
+      2,
+    );
+  }
+
   static void lightning(
     Canvas canvas,
     Offset start,

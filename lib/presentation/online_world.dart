@@ -1,3 +1,5 @@
+import 'package:regun/presentation/boss_vfx.dart';
+import 'package:regun/data/enemies.dart';
 import 'package:regun/presentation/mummy_walk.dart';
 import 'package:regun/presentation/burster_walk.dart';
 
@@ -25,9 +27,22 @@ class OnlineWorldArt {
     OnlineEntity entity, {
     required bool foundry,
     required bool reducedMotion,
+    BossKind? bossKind,
   }) {
+    final vfx = bossKind == null
+        ? null
+        : BossVfx(
+            kind: bossKind,
+            ambient: ambient(foundry),
+            reducedMotion: reducedMotion,
+          );
     final p = Offset(entity.x, entity.y), d = entity.data;
-    if (!canvas.getLocalClipBounds().inflate(900).contains(p)) return;
+    // Boss waves/lanes can enter view from well beyond their owner's position.
+    // Their bounded primitives cull the actual footprint instead.
+    if (bossKind == null &&
+        !canvas.getLocalClipBounds().inflate(900).contains(p)) {
+      return;
+    }
     switch (entity.kind) {
       case 'hazard':
         final age = entity.number('age') - entity.number('delay');
@@ -50,7 +65,7 @@ class OnlineWorldArt {
         switch (d['shape']) {
           case 'rays':
             for (final end in points.skip(1)) {
-              AttackVfx.ribbon(
+              (vfx?.ribbon ?? AttackVfx.ribbon)(
                 canvas,
                 points[0],
                 end,
@@ -88,7 +103,7 @@ class OnlineWorldArt {
                     d['shape'] == 'trace' &&
                     !warning &&
                     (i + 1) / (points.length - 1) < progress;
-                AttackVfx.ribbon(
+                (vfx?.ribbon ?? AttackVfx.ribbon)(
                   canvas,
                   points[i],
                   points[i + 1],
@@ -102,7 +117,7 @@ class OnlineWorldArt {
             }
           case 'ring':
             final gap = entity.number('arc');
-            AttackVfx.wave(
+            (vfx?.wave ?? AttackVfx.wave)(
               canvas,
               p,
               warning ? radius : radius * progress,
@@ -115,7 +130,7 @@ class OnlineWorldArt {
             );
           case 'sweep':
             if (warning) {
-              AttackVfx.fan(
+              (vfx?.fan ?? AttackVfx.fan)(
                 canvas,
                 p,
                 radius,
@@ -130,7 +145,7 @@ class OnlineWorldArt {
               final a =
                   entity.number('angle') + entity.number('arc') * progress;
               final inner = entity.number('innerRadius');
-              AttackVfx.ribbon(
+              (vfx?.ribbon ?? AttackVfx.ribbon)(
                 canvas,
                 p + Offset(math.cos(a), math.sin(a)) * inner,
                 p + Offset(math.cos(a), math.sin(a)) * radius,
@@ -141,7 +156,7 @@ class OnlineWorldArt {
               );
             }
           default:
-            AttackVfx.disk(
+            (vfx?.disk ?? AttackVfx.disk)(
               canvas,
               p,
               radius,
@@ -173,6 +188,18 @@ class OnlineWorldArt {
             reducedMotion: reducedMotion,
           );
         } else if (d['material'] == 'chain' && d['end'] != null) {
+          // Current server distinguishes drone links (.12s) from weapon chains
+          // (.16s). Honor an explicit role too when newer snapshots supply it.
+          if (d['role'] == 'companion' ||
+              (entity.number('duration') - .12).abs() < 1e-6) {
+            AttackVfx.companionLightning(
+              canvas,
+              p,
+              point(d['end']),
+              1 - progress,
+            );
+            return;
+          }
           AttackVfx.lightning(
             canvas,
             p,
@@ -318,7 +345,7 @@ class OnlineWorldArt {
       entity.number('radius', 30),
     );
     if (entity.number('spawning') > 0) {
-      AttackVfx.disk(
+      (boss ? BossVfx(ambient: ambient(foundry)).disk : AttackVfx.disk)(
         canvas,
         p,
         entity.number('radius', 30) + 12,

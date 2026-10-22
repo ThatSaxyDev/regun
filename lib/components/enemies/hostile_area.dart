@@ -1,3 +1,5 @@
+import 'package:regun/data/enemies.dart';
+import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
 import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/boss_art.dart';
@@ -17,11 +19,13 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
     this.cause = 'Ground strike',
     this.poison = false,
     this.ownerHealth,
+    this.bossKind,
   }) : super(priority: -10);
   final double radius, warning, active;
   final int damage;
   final String cause;
   final bool poison;
+  final BossKind? bossKind;
   final CombatHealth? ownerHealth;
   double age = 0;
   bool _impacted = false;
@@ -51,6 +55,7 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
           position: position.clone(),
           radius: radius * .8,
           poison: poison,
+          bossKind: bossKind,
         ),
       );
       game.audio.play(poison ? 'impact_poison.wav' : 'impact_boss.wav');
@@ -63,7 +68,12 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
 
   @override
   void render(Canvas canvas) {
-    AttackVfx.disk(
+    (bossKind == null
+        ? AttackVfx.disk
+        : BossVfx(
+            kind: bossKind,
+            ambient: BossArt.ambient(game.loadout.arena),
+          ).disk)(
       canvas,
       Offset.zero,
       radius,

@@ -964,10 +964,19 @@ class _ArenaPainter extends CustomPainter {
       }
     }
     if (artReady) {
+      final bossKinds = {
+        for (final e in session.scene.where(
+          (e) => e.kind == 'enemy' && e.data['boss'] == true,
+        ))
+          e.key: BossKind.values
+              .where((b) => b.name == e.data['kind'])
+              .firstOrNull,
+      };
       for (final e in session.scene.where((e) => e.kind != 'enemy')) {
         OnlineWorldArt.floor(
           canvas,
           e,
+          bossKind: bossKinds[e.data['owner']],
           foundry: session.room?.mapId == 'foundry',
           reducedMotion: LocalPreferences.shared.reducedMotion,
         );

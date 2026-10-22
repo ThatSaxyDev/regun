@@ -1,3 +1,4 @@
+import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
 import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
@@ -216,7 +217,11 @@ class ShadowBossComponent extends PositionComponent
           _fired = true;
           game.audio.play('impact_boss.wav');
           game.addCombatEffect(
-            HeavyImpact(position: position.clone(), radius: 225),
+            HeavyImpact(
+              bossKind: kind,
+              position: position.clone(),
+              radius: 225,
+            ),
           );
           if (distance <= 270 &&
               !game.segmentBlocked(position, game.myPlayer.position)) {
@@ -239,6 +244,11 @@ class ShadowBossComponent extends PositionComponent
 
   @override
   void render(Canvas canvas) {
+    final vfx = BossVfx(
+      kind: kind,
+      ambient: BossArt.ambient(game.loadout.arena),
+      reducedMotion: game.preferences.reducedMotion,
+    );
     final center = (size / 2).toOffset();
     BossArt.contactShadow(
       canvas,
@@ -248,7 +258,7 @@ class ShadowBossComponent extends PositionComponent
     if (phase == ShadowPhase.arrival ||
         phase == ShadowPhase.strikeWarning ||
         phase == ShadowPhase.strike) {
-      AttackVfx.disk(
+      vfx.disk(
         canvas,
         center,
         phase == ShadowPhase.arrival ? 100 : 270,
@@ -259,7 +269,7 @@ class ShadowBossComponent extends PositionComponent
       );
     }
     if (phase == ShadowPhase.dashWarning) {
-      AttackVfx.ribbon(
+      vfx.ribbon(
         canvas,
         center,
         (_dashEnd - position + size / 2).toOffset(),
@@ -273,7 +283,7 @@ class ShadowBossComponent extends PositionComponent
       final count = enraged ? 9 : 7;
       for (var i = 0; i < count; i++) {
         final dir = _aim.clone()..rotate((i - (count - 1) / 2) * pi / 10);
-        AttackVfx.ribbon(
+        vfx.ribbon(
           canvas,
           center,
           center + (dir * 2400).toOffset(),

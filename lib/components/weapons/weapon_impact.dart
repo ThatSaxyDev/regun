@@ -1,3 +1,5 @@
+import 'package:regun/data/enemies.dart';
+import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/presentation/endgame_vfx.dart';
 
@@ -100,22 +102,33 @@ class HeavyImpact extends CombatEffect {
     required super.position,
     super.radius = 110,
     this.poison = false,
+    this.bossKind,
   }) : super(duration: .34, floorEffect: true);
   final bool poison;
+  final BossKind? bossKind;
   @override
   void render(Canvas canvas) {
     final t = (age / duration).clamp(0.0, 1.0);
     final r = radius * (game.preferences.reducedMotion ? .75 : .5 + t * .5);
     canvas.save();
     canvas.scale(1 - t * .12);
-    AttackVfx.disk(
+    (bossKind == null
+        ? AttackVfx.disk
+        : BossVfx(
+            kind: bossKind,
+            ambient: BossArt.ambient(game.loadout.arena),
+          ).disk)(
       canvas,
       Offset.zero,
       r,
       ambient: BossArt.ambient(game.loadout.arena),
       warning: false,
       progress: t,
-      material: poison ? AttackMaterial.poison : AttackMaterial.ember,
+      material: bossKind == BossKind.shadow
+          ? AttackMaterial.shadow
+          : poison
+          ? AttackMaterial.poison
+          : AttackMaterial.ember,
     );
     canvas.restore();
   }

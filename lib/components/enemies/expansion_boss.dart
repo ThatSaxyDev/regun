@@ -1,3 +1,5 @@
+import 'package:regun/presentation/boss_vfx.dart';
+
 import 'dart:math';
 
 import 'package:regun/presentation/marshal_aim.dart';
@@ -256,6 +258,7 @@ abstract class ExpansionBoss extends PositionComponent
     game.audio.play('boss_${kind.name}_warn.wav');
     for (final cue in move.cues) {
       final attack = BossAttack(
+        bossKind: kind,
         shape: cue.shape,
         owner: combatHealth,
         material: kind == BossKind.marshal && move.pose == 0
@@ -319,6 +322,7 @@ abstract class ExpansionBoss extends PositionComponent
       if (!_countered) {
         _countered = true;
         final counter = BossAttack(
+          bossKind: kind,
           owner: combatHealth,
           shape: BossAttackShape.line(
             path([shotOrigin(target), target]),
@@ -439,6 +443,11 @@ abstract class ExpansionBoss extends PositionComponent
 
   @override
   void render(Canvas canvas) {
+    final vfx = BossVfx(
+      kind: kind,
+      ambient: BossArt.ambient(game.loadout.arena),
+      reducedMotion: game.preferences.reducedMotion,
+    );
     super.render(canvas);
     final center = (size / 2).toOffset();
     BossArt.contactShadow(
@@ -469,7 +478,7 @@ abstract class ExpansionBoss extends PositionComponent
 
     if (phase == ExpansionPhase.arrival ||
         (phase == ExpansionPhase.recovery && _interrupted)) {
-      AttackVfx.disk(
+      vfx.disk(
         canvas,
         center,
         85,
@@ -481,7 +490,7 @@ abstract class ExpansionBoss extends PositionComponent
     if (kind == BossKind.marshal &&
         currentMove?.brace == true &&
         [ExpansionPhase.warning, ExpansionPhase.active].contains(phase)) {
-      AttackVfx.armour(
+      vfx.armour(
         canvas,
         center,
         80,

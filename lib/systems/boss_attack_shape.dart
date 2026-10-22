@@ -1,3 +1,6 @@
+import 'package:regun/presentation/boss_vfx.dart';
+import 'package:regun/data/enemies.dart';
+
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -114,12 +117,18 @@ class BossAttackShape {
     Vector2? warningFocus,
     AttackMaterial material = AttackMaterial.stone,
     ColorFilter? ambient,
+    BossKind? bossKind,
   }) {
+    final vfx = BossVfx(
+      kind: bossKind,
+      ambient: ambient,
+      reducedMotion: reducedMotion,
+    );
     final center = points.first.toOffset();
     final textureProgress = reducedMotion && !warning ? .35 : progress;
     if (kind == BossShapeKind.line && material == AttackMaterial.laser) {
       for (var i = 0; i + 1 < points.length; i++) {
-        AttackVfx.laser(
+        vfx.laser(
           canvas,
           points[i].toOffset(),
           points[i + 1].toOffset(),
@@ -130,7 +139,7 @@ class BossAttackShape {
         );
       }
     } else if (kind == BossShapeKind.circle) {
-      AttackVfx.disk(
+      vfx.disk(
         canvas,
         center,
         radius,
@@ -146,7 +155,7 @@ class BossAttackShape {
               radius,
             )
           : math.max(1.0, radius * progress);
-      AttackVfx.wave(
+      vfx.wave(
         canvas,
         center,
         r,
@@ -159,21 +168,11 @@ class BossAttackShape {
       );
       for (final edge in [angle - arc / 2, angle + arc / 2]) {
         final v = Offset(math.cos(edge), math.sin(edge));
-        AttackVfx.chip(canvas, center + v * r, 12, const Color(0xffD8CBA4));
+        vfx.chip(canvas, center + v * r, 12, const Color(0xffD8CBA4));
       }
     } else if (kind == BossShapeKind.sweep) {
       if (warning) {
-        AttackVfx.wave(
-          canvas,
-          center,
-          radius,
-          angle,
-          arc,
-          warning: true,
-          progress: warningProgress,
-          material: material,
-        );
-        AttackVfx.fan(
+        vfx.fan(
           canvas,
           center,
           radius,
@@ -184,25 +183,11 @@ class BossAttackShape {
           material: material,
           innerRadius: innerRadius,
         );
-        for (final edge in [angle, angle + arc]) {
-          final end = center + Offset(math.cos(edge), math.sin(edge)) * radius;
-          AttackVfx.ribbon(
-            canvas,
-            center + Offset(math.cos(edge), math.sin(edge)) * innerRadius,
-            end,
-            material == AttackMaterial.chain && edge == angle ? width : 10,
-            warning: true,
-            progress: warningProgress,
-            material: material == AttackMaterial.chain && edge == angle
-                ? material
-                : AttackMaterial.stone,
-          );
-        }
       } else {
         final heading = angle + arc * progress;
         final end =
             center + Offset(math.cos(heading), math.sin(heading)) * radius;
-        AttackVfx.ribbon(
+        vfx.ribbon(
           canvas,
           center + Offset(math.cos(heading), math.sin(heading)) * innerRadius,
           end,
@@ -211,7 +196,7 @@ class BossAttackShape {
           progress: textureProgress,
           material: material,
         );
-        AttackVfx.wave(
+        vfx.wave(
           canvas,
           center,
           radius,
@@ -229,7 +214,7 @@ class BossAttackShape {
             kind != BossShapeKind.trace ||
             (progress >= i / (points.length - 1) &&
                 progress <= (i + 1) / (points.length - 1));
-        AttackVfx.ribbon(
+        vfx.ribbon(
           canvas,
           points[i].toOffset(),
           points[i + 1].toOffset(),

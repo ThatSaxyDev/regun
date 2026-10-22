@@ -1134,3 +1134,72 @@ installed on the connected iPhone12 and launched successfully via devicectl. The
 packaged Mummy walk atlas SHA-256 matches the corrected source asset. Combined
 release configuration (including Telling) was used. Installation/launch does not
 constitute physical gait, transition comfort or sustained performance approval.
+
+### Boss geometry candidate (22 October 2026)
+
+Creator rejected boss attack sprites and specifically the pre-attack arc hint.
+`BossVfx` replaces boss texture stamps with deterministic chipped crescent faults,
+floor fractures, faceted glass, poison seep and polygon iron links. The initial
+pie-like radial tessellation was removed after rendered review. Sweep warning
+now has one grounded footprint rather than stacked arc/sector/rail overlays.
+Safe inner pockets, moving wave gaps and final-frame visibility are retained;
+collision/timing/damage and Marshal's continuous laser remain unchanged. Native
+boss actors/owned areas/impacts/weak-point art and online boss-owned hazards use
+the candidate; ordinary enemy and ordnance art retain their existing renderer.
+Online boss hazards bypass center-only culling so distant origins cannot hide
+lanes/waves crossing view. No new texture assets or network dependencies.
+
+Reviewed rendered material comparisons on both actual floors; see
+`docs/BOSS_GEOMETRY_REVIEW.md` and `build/test-previews/boss-arcs-breach.png`,
+`boss-geometry-breach.png`, `boss-geometry-foundry.png`. Analyzer passes. Full
+suite passed516 tests with5 existing skips (2m29s); after final visual refinements,
+all4 focused geometry/preview tests also pass. Pixel checks cover clear annular
+pockets, ring escape gaps, planted warning footprints and late wave visibility.
+This remains a creator-review candidate; no version bump/phone installation,
+physical performance, motion comfort or visual approval is implied.
+
+Creator-requested boss geometry phone delivery: signed release1.0.0+14 rebuilt
+with the existing combined release configuration (including Telling), Xcode
+build25.9s/170.6MB. CoreDevice confirmed in-place installation and launch on the
+connected iPhone12. App data was not cleared. This supersedes the no-install
+note for this candidate; physical readability/comfort/performance remain for
+creator review.
+
+
+Build15 distribution (creator requested): bumped pubspec to1.0.0+15, built the
+220,422,097-byte Android APK with existing combined release configuration and
+uploaded/distributed it to Firebase App Distribution's playtesters group. CLI
+reported success; authenticated readback confirms release29sko3b9ktpk0/build15.
+APK manifest is1.0.0/code15 and certificate matches the preceding tester build.
+The matching signed App Store Connect IPA export succeeded; exported Info.plist
+confirms1.0.0/build15/dev.kiishi.regun. Versioned artifact:
+`build/ios/ipa/regun-1.0.0-15.ipa` (162,806,512bytes). No Apple upload or new phone
+installation was requested. Hashes/metadata and tester URL are recorded in
+`docs/validation/build15-distribution-2026-10-22.json`. Existing gameplay checks
+from the boss-geometry pass remain the validation basis; this request changes
+release identity only.
+
+### Weapon power investigation and presentation corrections (22 October 2026)
+
+Creator reports weak primary/delayed/AoE payoff and asks for a researched numerical
+balance plan, bigger/slowing spore ground, quieter companion lightning and Rail
+Lance sight. Added docs/WEAPON_POWER_BALANCE_PLAN.md with proposed values,
+source research, delivery/FX-cap findings, compatibility and normal-build gates.
+No combat damage/radius/slow changes were applied. Controlled real-runtime audit
+records Shotgun4.32 at130 versus1.247 at330; Mortar4.5; full Spore capsule+patch2.5
+against an unarmored stationary target. Standalone patch exposure at0/60/90/105
+speed gives1.8/1.8/1.6/1.4, movement multiplier1. Saved evidence:
+docs/validation/weapon-power-baseline-2026-10-22.json. This is not full-run proof.
+
+Companion links now use a thin muted sage stroke with no pale core/forks/endpoint
+flash; Arc/weapon chains and damage/cadence remain unchanged. Online rendering
+understands an explicit companion role and the current server's.12s drone/.16s
+weapon chain duration contract without requiring a server rollout. Rail now has
+a steady dotted sight using the same assisted muzzle/heading and solid clipping
+as firing; no sway/charge/release/mechanics change. Hide when idle, reload/empty,
+entrance or blocked muzzle. Reviewed rendered floor comparisons in
+build/test-previews/companion-link-quiet.png and rail-lance-sight.png.
+Analyzer clean;102 focused combat tests pass, plus the final Rail render/cover
+rerun after contrast adjustment. No build-number bump, installation or deployment
+performed in this investigation. Physical brightness/sight and future numerical
+balance acceptance remain for creator review.

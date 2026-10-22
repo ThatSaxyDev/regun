@@ -533,6 +533,7 @@ class RegunGame extends FlameGame
     int damage = 1,
     String cause = 'Ground strike',
     bool poison = false,
+    BossKind? bossKind,
     CombatHealth? ownerHealth,
   }) {
     if (_hazards.length + _bossAttacks.length >= 8) return;
@@ -546,6 +547,7 @@ class RegunGame extends FlameGame
       cause: cause,
       poison: poison,
       ownerHealth: ownerHealth,
+      bossKind: bossKind,
     );
     _hazards.add(hazard);
     world.add(hazard);

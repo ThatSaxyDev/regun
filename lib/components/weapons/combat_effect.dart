@@ -11,6 +11,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
     this.endpoint,
     bool floorEffect = false,
     this.upgradePulse = false,
+    this.companion = false,
     this.dashDirection,
     this.remains,
     this.flipRemains = false,
@@ -28,7 +29,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
              ? -10
              : 20010,
        );
-  final bool upgradePulse;
+  final bool upgradePulse, companion;
   final Vector2? dashDirection;
   final Vector2? endpoint;
   final Sprite? remains;
@@ -94,6 +95,15 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
     }
     if (endpoint != null) {
       final end = (endpoint! - position).toOffset();
+      if (companion) {
+        AttackVfx.companionLightning(
+          canvas,
+          Offset.zero,
+          end,
+          (1 - age / duration).clamp(0, 1),
+        );
+        return;
+      }
       AttackVfx.lightning(
         canvas,
         Offset.zero,
