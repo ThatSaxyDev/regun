@@ -1030,3 +1030,20 @@ Final survivor validation: analyzer clean;494 tests pass/five optional skips.
 boss-pair/Cinder decoded art25.34MiB under32MiB. iOS debug simulator build succeeds.
 Evidence: validation/survivor-expansion-2026-10-22/. No phone install or server
 deployment in this pass; physical acceptance remains open.
+
+## 22 October 2026 — readable upgrade offers
+
+Normal solo/airdrop offers now lead with a short effect description and meaningful
+counts, damage, chances or timing. Raw world measurements and offer weights live
+behind an inline Details action; Training opens with full values. Disclosure is
+keyed to the offer/rank and cannot choose an upgrade. Late Scattershot describes
+spread, and important healing gates and wounded-target conditions remain visible.
+Collection and online cards share the clearer effect descriptions; online values
+remain server-owned. Existing formulas, ranks, timing, card alignment and selection
+contracts are preserved. Focused widget checks cover disclosure without purchase,
+Training defaults, compact screens/large text and aligned Ban actions. Rendered
+normal/expanded cards were inspected under build/test-previews/upgrade-*.png.
+Native readability remains for creator review; no installation in this pass.
+
+Upgrade-copy verification: `make verify` passes (analyzer clean;498 tests pass,
+five optional skips). No gameplay balance changes or phone installation.

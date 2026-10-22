@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "build": "14",
+  "bundleId": "dev.kiishi.regun",
+  "export": "app-store-connect",
+  "artifact": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun/build/ios/ipa/regun-1.0.0-14.ipa",
+  "bytes": 160955225,
+  "sha256": "f4c145887905e5781888a8ad6622925085192738982fd23b879f35cc9ed61087",
+  "uploadedToApple": false,
+  "includesUpgradeAlignmentFix": true,
+  "androidDistributed": true,
+  "androidArtifact": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun/build/app/outputs/flutter-apk/regun-1.0.0-14.apk",
+  "androidBytes": 218050576,
+  "androidSha256": "93b47a8e50c6954a29c8865e54d89a05789912ca0fba75cf3d9f68a490da0bd9",
+  "androidFirebaseGroup": "playtesters",
+  "androidRelease": {
+    "name": "projects/225712394437/apps/1:225712394437:android:a774f7de7e22d0abd0e0ac/releases/6jdoh7u6dugb8",
+    "displayVersion": "1.0.0",
+    "buildVersion": "14",
+    "testerUri": "https://appdistribution.firebase.google.com/testerapps/1:225712394437:android:a774f7de7e22d0abd0e0ac/releases/6jdoh7u6dugb8?utm_source=firebase-tools",
+    "firebaseConsoleUri": "https://console.firebase.google.com/project/regun-979ea/appdistribution/app/android:dev.kiishi.regun/releases/6jdoh7u6dugb8?utm_source=firebase-tools",
+    "createTime": "2026-10-22T14:46:13.200058Z"
+  }
+}

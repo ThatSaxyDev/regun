@@ -11,6 +11,7 @@ String upgradeDetails(
   WeaponType weapon, {
   int balance = 2,
   CharacterType character = CharacterType.rook,
+  bool brief = false,
 }) {
   final r = s.rank(p), next = math.min(p.maxRank, r + 1);
   double e(int n) => GameState.scaledRank(
@@ -24,16 +25,32 @@ String upgradeDetails(
       '$label ${f(value(r))}$unit to ${f(value(next))}$unit';
   String pct(String label, double Function(int) value) =>
       delta(label, (n) => value(n) * 100, unit: '%');
+  // World-space measurements and internal offer weights belong in Details.
+  if (brief &&
+      const {
+        PowerUp.bulletRangeIncrease,
+        PowerUp.rapidFire,
+        PowerUp.walkingSpeedIncrease,
+        PowerUp.scavenger,
+        PowerUp.luckyFind,
+        PowerUp.accelerant,
+        PowerUp.grenadeRadius,
+        PowerUp.closeQuarters,
+      }.contains(p)) {
+    return '';
+  }
   switch (p) {
     case PowerUp.heavyLoad:
       return delta(
-        'Primary',
-        (n) => 1 + math.min(3, n) * .35 + math.max(0, n - 3) * .10,
-        unit: 'x',
+        brief ? 'Damage bonus' : 'Primary',
+        (n) => brief
+            ? math.min(3, n) * 35 + math.max(0, n - 3) * 10
+            : 1 + math.min(3, n) * .35 + math.max(0, n - 3) * .10,
+        unit: brief ? '%' : 'x',
       );
     case PowerUp.quickTrigger:
       return delta(
-        'Firing interval',
+        brief ? 'Time between shots' : 'Firing interval',
         (n) => weapon.cadence * math.pow(.85, e(n)),
         unit: 's',
       );
@@ -74,7 +91,7 @@ String upgradeDetails(
           ? 'Tighter projectile spread. Count stays ${count(r)}.'
           : delta('Projectiles', count);
     case PowerUp.bulletsPhaseThrough:
-      return delta('Extra penetrations', (n) => n);
+      return delta(brief ? 'Enemies pierced' : 'Extra penetrations', (n) => n);
     case PowerUp.bulletRangeIncrease:
       return 'Range ${math.min(weapon.rangeCeiling ?? 100000, s.bulletRange)} to ${math.min(weapon.rangeCeiling ?? 100000, s.bulletRange + (next <= 3 ? 60 : 24))}';
     case PowerUp.rapidFire:
@@ -107,7 +124,9 @@ String upgradeDetails(
     case PowerUp.luckyFind:
       return delta('Special offer weight', (n) => 1 + .35 * e(n), unit: 'x');
     case PowerUp.hotShot:
-      return '${delta('Burn / tick', (n) => n == 0 ? 0 : .25 + .20 * e(n))}. 3s burn.';
+      return brief
+          ? 'Burns for 3s.'
+          : '${delta('Burn / tick', (n) => n == 0 ? 0 : .25 + .20 * e(n))}. 3s burn.';
     case PowerUp.accelerant:
       return '${delta('Spread radius', (n) => balance >= 2 ? 130 + 35 * e(n) : 100 + 30 * e(n))}. One spread generation.';
     case PowerUp.staticCharge:
@@ -130,24 +149,27 @@ String upgradeDetails(
       );
     case PowerUp.lastShell:
       return delta(
-        'Final release',
+        brief ? 'Last-shot damage' : 'Final release',
         (n) => 1 + (s.fused('breachEngine') ? .9 : .6) * e(n),
         unit: 'x',
       );
     case PowerUp.breachLoader:
       return delta(
-        'After reload',
+        brief ? 'First-shot damage' : 'After reload',
         (n) => 1 + (s.fused('breachEngine') ? .8 : .5) * e(n),
         unit: 'x',
       );
     case PowerUp.orbitDrone:
+      if (brief) {
+        return '${f(math.max(.3, 1 - .15 * e(next)))}s between drone shots.';
+      }
       return '${delta('Drone shot', (n) => (balance >= 2 ? .8 : .6) + .35 * e(n))}. ${f(math.max(.3, 1 - .15 * e(next)))}s interval.';
     case PowerUp.targetingLink:
       return delta('Marked drone damage', (n) => 1 + .3 * e(n), unit: 'x');
     case PowerUp.shrapnel:
-      return '${pct('Kill proc', (n) => .18 * e(n))}. ${3 + next} shards.';
+      return '${pct(brief ? 'Chance on kill' : 'Kill proc', (n) => .18 * e(n))}. ${3 + next} shards.';
     case PowerUp.executioner:
-      return '${delta('Wounded primary', (n) => 1 + .3 * e(n), unit: 'x')}. Below 35% HP.';
+      return '${delta(brief ? 'Shot damage' : 'Wounded primary', (n) => 1 + .3 * e(n), unit: 'x')}. Below 35% HP.';
     case PowerUp.grenadeDamage:
       return delta(
         'Grenade damage',
@@ -179,7 +201,7 @@ String upgradeDetails(
     case PowerUp.exposedSeam:
       return pct('Frozen primary bonus', (n) => .06 * e(n));
     case PowerUp.measuredShot:
-      return '${pct('Prepared release bonus', (n) => .08 * e(n))}. Wait 0.8s; shared bonus cap 60%.';
+      return '${pct(brief ? 'Shot damage bonus' : 'Prepared release bonus', (n) => .08 * e(n))}. Wait 0.8s${brief ? '.' : '; shared bonus cap 60%.'}';
     case PowerUp.closeQuarters:
       return '${pct('Close primary bonus', (n) => .06 * e(n))}. Inside 160 range; shared bonus cap 60%.';
     case PowerUp.sprintDistanceIncrease:
@@ -188,3 +210,21 @@ String upgradeDetails(
       return 'Gain 5 scrap and recover one HP.';
   }
 }
+
+/// The behavior comes first; exact calculations remain available on demand.
+String upgradeDescription(PowerUp p, {int rank = 0}) => switch (p) {
+  PowerUp.heavyLoad => 'Primary shots deal more damage.',
+  PowerUp.quickTrigger => 'Fire more often.',
+  PowerUp.maxBulletsIncrease => 'Carry more rounds. Refill immediately.',
+  PowerUp.numberOfBulletsPerShotIncrease when rank >= 3 =>
+    'Tighten your projectile spread.',
+  PowerUp.numberOfBulletsPerShotIncrease => 'Fire more projectiles per shot.',
+  PowerUp.fieldMedic => 'Kills can restore one heart.',
+  PowerUp.sprintInvincibility => 'Stay protected longer after a dash.',
+  PowerUp.lastShell => 'The last shot in your magazine hits harder.',
+  PowerUp.sureFoot => 'Move faster with a heavy weapon.',
+  PowerUp.measuredShot => 'Wait between shots to empower the next one.',
+  PowerUp.closeQuarters => 'Primary shots hit harder up close.',
+  PowerUp.executioner => 'Primary shots hit harder below 35% enemy health.',
+  _ => p.description,
+};

@@ -75,7 +75,7 @@ class _CollectionViewState extends State<CollectionView> {
                   .map(
                     (p) => _card(
                       p.title,
-                      '${p.group.name.toUpperCase()} / ${p.maxRank} RANKS\n${p.description}\n${upgradeDetails(p, GameState(), WeaponType.shotgun)}',
+                      '${p.group.name.toUpperCase()} / ${p.maxRank} RANKS\n${upgradeDescription(p)}\n${upgradeDetails(p, GameState(), WeaponType.shotgun)}',
                       width,
                     ),
                   )

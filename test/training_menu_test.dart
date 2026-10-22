@@ -48,6 +48,7 @@ void main() {
     bool completedIntro = false,
     double scale = 1,
     bool intro = false,
+    bool training = true,
   }) async {
     SharedPreferences.setMockInitialValues({});
     late RegunGame game;
@@ -66,7 +67,7 @@ void main() {
             home: RepaintBoundary(
               key: const Key('capture'),
               child: BaseView(
-                loadout: const Loadout(training: true),
+                loadout: Loadout(training: training),
                 showTrainingIntro: intro,
               ),
             ),
@@ -104,6 +105,128 @@ void main() {
       image.dispose();
     });
   }
+
+  testWidgets(
+    'upgrade rows align card edges and Ban actions with unequal copy',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const choices = [
+        PowerUp.closeQuarters,
+        PowerUp.executioner,
+        PowerUp.grenadeDamage,
+      ];
+      for (final layout in [
+        (const Size(844, 390), 1.0),
+        (const Size(568, 320), 1.5),
+      ]) {
+        tester.view.physicalSize = layout.$1;
+        final game = await mount(tester, scale: layout.$2);
+        final snapshot = game.gameNotifier.checkpoint();
+        final state = snapshot['state'] as Map<String, dynamic>;
+        state['gameplayState'] = 'powerup';
+        state['powerUpChoices'] = choices.map((p) => p.name).toList();
+        state['bans'] = 2;
+        game.gameNotifier.restoreCheckpoint(snapshot);
+        game.resumeGame();
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+        expect(
+          find.text('Primary shots hit harder below 35% enemy health.'),
+          findsOneWidget,
+        );
+        expect(find.text('LESS DETAIL'), findsWidgets);
+        final cards = [
+          for (final choice in choices)
+            tester.getRect(
+              find.byKey(ValueKey('upgrade-card-${choice.title}')),
+            ),
+        ];
+        final bans = [
+          for (final choice in choices)
+            tester.getRect(
+              find.descendant(
+                of: find.byKey(ValueKey('upgrade-card-${choice.title}')),
+                matching: find.text('BAN'),
+              ),
+            ),
+        ];
+        for (var i = 0; i < cards.length; i++) {
+          expect(cards[i].left, greaterThanOrEqualTo(0));
+          expect(cards[i].right, lessThanOrEqualTo(layout.$1.width));
+          for (var j = i + 1; j < cards.length; j++) {
+            if ((cards[i].top - cards[j].top).abs() < 1) {
+              expect(cards[i].bottom, closeTo(cards[j].bottom, .01));
+              expect(bans[i].bottom, closeTo(bans[j].bottom, .01));
+            }
+          }
+        }
+        if (layout.$2 == 1) {
+          expect(cards[0].top, cards[2].top);
+          await capture(tester, 'upgrade-aligned');
+        } else {
+          await tester.ensureVisible(find.text('REROLL (2)'));
+          await tester.pump();
+          expect(find.text('REROLL (2)').hitTestable(), findsOneWidget);
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+      }
+    },
+  );
+
+  testWidgets(
+    'normal offers explain effects; Details never buys and stays reachable at large text',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      for (final layout in [
+        (const Size(844, 390), 1.0),
+        (const Size(568, 320), 1.5),
+      ]) {
+        tester.view.physicalSize = layout.$1;
+        final game = await mount(tester, scale: layout.$2, training: false);
+        final snapshot = game.gameNotifier.checkpoint();
+        final state = snapshot['state'] as Map<String, dynamic>;
+        state['gameplayState'] = 'powerup';
+        state['powerUpChoices'] = ['heavyLoad', 'scavenger', 'fastReload'];
+        game.gameNotifier.restoreCheckpoint(snapshot);
+        game.resumeGame();
+        await tester.pump();
+        expect(find.text('Primary shots deal more damage.'), findsOneWidget);
+        expect(find.text('Damage bonus 0% to 35%'), findsOneWidget);
+        expect(find.text('Primary 1x to 1.35x'), findsNothing);
+        final card = find.byKey(const ValueKey('upgrade-card-Heavy Load'));
+        final details = find.descendant(
+          of: card,
+          matching: find.text('DETAILS'),
+        );
+        await tester.ensureVisible(details);
+        await tester.tap(details);
+        await tester.pump();
+        expect(find.text('Primary 1x to 1.35x'), findsOneWidget);
+        expect(game.gameState.rank(PowerUp.heavyLoad), 0);
+        expect(game.gameState.gameplayState, GameplayState.powerup);
+        expect(game.gameState.powerUpChoices.length, 3);
+        if (layout.$2 == 1) await capture(tester, 'upgrade-details');
+        final less = find.descendant(
+          of: card,
+          matching: find.text('LESS DETAIL'),
+        );
+        await tester.ensureVisible(less);
+        await tester.tap(less);
+        await tester.pump();
+        expect(find.text('Primary 1x to 1.35x'), findsNothing);
+        if (layout.$2 == 1) await capture(tester, 'upgrade-simple');
+        await tester.ensureVisible(find.text('REROLL (2)'));
+        await tester.pump();
+        expect(find.text('REROLL (2)').hitTestable(), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      }
+    },
+  );
 
   testWidgets(
     'returning training skips tutorial clutter; pause actions stay pinned with animated weapon art',

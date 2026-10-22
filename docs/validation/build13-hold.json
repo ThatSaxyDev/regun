@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0+13",
+  "status": "held at creator request",
+  "firebaseUploaded": false,
+  "appleUploaded": false,
+  "ipaIncludesUpgradeAlignmentFix": false,
+  "note": "IPA export completed before the card alignment fix. Rebuild before any future distribution.",
+  "alignmentValidation": "flutter analyze clean; 4 training menu widget tests passed; rendered upgrade-aligned.png reviewed"
+}

@@ -1,3 +1,4 @@
+import 'package:regun/widgets/upgrade_offer_copy.dart';
 import 'package:regun/systems/upgrade_details.dart';
 import 'package:regun/presentation/game_layout.dart';
 import 'package:regun/widgets/game_notice.dart';
@@ -956,45 +957,72 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
               : 'Level ${state.currentLevel}',
         ),
         const SizedBox(height: 16),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          alignment: WrapAlignment.center,
-          children: [
-            for (final id in state.evolutionChoices)
-              _upgradeCard(
-                fusionRecipes.firstWhere((r) => r.id == id).title,
-                fusionRecipes.firstWhere((r) => r.id == id).description,
-                'FUSION',
-                () => _myGame.gameNotifier.fuse(id, offerId: state.offerId),
-                glyph: fusionGlyph(id),
-              ),
-            for (final choice in state.powerUpChoices)
-              _upgradeCard(
-                choice.title,
-                upgradeDetails(
-                  choice,
-                  state,
-                  _myGame.loadout.weapon,
-                  balance: _myGame.gameNotifier.buildBalance,
-                  character: _myGame.loadout.character,
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth:
+                ((state.evolutionChoices.length + state.powerUpChoices.length) *
+                            222 -
+                        12)
+                    .clamp(210, 654)
+                    .toDouble(),
+          ),
+          child: MenuCardGrid(
+            minColumnWidth: 210,
+            children: [
+              for (final id in state.evolutionChoices)
+                _upgradeCard(
+                  fusionRecipes.firstWhere((r) => r.id == id).title,
+                  fusionRecipes.firstWhere((r) => r.id == id).description,
+                  'FUSION',
+                  () => _myGame.gameNotifier.fuse(id, offerId: state.offerId),
+                  glyph: fusionGlyph(id),
                 ),
-                choice == PowerUp.salvage
-                    ? 'RECOVERY'
-                    : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${choice.maxRank}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',
-                () => _myGame.gameNotifier.applyPowerUp(
-                  choice,
-                  offerId: state.offerId,
+              for (final choice in state.powerUpChoices)
+                _upgradeCard(
+                  choice.title,
+                  upgradeDescription(choice, rank: state.rank(choice)),
+                  choice == PowerUp.salvage
+                      ? 'RECOVERY'
+                      : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${choice.maxRank}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',
+                  () => _myGame.gameNotifier.applyPowerUp(
+                    choice,
+                    offerId: state.offerId,
+                  ),
+                  copy: UpgradeOfferCopy(
+                    key: ValueKey(
+                      '${state.offerId}-${choice.name}-${state.rank(choice)}',
+                    ),
+                    description: upgradeDescription(
+                      choice,
+                      rank: state.rank(choice),
+                    ),
+                    summary: upgradeDetails(
+                      choice,
+                      state,
+                      _myGame.loadout.weapon,
+                      balance: _myGame.gameNotifier.buildBalance,
+                      character: _myGame.loadout.character,
+                      brief: true,
+                    ),
+                    details: upgradeDetails(
+                      choice,
+                      state,
+                      _myGame.loadout.weapon,
+                      balance: _myGame.gameNotifier.buildBalance,
+                      character: _myGame.loadout.character,
+                    ),
+                    initiallyExpanded: _myGame.loadout.training,
+                  ),
+                  glyph: choice.glyph,
+                  onBan: state.bans > 0 && choice != PowerUp.salvage
+                      ? () => _myGame.gameNotifier.ban(
+                          choice,
+                          offerId: state.offerId,
+                        )
+                      : null,
                 ),
-                glyph: choice.glyph,
-                onBan: state.bans > 0 && choice != PowerUp.salvage
-                    ? () => _myGame.gameNotifier.ban(
-                        choice,
-                        offerId: state.offerId,
-                      )
-                    : null,
-              ),
-          ],
+            ],
+          ),
         ),
         if (state.evolutionChoices.isEmpty && state.rerolls > 0)
           Padding(
@@ -1016,8 +1044,10 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     String category,
     VoidCallback onTap, {
     VoidCallback? onBan,
+    Widget? copy,
     PixelGlyph glyph = PixelGlyph.star,
   }) => SizedBox(
+    key: ValueKey('upgrade-card-$title'),
     width: 210,
     child: Material(
       color: _panel,
@@ -1060,15 +1090,17 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                description,
-                style: const TextStyle(
-                  fontFamily: FontFam.orbitron,
-                  fontSize: 12,
-                  height: 1.4,
-                  color: _muted,
-                ),
-              ),
+              copy ??
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      fontFamily: FontFam.orbitron,
+                      fontSize: 12,
+                      height: 1.4,
+                      color: _muted,
+                    ),
+                  ),
+              const Spacer(),
               if (onBan != null)
                 Align(
                   alignment: Alignment.centerRight,

@@ -390,3 +390,14 @@ background must freeze timers; Continue must not replay charges, discharges,
 heals, rewards or unlock counters. Read TEN_SURVIVORS_IMPLEMENTATION_REVIEW.md for
 source ownership, exact values, migration and evidence. Human balance/readability,
 comfort/listening and physical performance acceptance remain open.
+
+## Upgrade copy and optional details — 22 October 2026
+
+In a normal run, compare the short effect explanation and visible ammo/damage/
+chance/timing changes. Open Details on Heavy Load, Scavenger and Lucky Find: full
+values should appear without spending the offer, XP or a rank. Collapse again;
+choose, reroll or ban and ensure the next offer starts concise. In Training the
+full breakdown starts open. Check later Scattershot ranks describe tighter spread,
+not additional projectiles. Check supply offers too. Repeat at larger text:
+Details, Ban, Reroll and every card must remain reachable by scrolling; cards in
+the same row keep aligned edges. Review readability and decision speed on a phone.

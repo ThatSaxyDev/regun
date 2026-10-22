@@ -1,3 +1,5 @@
+import 'package:regun/systems/upgrade_details.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -111,7 +113,9 @@ class OnlineUpgradePicker extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  power?.description ?? recipe?.description ?? '',
+                  power != null
+                      ? upgradeDescription(power, rank: session.gun!.rank(id))
+                      : recipe?.description ?? '',
                   style: const TextStyle(
                     color: Color(0xffB9B7AF),
                     fontSize: 12,
