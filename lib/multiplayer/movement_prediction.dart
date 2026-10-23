@@ -67,10 +67,14 @@ class MotionBody {
     this.dashRemaining = 0,
     this.cooldown = 0,
     this.dashSeq = 0,
+    this.dashCapacity = 1,
+    this.dashCharges = -1,
+    this.rechargeRemaining = -1,
   });
   final Offset position, dashDirection;
   final double dashRemaining, cooldown;
-  final int dashSeq;
+  final int dashSeq, dashCapacity, dashCharges;
+  final double rechargeRemaining;
   MotionBody step(
     MotionInput? command,
     double dt,
@@ -81,7 +85,24 @@ class MotionBody {
   }) {
     var movement = command?.movement ?? Offset.zero;
     if (movement.distance > 1) movement /= movement.distance;
-    final dash = command != null && command.dash > dashSeq && cooldown <= 0;
+    var charges = dashCharges < 0 ? (cooldown > 0 ? 0 : 1) : dashCharges;
+    var recharge = rechargeRemaining < 0 ? cooldown : rechargeRemaining;
+    final dash =
+        command != null &&
+        command.dash > dashSeq &&
+        charges > 0 &&
+        dashRemaining <= 1e-9;
+    if (dash) {
+      charges--;
+      if (recharge <= 0) recharge = dashCooldown;
+    }
+    if (charges < dashCapacity) {
+      recharge -= dt;
+      while (recharge <= 1e-9 && charges < dashCapacity) {
+        charges++;
+        recharge = charges < dashCapacity ? recharge + dashCooldown : 0;
+      }
+    }
     var direction = dashDirection;
     if (dash) {
       direction = movement != Offset.zero ? movement : command.aim;
@@ -98,7 +119,10 @@ class MotionBody {
       ),
       dashDirection: direction,
       dashRemaining: math.max(0, remaining - dt),
-      cooldown: math.max(0, (dash ? dashCooldown : cooldown) - dt),
+      cooldown: charges > 0 ? 0 : math.max(0, recharge),
+      dashCapacity: dashCapacity,
+      dashCharges: charges,
+      rechargeRemaining: recharge,
       dashSeq: command?.dash ?? dashSeq,
     );
   }
@@ -235,6 +259,10 @@ class MovementPrediction {
       dashRemaining: (snapshot['dashRemaining'] as num).toDouble(),
       cooldown: (snapshot['cooldown'] as num).toDouble(),
       dashSeq: int.parse(snapshot['dashSeq'] as String),
+      dashCapacity: (snapshot['dashCapacity'] as num?)?.toInt() ?? 1,
+      dashCharges: (snapshot['dashCharges'] as num?)?.toInt() ?? -1,
+      rechargeRemaining:
+          (snapshot['rechargeRemaining'] as num?)?.toDouble() ?? -1,
     );
     speed = (snapshot['speed'] as num).toDouble();
     dashCooldown = (snapshot['dashCooldown'] as num).toDouble();

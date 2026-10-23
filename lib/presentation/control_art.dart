@@ -75,6 +75,9 @@ class ControlArt {
     required double opacity,
     bool active = false,
     double cooldown = 0,
+    int capacity = 1,
+    int charges = 1,
+    double chargeProgress = 1,
   }) {
     Color tone(int v) => _tone(v, opacity);
     final ink = active ? tone(0xffF1C77C) : tone(0xffD6CAB9);
@@ -113,7 +116,24 @@ class ControlArt {
       ),
     )..layout();
     text.paint(canvas, Offset((112 - text.width) / 2, 96));
-    if (glyph == PixelGlyph.dash && cooldown > 0) {
+    if (glyph == PixelGlyph.dash && capacity > 1) {
+      for (var i = 0; i < capacity; i++) {
+        final r = Rect.fromLTWH(56 - capacity * 10 + i * 20, 73, 16, 7);
+        canvas.drawRect(r, Paint()..color = tone(0xff443e42));
+        if (i < charges || (i == charges && chargeProgress > 0)) {
+          canvas.drawRect(
+            Rect.fromLTWH(
+              r.left,
+              r.top,
+              r.width * (i < charges ? 1 : chargeProgress.clamp(0, 1)),
+              r.height,
+            ),
+            Paint()..color = ink,
+          );
+        }
+      }
+    }
+    if (glyph == PixelGlyph.dash && capacity == 1 && cooldown > 0) {
       canvas.drawRect(
         Rect.fromLTWH(18, 81, 76 * (1 - cooldown.clamp(0, 1)), 4),
         Paint()..color = tone(0xffE1BA78),
@@ -149,11 +169,16 @@ class OnlineActionSkin extends CustomPainter {
     required this.opacity,
     this.active = false,
     this.cooldown = 0,
+    this.capacity = 1,
+    this.charges = 1,
+    this.chargeProgress = 1,
   });
   final PixelGlyph glyph;
   final String label;
   final double opacity, cooldown;
   final bool active;
+  final int capacity, charges;
+  final double chargeProgress;
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
@@ -165,12 +190,18 @@ class OnlineActionSkin extends CustomPainter {
       opacity: opacity,
       active: active,
       cooldown: cooldown,
+      capacity: capacity,
+      charges: charges,
+      chargeProgress: chargeProgress,
     );
     canvas.restore();
   }
 
   @override
   bool shouldRepaint(OnlineActionSkin old) =>
+      capacity != old.capacity ||
+      charges != old.charges ||
+      chargeProgress != old.chargeProgress ||
       glyph != old.glyph ||
       label != old.label ||
       opacity != old.opacity ||

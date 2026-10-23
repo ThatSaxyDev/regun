@@ -988,11 +988,13 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 ),
               for (final choice in state.powerUpChoices)
                 _upgradeCard(
-                  choice.title,
+                  choice == PowerUp.dashCapacity && state.rank(choice) > 0
+                      ? 'Triple Dash'
+                      : choice.title,
                   upgradeDescription(choice, rank: state.rank(choice)),
                   choice == PowerUp.salvage
                       ? 'RECOVERY'
-                      : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${choice.maxRank}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',
+                      : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${state.rankLimit(choice)}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',
                   () => _myGame.gameNotifier.applyPowerUp(
                     choice,
                     offerId: state.offerId,

@@ -44,45 +44,39 @@ void main() {
     notifier.applyPowerUp(power, offerId: state().offerId);
   }
 
-  test(
-    'every upgrade family remains selectable through eight ranks, then stops',
-    () {
-      for (final power in powerUps) {
-        final weapon = power == PowerUp.exposedSeam
-            ? WeaponType.frostShotgun
-            : power == PowerUp.sureFoot
-            ? WeaponType.arcCaster
-            : WeaponType.shotgun;
-        notifier.resetRun(loadout: Loadout(weapon: weapon));
-        if (power == PowerUp.accelerant || power == PowerUp.scouringHeat) {
-          grant(PowerUp.hotShot);
-        }
-        if (power == PowerUp.conductiveCore || power == PowerUp.faradayReserve) {
-          grant(PowerUp.staticCharge);
-        }
-        if (power == PowerUp.bankShot) grant(PowerUp.ricochet);
-        if (power == PowerUp.targetingLink) grant(PowerUp.orbitDrone);
-        for (var rank = 1; rank <= 8; rank++) {
-          expect(
-            eligiblePowerUps(state(), weapon: weapon),
-            contains(power),
-            reason: '${power.name} $rank',
-          );
-          grant(power);
-          expect(state().rank(power), rank);
-        }
+  test('every upgrade family remains selectable through its own rank cap, then stops', () {
+    for (final power in powerUps) {
+      final weapon = power == PowerUp.exposedSeam
+          ? WeaponType.frostShotgun
+          : power == PowerUp.sureFoot
+          ? WeaponType.arcCaster
+          : WeaponType.shotgun;
+      notifier.resetRun(loadout: Loadout(weapon: weapon));
+      if (power == PowerUp.accelerant || power == PowerUp.scouringHeat) {
+        grant(PowerUp.hotShot);
+      }
+      if (power == PowerUp.conductiveCore || power == PowerUp.faradayReserve) {
+        grant(PowerUp.staticCharge);
+      }
+      if (power == PowerUp.bankShot) grant(PowerUp.ricochet);
+      if (power == PowerUp.targetingLink) grant(PowerUp.orbitDrone);
+      for (var rank = 1; rank <= power.maxRank; rank++) {
         expect(
           eligiblePowerUps(state(), weapon: weapon),
-          isNot(contains(power)),
+          contains(power),
+          reason: '${power.name} $rank',
         );
-        grant(power); // A stale offered card must not grant rank nine.
-        expect(state().rank(power), 8);
-        final saved = notifier.checkpoint();
-        notifier.restoreCheckpoint(saved);
-        expect(state().rank(power), 8);
+        grant(power);
+        expect(state().rank(power), rank);
       }
-    },
-  );
+      expect(eligiblePowerUps(state(), weapon: weapon), isNot(contains(power)));
+      grant(power); // A stale offered card must not grant rank nine.
+      expect(state().rank(power), power.maxRank);
+      final saved = notifier.checkpoint();
+      notifier.restoreCheckpoint(saved);
+      expect(state().rank(power), power.maxRank);
+    }
+  });
 
   test('magazine pickup refills now, cancels reload, and its short cue freezes on pause', () {
     for (var i = 0; i < 5; i++) {

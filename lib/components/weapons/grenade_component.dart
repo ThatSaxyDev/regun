@@ -182,6 +182,7 @@ class GrenadeButtonComponent extends PositionComponent
     final g = game.grenades;
     GrenadeButtonPainter(
       charges: g.charges,
+      capacity: g.capacity,
       progress: g.progress,
       remaining: g.remaining,
       pressed: flash > 0 || aim.active,

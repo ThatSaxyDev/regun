@@ -1233,3 +1233,14 @@ Automatic checkpoint scheduling/lifecycle saves and RunStore recovery were not
 replaced. Background refresh remains deduplicated, bounded and best effort, with
 last-good cache/bundled fallback. Transport-construction failures are contained too.
 No online account/configuration lookup is awaited by offline run entry.
+
+## Dash and grenade reserve upgrades — 23 October 2026
+
+Added Double Dash → Triple Dash and Grenade Reserve, two ranks each;43 offered
+families. Stored charges refill sequentially, purchase adds only a new loaded slot,
+and pause/entrance freeze recharge. Custom controls show3/4 bounded charge markers.
+Admin exposes upgraded capacity totals (dash2–3, grenades3–4), validated by the
+shared211-field API catalogue and pinned into new runs. Lower caps remove redundant
+offers. Old snapshots retain hashes and Save/Continue retains exact charges/timers.
+Server-authoritative online protocol4 includes reserve state in prediction acks;
+older clients do not receive unsupported offers. See CHARGE_CAPACITY_UPGRADES.md.

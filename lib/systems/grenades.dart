@@ -3,13 +3,20 @@ import 'dart:ui';
 
 /// Separate secondary ammunition. Only active simulation time advances this.
 class GrenadeInventory {
-  int charges = 2;
+  int capacity = 2, charges = 2;
+  void setCapacity(int value) {
+    final next = value.clamp(2, 4);
+    charges = (charges + math.max(0, next - capacity)).clamp(0, next).toInt();
+    capacity = next;
+    if (charges == capacity) remaining = 0;
+  }
+
   double remaining = 0, cooldown = 0, duration = 18;
   bool get ready => charges > 0 && cooldown <= 0;
   double get progress =>
       remaining <= 0 ? 1 : (1 - remaining / duration).clamp(0, 1);
   void reset() {
-    charges = 2;
+    charges = capacity;
     remaining = 0;
     cooldown = 0;
     duration = 18;
@@ -29,29 +36,34 @@ class GrenadeInventory {
   void advance(double dt, double recharge) {
     if (!dt.isFinite || dt <= 0) return;
     cooldown = math.max(0, cooldown - dt);
-    if (charges >= 2) return;
+    if (charges >= capacity) return;
     remaining -= dt;
-    while (remaining <= 1e-9 && charges < 2) {
+    while (remaining <= 1e-9 && charges < capacity) {
       charges++;
       duration = recharge;
-      remaining = charges < 2 ? remaining + recharge : 0;
+      remaining = charges < capacity ? remaining + recharge : 0;
     }
   }
 
   Map<String, dynamic> toJson() => {
+    'capacity': capacity,
     'charges': charges,
     'remaining': remaining,
     'cooldown': cooldown,
     'duration': duration,
   };
   void restore(Map<String, dynamic> data) {
+    final cap = data['capacity'] ?? 2;
     final c = data['charges'],
         r = data['remaining'],
         d = data['duration'],
         t = data['cooldown'];
-    if (c is! int ||
+    if (cap is! int ||
+        cap < 2 ||
+        cap > 4 ||
+        c is! int ||
         c < 0 ||
-        c > 2 ||
+        c > cap ||
         [r, d, t].any((v) => v is! num || !v.isFinite) ||
         (r as num) < 0 ||
         r > 18 ||
@@ -59,10 +71,11 @@ class GrenadeInventory {
         d > 18 ||
         (t as num) < 0 ||
         t > .25 ||
-        (c == 2 && r != 0) ||
-        (c < 2 && r <= 0)) {
+        (c == cap && r != 0) ||
+        (c < cap && r <= 0)) {
       throw const FormatException('Invalid grenade inventory');
     }
+    capacity = cap;
     charges = c;
     remaining = r.toDouble();
     duration = d.toDouble();

@@ -21,6 +21,7 @@ extension UpgradeGlyph on PowerUp {
     PowerUp.healthIncrease => PixelGlyph.heart,
     PowerUp.fieldMedic => PixelGlyph.cross,
     PowerUp.scrapArmour || PowerUp.sprintInvincibility => PixelGlyph.shield,
+    PowerUp.dashCapacity ||
     PowerUp.sureFoot ||
     PowerUp.quickstep ||
     PowerUp.sprintDistanceIncrease => PixelGlyph.dash,
@@ -34,6 +35,7 @@ extension UpgradeGlyph on PowerUp {
     PowerUp.conductiveCore => PixelGlyph.bolt,
     PowerUp.blastHarness ||
     PowerUp.sprintMine ||
+    PowerUp.grenadeCapacity ||
     PowerUp.grenadeDamage ||
     PowerUp.grenadeRadius => PixelGlyph.mine,
     PowerUp.grenadeRecharge => PixelGlyph.reload,

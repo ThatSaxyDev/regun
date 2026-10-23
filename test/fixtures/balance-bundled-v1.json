@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "catalogId": "b0645115a8e83d7ff60c345d05c7e911f49f4c5474438b23a7e9efce9952840b",
+  "catalogId": "fdcdd8aecb83edca522ffd05280e24470901d237486fd3fa68fc8e17b2eca9ed",
   "revision": 0,
-  "hash": "e91b04f9e980e134d87c0aa79736b1a9e6a5711d9ab5b2636fc776955ad84ea1",
+  "hash": "70bcac4dcce769be4275875fb0d9951363bf5e043909c2488e629a5050133c37",
   "values": {
     "weapons.shotgun.damage": 1.7,
     "weapons.shotgun.capacity": 5,
@@ -185,6 +185,8 @@
     "powerups.fieldMedic.strength": 1,
     "powerups.scrapArmour.strength": 1,
     "powerups.quickstep.strength": 1,
+    "powerups.dashCapacity.capacity": 3,
+    "powerups.grenadeCapacity.capacity": 4,
     "powerups.sprintInvincibility.strength": 1,
     "powerups.scavenger.strength": 1,
     "powerups.luckyFind.strength": 1,

@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-23",
+  "families": 43,
+  "catalogFields": 211,
+  "capacityControls": {
+    "powerups.dashCapacity.capacity": {
+      "default": 3,
+      "min": 2,
+      "max": 3
+    },
+    "powerups.grenadeCapacity.capacity": {
+      "default": 4,
+      "min": 3,
+      "max": 4
+    }
+  },
+  "gameTests": {
+    "passed": 547,
+    "skipped": 5
+  },
+  "adminTests": {
+    "passed": 27
+  },
+  "serverTests": {
+    "passed": 107
+  },
+  "gateway": "9 unit tests and compiled HTTP smoke passed",
+  "analyzers": "game/admin clean",
+  "builds": [
+    "SpacetimeDB module",
+    "Node gateway",
+    "Regun Admin macOS release"
+  ],
+  "gameReleaseRebuilt": false,
+  "physicalAcceptance": "not performed",
+  "serverCommit": "0478d3f",
+  "liveSchemaChargeUpgrades": true
+}

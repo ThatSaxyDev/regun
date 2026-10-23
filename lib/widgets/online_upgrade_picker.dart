@@ -104,7 +104,7 @@ class OnlineUpgradePicker extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${power?.title ?? recipe?.title ?? id}${fusion || id == 'salvage' ? '' : ' $rankName'}',
+                  '${power == PowerUp.dashCapacity && rank == 2 ? 'Triple Dash' : power?.title ?? recipe?.title ?? id}${fusion || id == 'salvage' ? '' : ' $rankName'}',
                   style: const TextStyle(
                     fontFamily: FontFam.orbitron,
                     color: Color(0xffE5DDD1),

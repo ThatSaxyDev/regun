@@ -673,6 +673,7 @@ class RegunGame extends FlameGame
   bool _upgradePulsePending = false;
   void _queueUpgradePulse() => _upgradePulsePending = true;
   final grenades = GrenadeInventory();
+  void syncGrenadeCapacity() => grenades.setCapacity(gameState.grenadeCapacity);
   double get grenadeRecharge =>
       (GrenadeSpec.recharge(gameState.effectRank(PowerUp.grenadeRecharge)) -
               (loadout.character == CharacterType.fuse ? 2 : 0))
@@ -929,6 +930,7 @@ class RegunGame extends FlameGame
     _effects.clear();
     _fires.clear();
     _mines.clear();
+    grenades.setCapacity(2);
     grenades.reset();
     _upgradePulsePending = false;
     _hazards.clear();
@@ -975,6 +977,7 @@ class RegunGame extends FlameGame
   }
 
   Map<String, dynamic> checkpoint() {
+    syncGrenadeCapacity();
     Map<String, dynamic> actor(PositionComponent entity) {
       final enemy = entity as CombatEnemy;
       return {
@@ -1262,6 +1265,9 @@ class RegunGame extends FlameGame
       _upgradePulsePending = snapshot['upgradePulsePending'] == true;
       if (snapshot['grenadeInventory'] case final Map raw) {
         grenades.restore(Map<String, dynamic>.from(raw));
+        if (grenades.capacity != gameState.grenadeCapacity) {
+          throw const FormatException('Grenade capacity disagrees with build');
+        }
       }
       for (final raw in (snapshot['grenadeProjectiles'] as List? ?? []).take(
         4,
@@ -1857,6 +1863,7 @@ class RegunGame extends FlameGame
         final respawn = playerEntrance.respawning;
         playerEntrance.cancel();
         if (respawn) {
+          grenades.setCapacity(gameState.grenadeCapacity);
           grenades.reset();
           for (final shot
               in world.children.whereType<GrenadeComponent>().toList()) {
@@ -1923,6 +1930,7 @@ class RegunGame extends FlameGame
         _upgradePulsePending = false;
         combat.upgradePulse();
       }
+      syncGrenadeCapacity();
       grenades.advance(dt, grenadeRecharge);
       combat.update(dt);
     }

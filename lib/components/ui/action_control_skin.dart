@@ -29,6 +29,12 @@ class ActionControlSkin extends PositionComponent
       label: label,
       opacity: game.controls.opacity,
       active: active,
+      capacity: game.boostButtonComponent.reserve.capacity,
+      charges: game.boostButtonComponent.reserve.charges,
+      chargeProgress:
+          1 -
+          game.boostButtonComponent.reserve.remaining /
+              game.boostButtonComponent.reserve.duration,
       cooldown: glyph == PixelGlyph.dash
           ? game.boostButtonComponent.cooldownFraction
           : 0,

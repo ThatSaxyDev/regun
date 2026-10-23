@@ -4,6 +4,7 @@ import 'package:regun/systems/arsenal_system.dart';
 import 'package:regun/systems/freeze_state.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/systems/grenades.dart';
+import 'package:regun/systems/dash_reserve.dart';
 import 'package:regun/systems/supply_drops.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -91,6 +92,9 @@ class RunCheckpoint {
           map['upgradePulsePending'] is! bool) {
         return false;
       }
+      if (map.containsKey('dash')) {
+        DashReserve().restore(Map<String, dynamic>.from(map['dash'] as Map));
+      }
       if (map.containsKey('grenadeInventory')) {
         GrenadeInventory().restore(
           Map<String, dynamic>.from(map['grenadeInventory'] as Map),
@@ -116,7 +120,7 @@ class RunCheckpoint {
       }
       final state = GameState.fromJson(
         Map<String, dynamic>.from(map['state'] as Map),
-      );
+      ).copyWith(upgradeStrengths: power.upgradeStrengths);
       if (state.health <= 0 ||
           state.maxHealth < state.health ||
           state.maxHealth > 10000 ||
@@ -146,6 +150,12 @@ class RunCheckpoint {
           ) ||
           state.evolutions.any((id) => !fusionRecipes.any((r) => r.id == id))) {
         return false;
+      }
+      if (map['grenadeInventory'] case final Map raw) {
+        if ((raw['capacity'] ?? 2) != state.grenadeCapacity) return false;
+      }
+      if (map['dash'] case final Map raw) {
+        if ((raw['capacity'] ?? 1) != state.dashCapacity) return false;
       }
       bool number(dynamic value, double max) =>
           value is num && value.isFinite && value >= 0 && value <= max;

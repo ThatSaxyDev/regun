@@ -631,7 +631,7 @@ class GameNotifier extends Notifier<GameState> {
   void applyPowerUp(PowerUp powerUp, {int? offerId}) {
     if ((offerId != null && offerId != state.offerId) ||
         (powerUp != PowerUp.salvage &&
-            state.rank(powerUp) >= powerUp.maxRank) ||
+            state.rank(powerUp) >= state.rankLimit(powerUp)) ||
         state.gameplayState != GameplayState.powerup ||
         !state.powerUpChoices.contains(powerUp)) {
       return;
@@ -954,7 +954,9 @@ class GameNotifier extends Notifier<GameState> {
 class GameState {
   final Map<String, num> upgradeStrengths;
   double strength(PowerUp value) =>
-      (upgradeStrengths[value.name] ?? 1).toDouble();
+      (value == PowerUp.dashCapacity || value == PowerUp.grenadeCapacity)
+      ? 1
+      : (upgradeStrengths[value.name] ?? 1).toDouble();
   int countRank(PowerUp value) =>
       (rank(value) * strength(value)).round().clamp(0, 8);
   int integerGain(PowerUp value, int early, int late) {
@@ -962,6 +964,20 @@ class GameState {
         ((min(n, 3) * early + max(0, n - 3) * late) * strength(value)).round();
     return total(rank(value)) - total(max(0, rank(value) - 1));
   }
+
+  int rankLimit(PowerUp value) => switch (value) {
+    PowerUp.dashCapacity =>
+      (upgradeStrengths[value.name] ?? 3).toInt().clamp(2, 3) - 1,
+    PowerUp.grenadeCapacity =>
+      (upgradeStrengths[value.name] ?? 4).toInt().clamp(3, 4) - 2,
+    _ => value.maxRank,
+  };
+  int get dashCapacity =>
+      1 + rank(PowerUp.dashCapacity).clamp(0, rankLimit(PowerUp.dashCapacity));
+  int get grenadeCapacity =>
+      2 +
+      rank(PowerUp.grenadeCapacity)
+          .clamp(0, rankLimit(PowerUp.grenadeCapacity));
 
   final int maxHealth;
   final bool guard;
@@ -1323,6 +1339,16 @@ enum PowerUp {
     UpgradeGroup.utility,
   ),
   quickstep('Quickstep', 'Dash recharges faster.', UpgradeGroup.utility),
+  dashCapacity(
+    'Double Dash',
+    'Store another dash. Up to three.',
+    UpgradeGroup.utility,
+  ),
+  grenadeCapacity(
+    'Grenade Reserve',
+    'Carry another grenade. Up to four.',
+    UpgradeGroup.utility,
+  ),
   sprintInvincibility(
     'Afterimage',
     'Longer dash protection.',
@@ -1459,6 +1485,7 @@ enum PowerUp {
   final UpgradeGroup group;
   int get maxRank => switch (this) {
     PowerUp.salvage => 0,
+    PowerUp.dashCapacity || PowerUp.grenadeCapacity => 2,
     _ => 8,
   };
 }
@@ -1552,7 +1579,9 @@ List<PowerUp> eligiblePowerUps(
         state.maxBullets >= 24) {
       return false;
     }
-    if (state.banned.contains(p) || state.rank(p) >= p.maxRank) return false;
+    if (state.banned.contains(p) || state.rank(p) >= state.rankLimit(p)) {
+      return false;
+    }
     if (p.group == UpgradeGroup.special &&
         state.rank(p) == 0 &&
         specialSlots >= 6) {

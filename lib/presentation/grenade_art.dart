@@ -31,6 +31,7 @@ void paintGrenade(
 class GrenadeButtonPainter extends CustomPainter {
   const GrenadeButtonPainter({
     required this.charges,
+    this.capacity = 2,
     required this.progress,
     required this.remaining,
     this.aim,
@@ -39,7 +40,7 @@ class GrenadeButtonPainter extends CustomPainter {
     this.opacity = 1,
   });
   final Offset? aim;
-  final int charges;
+  final int charges, capacity;
   final double progress, remaining, opacity;
   final bool pressed, cancelled;
   @override
@@ -87,16 +88,16 @@ class GrenadeButtonPainter extends CustomPainter {
       canvas.restore();
       _text(canvas, '${remaining.ceil()}s', 15, ink, 53);
     }
-    for (var i = 0; i < 2; i++) {
-      final r = Rect.fromLTWH(35 + i * 24.0, 73, 18, 8);
+    for (var i = 0; i < capacity; i++) {
+      final r = Rect.fromLTWH(56 - capacity * 10 + i * 20.0, 73, 16, 8);
       canvas.drawRect(r, Paint()..color = tone(0xff100d13));
       canvas.drawRect(
         r.deflate(1),
         Paint()..color = i < charges ? ink : tone(0xff443e42),
       );
-      if (i == charges && charges < 2) {
+      if (i == charges && charges < capacity) {
         canvas.drawRect(
-          Rect.fromLTWH(r.left + 1, r.top + 1, 16 * progress, 6),
+          Rect.fromLTWH(r.left + 1, r.top + 1, 14 * progress, 6),
           Paint()..color = tone(0xff9e8970),
         );
       }
@@ -133,6 +134,7 @@ class GrenadeButtonPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(GrenadeButtonPainter old) =>
+      old.capacity != capacity ||
       old.cancelled != cancelled ||
       old.aim != aim ||
       old.charges != charges ||
@@ -148,6 +150,7 @@ class GrenadeAimButton extends StatefulWidget {
     super.key,
     required this.size,
     required this.charges,
+    this.capacity = 2,
     required this.progress,
     required this.remaining,
     required this.opacity,
@@ -156,7 +159,7 @@ class GrenadeAimButton extends StatefulWidget {
     this.onThrow,
   });
   final double size, progress, remaining, opacity;
-  final int charges;
+  final int charges, capacity;
   final GrenadeAim input;
   final VoidCallback onChanged;
   final void Function(Offset?, double)? onThrow;
@@ -211,6 +214,7 @@ class _GrenadeAimButtonState extends State<GrenadeAimButton> {
       size: Size.square(widget.size),
       painter: GrenadeButtonPainter(
         charges: widget.charges,
+        capacity: widget.capacity,
         progress: widget.progress,
         remaining: widget.remaining,
         opacity: widget.opacity,

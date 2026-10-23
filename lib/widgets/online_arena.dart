@@ -701,6 +701,20 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                             active:
                                 session.predictedDashRemaining > 0 ||
                                 pointers.containsValue('dash'),
+                            capacity:
+                                session.movementPrediction.body?.dashCapacity ??
+                                1,
+                            charges:
+                                session.movementPrediction.body?.dashCharges ??
+                                1,
+                            chargeProgress:
+                                1 -
+                                (session
+                                            .movementPrediction
+                                            .body
+                                            ?.rechargeRemaining ??
+                                        0) /
+                                    session.predictedDashDuration,
                             cooldown:
                                 session.predictedDashCooldown /
                                 session.predictedDashDuration,
@@ -754,6 +768,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         charges: session.grenadesAvailable
                             ? session.gun?.grenadeCharges ?? 0
                             : 0,
+                        capacity: session.gun?.grenadeCapacity ?? 2,
                         progress: session.gun?.grenadeProgress ?? 0,
                         remaining: session.gun?.grenadeRemaining ?? 0,
                         opacity: controls.opacity,

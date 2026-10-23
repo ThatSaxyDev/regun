@@ -18,6 +18,7 @@ class OnlineGun {
   final String key;
   final Map<String, dynamic> data;
   final bool enabled, aiming;
+  int get grenadeCapacity => combatNumber(data, 'grenadeCapacity', 2).toInt();
   int get grenadeCharges => combatNumber(data, 'grenadeCharges', 2).toInt();
   double get grenadeCooldown => combatNumber(data, 'grenadeCooldown');
   double get grenadeRemaining => combatNumber(data, 'grenadeRemaining');
@@ -116,6 +117,7 @@ class OnlineRound {
         : key;
   }
 
+  int get grenadeCapacity => combatNumber(data, 'grenadeCapacity', 2).toInt();
   int get grenadeCharges => combatNumber(data, 'grenadeCharges', 2).toInt();
   double get grenadeCooldown => combatNumber(data, 'grenadeCooldown');
   double get grenadeRemaining => combatNumber(data, 'grenadeRemaining');

@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:regun/systems/dash_reserve.dart';
 import 'package:flame/events.dart';
 import 'package:regun/components/ui/action_control_skin.dart';
 import 'package:regun/game.dart';
@@ -22,20 +23,19 @@ class BoostButtonComponent extends AdvancedButtonComponent
 
   bool tapped;
   double _remaining = 0;
-  double _cooldown = 0, _cooldownDuration = 1.6;
-  Map<String, dynamic> checkpoint() => {
-    'remaining': _cooldown,
-    'duration': _cooldownDuration,
-  };
-  void restoreCheckpoint(Map<String, dynamic> map) {
-    _cooldown = ((map['remaining'] as num?)?.toDouble() ?? 0).clamp(0, 1.6);
-    _cooldownDuration = ((map['duration'] as num?)?.toDouble() ?? 1.6).clamp(
-      0.6,
-      1.6,
-    );
+  final reserve = DashReserve();
+  void syncCapacity() => reserve.setCapacity(game.gameState.dashCapacity);
+  double get recharge =>
+      (1.6 - game.gameState.effectRank(PowerUp.quickstep) * .25).clamp(.6, 1.6);
+  Map<String, dynamic> checkpoint() {
+    syncCapacity();
+    return reserve.toJson();
   }
 
-  double get cooldownFraction => (_cooldown / _cooldownDuration).clamp(0, 1);
+  void restoreCheckpoint(Map<String, dynamic> map) => reserve.restore(map);
+  double get cooldownFraction => reserve.charges > 0
+      ? 0
+      : (reserve.remaining / reserve.duration).clamp(0, 1);
   void cancelDash() {
     tapped = false;
     _remaining = 0;
@@ -44,14 +44,18 @@ class BoostButtonComponent extends AdvancedButtonComponent
   void reset() {
     tapped = false;
     _remaining = 0;
-    _cooldown = 0;
+    reserve.setCapacity(game.gameState.dashCapacity);
+    reserve.charges = reserve.capacity;
+    reserve.remaining = 0;
   }
 
   @override
   void update(double dt) {
     super.update(dt);
     if (game.gameState.gameplayState != GameplayState.playing) return;
-    _cooldown = (_cooldown - dt).clamp(0, 1.6);
+    syncCapacity();
+    if (game.playerEntrance.active) return;
+    reserve.advance(dt, recharge);
     if (!tapped) return;
     _remaining -= dt;
     if (_remaining <= 0) {
@@ -66,9 +70,11 @@ class BoostButtonComponent extends AdvancedButtonComponent
     super.onTapDown(event);
     if (game.gameState.gameplayState != GameplayState.playing ||
         tapped ||
-        _cooldown > 0) {
+        reserve.charges <= 0) {
       return;
     }
+    syncCapacity();
+    if (!reserve.spend(recharge)) return;
     final movement = game.movementJoystick.relativeDelta;
     final aim = game.weaponJoystick.relativeDelta;
     game.myPlayer.dashDirection.setFrom(
@@ -78,9 +84,6 @@ class BoostButtonComponent extends AdvancedButtonComponent
           ? aim.normalized()
           : game.myPlayer.lastMovement,
     );
-    _cooldown = (1.6 - game.gameState.effectRank(PowerUp.quickstep) * 0.25)
-        .clamp(0.6, 1.6);
-    _cooldownDuration = _cooldown;
     game.dashCount++;
     game.combat.onDash();
     tapped = true;

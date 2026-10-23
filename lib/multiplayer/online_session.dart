@@ -48,6 +48,7 @@ class OnlineSession {
   );
   final AuthTokenStore tokens;
   bool get usesAccountIdentity => tokens is AccountOnlineTokens;
+  bool chargeUpgradesAvailable = false;
   bool grenadesAvailable = false, grenadeAimingAvailable = false;
   bool predictionAvailable = false;
   bool predictionReducedMotion = false;
@@ -370,6 +371,9 @@ class OnlineSession {
       grenadeAimingAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'aim_grenade',
       );
+      chargeUpgradesAvailable = (schemaJson['reducers'] as List? ?? []).any(
+        (v) => v is Map && v['name'] == 'charge_upgrades',
+      );
       grenadesAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'throw_grenade',
       );
@@ -652,8 +656,11 @@ class OnlineSession {
         !_attaching) {
       _attaching = true;
       unawaited(
-        _quiet(() => client.reducers.attachCombat(version: 3))
-            .whenComplete(() => _attaching = false),
+        _quiet(
+          () => client.reducers.attachCombat(
+            version: chargeUpgradesAvailable ? 4 : 3,
+          ),
+        ).whenComplete(() => _attaching = false),
       );
     }
     if (match != null && !controlsEnabled) neutral();
@@ -768,6 +775,10 @@ class OnlineSession {
         dashRemaining: mine.dashRemaining,
         cooldown: mine.cooldown,
         dashSeq: mine.dashSeq.toInt(),
+        dashCapacity: (gun?.data['dashCapacity'] as num?)?.toInt() ?? 1,
+        dashCharges: (gun?.data['dashCharges'] as num?)?.toInt() ?? -1,
+        rechargeRemaining:
+            (gun?.data['dashRecharge'] as num?)?.toDouble() ?? -1,
       ),
       movementSpeed:
           (gun?.baseNumber(

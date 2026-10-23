@@ -477,3 +477,14 @@ Repeat a fresh offline launch and server timeout; controls/Start/Training/Contin
 must stay available with cached or bundled values. Automatic checkpoints represent
 the most recent successful periodic/lifecycle save, not every simulation frame.
 Admin Staging stores isolated preparation releases and has no playable preview.
+
+## Charge capacity review
+
+Pick Double Dash I/II and Grenade Reserve I/II: expect2/3 dash slots and3/4 grenade
+slots. Spend the reserves rapidly; only the first missing slot recharges at a time.
+The purchase fills only its new slot and retains the pending timer. Pause/background
+and Continue mid-recharge must preserve charge counts and timers. Check markers at
+smallest/largest control sizes and mirrored placements. Set admin totals to2/3:
+new runs should offer only one rank of each; an existing Continue keeps its former
+snapshot. Verify old online clients receive neither new offer and protocol4 peers
+agree on spending and recovered charges. Physical comfort/balance remains to review.

@@ -16,7 +16,7 @@ String upgradeDetails(
   CharacterType character = CharacterType.rook,
   bool brief = false,
 }) {
-  final r = s.rank(p), next = math.min(p.maxRank, r + 1);
+  final r = s.rank(p), next = math.min(s.rankLimit(p), r + 1);
   double e(int n) =>
       s.strength(p) *
       GameState.scaledRank(
@@ -124,6 +124,10 @@ String upgradeDetails(
       return '${pct('Heal chance', (n) => math.min(.225, e(n) * .05))} per kill.${balance >= 2 ? ' ${character == CharacterType.suture ? 12 : 6}s cooldown.' : ''}';
     case PowerUp.scrapArmour:
       return '${delta('Guard recharge', (n) => math.max(6.5, 20 - 3 * e(n)), unit: 's')}. Guard now.';
+    case PowerUp.dashCapacity:
+      return delta('Dash charges', (n) => 1 + countRank(n).clamp(0, 2));
+    case PowerUp.grenadeCapacity:
+      return delta('Grenade capacity', (n) => 2 + countRank(n).clamp(0, 2));
     case PowerUp.quickstep:
       return delta(
         'Dash cooldown',
