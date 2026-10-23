@@ -6,7 +6,7 @@ import 'package:regun/services/account/account_api.dart';
 import 'package:regun/widgets/account_flow.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
-import 'package:regun/services/app_updates.dart';
+import 'package:regun/widgets/app_update_gate.dart';
 import 'package:regun/services/online_availability.dart';
 import 'package:regun/widgets/online_coming_soon.dart';
 import 'package:regun/models/run_checkpoint.dart';
@@ -51,15 +51,6 @@ class _MenuViewState extends ConsumerState<MenuView>
       }
     });
     unawaited(_refresh());
-    unawaited(_checkBinaryUpdate());
-  }
-
-  Future<void> _checkBinaryUpdate() async {
-    try {
-      await ref.read(appUpdatesProvider).check();
-    } catch (_) {
-      /* Fully silent and never gates offline entry. */
-    }
   }
 
   void _policyChanged() {
@@ -274,39 +265,42 @@ class _MenuViewState extends ConsumerState<MenuView>
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xff171319),
-    body: Stack(
-      fit: StackFit.expand,
-      children: [
-        HomeMenu(
-          ready: _ready,
-          bestScore: LocalPreferences.shared.bestScore,
-          reducedMotion: LocalPreferences.shared.reducedMotion,
-          onContinue: _saved == null ? null : _continue,
-          onPlay: _play,
-          onlineAvailable: _online.enabled,
-          onlineChecking:
-              _openingOnline ||
-              _online.state == OnlineAvailabilityState.checking,
-          onOnline: _openOnline,
-          onTraining: () async {
-            await _open(const LoadoutView(training: true));
-            if (mounted && LocalPreferences.shared.profile.tutorialComplete) {
-              unawaited(_inviteAfterPlay());
-            }
-          },
-          onCollection: () => _open(const CollectionView()),
-          onSettings: () => _open(const SettingsView(allowProgressReset: true)),
-        ),
-        if (_accountIssue != null)
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom: 24,
-            child: IgnorePointer(
-              child: GameNoticeStrip(message: _accountIssue!),
-            ),
+    body: AppUpdateGate(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          HomeMenu(
+            ready: _ready,
+            bestScore: LocalPreferences.shared.bestScore,
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+            onContinue: _saved == null ? null : _continue,
+            onPlay: _play,
+            onlineAvailable: _online.enabled,
+            onlineChecking:
+                _openingOnline ||
+                _online.state == OnlineAvailabilityState.checking,
+            onOnline: _openOnline,
+            onTraining: () async {
+              await _open(const LoadoutView(training: true));
+              if (mounted && LocalPreferences.shared.profile.tutorialComplete) {
+                unawaited(_inviteAfterPlay());
+              }
+            },
+            onCollection: () => _open(const CollectionView()),
+            onSettings: () =>
+                _open(const SettingsView(allowProgressReset: true)),
           ),
-      ],
+          if (_accountIssue != null)
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 24,
+              child: IgnorePointer(
+                child: GameNoticeStrip(message: _accountIssue!),
+              ),
+            ),
+        ],
+      ),
     ),
   );
 }

@@ -54,3 +54,15 @@ For the direct build-4 phone test, use an actual store listing or official TestF
 These dashboard steps change remote behavior for every installed build using the project key. They were not performed automatically. Do not leave a higher compulsory target configured before a downloadable update exists.
 
 Automated coverage includes request metadata, target-scoped snooze, forced override, malformed policies, invalid store links, offline startup, retry policy withdrawal, failed launch feedback, Back blocking and responsive panel rendering. Physical store navigation and dashboard configuration still require the real listing and device acceptance.
+
+## Home prompt regression — 23 October 2026
+
+The build-18 IPA contains the configured Telling project key. A live read-only
+check returned a required build-18 policy for iOS build17 and no update for18.
+Home had been changed to call `AppUpdates.check()` silently and discard its
+result, leaving `AppUpdateGate` unmounted. Restored the gate around Home and
+removed the duplicate discarded request. Pending checks still permit local play;
+received policies use the existing optional/required prompt and resume handling.
+A real-MenuView integration test now checks the required prompt, blocked entry,
+Back handling and policy withdrawal on resume. This source fix requires a new
+app build; the already exported build18 IPA does not contain it.
