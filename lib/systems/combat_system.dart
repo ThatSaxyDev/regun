@@ -358,21 +358,42 @@ class CombatSystem {
     required double damage,
     WeaponReaction reaction = WeaponReaction.grenade,
     bool grenade = false,
+    bool allowFragments = true,
     int releaseId = 0,
     double releaseBonus = 0,
   }) {
+    final pressureRadius = grenade ? radius + 130 : radius;
     game.audio.play('blast.wav');
     game.reserveWeaponPatch();
     game.addCombatEffect(
       CombatEffect(
         position: position.clone(),
-        radius: radius,
+        radius: pressureRadius,
         duration: .48,
         material: AttackMaterial.ember,
       ),
     );
     for (final target in game.liveEnemies.toList()) {
-      final reach = radius + game.crowdRadius(target);
+      final distance = target.position.distanceTo(position);
+      final body = game.crowdRadius(target);
+      if (grenade &&
+          distance > radius + body &&
+          distance <= pressureRadius + body &&
+          !game.segmentBlocked(position, target.position)) {
+        final direction = target.position - position;
+        final falloff = (1 - (distance - radius - body) / (130 + body)).clamp(
+          .35,
+          1.0,
+        );
+        (target as CombatEnemy).receiveWeaponImpact(
+          direction.isZero() ? game.myPlayer.aimDirection : direction,
+          WeaponReaction.grenade.scaled(
+            falloff * (1 + .10 * effect(PowerUp.blastHarness)),
+            hold: true,
+          ),
+        );
+      }
+      final reach = radius + body;
       if (target.position.distanceToSquared(position) <= reach * reach &&
           !game.segmentBlocked(position, target.position)) {
         final delta = target.position - position;
@@ -396,7 +417,7 @@ class CombatSystem {
         );
       }
     }
-    if (rank(PowerUp.fragmentation) > 0) {
+    if (allowFragments && rank(PowerUp.fragmentation) > 0) {
       shards(
         position,
         count: 4 + state.countRank(PowerUp.fragmentation) * 2,

@@ -95,9 +95,9 @@ void main() {
         }
         expect(
           boss.combatHealth.current,
-          closeTo(boss.combatHealth.maximum * .97, .001),
+          closeTo(boss.combatHealth.maximum * .97 - 8, .001),
         );
-        expect(safe.combatHealth.isDead, isFalse);
+        expect(safe.combatHealth.isDead, isTrue);
         game.restartGame();
         await game.ready();
         game.update(2);
@@ -156,11 +156,10 @@ void main() {
         game.update(35);
         expect(game.supplyDrops.drop, isNull);
         expect(RegunArt.shared.contains('arenas/supply_pod'), isFalse);
-      game.practiceSupplyDrop();
-      game.update(.01);
-      expect(game.bossRush, isFalse);
-      expect(game.supplyDrops.drop!.phase, SupplyPhase.warning);
-
+        game.practiceSupplyDrop();
+        game.update(.01);
+        expect(game.bossRush, isFalse);
+        expect(game.supplyDrops.drop!.phase, SupplyPhase.warning);
       });
       await tester.pumpWidget(const SizedBox());
       expect(tester.takeException(), isNull);
@@ -240,17 +239,25 @@ void main() {
             .writeAsBytes(bytes!.buffer.asUint8List());
         image.dispose();
         picture.dispose();
-        game.supplyDrops.drop = SupplyDrop(Offset.zero)..phase=SupplyPhase.active
-          ..inside=true..capture=4..elapsed=4..life=4;
-      game.myPlayer.position.setValues(-110,35);
-      final areaRecorder = ui.PictureRecorder();
-      game.render(Canvas(areaRecorder));
-      final areaPicture = areaRecorder.endRecording();
-      final areaImage = await areaPicture.toImage(1500,700);
-      final areaBytes = await areaImage.toByteData(format: ui.ImageByteFormat.png);
-      await File('build/test-previews/supply-area.png').writeAsBytes(areaBytes!.buffer.asUint8List());
-      areaImage.dispose(); areaPicture.dispose();
-      RegunArt.shared.release('arenas/supply_pod');
+        game.supplyDrops.drop = SupplyDrop(Offset.zero)
+          ..phase = SupplyPhase.active
+          ..inside = true
+          ..capture = 4
+          ..elapsed = 4
+          ..life = 4;
+        game.myPlayer.position.setValues(-110, 35);
+        final areaRecorder = ui.PictureRecorder();
+        game.render(Canvas(areaRecorder));
+        final areaPicture = areaRecorder.endRecording();
+        final areaImage = await areaPicture.toImage(1500, 700);
+        final areaBytes = await areaImage.toByteData(
+          format: ui.ImageByteFormat.png,
+        );
+        await File('build/test-previews/supply-area.png')
+            .writeAsBytes(areaBytes!.buffer.asUint8List());
+        areaImage.dispose();
+        areaPicture.dispose();
+        RegunArt.shared.release('arenas/supply_pod');
         RegunArt.shared.release('effects/landing_dust');
       });
       await tester.pumpWidget(const SizedBox());

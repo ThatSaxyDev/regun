@@ -1,3 +1,4 @@
+import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/presentation/boss_vfx.dart';
 
 import 'dart:math';
@@ -134,9 +135,12 @@ abstract class ExpansionBoss extends PositionComponent
     loop: loop,
   );
 
+  late final GroundProjection _ground;
   @override
   Future<void> onLoad() async {
     initializeHealth(maximumHealth);
+    _ground = GroundProjection(this, renderGround);
+    game.world.add(_ground);
     final encounterWorld = game.world;
     await RegunArt.shared.acquire('bosses/${kind.name}');
     _acquired = true;
@@ -174,6 +178,7 @@ abstract class ExpansionBoss extends PositionComponent
 
   @override
   void onRemove() {
+    _ground.removeFromParent();
     cancelAttacks();
     game.releaseBossAttack(this);
     super.onRemove();
@@ -441,6 +446,31 @@ abstract class ExpansionBoss extends PositionComponent
     }
   }
 
+  void renderGround(Canvas canvas) {
+    final center = (size / 2).toOffset();
+    final vfx = BossVfx(
+      kind: kind,
+      ambient: BossArt.ambient(game.loadout.arena),
+      reducedMotion: game.preferences.reducedMotion,
+    );
+    BossArt.contactShadow(
+      canvas,
+      center + const Offset(0, 65),
+      kind.bodyRadius,
+    );
+    if (phase == ExpansionPhase.arrival ||
+        (phase == ExpansionPhase.recovery && _interrupted)) {
+      vfx.disk(
+        canvas,
+        center,
+        85,
+        ambient: BossArt.ambient(game.loadout.arena),
+        warning: true,
+        progress: (clock / 1.8).clamp(0, 1),
+      );
+    }
+  }
+
   @override
   void render(Canvas canvas) {
     final vfx = BossVfx(
@@ -450,11 +480,6 @@ abstract class ExpansionBoss extends PositionComponent
     );
     super.render(canvas);
     final center = (size / 2).toOffset();
-    BossArt.contactShadow(
-      canvas,
-      center + const Offset(0, 65),
-      kind.bodyRadius,
-    );
     final beam = laserAttack;
     final beamAim = beam?.shape.points.last;
     body.paint.color = beamAim == null
@@ -476,17 +501,6 @@ abstract class ExpansionBoss extends PositionComponent
       );
     }
 
-    if (phase == ExpansionPhase.arrival ||
-        (phase == ExpansionPhase.recovery && _interrupted)) {
-      vfx.disk(
-        canvas,
-        center,
-        85,
-        ambient: BossArt.ambient(game.loadout.arena),
-        warning: true,
-        progress: (clock / 1.8).clamp(0, 1),
-      );
-    }
     if (kind == BossKind.marshal &&
         currentMove?.brace == true &&
         [ExpansionPhase.warning, ExpansionPhase.active].contains(phase)) {

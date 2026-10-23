@@ -1,3 +1,4 @@
+import 'package:regun/widgets/boss_victory_banner.dart';
 import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/upgrade_offer_copy.dart';
@@ -225,6 +226,19 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                           state.gameplayState != GameplayState.gameOver &&
                           state.gameplayState != GameplayState.paused)
                         _hud(state, ref.read(gameNotifierProvider.notifier)),
+                      if (!_trainingIntro &&
+                          state.gameplayState == GameplayState.playing)
+                        Positioned(
+                          top: 88,
+                          left: 24,
+                          right: 24,
+                          child: ValueListenableBuilder<BossKind?>(
+                            valueListenable: _myGame.bossVictory.current,
+                            builder: (context, kind, _) => kind == null
+                                ? const SizedBox.shrink()
+                                : BossVictoryBanner(kind: kind),
+                          ),
+                        ),
                       if (state.gameplayState == GameplayState.powerup)
                         _upgradePicker(state),
                       if (!_trainingIntro &&

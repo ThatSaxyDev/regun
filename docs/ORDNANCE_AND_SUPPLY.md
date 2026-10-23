@@ -41,3 +41,11 @@ Automated coverage includes real touch dispatch, two independent charges, duplic
 `tool/generate_ordnance_audio.py` generates and validates recorded CC0-derived mono PCM16/44100Hz cues. Source provenance is in `art/source/audio/README.md`; peaks/RMS/hashes in `docs/art/ORDNANCE_AUDIO_MANIFEST.json`. Small-sprite prompts and asset hashes are in `art/source/ordnance/README.md`.
 
 Physical grenade reach, thumb comfort, audio strength, difficulty and visual readability still require hands-on play. Automated checks and installation do not establish that acceptance. Deploy the matching server `main` in Dokploy before testing online grenades against the public endpoint.
+
+## 23 October follow-up
+
+The contact-detonation and non-solid-pod behavior above is superseded by
+[Combat recovery and supply cover](COMBAT_RECOVERY_AND_SUPPLY.md): grenades pass
+over enemies, bounce and detonate on fuse; pressure extends beyond damage; supply
+landings add a blast and active/opened pods become cover. No change to eight-second
+capture/50-second current expiry or the separate primary weapon contracts.

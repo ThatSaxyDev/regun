@@ -1,3 +1,4 @@
+import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
 import 'package:regun/presentation/boss_art.dart';
@@ -58,9 +59,13 @@ class ShadowBossComponent extends PositionComponent
   @override
   int get scoreReward => 1000;
 
+  late final GroundProjection _ground;
+
   @override
   Future<void> onLoad() async {
     initializeHealth(maximumHealth);
+    _ground = GroundProjection(this, renderGround);
+    game.world.add(_ground);
     final art = RegunArt.shared;
     _idle = BossArt.idle(kind);
     _walk = BossArt.walk(kind);
@@ -242,8 +247,7 @@ class ShadowBossComponent extends PositionComponent
     _body.position.x = size.x * .5;
   }
 
-  @override
-  void render(Canvas canvas) {
+  void renderGround(Canvas canvas) {
     final vfx = BossVfx(
       kind: kind,
       ambient: BossArt.ambient(game.loadout.arena),
@@ -294,7 +298,12 @@ class ShadowBossComponent extends PositionComponent
         );
       }
     }
-    super.render(canvas);
+  }
+
+  @override
+  void onRemove() {
+    _ground.removeFromParent();
+    super.onRemove();
   }
 
   @override

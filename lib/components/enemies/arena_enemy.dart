@@ -55,14 +55,8 @@ class ArenaEnemy extends PositionComponent
       _ => 5.0,
     };
     initializeHealth(health * (elite ? 2 : 1) * game.director.healthScale);
-    if ({
-      EnemyKind.runner,
-      EnemyKind.shield,
-      EnemyKind.burster,
-    }.contains(kind)) {
-      _footprint = _EnemyFootprint(this);
-      game.world.add(_footprint!);
-    }
+    _footprint = _EnemyFootprint(this);
+    game.world.add(_footprint!);
     add(
       CircleHitbox(
         radius: size.x * 0.3,
@@ -272,6 +266,15 @@ class ArenaEnemy extends PositionComponent
   }
 
   void renderFootprint(Canvas canvas) {
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(size.x * .5, size.y * .82),
+        width: size.x * .7,
+        height: 15,
+      ),
+      Paint()..color = const Color(0x600D1315),
+    );
+
     final center = (size / 2).toOffset();
     if (phase == 1 &&
         (kind == EnemyKind.runner ||
@@ -307,14 +310,6 @@ class ArenaEnemy extends PositionComponent
   @override
   void render(Canvas canvas) {
     final center = (size / 2).toOffset();
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(size.x * .5, size.y * .82),
-        width: size.x * .7,
-        height: 15,
-      ),
-      Paint()..color = const Color(0x600D1315),
-    );
     var frame = freezeHeld
         ? 0
         : phase == 1

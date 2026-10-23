@@ -44,7 +44,7 @@ class WeaponReaction {
       slow: .95,
     ),
   };
-  static const grenade = WeaponReaction(86, .25, stagger: .14);
+  static const grenade = WeaponReaction(140, .32, stagger: .18);
   static const mine = WeaponReaction(66, .22, stagger: .10);
   static const rivetBlast = WeaponReaction(54, .20, stagger: .08);
   static const bellEcho = WeaponReaction(34, .16, slow: .7);

@@ -122,7 +122,8 @@ class RunCheckpoint {
         Map<String, dynamic>.from(map['state'] as Map),
       ).copyWith(upgradeStrengths: power.upgradeStrengths);
       if (state.health <= 0 ||
-          state.maxHealth < state.health ||
+          state.health > 1000000 ||
+          state.maxHealth <= 0 ||
           state.maxHealth > 10000 ||
           state.noOfBullets < 0 ||
           state.noOfBullets > state.maxBullets ||

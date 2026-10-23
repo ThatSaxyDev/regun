@@ -247,7 +247,7 @@ void paintGrenadeTrajectory(
     last = p;
   }
   final end = points.last.ground;
-  // Compact ground brackets mark the contact/fuse position, not a damage promise.
+  // Compact ground brackets mark the fuse position after the bounce, not a damage promise.
   for (final x in [-1.0, 1.0]) {
     for (final y in [-1.0, 1.0]) {
       final p = end + Offset(x * 16, y * 12);

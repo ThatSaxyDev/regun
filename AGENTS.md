@@ -537,3 +537,21 @@ Online Scrap stays separate. Progress reset preserves purchased skins. Keep
 operation IDs across lost responses, duplicate-tap protection and failed-settlement
 retry. No real-money billing or crash-proof terminal reward journal is implemented.
 See docs/RUN_PROGRESSION_AND_WALLET_PLAN.md and docs/WALLET_IMPLEMENTATION.md.
+
+## Boss recovery, ordnance placement and ground layers (2026-10-23)
+
+Boss deaths grant2 current HP even above max; do not raise max or let ordinary
+capped heals/Salvage remove overflow. Checkpoints preserve it without re-awarding.
+VANQUISHED/+2 HEALTH is a nonmodal active-time pixel notice. Grenades no longer
+contact-detonate on enemies: preserve the ground bounce before the1.4s fuse.
+Their140-unit/.32s force includes130 extra radius of pressure without damage,
+retaining mass, cover, stagger and body constraints. Supply landing adds8/205
+blast/pressure to the existing center crush, then active/opened pods block actors,
+shots and grenades via a92×52 base footprint. No friendly landing damage; safe
+edge displacement. Breakdown removes solidity. Online ground_ordnance gates the
+new footprint/flight preview; server always owns hits and movement.
+
+Ground warnings/shadows/dust/remains/guides belong in world floor siblings, never
+inside a depth-sorted actor. Keep pod bodies depth sorted and Marshal's requested
+laser aerial. Read docs/COMBAT_RECOVERY_AND_SUPPLY.md. Physical feel/readability
+acceptance and deployment remain open.

@@ -347,7 +347,9 @@ class _CollectionViewState extends State<CollectionView> {
       if (!owned && price != null) {
         final result = await LocalPreferences.shared.buyCosmetic(id);
         if (result != CosmeticPurchase.saved) {
-          _purchaseIssue = result == CosmeticPurchase.saveFailed
+          _purchaseIssue = AccountController.shared.issue.isNotEmpty
+              ? AccountController.shared.issue
+              : result == CosmeticPurchase.saveFailed
               ? 'Could not save. Retry to check your purchase.'
               : result == CosmeticPurchase.pendingConfirmation
               ? 'Retry your earlier purchase to confirm its status.'

@@ -194,16 +194,16 @@ void main() {
           obstacles: [const Rect.fromLTWH(-180, -80, 40, 160)],
         );
         game.explode(Vector2.zero(), damage: 1, radius: 320);
-        advance(bodies[0], .3);
-        advance(bodies[1], .3);
-        advance(bodies[2], .3);
-        expect(bodies[0].position.x, closeTo(386, .001));
+        advance(bodies[0], .4);
+        advance(bodies[1], .4);
+        advance(bodies[2], .4);
+        expect(bodies[0].position.x, closeTo(440, .001));
         expect(bodies[1].position.x, -300);
-        expect(bodies[2].position.y, closeTo(386, .001));
+        expect(bodies[2].position.y, closeTo(440, .001));
         advance(bodies[0], .4);
         game.hitEnemy(bodies[0], .1, primary: false, direction: Vector2(1, 0));
-        advance(bodies[0], .3);
-        expect(bodies[0].position.x, closeTo(386, .001));
+        advance(bodies[0], .4);
+        expect(bodies[0].position.x, closeTo(440, .001));
         game.hitEnemy(
           bodies[0],
           .1,
@@ -214,7 +214,7 @@ void main() {
         expect(bodies[0].lastHitWasSecondary, isTrue);
         expect(bodies[0].impactHeld, isFalse);
         advance(bodies[0], .2);
-        expect(bodies[0].position.x, closeTo(420, .001));
+        expect(bodies[0].position.x, closeTo(474, .001));
       });
       await tester.pumpWidget(const SizedBox.shrink());
     },

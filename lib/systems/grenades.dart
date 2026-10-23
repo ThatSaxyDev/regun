@@ -91,7 +91,7 @@ class GrenadeSpec {
 }
 
 /// Fixed-step planar flight plus a small physical vertical bounce. Walls bounce
-/// the casing; body contact after arming or the fuse requests one detonation.
+/// the casing. Enemies never detonate it: it lands/bounces before the fuse fires.
 class GrenadeFlight {
   GrenadeFlight(this.position, this.velocity);
   Offset position, velocity;
@@ -101,6 +101,7 @@ class GrenadeFlight {
     double dt, {
     required bool Function(Offset, Offset) blocked,
     required bool Function(Offset, Offset) contact,
+    bool contactDetonation = false,
   }) {
     if (spent || !dt.isFinite || dt <= 0) return;
     var left = math.min(dt, GrenadeSpec.fuse - age);
@@ -129,7 +130,12 @@ class GrenadeFlight {
       }
       velocity *= math.exp(-(height > 0 ? 1.1 : 3.2) * step);
       spin += step * 5;
-      if (age >= GrenadeSpec.arm && contact(previous, position)) spent = true;
+      if (contactDetonation &&
+          age >= GrenadeSpec.arm &&
+          contact(previous, position)) {
+        spent = true;
+      }
+      // Current flight passes over bodies; only legacy online preview opts in.
       if (age + 1e-8 >= GrenadeSpec.fuse) spent = true;
       left -= step;
     }
@@ -214,12 +220,18 @@ List<GrenadePreviewPoint> grenadePreview(
   GrenadeFlight flight, {
   required bool Function(Offset, Offset) blocked,
   required bool Function(Offset, Offset) contact,
+  bool contactDetonation = false,
 }) {
   final points = <GrenadePreviewPoint>[
     GrenadePreviewPoint(flight.position, flight.height),
   ];
   for (var i = 0; i < 168 && !flight.spent; i++) {
-    flight.advance(1 / 120, blocked: blocked, contact: contact);
+    flight.advance(
+      1 / 120,
+      blocked: blocked,
+      contact: contact,
+      contactDetonation: contactDetonation,
+    );
     if (i % 4 == 0 || flight.spent) {
       points.add(GrenadePreviewPoint(flight.position, flight.height));
     }

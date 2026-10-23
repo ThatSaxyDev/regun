@@ -177,6 +177,7 @@ class OnlineWorldArt {
           material: AttackMaterial.ember,
         );
       case 'effect':
+        if ((d['material'] as String? ?? '').startsWith('bossVictory:')) return;
         final progress = (entity.number('age') / entity.number('duration', 1))
             .clamp(0.0, 1.0);
         if (d['material'] == 'upgradePulse') {
@@ -261,37 +262,71 @@ class OnlineWorldArt {
             alpha: .6,
             grading: ambient(foundry),
           );
-        } else if (RegunArt.shared.contains('arenas/supply_pod')) {
-          final sprite = RegunArt.shared.rawSprite(
-            'arenas/supply_pod',
-            d['claimed'] == true ? 1 : 0,
-          );
-          final ref = RegunArt.shared
-              .rawSprite('arenas/supply_pod', 0)
-              .srcSize
-              .x;
-          final fall = (entity.number('elapsed') / .65).clamp(0, 1);
-          final height = phase == 'falling' && !reducedMotion
-              ? 220 * (1 - fall * fall)
-              : 0.0;
-          sprite.render(
-            canvas,
-            position: Vector2(p.dx, p.dy - height),
-            size: sprite.srcSize * (116 / ref),
-            anchor: Anchor.bottomCenter,
-            overridePaint: Paint()
-              ..filterQuality = FilterQuality.none
-              ..colorFilter = ambient(foundry)
-              ..color = Color.fromRGBO(
-                255,
-                255,
-                255,
-                phase == 'breaking'
-                    ? (1 - entity.number('elapsed') / 1.3).clamp(0, 1)
-                    : 1,
-              ),
-          );
         }
+    }
+  }
+
+  static void supplyBody(
+    Canvas canvas,
+    OnlineEntity entity, {
+    required bool foundry,
+    required bool reducedMotion,
+  }) {
+    final p = Offset(entity.x, entity.y), d = entity.data, phase = d['phase'];
+    if (phase == 'warning' || !RegunArt.shared.contains('arenas/supply_pod')) {
+      return;
+    }
+    final sprite = RegunArt.shared.rawSprite(
+      'arenas/supply_pod',
+      d['claimed'] == true ? 1 : 0,
+    );
+    final ref = RegunArt.shared.rawSprite('arenas/supply_pod', 0).srcSize.x;
+    final fall = (entity.number('elapsed') / .65).clamp(0, 1);
+    final height = phase == 'falling' && !reducedMotion
+        ? 220 * (1 - fall * fall)
+        : 0.0;
+    sprite.render(
+      canvas,
+      position: Vector2(p.dx, p.dy - height),
+      size: sprite.srcSize * (116 / ref),
+      anchor: Anchor.bottomCenter,
+      overridePaint: Paint()
+        ..filterQuality = FilterQuality.none
+        ..colorFilter = ambient(foundry)
+        ..color = Color.fromRGBO(
+          255,
+          255,
+          255,
+          phase == 'breaking'
+              ? (1 - entity.number('elapsed') / 1.3).clamp(0, 1)
+              : 1,
+        ),
+    );
+  }
+
+  static void enemyFloor(
+    Canvas canvas,
+    OnlineEntity entity, {
+    required bool foundry,
+  }) {
+    final p = Offset(entity.x, entity.y),
+        size = entity.number('size', 85),
+        boss = entity.data['boss'] == true;
+    BossArt.contactShadow(
+      canvas,
+      p + Offset(0, size * .3),
+      entity.number('radius', 30),
+    );
+    if (entity.number('spawning') > 0) {
+      (boss ? BossVfx(ambient: ambient(foundry)).disk : AttackVfx.disk)(
+        canvas,
+        p,
+        entity.number('radius', 30) + 12,
+        ambient: ambient(foundry),
+        warning: true,
+        progress: 1 - entity.number('spawning') / .7,
+        material: AttackMaterial.stone,
+      );
     }
   }
 
@@ -338,22 +373,6 @@ class OnlineWorldArt {
           : phase == 2
           ? 6
           : (clock * (kind == 'nest' ? 6 : 12)).floor() % 4;
-    }
-    BossArt.contactShadow(
-      canvas,
-      p + Offset(0, size * .3),
-      entity.number('radius', 30),
-    );
-    if (entity.number('spawning') > 0) {
-      (boss ? BossVfx(ambient: ambient(foundry)).disk : AttackVfx.disk)(
-        canvas,
-        p,
-        entity.number('radius', 30) + 12,
-        ambient: ambient(foundry),
-        warning: true,
-        progress: 1 - entity.number('spawning') / .7,
-        material: AttackMaterial.stone,
-      );
     }
     final aimedMarshal = !dead && kind == 'marshal' && laserAim != null;
     if (aimedMarshal) {

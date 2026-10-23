@@ -54,3 +54,31 @@ The app, identity gateway, SpacetimeDB module and admin display are implemented 
 Verification includes the disposable real-host smoke (JWT auth, private tables, forged balance/ownership rejection, duplicate/stale/concurrent purchases, insufficient funds, reset retaining ownership and admin audit), app HTTP tests for offline denial and lost-response retry across restart, and admin compact/large-text receipt rendering. See final verification results in the task report. No physical device or production acceptance is claimed.
 
 Final verification for the backend purchase slice: game `make verify` passed with556 tests and five optional skips; admin `make verify` passed with32 tests; server `npm run verify` passed109 tests and module build; identity `npm run verify` passed nine tests plus compiled HTTP smoke. The disposable live-host smoke also passed, including revoked-session purchase rejection and preservation of ownership on reset. All analyzers/typechecks passed. These are local automated results, not production or physical-device acceptance.
+
+## Purchase403 diagnosis and receipt recovery — 23 October 2026
+
+A public unauthenticated POST to `/purchase` returned nginx HTML403, whereas
+`/account` returned the gateway's JSON401. The deployed proxy allowlist omitted
+`purchase`, so the request never reached the account transaction. This was missed
+by the previous real-host smoke because it called Node directly without nginx.
+
+The nginx template now explicitly forwards `/purchase` and `/purchase-status`.
+A real-nginx regression runs inside an existing local server image and verifies
+both routes reach a stub gateway, with raw SQL and unknown paths still denied.
+The disposable account-container smoke also checks both routes through ingress.
+
+AccountApi preserves non-JSON error status instead of converting HTML403 into
+an uncertain transport failure. Pending purchase operation IDs remain durable:
+an error on a retry could follow a committed request with a lost acknowledgement.
+The UI now distinguishes blocked/not-completed states from awaiting confirmation.
+Sync checks the private owner-scoped receipt through `/purchase-status`; it never
+submits a new purchase. A matching committed receipt restores ownership/balance;
+no receipt leaves the existing intent available for explicit retry in Collection.
+Receipt operation/item/catalog/reset-epoch and account checks prevent mismatches.
+
+Verification:18 focused app/account/wallet tests passed; identity verification
+(nine unit tests, compiled HTTP smoke) and disposable real-host receipt/auth tests
+passed; real nginx routing proof passed. The final app analyzer is clean. These
+are local results; the public route still needs the updated server redeployment,
+and the app needs updating for improved status/reconciliation behavior. No user
+balance, receipts, ownership, credentials or production state was modified.

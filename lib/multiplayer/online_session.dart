@@ -49,7 +49,7 @@ class OnlineSession {
   );
   final AuthTokenStore tokens;
   bool get usesAccountIdentity => tokens is AccountOnlineTokens;
-  bool chargeUpgradesAvailable = false;
+  bool chargeUpgradesAvailable = false, groundOrdnanceAvailable = false;
   bool grenadesAvailable = false, grenadeAimingAvailable = false;
   bool predictionAvailable = false;
   bool predictionReducedMotion = false;
@@ -97,9 +97,10 @@ class OnlineSession {
     }
     if (_projectileMapId != r.mapId) {
       _projectileMapId = r.mapId;
-      _projectileMap = ProjectileMap(onlineGeometry[r.mapId]!);
+      _projectileMap = ProjectileMap(gameplayGeometry);
       projectilePresentation.clear();
     }
+    _projectileMap = ProjectileMap(gameplayGeometry);
     projectilePresentation.capture(
       epoch: '${r.id}:${mine.generation}',
       tick: r.tick.toInt(),
@@ -203,6 +204,23 @@ class OnlineSession {
     remoteMotion.removeWhere(
       (key, _) => !members.any((m) => m.identity.toHexString == key),
     );
+  }
+
+  Map<String, dynamic> get gameplayGeometry {
+    final base = onlineGeometry[room?.mapId] ?? onlineGeometry['network_lab']!;
+    return {
+      ...base,
+      'obstacles': [
+        ...base['obstacles'] as List,
+        if (groundOrdnanceAvailable)
+          for (final drop in scene.where(
+            (e) =>
+                e.kind == 'supply' &&
+                ['active', 'opened'].contains(e.data['phase']),
+          ))
+            [drop.x - 46, drop.y - 52, drop.x + 46, drop.y],
+      ],
+    };
   }
 
   MotionMap? _motionMap;
@@ -369,6 +387,9 @@ class OnlineSession {
                 v['View'] is Map &&
                 v['View']['name'] == 'my_motion',
           );
+      groundOrdnanceAvailable = (schemaJson['reducers'] as List? ?? []).any(
+        (v) => v is Map && v['name'] == 'ground_ordnance',
+      );
       grenadeAimingAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'aim_grenade',
       );
@@ -635,6 +656,11 @@ class OnlineSession {
           int.tryParse(gun?.data['grenadeSeq'] as String? ?? '0') ?? 0;
       neutral();
     }
+    if (_motionMap != null) {
+      _motionMap!.obstacles
+        ..clear()
+        ..addAll(MotionMap(gameplayGeometry).obstacles);
+    }
     if (predictionAvailable && controlsEnabled && mine != null) {
       _seedPrediction();
       final snapshot = client.myMotion.iter().firstOrNull;
@@ -769,7 +795,7 @@ class OnlineSession {
     final epoch = '${r.id}:${mine.generation}';
     if (_predictionEpoch == epoch && movementPrediction.body != null) return;
     _predictionEpoch = epoch;
-    _motionMap = MotionMap(onlineGeometry[r.mapId]!);
+    _motionMap = MotionMap(gameplayGeometry);
     final walking = gun?.rank('walkingSpeedIncrease') ?? 0;
     final quickstep = gun?.rank('quickstep') ?? 0;
     final effectiveQuickstep = quickstep <= 3

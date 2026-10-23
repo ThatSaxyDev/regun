@@ -1,3 +1,4 @@
+import 'package:regun/widgets/boss_victory_banner.dart';
 import 'package:regun/presentation/mummy_walk.dart';
 import 'package:regun/presentation/game_layout.dart';
 import 'package:regun/systems/weapon_heading.dart';
@@ -32,7 +33,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:regun/multiplayer/online_session.dart';
-import 'package:regun/multiplayer/geometry.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/utils/constants.dart';
@@ -724,6 +724,27 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     ),
                   ),
                 ),
+                for (final victory
+                    in session.scene
+                        .where(
+                          (e) =>
+                              e.kind == 'effect' &&
+                              (e.data['material'] as String? ?? '').startsWith(
+                                'bossVictory:',
+                              ),
+                        )
+                        .take(1))
+                  Positioned(
+                    top: 88,
+                    left: 24,
+                    right: 24,
+                    child: BossVictoryBanner(
+                      kind: BossKind.values.firstWhere(
+                        (k) =>
+                            'bossVictory:${k.name}' == victory.data['material'],
+                      ),
+                    ),
+                  ),
                 if (session.match != null) ...[
                   Positioned(
                     left: geometry.reload.dx - buttonSize / 2,
@@ -904,8 +925,7 @@ class _ArenaPainter extends CustomPainter {
         height: worldSize.height,
       ),
     );
-    final geometry =
-        onlineGeometry[session.room?.mapId] ?? onlineGeometry['network_lab']!;
+    final geometry = session.gameplayGeometry;
     Rect rectOf(List<num> r) => Rect.fromLTRB(
       r[0].toDouble(),
       r[1].toDouble(),
@@ -997,11 +1017,171 @@ class _ArenaPainter extends CustomPainter {
         );
       }
     }
-    final enemies = session.scene.where((e) => e.kind == 'enemy').toList()
-      ..sort((a, b) => a.y.compareTo(b.y));
+    if (artReady) {
+      for (final enemy in session.scene.where((e) => e.kind == 'enemy')) {
+        OnlineWorldArt.enemyFloor(
+          canvas,
+          enemy,
+          foundry: session.room?.mapId == 'foundry',
+        );
+      }
+    }
+    if (grenadeAim.active &&
+        !grenadeAim.cancelled &&
+        session.controlsEnabled &&
+        mine != null) {
+      final direction = grenadeAim.direction ?? session.quickGrenadeDirection;
+      final start = positions[session.identity] ?? Offset(mine.x, mine.y),
+          d = direction.distance < .001
+              ? const Offset(1, 0)
+              : direction / direction.distance;
+      final obstacles = (geometry['obstacles'] as List)
+          .map((r) => rectOf((r as List).cast<num>()))
+          .toList();
+      bool blocked(Offset a, Offset b) =>
+          !bounds.deflate(8).contains(b) ||
+          obstacles.any(
+            (r) => ArenaGeometry.crosses(
+              Vector2(a.dx, a.dy),
+              Vector2(b.dx, b.dy),
+              r.inflate(8),
+            ),
+          );
+      var origin = start + d * 36;
+      if (blocked(start, origin)) origin = start;
+      final flight = GrenadeFlight(
+        origin,
+        d *
+            GrenadeSpec.speed *
+            grenadeAim.power(
+              LocalPreferences.shared.controls.displayButtonSize(size) * .85,
+            ),
+      );
+      final targets = <(Offset, double)>[
+        for (final e in session.scene.where(
+          (e) =>
+              e.kind == 'enemy' &&
+              e.number('health') > 0 &&
+              e.number('spawning') <= 0,
+        ))
+          (Offset(e.x, e.y), e.number('radius', 30) + 8),
+        for (final e in session.scene.where(
+          (e) =>
+              e.kind == 'enemy' &&
+              e.number('health') > 0 &&
+              e.number('spawning') <= 0,
+        ))
+          for (final p
+              in (e.data['weakPoints'] as List? ?? []).whereType<Map>())
+            if ((p['health'] as num? ?? 0) > 0)
+              (
+                Offset((p['x'] as num).toDouble(), (p['y'] as num).toDouble()),
+                34,
+              ),
+        if (session.room?.mode == 'versus')
+          for (final m in session.members.where(
+            (m) =>
+                m.team != mine.team &&
+                (session.fighters[m.identity.toHexString]?.health ?? 0) > 0,
+          ))
+            (Offset(m.x, m.y), 38),
+      ];
+      paintGrenadeTrajectory(
+        canvas,
+        grenadePreview(
+          flight,
+          blocked: blocked,
+          contactDetonation: !session.groundOrdnanceAvailable,
+          contact: (a, b) =>
+              targets.any((t) => grenadeSegmentContact(a, b, t.$1, t.$2)),
+        ),
+        reducedMotion: LocalPreferences.shared.reducedMotion,
+      );
+    }
+    if (artReady) {
+      for (final dead in session.scene.where(
+        (e) => e.kind == 'enemy' && e.number('health') <= 0,
+      )) {
+        OnlineWorldArt.enemy(
+          canvas,
+          dead,
+          foundry: session.room?.mapId == 'foundry',
+          reducedMotion: LocalPreferences.shared.reducedMotion,
+        );
+      }
+    }
+    for (final member in session.members) {
+      final point =
+          positions[member.identity.toHexString] ?? Offset(member.x, member.y);
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: point + const Offset(0, 22),
+          width: 65,
+          height: 22,
+        ),
+        Paint()..color = const Color(0x77000000),
+      );
+      final p = point,
+          key = member.identity.toHexString,
+          gun = session.fighters[member.identity.toHexString];
+      final dashing = key == session.identity
+          ? session.predictedDashRemaining > 0
+          : member.dashRemaining > 0;
+      if (artReady && dashing && (gun?.health ?? 1) > 0) {
+        final direction = key == session.identity
+            ? session.movementPrediction.body?.dashDirection ??
+                  Offset(member.dashX, member.dashY)
+            : Offset(member.dashX, member.dashY);
+        final reduced = LocalPreferences.shared.reducedMotion;
+        for (var i = 0; i < (reduced ? 1 : 3); i++) {
+          AttackVfx.dashDust(
+            canvas,
+            p + const Offset(0, 28) - direction * (i * 22),
+            direction,
+            progress: .15 + i * .26,
+            reducedMotion: reduced,
+            ambient: BossArt.ambient(
+              session.room?.mapId == 'foundry'
+                  ? ArenaType.foundry
+                  : ArenaType.breach,
+            ),
+          );
+        }
+      }
+    }
+    for (final grenade in session.projectiles.where(
+      (r) => r.data['kind'] == 'grenade',
+    )) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(grenade.x, grenade.y),
+          width: 24,
+          height: 9,
+        ),
+        Paint()..color = const Color(0x700c1012),
+      );
+    }
+    final enemies =
+        session.scene
+            .where(
+              (e) =>
+                  e.kind == 'enemy' && e.number('health') > 0 ||
+                  e.kind == 'supply' && e.data['phase'] != 'warning',
+            )
+            .toList()
+          ..sort((a, b) => a.y.compareTo(b.y));
     var enemyIndex = 0;
     void drawEnemy() {
       final enemy = enemies[enemyIndex++];
+      if (enemy.kind == 'supply') {
+        OnlineWorldArt.supplyBody(
+          canvas,
+          enemy,
+          foundry: session.room?.mapId == 'foundry',
+          reducedMotion: LocalPreferences.shared.reducedMotion,
+        );
+        return;
+      }
       final beams =
           session.scene
               .where(
@@ -1056,39 +1236,10 @@ class _ArenaPainter extends CustomPainter {
           positions[member.identity.toHexString] ?? Offset(member.x, member.y);
       final key = member.identity.toHexString, gun = session.fighters[key];
       final hurt = seconds - (hurtTimes[key] ?? -10) < .32;
-      final dashing = key == session.identity
-          ? session.predictedDashRemaining > 0
-          : member.dashRemaining > 0;
-      if (artReady && dashing && (gun?.health ?? 1) > 0) {
-        final direction = key == session.identity
-            ? session.movementPrediction.body?.dashDirection ??
-                  Offset(member.dashX, member.dashY)
-            : Offset(member.dashX, member.dashY);
-        final reduced = LocalPreferences.shared.reducedMotion;
-        for (var i = 0; i < (reduced ? 1 : 3); i++) {
-          AttackVfx.dashDust(
-            canvas,
-            p + const Offset(0, 28) - direction * (i * 22),
-            direction,
-            progress: .15 + i * .26,
-            reducedMotion: reduced,
-            ambient: BossArt.ambient(
-              session.room?.mapId == 'foundry'
-                  ? ArenaType.foundry
-                  : ArenaType.breach,
-            ),
-          );
-        }
-      }
-
       final shotAge = seconds - (shotTimes[key] ?? -10);
       final color = member.team == 0
           ? const Color(0xffA9C990)
           : const Color(0xffD7A3B7);
-      canvas.drawOval(
-        Rect.fromCenter(center: p + const Offset(0, 22), width: 65, height: 22),
-        Paint()..color = const Color(0x77000000),
-      );
       canvas.drawCircle(
         p,
         34,
@@ -1191,14 +1342,6 @@ class _ArenaPainter extends CustomPainter {
         final height = LocalPreferences.shared.reducedMotion
             ? 0.0
             : (flight['height'] as num? ?? 0).toDouble();
-        canvas.drawOval(
-          Rect.fromCenter(
-            center: Offset(round.x, round.y),
-            width: 24,
-            height: 9,
-          ),
-          Paint()..color = const Color(0x700c1012),
-        );
         paintGrenade(
           canvas,
           Offset(round.x, round.y - height),
@@ -1270,77 +1413,6 @@ class _ArenaPainter extends CustomPainter {
       canvas.restore();
     }
 
-    if (grenadeAim.active &&
-        !grenadeAim.cancelled &&
-        session.controlsEnabled &&
-        mine != null) {
-      final direction = grenadeAim.direction ?? session.quickGrenadeDirection;
-      final start = positions[session.identity] ?? Offset(mine.x, mine.y),
-          d = direction.distance < .001
-              ? const Offset(1, 0)
-              : direction / direction.distance;
-      final obstacles = (geometry['obstacles'] as List)
-          .map((r) => rectOf((r as List).cast<num>()))
-          .toList();
-      bool blocked(Offset a, Offset b) =>
-          !bounds.deflate(8).contains(b) ||
-          obstacles.any(
-            (r) => ArenaGeometry.crosses(
-              Vector2(a.dx, a.dy),
-              Vector2(b.dx, b.dy),
-              r.inflate(8),
-            ),
-          );
-      var origin = start + d * 36;
-      if (blocked(start, origin)) origin = start;
-      final flight = GrenadeFlight(
-        origin,
-        d *
-            GrenadeSpec.speed *
-            grenadeAim.power(
-              LocalPreferences.shared.controls.displayButtonSize(size) * .85,
-            ),
-      );
-      final targets = <(Offset, double)>[
-        for (final e in session.scene.where(
-          (e) =>
-              e.kind == 'enemy' &&
-              e.number('health') > 0 &&
-              e.number('spawning') <= 0,
-        ))
-          (Offset(e.x, e.y), e.number('radius', 30) + 8),
-        for (final e in session.scene.where(
-          (e) =>
-              e.kind == 'enemy' &&
-              e.number('health') > 0 &&
-              e.number('spawning') <= 0,
-        ))
-          for (final p
-              in (e.data['weakPoints'] as List? ?? []).whereType<Map>())
-            if ((p['health'] as num? ?? 0) > 0)
-              (
-                Offset((p['x'] as num).toDouble(), (p['y'] as num).toDouble()),
-                34,
-              ),
-        if (session.room?.mode == 'versus')
-          for (final m in session.members.where(
-            (m) =>
-                m.team != mine.team &&
-                (session.fighters[m.identity.toHexString]?.health ?? 0) > 0,
-          ))
-            (Offset(m.x, m.y), 38),
-      ];
-      paintGrenadeTrajectory(
-        canvas,
-        grenadePreview(
-          flight,
-          blocked: blocked,
-          contact: (a, b) =>
-              targets.any((t) => grenadeSegmentContact(a, b, t.$1, t.$2)),
-        ),
-        reducedMotion: LocalPreferences.shared.reducedMotion,
-      );
-    }
     canvas.restore();
   }
 

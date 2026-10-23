@@ -56,14 +56,31 @@ class AccountApi {
                       body: jsonEncode(body),
                     ))
               .timeout(const Duration(seconds: 12));
-      if (response.bodyBytes.length > 300000) throw const FormatException();
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      // Proxies can reject a request with HTML or an empty body. Preserve
+      // their HTTP status instead of turning a definite response into a timeout.
+      Map<String, dynamic>? data;
+      if (response.bodyBytes.length <= 300000) {
+        try {
+          final value = jsonDecode(response.body);
+          if (value is Map<String, dynamic>) data = value;
+        } on FormatException {
+          /* Non-JSON ingress response. */
+        }
+      }
       if (response.statusCode != 200) {
+        final message = data?['message'];
         throw AccountError(
-          data['message'] as String? ?? 'Account service unavailable.',
+          message is String && message.length <= 300
+              ? message
+              : response.statusCode == 401
+              ? 'Sign in again.'
+              : response.statusCode == 403
+              ? 'Request blocked by the server (403). Retry when the service is restored.'
+              : 'Account service returned ${response.statusCode}. Try again.',
           status: response.statusCode,
         );
       }
+      if (data == null) throw const FormatException();
       return data;
     } on AccountError {
       rethrow;

@@ -1,3 +1,4 @@
+import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
@@ -43,8 +44,11 @@ class PlayerComponent extends SpriteAnimationComponent
   double _trailClock = 0, _dashDustClock = 0;
   bool _wasDashing = false;
 
+  GroundProjection? _ground;
   @override
   Future<void> onLoad() async {
+    _ground = GroundProjection(this, renderGround);
+    game.world.add(_ground!);
     final name = game.loadout.character.name;
     for (var row = 0; row < 4; row++) {
       _idle.add(RegunArt.shared.survivorIdle(name, row));
@@ -128,6 +132,7 @@ class PlayerComponent extends SpriteAnimationComponent
         CombatEffect(
           position: position.clone(),
           radius: 8,
+          floorEffect: true,
           duration: .25,
           color: const Color(0xffD5BA75),
         ),
@@ -165,15 +170,24 @@ class PlayerComponent extends SpriteAnimationComponent
   }
 
   @override
-  // The sprite's super.render is invoked by _renderSurvivor inside the layer.
-  // ignore: must_call_super
-  void render(Canvas canvas) {
+  void onRemove() {
+    _ground?.removeFromParent();
+    super.onRemove();
+  }
+
+  void renderGround(Canvas canvas) {
     final entrance = game.playerEntrance;
-    if (!entrance.active) {
-      _renderSurvivor(canvas);
-      return;
+    if (!game.playerEntrance.active) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(size.x * .5, size.y * .83),
+          width: 42,
+          height: 12,
+        ),
+        Paint()..color = const Color(0x650C1113),
+      );
     }
-    if (entrance.atCenter) {
+    if (entrance.active && entrance.atCenter) {
       final foot = Offset(size.x / 2, size.y * .83);
       canvas.drawOval(
         Rect.fromCenter(center: foot, width: 42, height: 12),
@@ -201,6 +215,17 @@ class PlayerComponent extends SpriteAnimationComponent
           );
         }
       }
+    }
+  }
+
+  @override
+  // The sprite's super.render is invoked by _renderSurvivor inside the layer.
+  // ignore: must_call_super
+  void render(Canvas canvas) {
+    final entrance = game.playerEntrance;
+    if (!entrance.active) {
+      _renderSurvivor(canvas);
+      return;
     }
     if (entrance.bodyOpacity <= 0) return;
     canvas.saveLayer(
@@ -230,16 +255,6 @@ class PlayerComponent extends SpriteAnimationComponent
         : tint == null
         ? null
         : ColorFilter.mode(tint, BlendMode.modulate);
-    if (!game.playerEntrance.active) {
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: Offset(size.x * .5, size.y * .83),
-          width: 42,
-          height: 12,
-        ),
-        Paint()..color = const Color(0x650C1113),
-      );
-    }
     if (game.gameState.gameplayState == GameplayState.gameOver ||
         game.playerEntrance.fallen) {
       RegunArt.shared

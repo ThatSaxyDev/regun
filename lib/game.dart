@@ -1,3 +1,4 @@
+import 'package:regun/components/ui/boss_victory.dart';
 import 'package:regun/presentation/arena_viewport.dart';
 import 'package:regun/systems/weapon_mobility.dart';
 import 'package:regun/systems/weapon_reaction.dart';
@@ -690,7 +691,7 @@ class RegunGame extends FlameGame
     direction = direction.normalized();
     if (direction.isZero()) direction.setValues(1, 0);
     final start = myPlayer.position + direction * 36;
-    if (geometry.obstacles.any(
+    if (geometry.solids.any(
       (r) => ArenaGeometry.crosses(myPlayer.position, start, r.inflate(8)),
     )) {
       start.setFrom(myPlayer.position);
@@ -726,6 +727,7 @@ class RegunGame extends FlameGame
   }
 
   final damageFeedback = DamageFeedback();
+  final bossVictory = BossVictory();
   int _weaponImpacts = 0;
   bool claimWeaponImpact() => _weaponImpacts++ < 8;
   late final MapComponent map;
@@ -754,6 +756,7 @@ class RegunGame extends FlameGame
   bool _started = false;
   bool disposed = false;
   final supplyDrops = SupplyDrops();
+  bool _landingSupply = false;
   bool _supplyArtWanted = false,
       _supplyArtHeld = false,
       _supplyArtLoading = false;
@@ -829,6 +832,10 @@ class RegunGame extends FlameGame
     geometry = ArenaGeometry(
       map.bounds,
       obstacles: map.obstacles(loadout.arena),
+      dynamicObstacles: () sync* {
+        final drop = supplyDrops.drop;
+        if (!_landingSupply && drop != null && drop.solid) yield drop.footprint;
+      },
     );
     world.add(map);
     movementJoystick = MovementJoystickComponent();
@@ -844,6 +851,7 @@ class RegunGame extends FlameGame
       reloadButtonComponent,
       grenadeButtonComponent,
       damageFeedback,
+      bossVictory,
       EntranceVeil(),
       if (loadout.arena == ArenaType.breach) SupplyDropLocator(),
     ]);
@@ -906,6 +914,7 @@ class RegunGame extends FlameGame
     _checkpointElapsed = 0;
     newUnlocks = {};
     damageFeedback.reset();
+    bossVictory.reset();
     saveIssue = null;
     if (clearSave && !loadout.training) unawaited(runStore.clear());
     timeScale = 1;
@@ -1442,7 +1451,10 @@ class RegunGame extends FlameGame
     combat.onKill(enemy);
     if (!bossRush) dropXP(enemy.position, loadout.training ? 7 : xp);
     if (boss) {
-      final kind = (enemy as BossEncounter).kind.name;
+      final bossKind = (enemy as BossEncounter).kind;
+      gameNotifier.awardBossHealth();
+      bossVictory.show(bossKind);
+      final kind = bossKind.name;
       defeatedBosses.add(kind);
       if (!(_bossDamageTaken.remove(enemy) ?? _bossWasHit)) {
         noHitBosses.add(kind);
@@ -2064,7 +2076,7 @@ class RegunGame extends FlameGame
       if ((spot - myPlayer.position.toOffset()).distance < 260 ||
           (supplyDrops.previous != null &&
               (spot - supplyDrops.previous!).distance < 350) ||
-          geometry.obstacles.any(
+          geometry.solids.any(
             (r) => r.inflate(SupplyDrop.radius + 20).contains(spot),
           )) {
         continue;
@@ -2074,25 +2086,42 @@ class RegunGame extends FlameGame
     return null;
   }
 
-  /// Only the landing transition calls this. Ordinary deaths still use the
-  /// normal damage/reward path; bosses keep their encounter and lose only 3%.
+  /// Only the landing transition calls this. The crush footprint remains lethal
+  /// to ordinary enemies, with a grenade-strength blast and outer pressure wave.
   void landSupplyDrop(Offset position) {
-    audio.play('supply_land.wav');
-    final center = Vector2(position.dx, position.dy);
-    for (final target in liveEnemies.toList()) {
-      final enemy = target as CombatEnemy;
-      final radius = SupplyDrop.impactRadius + enemyRadius(target);
-      if (target.position.distanceToSquared(center) > radius * radius ||
-          segmentBlocked(center, target.position)) {
-        continue;
+    _landingSupply = true;
+    try {
+      audio.play('supply_land.wav');
+      final center = Vector2(position.dx, position.dy);
+      for (final target in liveEnemies.toList()) {
+        final enemy = target as CombatEnemy;
+        final radius = SupplyDrop.impactRadius + enemyRadius(target);
+        if (target.position.distanceToSquared(center) > radius * radius ||
+            segmentBlocked(center, target.position)) {
+          continue;
+        }
+        hitEnemy(
+          target,
+          enemy.isBoss
+              ? enemy.combatHealth.maximum * .03
+              : enemy.combatHealth.current,
+          primary: false,
+        );
       }
-      hitEnemy(
-        target,
-        enemy.isBoss
-            ? enemy.combatHealth.maximum * .03
-            : enemy.combatHealth.current,
-        primary: false,
+      combat.explode(
+        center,
+        radius: 205,
+        damage: 8,
+        grenade: true,
+        allowFragments: false,
       );
+    } finally {
+      _landingSupply = false;
+    }
+    // A player caught beneath a friendly pod is displaced, never damaged.
+    constrainActor(myPlayer.position, 30);
+    for (final target in liveEnemies.toList()) {
+      moveTo(target, target.position.clone(), crowdRadius(target));
     }
   }
 
@@ -2311,6 +2340,7 @@ class RegunGame extends FlameGame
     }
     _phaseSubscription?.close();
     damageFeedback.healthLost.dispose();
+    bossVictory.current.dispose();
     if (_started) {
       gameNotifier.upgradeConfirmed.removeListener(_queueUpgradePulse);
       gameNotifier.cancelPendingActions();

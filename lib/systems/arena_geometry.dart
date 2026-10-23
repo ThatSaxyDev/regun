@@ -4,13 +4,18 @@ import 'package:flame/components.dart';
 import 'package:regun/systems/arena_bounds.dart';
 
 class ArenaGeometry {
-  ArenaGeometry(this.bounds, {required this.obstacles});
+  ArenaGeometry(this.bounds, {required this.obstacles, this.dynamicObstacles});
   final ArenaBounds bounds;
   final List<Rect> obstacles;
+  final Iterable<Rect> Function()? dynamicObstacles;
+  Iterable<Rect> get solids sync* {
+    yield* obstacles;
+    yield* dynamicObstacles?.call() ?? const <Rect>[];
+  }
 
   void constrain(Vector2 point, double radius) {
     bounds.constrainPlayer(point, radius);
-    for (final obstacle in obstacles) {
+    for (final obstacle in solids) {
       final expanded = obstacle.inflate(radius);
       if (!expanded.contains(point.toOffset())) continue;
       final edges = [
@@ -48,7 +53,7 @@ class ArenaGeometry {
   }
 
   bool blocked(Vector2 start, Vector2 end) =>
-      obstacles.any((rect) => crosses(start, end, rect));
+      solids.any((rect) => crosses(start, end, rect));
 
   static bool crosses(Vector2 start, Vector2 end, Rect rect) {
     var t0 = 0.0, t1 = 1.0;

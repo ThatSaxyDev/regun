@@ -47,17 +47,24 @@ class AccountController extends ChangeNotifier {
       verified && username.isNotEmpty && account?['requiresRename'] != true;
   bool get attached => session?.accountId == preferences.profileOwner;
   bool get pending => _local?['pending'] == true;
-  String get saveLabel => _local?['purchase'] != null
-      ? 'Purchase awaiting confirmation'
-      : conflict
-      ? 'Choose which progress to keep'
-      : issue.isNotEmpty
-      ? 'Saved on device · cloud backup pending'
-      : pending
-      ? 'Saved on device · waiting to sync'
-      : account?['cloud'] != null
-      ? 'Saved to cloud'
-      : 'Saved on this device';
+  String get saveLabel {
+    if (_local?['purchase'] != null) {
+      if (_local?['purchaseStatus'] == 'blocked') {
+        return 'Purchase blocked · retry in Collection';
+      }
+      if (_local?['purchaseStatus'] == 'not_found') {
+        return 'Purchase not completed · retry in Collection';
+      }
+      return 'Purchase awaiting confirmation';
+    }
+    if (conflict) return 'Choose which progress to keep';
+    if (issue.isNotEmpty) return 'Saved on device · cloud backup pending';
+    if (pending) return 'Saved on device · waiting to sync';
+    return account?['cloud'] != null
+        ? 'Saved to cloud'
+        : 'Saved on this device';
+  }
+
   void _notify() {
     if (!_disposed) notifyListeners();
   }
@@ -404,7 +411,11 @@ class AccountController extends ChangeNotifier {
         }
       }
     }
-    if (session == null || conflict || _local?['purchase'] != null) return;
+    if (session == null || conflict) return;
+    if (_local?['purchase'] != null) {
+      await _reconcilePurchase();
+      if (_local?['purchase'] != null || conflict) return;
+    }
     final generation = _generation, id = session!.accountId;
     try {
       await status();
@@ -523,7 +534,10 @@ class AccountController extends ChangeNotifier {
       'revision': cloud['revision'].toString(),
       'epoch': cloud['epoch'].toString(),
     };
-    if (clearPurchase) confirmedLocal.remove('purchase');
+    if (clearPurchase) {
+      confirmedLocal.remove('purchase');
+      confirmedLocal.remove('purchaseStatus');
+    }
     await _store.write(owner, confirmedLocal);
     if (generation != _generation || session?.accountId != owner) return;
     // A purchase runs under the local transition lock; ordinary uploads retain
@@ -535,6 +549,73 @@ class AccountController extends ChangeNotifier {
     preferences.profile = _withWallet(preferences.profile.toJson(), remote);
     // Persist a compatibility mirror without creating a second upload operation.
     await preferences.saveProfile(notifyAccount: false);
+  }
+
+  /// Read receipt only: Sync/reconnect must never submit a purchase mutation.
+  Future<void> _reconcilePurchase() async {
+    final operation = _local?['purchase'] as Map?;
+    if (operation == null || !attached) return;
+    final generation = _generation, owner = session!.accountId;
+    try {
+      final data = await api.request(
+        '/purchase-status',
+        token: await accessToken(),
+        body: {'operation': operation['operation']},
+      );
+      if (generation != _generation ||
+          !attached ||
+          data['accountId'] != owner ||
+          _local?['purchase']?['operation'] != operation['operation']) {
+        return;
+      }
+      if (data['purchaseOperation'] != operation['operation']) {
+        throw const AccountError(
+          'Could not verify the purchase. Retry in Collection.',
+        );
+      }
+      final receipt = data['purchaseReceipt'] as Map?;
+      if (receipt == null) {
+        _local = {..._local!, 'purchaseStatus': 'not_found'};
+        await _store.write(owner, _local!);
+        issue = 'Purchase has not completed. Retry it in Collection.';
+        return;
+      }
+      if (receipt['item'] != operation['item'] ||
+          receipt['catalog'] != operation['catalog'] ||
+          receipt['epoch'] != operation['epoch']) {
+        throw const AccountError(
+          'Purchase receipt did not match. Retry in Collection.',
+        );
+      }
+      if (data['cloud']?['epoch']?.toString() != _local?['epoch']) {
+        conflict = true;
+        issue = 'Progress changed. Choose which progress to keep.';
+        return;
+      }
+      if (!(data['cloud']?['payload']?['owned'] as List? ?? []).contains(
+        operation['item'],
+      )) {
+        throw const AccountError(
+          'Could not restore this purchase. Retry in Collection.',
+        );
+      }
+      account = data;
+      await _confirmWallet(data, clearPurchase: true);
+      issue = '';
+    } on AccountError catch (error) {
+      if (generation != _generation || !attached) return;
+      issue = error.message;
+      if (error.status == 403) {
+        _local = {..._local!, 'purchaseStatus': 'blocked'};
+        await _store.write(owner, _local!);
+      }
+    } catch (_) {
+      if (generation == _generation && attached) {
+        issue = 'Could not check the purchase. Retry when connected.';
+      }
+    } finally {
+      _notify();
+    }
   }
 
   Future<CosmeticPurchase> purchaseCosmetic(String item) async {
@@ -583,7 +664,7 @@ class AccountController extends ChangeNotifier {
             'operation': const Uuid().v4(),
           };
         }
-        _local = {..._local!, 'purchase': operation};
+        _local = {..._local!, 'purchase': operation}..remove('purchaseStatus');
         await _store.write(
           owner,
           _local!,
@@ -616,8 +697,10 @@ class AccountController extends ChangeNotifier {
       } on AccountError catch (e) {
         if (generation != _generation || !attached) return;
         issue = e.message;
-        if (e.status != 0 && e.status < 500 && _local != null) {
-          _local = {..._local!}..remove('purchase');
+        // Even a rejected retry may follow an earlier committed request whose
+        // response was lost. Retain its key until the receipt is reconciled.
+        if (e.status == 403 && _local != null) {
+          _local = {..._local!, 'purchaseStatus': 'blocked'};
           await _store.write(owner, _local!);
         }
         result = e.message == 'Not enough Scrap'

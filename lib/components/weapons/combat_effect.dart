@@ -22,6 +22,8 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
   }) : super(
          priority:
              floorEffect ||
+                 remains != null ||
+                 upgradePulse ||
                  dashDirection != null ||
                  material == AttackMaterial.ember &&
                      endpoint == null &&

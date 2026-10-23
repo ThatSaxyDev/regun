@@ -30,3 +30,11 @@ Skills/reference ledger: animation and frontend-design informed planted anticipa
 ## Verification
 
 Model regressions cover schedule, warning/descent/impact, interrupted capture, claimed/unclaimed disappearance, exactly-once reward/impact, invalid state and restore. Native-scene regressions cover all eight ordinary roles, a boss, nearby non-crushed actors, capture/picker persistence, pause/restart/Rush, pending art cancellation and rendered stages. Wall-specific weapon regressions now use Foundry because Breach intentionally has no columns. The creator still needs to review physical sound weight, visibility, motion comfort and risk/reward on the phone; simulations/installations do not prove native performance or subjective balance.
+
+## 23 October follow-up
+
+The contact-detonation and non-solid-pod behavior above is superseded by
+[Combat recovery and supply cover](COMBAT_RECOVERY_AND_SUPPLY.md): grenades pass
+over enemies, bounce and detonate on fuse; pressure extends beyond damage; supply
+landings add a blast and active/opened pods become cover. No change to eight-second
+capture/50-second current expiry or the separate primary weapon contracts.

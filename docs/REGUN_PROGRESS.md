@@ -1244,3 +1244,24 @@ shared211-field API catalogue and pinned into new runs. Lower caps remove redund
 offers. Old snapshots retain hashes and Save/Continue retains exact charges/timers.
 Server-authoritative online protocol4 includes reserve state in prediction acks;
 older clients do not receive unsupported offers. See CHARGE_CAPACITY_UPGRADES.md.
+
+## Boss recovery, grenade placement and supply cover — 23 October 2026
+
+Boss deaths now award2 current HP beyond max and show the boss-name VANQUISHED
+stamp. Capped healing never removes overflow; Continue preserves it. Grenades pass
+over bodies, bounce on the floor and detonate on their1.4s fuse. Their stronger
+140-unit/.32s response includes a130-unit outer non-damaging pressure band. Supply
+landing adds a fixed grenade-strength blast, then the active/opened pod becomes
+solid cover for movement/shots/grenades until breakdown. Player landings do no
+friendly damage. Native/online contracts and the online capability gate agree.
+
+Queen/legacy boss warnings are now floor siblings, along with arrival stamps,
+shadows, deployment dust, remains, foot trails and grenade guides; the pod's body
+retains depth ordering. Read docs/COMBAT_RECOVERY_AND_SUPPLY.md. No installation,
+release identity change or deployment is performed by this pass. Physical feel,
+cover usability, health balance and readability require creator review.
+
+Validation for this pass: game562 passed/five optional skips, server112 passed and
+module build, plus25 final focused online/recovery checks. Analyzer and whitespace
+checks pass. Actual Queen floor-layer and victory-plate renders were inspected;
+see build/test-previews/queen-ground-layers.png and boss-vanquished.png.

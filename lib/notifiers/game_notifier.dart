@@ -682,7 +682,7 @@ class GameNotifier extends Notifier<GameState> {
       case PowerUp.salvage:
         state = state.copyWith(
           scrap: state.scrap + 5,
-          health: min(state.maxHealth, state.health + 1),
+          health: max(state.health, min(state.maxHealth, state.health + 1)),
         );
       default:
         break;
@@ -793,10 +793,19 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void heal([int amount = 1]) {
-    if (state.health <= 0 || amount <= 0) return;
+    if (state.health <= 0 || state.health >= state.maxHealth || amount <= 0) {
+      return;
+    }
     final health = min(state.maxHealth, state.health + amount);
     survivor.healed += health - state.health;
     state = state.copyWith(health: health);
+  }
+
+  /// Boss recovery is temporary extra health, not an increase to base max HP.
+  void awardBossHealth() {
+    if (state.health <= 0) return;
+    survivor.healed += 2;
+    state = state.copyWith(health: state.health + 2);
   }
 
   void refillPractice() {

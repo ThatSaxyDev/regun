@@ -488,3 +488,24 @@ smallest/largest control sizes and mirrored placements. Set admin totals to2/3:
 new runs should offer only one rank of each; an existing Continue keeps its former
 snapshot. Verify old online clients receive neither new offer and protocol4 peers
 agree on spending and recovered charges. Physical comfort/balance remains to review.
+
+## Boss health, grenade placement and landed supply cover
+
+- Kill each boss at full health: gain exactly2 HP above the unchanged maximum.
+  Kill another: gain2 more. Ordinary healing/Salvage must not remove extra HP.
+  Save/Continue preserves the extra HP without granting it again. Check the
+  boss-name VANQUISHED/+2 HEALTH stamp, including pause, two kills and large text.
+- Throw into a crowd: the front enemies must not detonate the grenade. It should
+  land, bounce and explode on its1.4s fuse. Compare the predicted landing marker,
+  short/full drag throws, walls, pause/background and Continue mid-flight.
+- Enemies just outside the damaging blast should be pushed without losing HP;
+  cover and planted enemies still resist it. Review force/readability in packs.
+- Let a supply pod land among enemies: center crush plus wider blast/pressure.
+  Walk, dash and shoot against the landed pod from every side; grenades bounce
+  against it. Standing under landing causes safe displacement, not player damage.
+  Opened pods stay solid; breakdown releases the space. Continue must restore
+  cover without repeating landing damage. Capture remains possible around it.
+- Cross Queen poison/tail/brood warnings and every boss arrival/attack at both
+  positive and negative map coordinates. Floor art, shadows, remains and dust
+  must stay beneath player/enemy bodies. Check the same ordering online after
+  deploying the matching server; do not infer deployed support from local tests.

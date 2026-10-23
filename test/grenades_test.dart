@@ -42,24 +42,27 @@ void main() {
       throwsFormatException,
     );
   });
-  test(
-    'fuse is short, flight bounces off walls, contact arms after release',
-    () {
-      final f = GrenadeFlight(Offset.zero, const Offset(600, 0));
-      f.advance(.1, blocked: (_, b) => b.dx >= 40, contact: (_, _) => true);
-      expect(f.spent, isFalse);
-      expect(f.velocity.dx, lessThan(0));
-      expect(f.position.dx, lessThan(40));
-      f.advance(.1, blocked: (_, b) => b.dx >= 40, contact: (_, _) => true);
-      expect(f.spent, isTrue);
-      final fuse = GrenadeFlight(Offset.zero, const Offset(600, 0));
-      fuse.advance(1.39, blocked: (_, _) => false, contact: (_, _) => false);
-      expect(fuse.spent, isFalse);
-      fuse.advance(.01, blocked: (_, _) => false, contact: (_, _) => false);
-      expect(fuse.spent, isTrue);
-      expect(fuse.position.dx, inInclusiveRange(300, 440));
-    },
-  );
+  test('fuse follows a ground bounce; walls bounce and enemy contact never detonates', () {
+    final f = GrenadeFlight(Offset.zero, const Offset(600, 0));
+    f.advance(.1, blocked: (_, b) => b.dx >= 40, contact: (_, _) => true);
+    expect(f.spent, isFalse);
+    expect(f.velocity.dx, lessThan(0));
+    expect(f.position.dx, lessThan(40));
+    f.advance(.1, blocked: (_, b) => b.dx >= 40, contact: (_, _) => true);
+    expect(f.spent, isFalse);
+    final fuse = GrenadeFlight(Offset.zero, const Offset(600, 0));
+    fuse.advance(1.0, blocked: (_, _) => false, contact: (_, _) => true);
+    expect(
+      fuse.lift,
+      greaterThan(0),
+      reason: 'First ground impact has bounced before fuse expiry',
+    );
+    fuse.advance(.39, blocked: (_, _) => false, contact: (_, _) => false);
+    expect(fuse.spent, isFalse);
+    fuse.advance(.01, blocked: (_, _) => false, contact: (_, _) => false);
+    expect(fuse.spent, isTrue);
+    expect(fuse.position.dx, inInclusiveRange(300, 440));
+  });
   test(
     'grenade ranks are bounded without extra charges or primary ammo changes',
     () {
@@ -90,7 +93,7 @@ void main() {
     },
   );
   test(
-    'preview matches actual fuse/contact path and variable throw distance',
+    'preview matches actual fuse/bounce path and variable throw distance',
     () {
       for (final power in [.4, .7, 1.0]) {
         final preview = grenadePreview(

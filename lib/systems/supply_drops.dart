@@ -12,6 +12,9 @@ class SupplyDrop {
   double elapsed = 0, capture = 0, life = 0;
   bool inside = false, claimed = false;
   static const radius = 260.0, impactRadius = 62.0;
+  bool get solid => phase == SupplyPhase.active || phase == SupplyPhase.opened;
+  Rect get footprint =>
+      Rect.fromLTWH(position.dx - 46, position.dy - 52, 92, 52);
   static const captureSeconds = 8.0, lifetime = 50.0;
 }
 

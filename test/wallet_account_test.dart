@@ -34,6 +34,145 @@ class Secrets implements AccountSecrets {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  test('HTML 403 preserves status, pending key and truthful failure; Sync only checks the receipt', () async {
+    final dir = await Directory.systemTemp.createTemp('regun-purchase-403');
+    addTearDown(() => dir.delete(recursive: true));
+    final store = AccountLocalStore(directory: dir), secrets = Secrets();
+    final profile = PlayerProfile(scrap: 300).toJson();
+    var blocked = true, committed = false;
+    var purchases = 0, checks = 0;
+    String? operation;
+    Map<String, dynamic> status() => {
+      'accountId': owner,
+      'username': 'rook',
+      'requiresRename': false,
+      'catalog': {'version': 'scrap-cosmetics-1', 'prices': shopCosmetics},
+      'cloud': {
+        'revision': committed ? '2' : '1',
+        'epoch': '0',
+        'payload': committed
+            ? {
+                ...profile,
+                'scrap': 200,
+                'owned': ['standard', 'copper'],
+              }
+            : profile,
+      },
+    };
+    final api = AccountApi(
+      endpoint: Uri.parse('https://account.example'),
+      client: () => MockClient((request) async {
+        if (request.url.path == '/purchase') {
+          purchases++;
+          final body = jsonDecode(request.body) as Map;
+          operation ??= body['operation'] as String;
+          expect(body['operation'], operation);
+          if (blocked) {
+            return http.Response(
+              '<html>403 Forbidden</html>',
+              403,
+              headers: {'content-type': 'text/html'},
+            );
+          }
+          committed = true;
+          throw const SocketException('lost acknowledgement');
+        }
+        if (request.url.path == '/purchase-status') {
+          checks++;
+          expect(jsonDecode(request.body), {'operation': operation});
+          return http.Response(
+            jsonEncode({
+              ...status(),
+              'purchaseOperation': operation,
+              'purchaseReceipt': committed
+                  ? {
+                      'item': 'copper',
+                      'catalog': 'scrap-cosmetics-1',
+                      'epoch': '0',
+                    }
+                  : null,
+            }),
+            200,
+          );
+        }
+        return http.Response(jsonEncode(status()), 200);
+      }),
+    );
+    await store.write(owner, {
+      'profile': profile,
+      'revision': '1',
+      'epoch': '0',
+      'pending': false,
+      'operation': 'initial',
+    });
+    final preferences = LocalPreferences();
+    await preferences.activateProfile(owner);
+    final controller = AccountController(
+      api: api,
+      secrets: secrets,
+      store: store,
+      preferences: preferences,
+    );
+    await controller.initialize();
+    expect(
+      await preferences.buyCosmetic('copper'),
+      CosmeticPurchase.onlineRequired,
+    );
+    expect(controller.issue, contains('403'));
+    expect(controller.saveLabel, 'Purchase blocked · retry in Collection');
+    expect(preferences.profile.scrap, 300);
+    expect(preferences.profile.owned.contains('copper'), isFalse);
+    expect((await store.read(owner))!['purchase']['operation'], operation);
+    await controller.sync();
+    expect(checks, 1);
+    expect(purchases, 1);
+    expect(
+      controller.saveLabel,
+      'Purchase not completed · retry in Collection',
+    );
+    blocked = false;
+    expect(
+      await preferences.buyCosmetic('copper'),
+      CosmeticPurchase.onlineRequired,
+    );
+    expect(purchases, 2);
+    expect(preferences.profile.scrap, 300);
+    await controller.sync();
+    expect(purchases, 2);
+    expect(checks, 2); // Receipt lookup does not resubmit buying.
+    expect(preferences.profile.scrap, 200);
+    expect(preferences.profile.owned.contains('copper'), isTrue);
+    expect((await store.read(owner))!['purchase'], isNull);
+    expect(controller.saveLabel, 'Saved to cloud');
+    controller.dispose();
+  });
+
+  test(
+    'non-JSON HTTP errors retain status while malformed success is uncertain',
+    () async {
+      for (final code in [401, 403, 404, 502]) {
+        final api = AccountApi(
+          endpoint: Uri.parse('https://account.example'),
+          client: () =>
+              MockClient((_) async => http.Response('upstream HTML', code)),
+        );
+        await expectLater(
+          api.request('/purchase', body: {}),
+          throwsA(isA<AccountError>().having((e) => e.status, 'status', code)),
+        );
+      }
+      final api = AccountApi(
+        endpoint: Uri.parse('https://account.example'),
+        client: () =>
+            MockClient((_) async => http.Response('not valid JSON', 200)),
+      );
+      await expectLater(
+        api.request('/purchase', body: {}),
+        throwsA(isA<AccountError>().having((e) => e.status, 'status', 0)),
+      );
+    },
+  );
+
   test('online purchase persists ownership; restart and offline mode retain it; lost responses reuse receipt', () async {
     final dir = await Directory.systemTemp.createTemp('regun-wallet');
     addTearDown(() => dir.delete(recursive: true));

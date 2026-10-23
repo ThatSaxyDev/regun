@@ -1,3 +1,5 @@
+import 'package:regun/components/enemies/ground_projection.dart';
+
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -20,6 +22,25 @@ class GrenadeComponent extends PositionComponent
        );
   final GrenadeFlight flight;
   final double damage, blastRadius;
+  GroundProjection? _shadow;
+  @override
+  void onMount() {
+    super.onMount();
+    _shadow = GroundProjection(this, (canvas) {
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset.zero, width: 24, height: 9),
+        Paint()..color = const Color(0x700c1012),
+      );
+    });
+    game.world.add(_shadow!);
+  }
+
+  @override
+  void onRemove() {
+    _shadow?.removeFromParent();
+    super.onRemove();
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
@@ -32,7 +53,7 @@ class GrenadeComponent extends PositionComponent
       dt,
       blocked: (a, b) =>
           !game.geometry.bounds.floor.deflate(8).contains(b) ||
-          game.geometry.obstacles.any(
+          game.geometry.solids.any(
             (r) => ArenaGeometry.crosses(
               Vector2(a.dx, a.dy),
               Vector2(b.dx, b.dy),
@@ -63,10 +84,6 @@ class GrenadeComponent extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset.zero, width: 24, height: 9),
-      Paint()..color = const Color(0x700c1012),
-    );
     paintGrenade(
       canvas,
       Offset(0, game.preferences.reducedMotion ? 0 : -flight.height),
@@ -195,7 +212,7 @@ class GrenadeButtonComponent extends PositionComponent
 
 class GrenadeAimPreview extends PositionComponent
     with HasGameReference<RegunGame> {
-  GrenadeAimPreview() : super(priority: 20020);
+  GrenadeAimPreview() : super(priority: -5);
   @override
   void render(Canvas canvas) {
     final input = game.grenadeButtonComponent.aim;
@@ -215,7 +232,7 @@ class GrenadeAimPreview extends PositionComponent
       flight,
       blocked: (a, b) =>
           !game.geometry.bounds.floor.deflate(8).contains(b) ||
-          game.geometry.obstacles.any(
+          game.geometry.solids.any(
             (r) => ArenaGeometry.crosses(
               Vector2(a.dx, a.dy),
               Vector2(b.dx, b.dy),
