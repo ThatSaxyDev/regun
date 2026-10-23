@@ -58,3 +58,14 @@ returned HTTP 200 on 22 October 2026.
 Gameplay provenance: creator recording `ScreenRecording_10-20-2026 11-06-27_1.MP4`,
 landing-page excerpt 00:54–01:12; this cut uses seconds 4–10 of that excerpt.
 The recorded gameplay is silent; the integrated synth score remains underneath.
+
+## Weapon explainer promotion
+
+`WeaponSpotlight` is a separate 34.8-second composition using all four full
+creator-selected gameplay recordings, animated mechanic labels, moving arsenal
+highlights and a beta invitation. It opens
+with complete artwork/text on frame zero. See `WEAPON_SPOTLIGHT.md` for the cut.
+
+```sh
+npx remotion render WeaponSpotlight out/regun-weapon-spotlight-1080p.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p
+```

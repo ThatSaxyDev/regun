@@ -210,9 +210,11 @@ function Head({
 function Scene({
   children,
   length,
+  opening = false,
 }: {
   children: React.ReactNode;
   length: number;
+  opening?: boolean;
 }) {
   const f = useCurrentFrame();
   return (
@@ -221,7 +223,7 @@ function Scene({
         opacity: interpolate(
           f,
           [0, 7, length - 10, length],
-          [0, 1, 1, 0],
+          [opening ? 1 : 0, 1, 1, 0],
           clamp,
         ),
         overflow: "hidden",
@@ -234,7 +236,7 @@ function Scene({
 function Intro() {
   const f = useCurrentFrame();
   return (
-    <Scene length={180}>
+    <Scene length={180} opening>
       <Img
         src={file("home_hideout_v2.jpg")}
         style={{
@@ -258,7 +260,7 @@ function Intro() {
           position: "absolute",
           left: 148,
           top: 295,
-          opacity: interpolate(f, [18, 42], [0, 1], clamp),
+          opacity: 1,
           transform: `translateY(${interpolate(f, [18, 55], [25, 0], { ...clamp, easing: ease })}px)`,
         }}
       >
@@ -872,7 +874,7 @@ export function Trailer() {
       <AbsoluteFill
         style={{
           background: "#080d0b",
-          opacity: interpolate(f, [0, 14, 1300, 1319], [1, 0, 0, 1], clamp),
+          opacity: interpolate(f, [1300, 1319], [0, 1], clamp),
           pointerEvents: "none",
         }}
       />

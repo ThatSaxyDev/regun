@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "build": "16",
+  "bundleId": "dev.kiishi.regun",
+  "export": "app-store-connect",
+  "uploadedToApple": false,
+  "appleUploadNote": "Xcode account upload failed: credentialed provider request returned missing providerId. IPA ready for Transporter.",
+  "androidDistributed": true,
+  "androidFirebaseGroup": "playtesters",
+  "validation": {
+    "analyzer": "passed",
+    "testsPassed": 541,
+    "testsSkipped": 5
+  },
+  "ipa": {
+    "path": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun/build/ios/ipa/regun-1.0.0-16.ipa",
+    "bytes": 161974774,
+    "sha256": "e9c46ed808ac922110a8a14395a556f5adb474d03d18a7bfd6d9b6c63594f3fc"
+  },
+  "android": {
+    "path": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun/build/app/outputs/flutter-apk/regun-1.0.0-16.apk",
+    "bytes": 218757069,
+    "sha256": "e9bdf5f4bdfc6854b49e42906bc1005f76a305cf30d1fa63a15a780438a28682"
+  }
+}
