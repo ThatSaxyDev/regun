@@ -133,6 +133,55 @@ void main() {
       expect(state.rank(PowerUp.heavyLoad), 3);
     },
   );
+  test('accepted upgrades apply pinned strength and survive Continue', () {
+    final old = BalanceRepository.shared.current;
+    addTearDown(() => BalanceRepository.shared.current = old);
+    BalanceRepository.shared.current = LiveBalance.create(10, {
+      ...LiveBalance.bundled.values,
+      'powerups.heavyLoad.strength': 1.5,
+      'powerups.healthIncrease.strength': 2,
+    });
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final notifier = container.read(gameNotifierProvider.notifier)..resetRun();
+    void grant(PowerUp power) {
+      final checkpoint = notifier.checkpoint();
+      final state = container.read(gameNotifierProvider);
+      checkpoint['state'] = state
+          .copyWith(
+            gameplayState: GameplayState.powerup,
+            powerUpChoices: [power],
+            offerId: state.offerId + 1,
+          )
+          .toJson();
+      notifier.restoreCheckpoint(checkpoint);
+      notifier.playGame();
+      notifier.applyPowerUp(
+        power,
+        offerId: container.read(gameNotifierProvider).offerId,
+      );
+    }
+
+    grant(PowerUp.heavyLoad);
+    grant(PowerUp.healthIncrease);
+    expect(
+      container.read(gameNotifierProvider).shotDamage,
+      closeTo(1.525, 1e-9),
+    );
+    expect(container.read(gameNotifierProvider).maxHealth, 8);
+    final saved = notifier.checkpoint();
+    BalanceRepository.shared.current = LiveBalance.bundled;
+    notifier.resetRun();
+    notifier.restoreCheckpoint(saved);
+    expect(
+      container.read(gameNotifierProvider).shotDamage,
+      closeTo(1.525, 1e-9),
+    );
+    expect(
+      container.read(gameNotifierProvider).strength(PowerUp.heavyLoad),
+      1.5,
+    );
+  });
   test(
     'a transport construction failure cannot escape background refresh',
     () async {
