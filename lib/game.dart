@@ -1,3 +1,4 @@
+import 'package:regun/models/economy/scrap_reward.dart';
 import 'package:regun/components/ui/boss_victory.dart';
 import 'package:regun/presentation/arena_viewport.dart';
 import 'package:regun/systems/weapon_mobility.dart';
@@ -1084,23 +1085,21 @@ class RegunGame extends FlameGame
     return saved;
   }
 
-  int get earnedScrap => loadout.training
-      ? 0
-      : gameState.scrap +
-            gameState.kills ~/ 10 +
-            gameState.bosses * 15 +
-            gameState.survivalSeconds ~/ 60;
+  ScrapReward get scrapReward => ScrapReward.run(
+    salvage: gameState.scrap,
+    kills: gameState.kills,
+    bosses: gameState.bosses,
+    seconds: gameState.survivalSeconds,
+    training: loadout.training,
+  );
+  int get earnedScrap => scrapReward.total;
 
   Future<void> settleRun() async {
     if (_settled || loadout.training) return;
     _settled = true;
     final settledId = runId;
     final state = gameState;
-    final earned =
-        state.scrap +
-        state.kills ~/ 10 +
-        state.bosses * 15 +
-        state.survivalSeconds ~/ 60;
+    final earned = scrapReward.total;
     newUnlocks = preferences.profile.settle(
       runId: runId,
       loadout: loadout,

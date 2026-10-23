@@ -139,6 +139,8 @@ class AccountController extends ChangeNotifier {
     preferences.persistAccountProfile = _persist;
     preferences.spendingAuthorized = () => verified && attached && !conflict;
     preferences.purchaseOnline = purchaseCosmetic;
+    preferences.purchaseQuotedOnline = (id, price, catalog) =>
+        purchaseCosmetic(id, displayedPrice: price, displayedCatalog: catalog);
     _notify();
   }
 
@@ -573,6 +575,16 @@ class AccountController extends ChangeNotifier {
           'Could not verify the purchase. Retry in Collection.',
         );
       }
+      if (data['cloud']?['epoch']?.toString() != _local?['epoch']) {
+        conflict = true;
+        issue = 'Progress changed. Choose which progress to keep.';
+        return;
+      }
+      if (data['purchaseCancelled'] == true) {
+        await _confirmWallet(data, clearPurchase: true);
+        issue = '';
+        return;
+      }
       final receipt = data['purchaseReceipt'] as Map?;
       if (receipt == null) {
         _local = {..._local!, 'purchaseStatus': 'not_found'};
@@ -618,7 +630,53 @@ class AccountController extends ChangeNotifier {
     }
   }
 
-  Future<CosmeticPurchase> purchaseCosmetic(String item) async {
+  String? get pendingPurchaseItem => _local?['purchase']?['item'] as String?;
+
+  /// Atomically cancel an uncommitted intent, or recover its committed receipt.
+  Future<void> cancelPendingPurchase() async {
+    final generation = _generation;
+    await _switchLocal(() async {
+      final operation = _local?['purchase'] as Map?;
+      if (!verified || !attached || operation == null) return;
+      try {
+        final data = await api.request(
+          '/purchase-cancel',
+          token: await accessToken(),
+          body: {'operation': operation['operation']},
+        );
+        if (generation != _generation ||
+            !attached ||
+            data['accountId'] != session?.accountId ||
+            data['purchaseOperation'] != operation['operation']) {
+          return;
+        }
+        if (data['cloud']?['epoch']?.toString() != _local?['epoch']) {
+          conflict = true;
+          issue = 'Progress changed. Choose which progress to keep.';
+          return;
+        }
+        if (data['purchaseCancelled'] == true) {
+          await _confirmWallet(data, clearPurchase: true);
+          issue = 'Purchase cancelled. Check the price before buying again.';
+        } else {
+          await _reconcilePurchase();
+        }
+      } on AccountError catch (e) {
+        if (generation == _generation && attached) issue = e.message;
+      } catch (_) {
+        if (generation == _generation && attached) {
+          issue = 'Could not save the purchase status. Retry when connected.';
+        }
+      }
+    });
+    _notify();
+  }
+
+  Future<CosmeticPurchase> purchaseCosmetic(
+    String item, {
+    int? displayedPrice,
+    String? displayedCatalog,
+  }) async {
     if (!verified || !attached) return CosmeticPurchase.signInRequired;
     if (!api.configured) return CosmeticPurchase.onlineRequired;
     final generation = _generation, owner = session!.accountId;
@@ -652,7 +710,11 @@ class AccountController extends ChangeNotifier {
             result = CosmeticPurchase.onlineRequired;
             return;
           }
-          if ((catalog['prices'] as Map?)?[item] != shopCosmetics[item]) {
+          if ((catalog['prices'] as Map?)?[item] !=
+                  (displayedPrice ?? shopCosmetics[item]) ||
+              (displayedCatalog != null &&
+                  catalog['version'] != displayedCatalog) ||
+              ((catalog['available'] as Map?)?[item] == false)) {
             issue = 'Shop changed. Refresh before purchasing.';
             return;
           }

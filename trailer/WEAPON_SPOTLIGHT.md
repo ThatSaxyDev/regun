@@ -35,3 +35,14 @@ npx remotion still WeaponSpotlight out/weapon-spotlight-thumbnail.jpg --frame=0
 
 `RegunTrailer` remains the separate 44-second trailer; both compositions open on
 visible artwork/text. The earlier asset-only spotlight exports are retained.
+
+## Website version
+
+`WeaponSpotlightWebsite` keeps all clips, timing, music and motion. Its final
+card centers “That's four. Discover the rest.” and the beta invitation, with a
+centered QR code beneath. The iOS/Android panels and visible website link are
+removed from this variant only. The general promotional export is preserved.
+
+```sh
+npx remotion render WeaponSpotlightWebsite out/regun-weapon-spotlight-website-1080p.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p
+```

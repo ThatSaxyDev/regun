@@ -33,6 +33,8 @@ class LocalPreferences extends ChangeNotifier {
   bool _buying = false;
   bool Function()? spendingAuthorized;
   Future<CosmeticPurchase> Function(String id)? purchaseOnline;
+  Future<CosmeticPurchase> Function(String id, int price, String catalog)?
+  purchaseQuotedOnline;
   bool get canSpend =>
       profileOwner != 'guest' && (spendingAuthorized?.call() ?? false);
 
@@ -200,7 +202,11 @@ class LocalPreferences extends ChangeNotifier {
 
   /// Ownership already cached on this device remains usable offline. A new
   /// purchase has no local fallback: only the account service may authorize it.
-  Future<CosmeticPurchase> buyCosmetic(String id) async {
+  Future<CosmeticPurchase> buyCosmetic(
+    String id, {
+    int? price,
+    String? catalog,
+  }) async {
     if (!canSpend) return CosmeticPurchase.signInRequired;
     if (_buying || !profileReady || profileSaveFailed) {
       return CosmeticPurchase.unavailable;
@@ -212,6 +218,9 @@ class LocalPreferences extends ChangeNotifier {
     if (purchase == null) return CosmeticPurchase.onlineRequired;
     _buying = true;
     try {
+      if (price != null && catalog != null && purchaseQuotedOnline != null) {
+        return await purchaseQuotedOnline!(id, price, catalog);
+      }
       return await purchase(id);
     } finally {
       _buying = false;

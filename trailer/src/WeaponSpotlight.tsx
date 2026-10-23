@@ -409,8 +409,9 @@ function Feature({ index }: { index: number }) {
     </AbsoluteFill>
   );
 }
-function Invite() {
+function Invite({ websiteVersion = false }: { websiteVersion?: boolean }) {
   const f = useCurrentFrame();
+  if (websiteVersion) return <WebsiteInvite />;
   return (
     <AbsoluteFill>
       <Back />
@@ -434,7 +435,14 @@ function Invite() {
         >
           Join the beta. Play to unlock more weapons.
         </div>
-        <div style={{ display: "flex", gap: 20, marginTop: 38 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 20,
+            marginTop: 38,
+            visibility: websiteVersion ? "hidden" : "visible",
+          }}
+        >
           {["iOS · TestFlight", "Android · App Tester"].map((s, i) => (
             <div
               key={s}
@@ -491,7 +499,72 @@ function Invite() {
     </AbsoluteFill>
   );
 }
-export function WeaponSpotlight() {
+function WebsiteInvite() {
+  const f = useCurrentFrame();
+  return (
+    <AbsoluteFill>
+      <Back />
+      <Header />
+      <div
+        style={{
+          position: "absolute",
+          left: 100,
+          right: 100,
+          top: 170,
+          textAlign: "center",
+        }}
+      >
+        <Words lines={["THAT'S FOUR."]} size={84} />
+        <Words
+          lines={["DISCOVER THE REST."]}
+          size={76}
+          color={gold}
+          delay={10}
+        />
+        <div
+          style={{
+            fontSize: 28,
+            marginTop: 23,
+            opacity: move(f, 32),
+            transform: `translateY(${(1 - move(f, 32)) * 25}px)`,
+          }}
+        >
+          Join the beta. Play to unlock more weapons.
+        </div>
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 490,
+          width: "100%",
+          textAlign: "center",
+          opacity: move(f, 40),
+        }}
+      >
+        <Img
+          src={staticFile("beta-qr.png")}
+          style={{ width: 320, height: 320, imageRendering: "pixelated" }}
+        />
+        <div
+          style={{
+            fontFamily: "Pixel",
+            fontSize: 14,
+            color: gold,
+            marginTop: 17,
+          }}
+        >
+          SCAN TO JOIN
+        </div>
+      </div>
+      <Grid />
+    </AbsoluteFill>
+  );
+}
+export function WeaponSpotlight({
+  websiteVersion = false,
+}: {
+  websiteVersion?: boolean;
+}) {
   let start = introFrames;
   return (
     <AbsoluteFill
@@ -510,7 +583,7 @@ export function WeaponSpotlight() {
         );
       })}
       <Sequence from={ctaStart} durationInFrames={ctaFrames}>
-        <Invite />
+        <Invite websiteVersion={websiteVersion} />
       </Sequence>
       <Audio
         src={staticFile("space_synth_score.wav")}

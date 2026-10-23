@@ -1265,3 +1265,50 @@ Validation for this pass: game562 passed/five optional skips, server112 passed a
 module build, plus25 final focused online/recovery checks. Analyzer and whitespace
 checks pass. Actual Queen floor-layer and victory-plate renders were inspected;
 see build/test-previews/queen-ground-layers.png and boss-vanquished.png.
+
+## Earned economy, goals and administration — 23 October 2026
+
+The non-billing pass adds a six-finish compatible shop catalogue, exact displayed
+quotes, purchase confirmation, cached metadata and server-confirmed cancellation
+of an uncommitted purchase intent. Existing owners keep offline use, including
+hidden items. Account/reset epochs and receipts remain enforced; late originals
+cannot spend cancelled intent IDs. The private server catalogue has separate
+staging/production immutable releases and an authenticated admin authoring path.
+Combat balance, power/odds and active-run snapshots do not read economy metadata.
+
+Collection Challenges now presents a Field Record, earned unlock progress and a
+persistent pinned next goal; Results shows that goal and the centralized unchanged
+Scrap breakdown. Additive schema3 career seconds/new-unlock milestones support
+explicitly device-reported pacing samples without fabricated historical backfill.
+Three new recolour finishes (Rust/Slate/Dusk) have real survivor previews and no
+stat effect. They are not new drawn characters. Existing mastery/challenge gates
+remain earned; no permanent stat tree or premium skip is introduced.
+
+Admin → Scrap economy supports persisted drafts, review/reasons, base revision
+conflicts, retry-safe publication, audit and restoring history as a reviewed new
+release. Reports separate current balances, imported/earned/spent flows, confirmed
+purchases and retry-inclusive request counts. Unlock medians include sample counts
+and their cumulative/client-report limitations. See ECONOMY_IMPLEMENTATION.md and
+REVIVE_POLICY.md. Revive rules are defined; no live revive purchase is enabled.
+Billing, ads and Credits remain deferred. This pass does not deploy/rebuild the
+already distributed build19; another coordinated server/app/admin release is
+needed. Physical UI and commercial/pacing acceptance remain open.
+
+## Results spacing and pause wallet placement — 23 October 2026
+
+Pause keeps its existing controls/summary layout; only the wallet moves beside
+PAUSED/TRAINING PAUSED, using compact symbols and amounts like Collection. It no
+longer occupies a row inside the pause scroll body.
+
+Results uses the available landscape width with a compact title/wallet header,
+run statistics/earnings on the left, progression/build on the right and pinned
+Restart/Menu actions. Long build/unlock lists use bounded pages with pixel arrows
+rather than stretching the entire screen vertically. Small or enlarged-text
+viewports retain a body-only scroll fallback; actions remain visible. Standard
+844×390/932×430/desktop layouts require no vertical scroll. No run settlement,
+rewards, restart confirmation or purchase rules changed.
+
+Verification:16 focused layout/death/settlement/pause tests pass; analyzer clean.
+Matrix includes568×320/portrait and1.5× text. Existing real-game pause/death renders
+and new results-{width}-{scale}.png renders were inspected. This source change
+has not been built or installed on the phone.

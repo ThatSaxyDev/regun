@@ -82,3 +82,11 @@ passed; real nginx routing proof passed. The final app analyzer is clean. These
 are local results; the public route still needs the updated server redeployment,
 and the app needs updating for improved status/reconciliation behavior. No user
 balance, receipts, ownership, credentials or production state was modified.
+
+## Earned catalogue and goals follow-up — 23 October 2026
+
+See [the economy implementation](ECONOMY_IMPLEMENTATION.md) for items2–10 of the
+non-billing pass: compatible live cosmetic prices/availability, six implemented
+finishes, quoted confirmation, safe cancellation, career goals, earning breakdown
+and admin catalogue/reporting. Owned items remain offline-usable even if removed
+from sale. [Continue rules](REVIVE_POLICY.md) are defined but not enabled.

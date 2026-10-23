@@ -1,3 +1,5 @@
+import 'package:regun/widgets/run_results_panel.dart';
+import 'package:regun/models/economy/career_progress.dart';
 import 'package:regun/widgets/boss_victory_banner.dart';
 import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/navigation/game_page_route.dart';
@@ -718,14 +720,24 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        widget.loadout.training ? 'TRAINING PAUSED' : 'PAUSED',
-                        style: const TextStyle(
-                          fontFamily: FontFam.pressStart,
-                          fontSize: 14,
-                          height: 1.6,
-                          color: _paper,
-                        ),
+                      child: Wrap(
+                        spacing: 16,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            widget.loadout.training
+                                ? 'TRAINING PAUSED'
+                                : 'PAUSED',
+                            style: const TextStyle(
+                              fontFamily: FontFam.pressStart,
+                              fontSize: 14,
+                              height: 1.6,
+                              color: _paper,
+                            ),
+                          ),
+                          const WalletBar(showLabels: false),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -783,8 +795,6 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const WalletBar(),
-                        const SizedBox(height: 12),
                         if (!widget.loadout.training) ...[
                           Text(
                             'This run: +${_myGame.earnedScrap} Scrap',
@@ -1163,94 +1173,26 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     ),
   );
 
-  Widget _results(GameState state) => _overlay(
-    child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 620),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _heading('END OF THE LINE'),
-          const SizedBox(height: 12),
-          const WalletBar(),
-          if (state.causeOfDeath.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                state.causeOfDeath,
-                style: const TextStyle(color: _muted),
-              ),
-            ),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 22,
-            runSpacing: 12,
-            alignment: WrapAlignment.center,
-            children: [
-              _readout(runTime(state.survivalSeconds), 'SURVIVED'),
-              _readout('${state.kills}', 'KILLS'),
-              _readout('${state.bosses}', 'BOSSES'),
-              _readout('${state.score}', 'SCORE'),
-              _readout('+${_myGame.earnedScrap}', 'THIS RUN SCRAP'),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            '${_myGame.assisted ? 'ASSISTED BEST ${_myGame.preferences.profile.assistedBestScore}' : 'BEST ${_myGame.preferences.bestScore}'}  /  LONGEST ${runTime(_myGame.assisted ? _myGame.preferences.profile.assistedBestSeconds : _myGame.preferences.bestSeconds)}',
-            style: const TextStyle(
-              fontFamily: FontFam.orbitron,
-              fontSize: 12,
-              color: _brass,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 10,
-              runSpacing: 6,
-              children: [
-                for (final entry in state.ranks.entries)
-                  Text(
-                    '${entry.key.title} ${entry.value}',
-                    style: const TextStyle(fontSize: 10, color: _muted),
-                  ),
-                for (final id in state.evolutions)
-                  Text(
-                    fusionRecipes.firstWhere((r) => r.id == id).title,
-                    style: const TextStyle(fontSize: 11, color: _brass),
-                  ),
-              ],
-            ),
-          ),
-          ValueListenableBuilder<int>(
-            valueListenable: _myGame.revision,
-            builder: (context, _, child) => _myGame.newUnlocks.isEmpty
-                ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Text(
-                      'Unlocked: ${_myGame.newUnlocks.map((id) => challenges.firstWhere((c) => c.id == id).reward).join(', ')}',
-                      style: const TextStyle(fontSize: 11, color: _brass),
-                    ),
-                  ),
-          ),
-          const SizedBox(height: 24),
-          Wrap(
-            spacing: 16,
-            runSpacing: 12,
-            alignment: WrapAlignment.center,
-            children: [
-              ClickButton(
-                onTap: _myGame.restartGame,
-                text: 'Restart',
-                width: 160,
-                height: 54,
-              ),
-              ClickButtonM(onTap: _leave, text: 'Menu', width: 140, height: 54),
-            ],
-          ),
-        ],
-      ),
+  Widget _results(GameState state) => Positioned.fill(
+    child: ValueListenableBuilder<int>(
+      valueListenable: _myGame.revision,
+      builder: (context, _, child) {
+        final goal = CareerProgress(_myGame.preferences.profile).next;
+        return RunResultsPanel(
+          state: state,
+          earnedScrap: _myGame.earnedScrap,
+          scrapBreakdown: _myGame.scrapReward.breakdown,
+          nextGoal: goal == null ? null : '${goal.title} / ${goal.detail}',
+          record:
+              '${_myGame.assisted ? 'ASSISTED BEST ${_myGame.preferences.profile.assistedBestScore}' : 'BEST ${_myGame.preferences.bestScore}'} / LONGEST ${runTime(_myGame.assisted ? _myGame.preferences.profile.assistedBestSeconds : _myGame.preferences.bestSeconds)}',
+          unlocks: [
+            for (final id in _myGame.newUnlocks)
+              challenges.where((c) => c.id == id).firstOrNull?.reward ?? id,
+          ],
+          onRestart: _myGame.restartGame,
+          onMenu: _leave,
+        );
+      },
     ),
   );
 }

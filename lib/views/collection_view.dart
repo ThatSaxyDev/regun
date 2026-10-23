@@ -1,3 +1,10 @@
+import 'package:regun/widgets/confirm_run_action.dart';
+
+import 'dart:async';
+
+import 'package:regun/models/economy/career_progress.dart';
+import 'package:regun/models/economy/shop_catalog.dart';
+import 'package:regun/services/economy/shop_repository.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/widgets/account_flow.dart';
 import 'package:regun/systems/upgrade_details.dart';
@@ -33,6 +40,26 @@ class _CollectionViewState extends State<CollectionView> {
     'Style',
     'About',
   ];
+  final shop = ShopRepository.shared;
+  @override
+  void initState() {
+    super.initState();
+    shop.addListener(_changed);
+    LocalPreferences.shared.addListener(_changed);
+    unawaited(shop.refresh());
+  }
+
+  void _changed() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    shop.removeListener(_changed);
+    LocalPreferences.shared.removeListener(_changed);
+    super.dispose();
+  }
+
   PlayerProfile get profile => LocalPreferences.shared.profile;
   @override
   Widget build(BuildContext context) => MenuPage(
@@ -62,7 +89,27 @@ class _CollectionViewState extends State<CollectionView> {
                   buttonColor: tab == i
                       ? const Color(0xffE1BA78)
                       : const Color(0xff746878),
-                  onTap: () => setState(() => tab = i),
+                  onTap: () {
+                    setState(() => tab = i);
+                    if (i == 4) {
+                      unawaited(shop.refresh());
+                      final account = AccountController.shared;
+                      if (account.verified && account.attached) {
+                        unawaited(
+                          account
+                              .accessToken()
+                              .then(
+                                (token) => account.api.request(
+                                  '/shop-visit',
+                                  token: token,
+                                  body: {},
+                                ),
+                              )
+                              .catchError((Object _) => <String, dynamic>{}),
+                        );
+                      }
+                    }
+                  },
                 ),
               ),
           ],
@@ -113,27 +160,70 @@ class _CollectionViewState extends State<CollectionView> {
                 (e) => _card(e.title, e.description, width, badge: 'BOSS'),
               ),
             ],
-            3 =>
-              challenges
-                  .map(
-                    (c) => _card(
-                      c.title,
-                      '${c.requirement}\nReward: ${c.reward}',
-                      width,
-                      badge: profile.challenges.contains(c.id)
-                          ? 'COMPLETE'
-                          : _progress(c.id),
-                    ),
-                  )
-                  .toList(),
+            3 => [
+              _card(
+                'FIELD RECORD',
+                '${profile.settledRuns.length} runs / ${profile.totalBossVictories} boss victories / ${profile.totalKills} kills\nCombat upgrades are earned during each run. Scrap buys appearances.',
+                width,
+              ),
+              _card(
+                'SCRAP',
+                '10 kills = 1 Scrap / Boss = 15 Scrap / Minute survived = 1 Scrap\nSalvage adds to your run total. Training grants no rewards.',
+                width,
+              ),
+              for (final goal in CareerProgress(profile).goals)
+                _card(
+                  goal.title,
+                  goal.detail,
+                  width,
+                  badge: CareerProgress(profile).next?.id == goal.id
+                      ? 'NEXT GOAL'
+                      : 'EARNED UNLOCK',
+                  action: ClickButton(
+                    text: profile.pinnedGoal == goal.id ? 'Pinned' : 'Pin goal',
+                    width: 150,
+                    height: 44,
+                    onTap: profile.pinnedGoal == goal.id
+                        ? null
+                        : () async {
+                            final next = PlayerProfile.fromJson(
+                              profile.toJson(),
+                            )..pinnedGoal = goal.id;
+                            final saved = await LocalPreferences.shared
+                                .saveProfile(next: next);
+                            if (mounted) {
+                              setState(
+                                () => _purchaseIssue = saved
+                                    ? 'Goal pinned.'
+                                    : 'Could not save your goal. Try again.',
+                              );
+                            }
+                          },
+                  ),
+                ),
+              ...challenges.map(
+                (c) => _card(
+                  c.title,
+                  '${c.requirement}\nReward: ${c.reward}',
+                  width,
+                  badge: profile.challenges.contains(c.id)
+                      ? 'COMPLETE'
+                      : _progress(c.id),
+                ),
+              ),
+            ],
             4 => [
-              for (final id in [...cosmeticIds, ...shopCosmetics.keys])
+              for (final id in {
+                profile.cosmetic,
+                ...shopCosmetics.keys,
+                ...cosmeticIds,
+              })
                 _cosmetic(id, width),
             ],
             _ => [
               _card(
                 'REGUN',
-                'Gameplay code, pixel UI, AI-assisted artwork and synthesized audio are part of this project.\nNo accounts or ads are required.\nVersion 1.0.0',
+                'Gameplay code, pixel UI, AI-assisted artwork and synthesized audio are part of this project.\nOffline play needs no account. Purchases require email sign-in.\nVersion 1.0.0',
                 constraints.maxWidth,
                 attribution: Semantics(
                   link: true,
@@ -164,6 +254,57 @@ class _CollectionViewState extends State<CollectionView> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (tab == 4) ...[
+                if (AccountController.shared.pendingPurchaseItem != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: ClickButton(
+                      text: 'Cancel pending',
+                      width: 200,
+                      height: 44,
+                      onTap: _savingStyle
+                          ? null
+                          : () async {
+                              setState(() => _savingStyle = true);
+                              try {
+                                await AccountController.shared
+                                    .cancelPendingPurchase();
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _savingStyle = false;
+                                    _purchaseIssue =
+                                        AccountController.shared.issue;
+                                  });
+                                }
+                              }
+                            },
+                    ),
+                  ),
+
+                _card(
+                  'FIELD FINISHES',
+                  'Appearance only. Preview, buy with Scrap, then equip. Earned challenge styles stay earned.',
+                  double.infinity,
+                ),
+                if (shop.issue != null)
+                  Text(
+                    shop.issue!,
+                    style: const TextStyle(color: Color(0xffE1BA78)),
+                  ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ClickButton(
+                    text: shop.loading ? 'Checking' : 'Refresh shop',
+                    width: 180,
+                    height: 44,
+                    onTap: shop.loading
+                        ? null
+                        : () => unawaited(shop.refresh()),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               if (_purchaseIssue != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -279,12 +420,14 @@ class _CollectionViewState extends State<CollectionView> {
   );
   Widget _cosmetic(String id, double width) {
     final owned = profile.owned.contains(id), selected = profile.cosmetic == id;
-    final price = shopCosmetics[id];
+    final shopItem = shopCosmetics.containsKey(id);
+    final price = shop.catalog.prices[id];
+    final forSale = shop.catalog.available.contains(id);
     return _card(
       _name(id),
-      price == null
+      !shopItem
           ? 'Challenge reward'
-          : '$price scrap / ${profile.scrap} available',
+          : '${shopDescriptions[id]}\n${price == null ? 'Not available' : '$price Scrap / ${profile.scrap} available'}',
       width,
       badge: selected
           ? 'EQUIPPED'
@@ -305,6 +448,8 @@ class _CollectionViewState extends State<CollectionView> {
                 ? 'Equipped'
                 : owned
                 ? 'Equip'
+                : !forSale && shopItem
+                ? 'Unavailable'
                 : price != null
                 ? LocalPreferences.shared.canSpend
                       ? 'Buy'
@@ -317,6 +462,7 @@ class _CollectionViewState extends State<CollectionView> {
                     selected ||
                     (!owned &&
                         (price == null ||
+                            !forSale ||
                             (LocalPreferences.shared.canSpend &&
                                 profile.scrap < price)))
                 ? null
@@ -345,8 +491,26 @@ class _CollectionViewState extends State<CollectionView> {
         return;
       }
       if (!owned && price != null) {
-        final result = await LocalPreferences.shared.buyCosmetic(id);
+        final retry = AccountController.shared.pendingPurchaseItem == id;
+        if (!retry) {
+          final approved = await confirmRunAction(
+            context,
+            eyebrow: 'RE-GUN / FIELD FINISH',
+            title: _name(id),
+            message:
+                '$price Scrap / Appearance only. Owned finishes remain available offline.',
+            action: 'Buy',
+            cancel: 'Keep browsing',
+          );
+          if (!approved || !mounted) return;
+        }
+        final result = await LocalPreferences.shared.buyCosmetic(
+          id,
+          price: price,
+          catalog: shop.catalog.version,
+        );
         if (result != CosmeticPurchase.saved) {
+          unawaited(shop.refresh());
           _purchaseIssue = AccountController.shared.issue.isNotEmpty
               ? AccountController.shared.issue
               : result == CosmeticPurchase.saveFailed

@@ -4,6 +4,8 @@ class PlayerProfile {
   PlayerProfile({
     this.scrap = 0,
     this.earnedScrapTotal = 0,
+    this.careerSeconds = 0,
+    Map<String, Map<String, int>>? unlockMilestones,
     this.totalKills = 0,
     this.totalBossVictories = 0,
     this.scorpionKills = 0,
@@ -21,10 +23,12 @@ class PlayerProfile {
     Set<String>? settledRuns,
     Set<String>? owned,
     this.cosmetic = 'standard',
+    this.pinnedGoal,
     this.preferredWeapon = WeaponType.shotgun,
     this.preferredCharacter = CharacterType.rook,
     this.preferredArena = ArenaType.breach,
-  }) : survivorCounters = survivorCounters ?? {},
+  }) : unlockMilestones = unlockMilestones ?? {},
+       survivorCounters = survivorCounters ?? {},
        challenges = challenges ?? {},
        discoveredEnemies = discoveredEnemies ?? {},
        fusions = fusions ?? {},
@@ -33,7 +37,8 @@ class PlayerProfile {
        settledRuns = settledRuns ?? {},
        owned = owned ?? {'standard'};
   final Map<String, int> survivorCounters;
-  int earnedScrapTotal;
+  int earnedScrapTotal, careerSeconds;
+  final Map<String, Map<String, int>> unlockMilestones;
   int totalBossVictories;
   int scrap, totalKills, scorpionKills, eliteKills, bestSeconds, bestScore;
   int assistedBestScore, assistedBestSeconds;
@@ -45,6 +50,7 @@ class PlayerProfile {
       settledRuns,
       owned;
   String cosmetic;
+  String? pinnedGoal;
   WeaponType preferredWeapon;
   CharacterType preferredCharacter;
   ArenaType preferredArena;
@@ -121,6 +127,10 @@ class PlayerProfile {
         );
       }
     }
+    careerSeconds = (careerSeconds + seconds.clamp(0, 1000000000)).clamp(
+      0,
+      1000000000,
+    );
     totalKills += kills;
     totalBossVictories += (bossVictories ?? bosses.length).clamp(0, 1000000);
     scorpionKills += scorpions;
@@ -183,6 +193,12 @@ class PlayerProfile {
         'tenSurvivors',
       if (fusions.length >= 8) 'eightFusions',
     }.difference(challenges);
+    for (final id in unlocked) {
+      unlockMilestones.putIfAbsent(
+        id,
+        () => {'runs': settledRuns.length, 'seconds': careerSeconds},
+      );
+    }
     challenges.addAll(unlocked);
     owned.addAll(unlocked.where((id) => cosmeticIds.contains(id)));
     return unlocked;
@@ -190,6 +206,8 @@ class PlayerProfile {
 
   Map<String, dynamic> toJson() => {
     'schema': 3,
+    'careerSeconds': careerSeconds,
+    'unlockMilestones': unlockMilestones,
     'survivorCounters': survivorCounters,
     'totalBossVictories': totalBossVictories,
     'assistedBestScore': assistedBestScore,
@@ -209,6 +227,7 @@ class PlayerProfile {
     'settledRuns': settledRuns.toList(),
     'owned': owned.toList(),
     'cosmetic': cosmetic,
+    'pinnedGoal': pinnedGoal,
     'preferredWeapon': preferredWeapon.name,
     'preferredCharacter': preferredCharacter.name,
     'preferredArena': preferredArena.name,
@@ -241,6 +260,20 @@ class PlayerProfile {
       },
       scrap: number('scrap'),
       earnedScrapTotal: number('earnedScrapTotal'),
+      careerSeconds: number('careerSeconds'),
+      unlockMilestones: {
+        for (final e in (json['unlockMilestones'] as Map? ?? {}).entries.take(
+          100,
+        ))
+          if (e.key is String &&
+              e.value is Map &&
+              e.value['runs'] is int &&
+              e.value['seconds'] is int)
+            e.key as String: {
+              'runs': (e.value['runs'] as int).clamp(0, 1000000000),
+              'seconds': (e.value['seconds'] as int).clamp(0, 1000000000),
+            },
+      },
       totalKills: number('totalKills'),
       totalBossVictories: number('totalBossVictories'),
       scorpionKills: number('scorpionKills'),
@@ -257,6 +290,9 @@ class PlayerProfile {
       settledRuns: strings('settledRuns'),
       owned: strings('owned')..add('standard'),
       cosmetic: json['cosmetic'] as String? ?? 'standard',
+      pinnedGoal: json['pinnedGoal'] is String
+          ? json['pinnedGoal'] as String
+          : null,
     );
   }
 }
@@ -273,4 +309,11 @@ const cosmeticIds = [
   'eliteHunter',
   'survivor',
 ];
-const shopCosmetics = {'copper': 100, 'moss': 100, 'ivory': 150};
+const shopCosmetics = {
+  'copper': 100,
+  'moss': 100,
+  'ivory': 150,
+  'rust': 175,
+  'slate': 175,
+  'dusk': 225,
+};

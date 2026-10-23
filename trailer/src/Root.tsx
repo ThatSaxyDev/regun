@@ -20,5 +20,14 @@ export const RemotionRoot: React.FC = () => (
       width={1920}
       height={1080}
     />
+    <Composition
+      id="WeaponSpotlightWebsite"
+      component={WeaponSpotlight}
+      defaultProps={{ websiteVersion: true }}
+      durationInFrames={spotlightDuration}
+      fps={60}
+      width={1920}
+      height={1080}
+    />
   </>
 );

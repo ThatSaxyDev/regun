@@ -1,3 +1,4 @@
+import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/data/loadout.dart';
 
 import 'dart:convert';
@@ -142,6 +143,12 @@ void main() {
     (tester) async {
       final game = await mount(tester, _Store()), run = game.runId;
       expect(find.byType(RunPauseSummary), findsOneWidget);
+      final heading = tester.getRect(find.text('PAUSED'));
+      final wallet = tester.getRect(find.byType(WalletBar));
+      expect(wallet.left, greaterThan(heading.right));
+      expect((wallet.center.dy - heading.center.dy).abs(), lessThan(3));
+      expect(find.text('SCRAP'), findsNothing);
+      expect(find.text('CREDITS'), findsNothing);
       for (final text in [
         '3:07',
         '47',
