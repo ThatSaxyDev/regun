@@ -33,19 +33,21 @@ These sources support the structure, resource separation and delivery principles
 
 ## 3. Current implementation audit
 
-Audit reflects current source, generated catalogs, selected tests and repository state on 23 October. Game HEAD: `48d22be` (working-tree app version `1.0.0+16`; version change is uncommitted). Server HEAD: `bf1f005`. Admin working-tree version: `0.2.0+2`; its branch `codex/admin-foundation` has no commits and its sources are untracked. Read the actual admin tree, not Git history, as the implementation baseline; preserve/export it before implementation. No staging, commit, deployment or installation was performed for this audit. Older documents contain superseded versions and counts.
+Audit reflects current source, generated catalogs, selected tests and repository state on 23 October. Latest recheck: game HEAD `1556153` (working-tree app version `1.0.0+17`; version change is uncommitted). Server HEAD `c99c48d`, including capacity support `0478d3f` and description metadata. Previous audit used game `48d22be` and server `bf1f005`; the plan itself was subsequently committed in `3fd0c2c`. Admin working-tree version: `0.2.0+2`; its branch `codex/admin-foundation` has no commits and its sources are untracked. Read the actual admin tree, not Git history, as the implementation baseline; preserve/export it before implementation. No staging, commit, deployment or installation was performed for this audit. Older documents contain superseded versions and counts.
 
 | Area | Exists now | Work needed |
 |---|---|---|
 | XP | Dart `XPProgression.cost` and TypeScript `xpCost` both use `8 + 10n + 7n(n−1)/2`, n = current level − 1. | Make one versioned specification and cross-language fixtures; integrate pinned progression configuration. |
 | Offers | Native uses up to three unique weighted choices, weapon/survivor eligibility and prerequisites, rank caps, six Special families, bans and an existing-family first-card rule under `buildBalance:2`. | Formalize eligibility/order/weights. Server's inspected offer generator lacks that first-card rule and the full native eligibility set. Treat parity as a release gate, not an assumed property. |
-| Upgrade catalog | Native currently has 41 offered families and eight fusion recipes; server's inspected progression map contains 33 families and six recipes. | Declare a supported subset by mode/capability. Do not advertise missing mechanics online or fix the mismatch by copying names alone. |
+| Upgrade catalog | Native currently has 43 offered families and eight fusion recipes; server's inspected progression map contains 35 families and six recipes. Double Dash/Grenade Reserve have up to two ranks; the other 41 native families retain VIII ceilings, subject to eligibility. | Declare a supported subset by mode/capability. Do not advertise missing mechanics online or fix the mismatch by copying names alone. |
 | Choices | Native has two rerolls and one ban per run. Source is partly represented by `supplyOffer`; fusion choices have a separate list. | Use a typed, checkpointed source and a single transactional choice model. Preserve current allowances in the baseline. |
 | XP interruptions | Funded XP only; overflow retained; four active seconds of grace; another pickup triggers a further offer. | Preserve and test this behavior across clients. No instant chained picker screens. |
 | Supply rewards | An earned objective creates an ordinary upgrade offer without spending XP or increasing level. | Keep as an explicit earned source with a unique receipt and retry-safe presentation. |
 | Boss cores | Two banked cores, two fusion slots; III/II ingredients; surplus cores become five run Scrap. Current core opening deducts before selection. | Model a deducted/open core as a durable reservation so restore/cancel cannot lose it or issue it twice. |
 | Upgrade response | Confirmation queues the existing recovery pulse; reroll/ban do not. | Preserve exactly once, including checkpoints and co-op resume. |
-| Live values | Source/catalog audit confirms 209 fields: 126 weapon, 30 survivor, 12 effect and 41 power-up strength values. Game, API/server and admin share catalog ID `b0645115a8e83d7ff60c345d05c7e911f49f4c5474438b23a7e9efce9952840b`. Full snapshots and legacy 168-field hash compatibility already work. | Extend this existing pipeline for progression; do not rebuild base-balance delivery or power-up editing. XP/reward/offer policies are still compiled code. |
+| Live values | Source/catalog audit confirms 211 fields: 126 weapon, 30 survivor, 12 effect, 41 power-up strength values and two capacity totals. All four game/server/admin catalog representations match exactly at ID `fdcdd8aecb83edca522ffd05280e24470901d237486fd3fa68fc8e17b2eca9ed`. Full snapshots and legacy 168/209-field hash compatibility already work. | Extend this existing pipeline for progression; do not rebuild base-balance delivery or power-up editing. XP/reward/offer policies are still compiled code. |
+| Charge capacity | Earned Double Dash/Triple Dash and Grenade Reserve add one loaded slot per accepted rank; starts remain one dash/two grenades. Pinned admin upgraded totals are dash 2–3/default 3 and grenade 3–4/default 4. | Preserve sequential recharge, existing pending clock and rank suppression at lower caps. These are already implemented, not new monetization work. |
+| Item descriptions | Admin/API catalog includes 78 game-authored item descriptions (21 weapons, 10 survivors, 43 power-ups, four effect groups). Description-only updates preserve numeric catalog identity and balance hashes. | Keep copy separate from numeric configuration and existing field tuning instructions; do not publish a new combat release merely to change display text. |
 | Online choice flow | Server owns offers and co-op choices; a shared phase has a 15-second selection window. | Preserve mode-specific clocks and validate stale choice/reconnect/generation behavior. |
 | Solo Scrap | `PlayerProfile.scrap` persists earned value; `earnedScrap` includes run Scrap, kills/10, 15/boss and seconds/60. Collection purchases mutate this local profile and save it. | Observable banked balance, durable spending result and explicit save-failure handling. |
 | Online Scrap | Server `onlineAccount.scrap` already accumulates authoritative co-op rewards; canonical identity and once-only match result guard the credit. Client subscribes to `my_online_account` and shows per-result online Scrap. It is separate from `PlayerProfile.scrap`. | Define reconciliation/migration before displaying or spending a combined total; do not treat existing online rewards as nonexistent or already unified. |
@@ -61,7 +63,7 @@ Existing assisted records include aim assistance. Do not repurpose `assisted` to
 1. **Reuse remote balance now.** Upgrade strength is already editable and pinned through accepted upgrades/Continue; focused game/server tests pass. New work is progression semantics and its atomic activation alongside those snapshots.
 2. **Separate three currency facts.** Local/cloud-profile Scrap, server-earned online Scrap and future purchased Credits have different authorities. A single header cannot make them interchangeable. Initially show spendable profile Scrap and expose available online-earned totals separately in wallet details, with no implied spendability or conversion. If no trusted online cache is available, display unknown/offline rather than zero. Do not rename online Scrap to Credits.
 3. **Persist before celebrating a spend.** Collection currently subtracts Scrap/adds ownership before awaiting `saveProfile()` and does not branch on its boolean result. Solo settlement sets an in-memory `_settled` guard and clears the checkpoint even if profile save reports failure. These paths need a failure/rollback/retry design before a shared wallet advertises durable spending or recovery. This audit found source-level gaps; no storage-failure reproduction was run.
-4. **Do not equate catalog breadth with online gameplay support.** Admin can configure 21 weapons/10 survivors/41 strengths, but inspected online weapon specifications admit five weapons; online progression defines 33 families and six recipes. Remote field presence cannot port missing mechanics. Decide and document the supported subset first.
+4. **Do not equate catalog breadth with online gameplay support.** Admin can configure 21 weapons/10 survivors/41 strengths plus two capacity totals, but inspected online weapon specifications admit five weapons; online progression defines 35 families and six recipes. Protocol 4 clients detect `charge_upgrades`; older attached clients cannot receive the new capacity families. Remote field presence cannot port missing mechanics. Decide and document the supported subset first.
 5. **Preserve repaired operations.** Adding tables or release routes must not mint a new publisher, rotate stable secrets, replace recovered storage or use overlapping database writers. Additive module publication keeps `--delete-data=never`.
 6. **Version the admin baseline.** Its complete working tree exists and tests pass, but has no committed checkpoint. A reviewed source snapshot/backup is a delivery prerequisite, not a reason to recreate the admin app or silently commit the user's tree.
 
@@ -85,7 +87,7 @@ Before a unified wallet, decide whether to retain these mode-specific earnings o
 
 Supply offers and fusion selections are additional decisions; they do not count as XP levels. Reaching a level takes the displayed total XP **and eligible pickup opportunities after grace**, so the table alone cannot predict wall-clock timing.
 
-VIII ranks, six Special slots and two fusion slots are ceilings, not promises to fill them in every attempt. Forty-one families × eight ranks does not imply that 328 meaningful selections should fit in one short run. Measure concentrated-build viability and late-run stagnation separately.
+VIII ranks for the 41 standard families, up to two ranks for each capacity family, six Special slots and two fusion slots are ceilings, not promises to fill them in every attempt. Summing every family's rank ceiling is not a reasonable target for choices within one short run. Measure concentrated-build viability and late-run stagnation separately.
 
 ## 4. Player-facing run design
 
@@ -98,7 +100,7 @@ VIII ranks, six Special slots and two fusion slots are ceilings, not promises to
 | Boss core | Rewarded boss defeat | One explicit eligible fusion reservation | Reset; not a wallet currency |
 | Supply receipt | Completed supply objective | One ordinary upgrade offer | Must resolve once; not a purchasable token |
 | Rerolls / bans | Equal run-start allowance | Changes current ordinary offer | Reset; never replenished by purchase or ad |
-| Grenades | Existing two-charge inventory/recharge | Secondary combat action | Existing reset/checkpoint rules; never sold |
+| Dash / grenade reserves | Start with one dash/two grenades; earn extra slots through the two capacity families | Up to three dashes/four grenades at default upgraded caps; one-at-a-time recharge | Existing inventory/checkpoint rules; extra capacity is earned, never sold |
 | Run Scrap | Authored run rewards | Accrues toward settlement | Added once to banked Scrap |
 | Banked Scrap / Credits | Persistent wallet grants | Between-run spending; future eligible recovery | Persist independently of build |
 
@@ -125,7 +127,7 @@ Observe distributions by weapon, survivor, arena, experience and input configura
 Specify a versioned algorithm with this order:
 
 1. Build the mode-supported family set from the pinned catalog.
-2. Exclude incompatible weapons, unmet prerequisites, banned families, cap/no-benefit cases and new Special families beyond six slots. Existing Special families remain eligible for later ranks.
+2. Exclude incompatible weapons, unmet prerequisites, banned families, cap/no-benefit cases (including `rankLimit` for capacity families rather than a universal VIII ceiling) and new Special families beyond six slots. Existing Special families remain eligible for later ranks.
 3. Add the existing fallback when fewer than three normal eligible families remain. Return fewer distinct cards when necessary; never duplicate an offer to fill space.
 4. For algorithm version 2, retain native's first-card preference for an already-owned eligible family when one exists. Sample that card by its applicable weight, then fill the remaining cards without replacement.
 5. Preserve baseline weights: Special weight `1 + effective Lucky Find rank × .35`; owned-family multiplier `1.5`. These are relative weights, not displayed individual percentages. The first-card rule changes the resulting probability distribution.
@@ -215,7 +217,7 @@ Define `loading`, `available`, `cachedOffline`, `pendingOperation`, `unavailable
 
 Before the premium system exists, show the second cell as **Credits —** with “Not available yet” in details; no plus button, checkout or fake earn claim. Once a genuine wallet has been initialized and a zero is confirmed, it becomes **Credits 0**. This honors the requested two-wallet layout without implying that premium purchases already work.
 
-Use locale grouping and an exact amount in details. If a very large balance needs compact formatting on a small device, keep full value available semantically and in details. No animated count should lag the actual spendable amount; Reduced Motion uses an immediate update. Account switch clears old-owner balances synchronously before loading the next account. Guest Scrap remains usable without mandatory sign-in; premium purchase/account recovery design is a later dependency.
+Use locale grouping and an exact amount in details. If a very large balance needs compact formatting on a small device, keep full value available semantically and in details. No animated count should lag the actual spendable amount; Reduced Motion uses an immediate update. Account switch clears old-owner balances synchronously before loading the next account. Guests may earn and see Scrap, but spending requires verified email sign-in; premium purchase/account recovery design is a later dependency.
 
 Run Scrap is provisional until a run settles and must not inflate the spendable banked amount while the player is still fighting. Results show “This run +55 Scrap” separately from wallet total. Reopening Results does not grant again. Continue-from-disk is not a new settlement.
 
@@ -227,13 +229,13 @@ The later unified server wallet must use integer minor units/whole units with bo
 
 Decide earned-Scrap reconciliation explicitly before server spending: existing local Scrap and offline run reports are not proof of trusted combat. Preserve legacy value with a documented once-only migration policy, mark trust/origin, and do not sum competing cumulative snapshots. If offline earned Scrap can buy cash-equivalent products, local tampering can bypass revenue even without converting to Credits. This is a product tradeoff, not something a JSON signature fixes.
 
-First cash-backed spending should require online authorization. Offline play and existing local earned-cosmetic spending remain available. Offline premium spending needs bounded reservation/reconciliation design before promising it. Never combine an optimistic local premium subtraction with a server-confirmed balance and accidentally subtract twice.
+First cash-backed spending should require online authorization. Offline Solo/Training remain available. Spending earned Scrap requires an attached verified email account; guests cannot buy styles, recovery, or any other product. Existing earned/owned styles may still be equipped without a new purchase. A previously verified cached account may spend earned Scrap offline; cash-backed purchases still require their platform/server authorization. Offline premium spending needs bounded reservation/reconciliation design before promising it. Never combine an optimistic local premium subtraction with a server-confirmed balance and accidentally subtract twice.
 
 ## 6. Shared contracts and snapshot boundaries
 
 ### 6.1 Extend the existing system
 
-Use the current gateway, SpacetimeDB persistence, authentication and admin publication workflow. No additional configuration service or database. Preserve existing balance schema/catalogue and the `/balance/v1/current` path for supported clients while introducing a separately capability-gated progression contract. Do not rewrite old 168/209-field immutable releases or force all clients onto a new manifest route in one deployment. Canonical machine-readable definitions should live under proposed `regun-server/shared/progression/`; generate/verify Dart and TypeScript adapters plus the admin field catalog.
+Use the current gateway, SpacetimeDB persistence, authentication and admin publication workflow. No additional configuration service or database. Preserve existing balance schema/catalogue and the `/balance/v1/current` path for supported clients while introducing a separately capability-gated progression contract. Do not rewrite old 168/209/211-field immutable releases or force all clients onto a new manifest route in one deployment. Canonical machine-readable definitions should live under proposed `regun-server/shared/progression/`; generate/verify Dart and TypeScript adapters plus the admin field catalog.
 
 Three distinct domains:
 
@@ -253,6 +255,7 @@ Proposed progression fields:
 | Grace | Baseline four active seconds; publish only after reader/test coverage | No automatic overflow chaining, clock definition |
 | Core/fusion | Display current caps/recipes; later numeric thresholds after compatibility support | Two cores/two slots in v1, effect implementation, no fallback boss upgrade |
 | Supply | Inspect existing timing/reward policy; editable only after full runtime coverage | Unique receipt and non-XP source semantics |
+| Charge capacity | Existing pinned numeric controls: dash total 2–3 and grenade total 3–4 | Starts 1/2; +1 loaded slot/rank, maximum two ranks, sequential recharge and existing hard caps |
 | Rerolls/bans | Inspect baseline 2/1 | Fixed equal allowance in v1; no commerce override |
 | Safety caps | Inspect limits and reasons | Projectile/effect/population ceilings and dependency validation |
 
@@ -267,7 +270,7 @@ Example manifest shape (illustrative, not a deployed schema):
   "combat": {"revision": 31, "hash": "<sha256>"},
   "progression": {"revision": 4, "hash": "<sha256>"},
   "ruleset": "survival-v1",
-  "requiredCapabilities": ["progression-v1", "offers-v2"],
+  "requiredCapabilities": ["progression-v1", "offers-v2", "charge_upgrades"],
   "channel": "production"
 }
 ```
@@ -364,7 +367,7 @@ No revenue KPI is a release criterion for this foundational pass. Future convers
 
 New checkpoints carry the complete progression snapshot (or a durable local content-addressed document), release identity, algorithm version, offer IDs/cards/source, RNG state, grace, core reservation, pending supply receipts and recovery-pulse pending state. Never require an internet lookup to Continue.
 
-Keep the existing `xpCurve:3`, `buildBalance`, weapon balance and shotgun reload migration meanings intact. Do not migrate a pinned active run to a newly published XP curve by repeatedly rescaling its bar. Missing progression snapshot maps once to the known legacy contract; a fresh run uses the new contract. If a future binary cannot interpret a checkpoint, preserve/export it and explain the incompatibility rather than silently discarding it or granting settlement twice.
+Keep the existing `xpCurve:3`, `buildBalance`, weapon balance and shotgun reload migration meanings intact. Preserve `dashReserve` and grenade capacity/charges/recharge checkpoints; old saves default to one dash/two grenades. Validate inventory capacity against saved build ranks and pinned capacity fields, never the latest publication. Existing 168/209-field snapshots retain default upgraded totals 3/4 without rewriting their original content/hash. Do not migrate a pinned active run to a newly published XP curve by repeatedly rescaling its bar. Missing progression snapshot maps once to the known legacy contract; a fresh run uses the new contract. If a future binary cannot interpret a checkpoint, preserve/export it and explain the incompatibility rather than silently discarding it or granting settlement twice.
 
 Malformed download → last valid complete cache. Failed cache write → retain previous usable snapshot and retry later. Partial manifest → reject as a unit. Server restart → room snapshot and receipts remain authoritative. Repeated run settlement → return recorded result. Wallet refresh failure → show last known state; unknown balances remain unknown. Account switch → no old-owner checkpoint or wallet leakage.
 
@@ -375,7 +378,7 @@ Future paid recovery must have its own persisted pending-decision phase before f
 | Milestone | Game | Server | Admin | Exit evidence |
 |---|---|---|---|---|
 | **0. Preserve audited baseline** | Keep current committed game state and separate version-only changes | Retain persistent publisher/volume/secrets and additive schema | Back up/version the existing uncommitted admin tree; retain drafts and session behavior | Reproducible catalogs and recoverable source/data; no deploy implied |
-| **A. Visible earned wallet** | Observable spendable profile Scrap; top-right cells; relevant screens; unavailable Credits; separate online-earned details; save failure/retry behavior | Reuse online account views/results; no fake premium authority or balance summing | Explain balance provenance; no currency minting | Guest/account/profile changes, online/offline states, durable spend and settlement tests, responsive screenshots |
+| **A. Visible earned wallet** | Observable spendable profile Scrap; top-right cells; relevant screens; unavailable Credits; separate online-earned details; save failure/retry behavior | Reuse online account views/results; no fake premium authority or balance summing | Explain balance provenance; no currency minting | Guest earning/visibility with verified-email spending gate; account/profile changes, online/offline states, durable spend and settlement tests, responsive screenshots |
 | **B. Contract and parity** | Extract pure eligibility/offer/progression adapters; current behavior fixture | Supported-subset adapter; versioned differences resolved or declared | Read-only progression inspector | Cross-language fixtures and exhaustive eligibility/source tests for supported content |
 | **C. Immutable progression releases** | Composite snapshot capture, cache, Continue and Training integration | Typed release validation, manifest publication and room pinning | Typed editing, review, staging and rollback | Publish during run/reconnect tests; old saves and offline entry retained |
 | **D. Measured pacing** | Baseline telemetry and playtest instrumentation | Trusted/observed aggregation separated | Curves, offer/fusion preview and measured traces | Baseline report and creator-reviewed new curve if needed; no numerical change solely to fill the editor |
@@ -424,11 +427,35 @@ Focused checks executed against the working trees on 23 October 2026; **44 tests
 | API/server module | From `spacetimedb`: `./node_modules/.bin/tsx --test tests/progression.test.ts tests/live_balance.test.ts tests/settlement.test.ts` | 16 passed; current progression, pinned overrides, repeat finalization/canonical reward behavior |
 | API bootstrap | From `identity`: `./node_modules/.bin/tsx --test test/deployment.test.ts` | 1 passed; deployment state continuity contract |
 
-Static catalog comparison confirmed matching admin/server catalog IDs and field lists, with the same ID embedded in Dart/TypeScript generated catalogs. Exact count: 21 weapons, 10 survivors, 41 power-up fields; online source explicitly defines five weapons, 33 upgrade families and six fusions. These counts are implementation support boundaries, not a reason to remove native content.
+The earlier 44-test audit covered the then-current 209-field catalog (41 native/33 online families). Those counts are historical and superseded by the repeat audit below; its test results remain evidence only for that earlier state.
 
 This audit did **not** rerun analyzers/full suites, build release binaries, run disposable live SpacetimeDB/Docker restart smokes, inspect production credentials or contact production. The server continuity repair and production storage/settings described in `regun-server/docs/ADMIN_AND_LIVE_BALANCE.md` are documented prior evidence, not freshly reverified operational state. Before a deployment, rerun the relevant full checks and same-volume restart proof, preserve one replica and configured stop-first update/rollback order, and verify actual balance/account/privileged operations rather than `/health` alone.
 
 No gameplay files, API implementation, admin implementation, schema or production configuration changed during this re-audit. Only this plan was updated. Current research links remain supporting design references; this pass was a local implementation audit and did not re-fetch them.
+
+### Repeat audit after capacity and description changes
+
+Rechecked game `1556153`, server `c99c48d` and the current uncommitted admin tree. **54 focused tests passed in this repeat check**:
+
+- Game: `flutter test --no-pub test/charge_capacity_test.dart test/live_balance_test.dart` — 12 passed, including real checkpoint/pause behavior, capacity/admin bounds, legacy identity, sequential recharge and online prediction.
+- Admin: `flutter test --no-pub test/balance_test.dart test/responsive_test.dart test/admin_connection_test.dart` — 24 passed, including all description sections, numeric identity independence, actual capacity editing and saved sessions.
+- Server, from `spacetimedb`: `./node_modules/.bin/tsx --test tests/charge_capacity.test.ts tests/grenades.test.ts tests/live_balance.test.ts tests/progression.test.ts` — 18 passed, including authoritative reserve spending, gated/capped offers, grenade rules and legacy snapshots.
+
+Exact JSON equality across game Dart, server TypeScript, shared server JSON and admin JSON confirms 211 numeric fields and 78 descriptions. Native supports 43 offered families/eight recipes; online defines 35 families/six recipes, with capacity families gated for older clients. Descriptions are display metadata, not part of numeric release identity. Do not treat the current `upgradeStrengths` map as a uniform scalar map: capacity families store integer upgraded totals, not multiplicative strength.
+
+Wallet UI, premium ledger, hardcoded XP/offer parity gaps and separate profile/online Scrap remain outstanding. The capacity documentation records automatic server deployment, while already distributed +16 artifacts predate these changes; this check inspected local source and tests, not the live server or installed devices. Do not infer phone support from protocol/server code alone. Physical charge-control readability, balance and deployed binary compatibility remain acceptance gates.
+
+## 15. First implementation slice — 23 October 2026
+
+Implemented locally in the game app; API/admin have not been changed or deployed for this slice:
+
+- Shared reactive wallet on Home (top right), Collection, Loadout catalog, Pause and Results. In compact Loadout it scrolls with the catalog so pinned controls/Start remain usable. Credits is explicitly unavailable; Online Scrap remains a separate last-observed total in details, never added to Solo spendable value.
+- **Creator clarification:** guests can earn/view Scrap, but cannot spend Scrap or make any purchase until email sign-in. The spend method enforces an attached verified account, not just a visible UI lock or non-guest profile ID. Collection opens the existing email flow and requires a fresh Buy confirmation after attachment/conflict resolution. Existing owned styles are still equipable.
+- Cosmetic buying stages debit and ownership until durable profile saving succeeds; repeated taps cannot double-spend. Save errors expose retry state. The account's atomic profile/outbox is authoritative over its compatibility preference mirror on same-owner refresh.
+- Failed game-over profile saving retains recovery data and prevents leaving/restarting from discarding the failure. Retry persists the already-settled profile rather than awarding again. This is not yet a crash-proof terminal reward journal: a process kill during a failed disk write may recover the prior checkpoint rather than the exact terminal state. A durable settlement journal remains part of unified-wallet work.
+- Collection's acknowledgements tab is now About, avoiding the future currency name collision. No checkout, premium balance, paid revive, XP curve change or remote progression release is introduced.
+
+Server-side spend authorization remains a requirement for the future unified/premium wallet; a local gate does not make client-reported balances authoritative. Core gameplay and earned in-run capacity upgrades remain independent of sign-in or purchasing. Verification: analyzer clean, 555 tests passed with five optional skips; final wallet/menu layout checks passed nine tests. See `docs/WALLET_IMPLEMENTATION.md` for delivered behavior and remaining limitations.
 
 ## Sources
 

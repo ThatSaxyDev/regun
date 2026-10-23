@@ -1,3 +1,4 @@
+import 'package:regun/services/local_preferences.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -141,4 +142,65 @@ void main() {
     expect(find.text('Start run'), findsOneWidget);
     expect(find.byType(BaseView), findsNothing);
   });
+  testWidgets(
+    'failed settlement retains recovery data and retry never doubles Scrap',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final preferences = LocalPreferences.shared;
+      final store = _WorkingStore();
+      const owner = '11111111-1111-1111-1111-111111111111';
+      await tester.runAsync(() async {
+        await preferences.load();
+        await preferences.activateProfile(owner);
+      });
+      addTearDown(() async {
+        preferences.persistAccountProfile = null;
+        await preferences.activateProfile('guest');
+      });
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [soloudPlayProvider.overrideWithValue(_SilentAudio())],
+            child: MaterialApp(home: BaseView(runStore: store)),
+          ),
+        );
+        final game =
+            tester
+                    .widget<RiverpodAwareGameWidget>(
+                      find.byType(RiverpodAwareGameWidget),
+                    )
+                    .game!
+                as RegunGame;
+        await game.loaded;
+        await tester.pump();
+        await game.ready();
+        game.update(2);
+        for (var i = 0; i < 30; i++) {
+          game.gameNotifier.recordKill();
+        }
+        expect(await game.saveCheckpoint(), isTrue);
+        final earned = game.earnedScrap;
+        preferences.persistAccountProfile = (_, _) async =>
+            throw StateError('disk full');
+        game.gameOver();
+        await game.leaveRun();
+        expect(game.saveIssue, isNotNull);
+        expect(store.snapshot, isNotNull);
+        expect(preferences.profile.scrap, earned);
+        await game.settleRun();
+        expect(preferences.profile.scrap, earned);
+        preferences.persistAccountProfile = null;
+        await game.leaveRun();
+        expect(game.saveIssue, isNull);
+        expect(store.snapshot, isNull);
+        expect(preferences.profile.scrap, earned);
+        expect(preferences.profile.settledRuns, hasLength(1));
+      });
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 }

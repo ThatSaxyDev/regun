@@ -1,3 +1,4 @@
+import 'package:regun/services/local_preferences.dart';
 import 'package:regun/services/account/account_api.dart';
 import 'package:regun/services/account/account_controller.dart';
 
@@ -568,6 +569,13 @@ class OnlineSession {
     );
     if (combatAvailable) {
       account = client.myOnlineAccount.iter().firstOrNull;
+      final owner = AccountController.shared.session?.accountId;
+      if (owner != null && account != null) {
+        LocalPreferences.shared.updateOnlineScrap(
+          owner,
+          account!.scrap.toInt(),
+        );
+      }
       results = client.myOnlineResults.iter().toList()
         ..sort((a, b) => b.matchId.compareTo(a.matchId));
       final meta = client.roomCombat.iter().firstOrNull;

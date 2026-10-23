@@ -1,3 +1,4 @@
+import 'package:regun/widgets/wallet_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/theme/pixel_glyph.dart';
@@ -171,6 +172,10 @@ class HomeMenu extends StatelessWidget {
               ),
               child: Column(
                 children: [
+                  if (portrait) ...[
+                    const WalletBar(),
+                    const SizedBox(height: 12),
+                  ],
                   Expanded(
                     child: scroll
                         ? SingleChildScrollView(
@@ -210,6 +215,18 @@ class HomeMenu extends StatelessWidget {
               ),
             ),
           ),
+          if (!portrait)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: SafeArea(
+                minimum: const EdgeInsets.fromLTRB(0, 16, 24, 0),
+                child: SizedBox(
+                  width: (box.maxWidth - panelWidth - 88).clamp(128.0, 400.0),
+                  child: const WalletBar(),
+                ),
+              ),
+            ),
         ],
       );
     },

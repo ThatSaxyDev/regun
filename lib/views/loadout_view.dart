@@ -1,3 +1,4 @@
+import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/navigation/game_page_route.dart';
 
 import 'dart:async';
@@ -144,7 +145,11 @@ class _LoadoutViewState extends State<LoadoutView> {
                         key: ValueKey(_catalog),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: _options(),
+                          children: [
+                            const WalletBar(),
+                            const SizedBox(height: 12),
+                            ..._options(),
+                          ],
                         ),
                       );
                       if (box.maxWidth < 480 && box.maxHeight > 300) {

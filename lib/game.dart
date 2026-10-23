@@ -84,6 +84,7 @@ class RegunGame extends FlameGame
   final Map<String, dynamic>? resumeSnapshot;
   late String runId;
   bool _settled = false;
+  bool _settlementSaved = false, _waitingToRestart = false;
   bool assisted = false;
   int trainingStep = 0, shotsFired = 0, dashCount = 0, manualReloads = 0;
   final _trainingOrigin = Vector2.zero();
@@ -894,6 +895,7 @@ class RegunGame extends FlameGame
   void _startRun({bool clearSave = true}) {
     runId = DateTime.now().microsecondsSinceEpoch.toString();
     _settled = false;
+    _settlementSaved = false;
     assisted = preferences.aimAssist;
     trainingStep = 0;
     shotsFired = 0;
@@ -1115,8 +1117,11 @@ class RegunGame extends FlameGame
       );
     }
     final saved = await preferences.saveProfile();
-    if (!saved) saveIssue = 'Progress could not be saved.';
-    await runStore.clear(expectedRunId: settledId);
+    if (!saved) {
+      saveIssue = 'Progress could not be saved. Retry save before leaving.';
+    }
+    _settlementSaved = saved;
+    if (saved) await runStore.clear(expectedRunId: settledId);
     if (isMounted && runId == settledId) revision.value++;
   }
 
@@ -1124,6 +1129,13 @@ class RegunGame extends FlameGame
     resetInput();
     if (gameState.gameplayState == GameplayState.gameOver) {
       await _settlement;
+      if (preferences.profileSaveFailed) {
+        final saved = await preferences.saveProfile();
+        if (!saved) return;
+      }
+      saveIssue = null;
+      _settlementSaved = true;
+      await runStore.clear(expectedRunId: runId);
     } else {
       pauseGame();
       await saveCheckpoint();
@@ -2223,6 +2235,13 @@ class RegunGame extends FlameGame
   }
 
   void restartGame() {
+    // Normal settled results restart immediately. Only failed/in-flight saves
+    // need an asynchronous retry before replacing the run world.
+    if (gameState.gameplayState == GameplayState.gameOver &&
+        !_settlementSaved) {
+      if (!_waitingToRestart) unawaited(_restartAfterSettlement());
+      return;
+    }
     final restartRush = bossRush;
     for (final boss in world.children.whereType<ExpansionBoss>()) {
       boss.releaseArt();
@@ -2233,6 +2252,16 @@ class RegunGame extends FlameGame
     world.add(map);
     _startRun();
     if (restartRush) startBossRush();
+  }
+
+  Future<void> _restartAfterSettlement() async {
+    _waitingToRestart = true;
+    try {
+      await leaveRun();
+      if (_settlementSaved && isMounted) restartGame();
+    } finally {
+      _waitingToRestart = false;
+    }
   }
 
   void pauseGame() => gameNotifier.pauseGame();

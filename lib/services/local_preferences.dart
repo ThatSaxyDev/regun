@@ -3,15 +3,61 @@ import 'package:regun/models/player_profile.dart';
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/models/control_layout.dart';
 
 /// Small device preferences and records. Full run checkpoints are a separate
 /// milestone; these keys do not claim to serialize a living Flame world.
-class LocalPreferences {
+enum CosmeticPurchase {
+  signInRequired,
+  saved,
+  insufficientFunds,
+  unavailable,
+  saveFailed,
+}
+
+class LocalPreferences extends ChangeNotifier {
   static final shared = LocalPreferences();
-  PlayerProfile profile = PlayerProfile();
-  String profileOwner = 'guest';
+  PlayerProfile _profile = PlayerProfile();
+  PlayerProfile get profile => _profile;
+  set profile(PlayerProfile value) {
+    _profile = value;
+    notifyListeners();
+  }
+
+  bool profileReady = false;
+  bool profileSaveFailed = false;
+  bool _buying = false;
+  bool Function()? spendingAuthorized;
+  bool get canSpend =>
+      profileOwner != 'guest' && (spendingAuthorized?.call() ?? false);
+
+  String _profileOwner = 'guest';
+  String get profileOwner => _profileOwner;
+  set profileOwner(String owner) {
+    if (_profileOwner == owner) return;
+    _profileOwner = owner;
+    _profile = PlayerProfile();
+    profileReady = false;
+    profileSaveFailed = false;
+    _onlineScrap = null;
+    notifyListeners();
+  }
+
+  int? _onlineScrap;
+  int? get onlineScrap => _onlineScrap;
+  void updateOnlineScrap(String owner, int amount) {
+    if (owner == 'guest' ||
+        owner != profileOwner ||
+        amount < 0 ||
+        _onlineScrap == amount) {
+      return;
+    }
+    _onlineScrap = amount;
+    notifyListeners();
+  }
+
   void Function(String owner, Map<String, dynamic> snapshot)? onProfileSaved;
   Future<void> Function(String owner, Map<String, dynamic> snapshot)?
   persistAccountProfile;
@@ -35,6 +81,15 @@ class LocalPreferences {
   Future<void> load() async {
     try {
       await _saving;
+      // Do not overwrite an unsaved run reward with the older disk snapshot.
+      if (profileSaveFailed && !await saveProfile()) return;
+      // Once the account controller has restored its atomic profile/outbox,
+      // a menu refresh must not replace it with an older preference mirror.
+      if (profileReady &&
+          profileOwner != 'guest' &&
+          persistAccountProfile != null) {
+        return;
+      }
       _storage = await SharedPreferences.getInstance();
       profileOwner = _storage!.getString('profile.activeOwner') ?? 'guest';
       if (profileOwner != 'guest' &&
@@ -78,19 +133,24 @@ class LocalPreferences {
       controls = const ControlLayout();
     } on PlatformException {
       // Storage failure must not prevent starting an offline run.
+    } finally {
+      profileReady = true;
+      notifyListeners();
     }
   }
 
-  Future<bool> saveProfile() {
-    final payload = jsonEncode(profile.toJson());
+  Future<bool> saveProfile({PlayerProfile? next}) {
+    final payload = jsonEncode((next ?? profile).toJson());
     final snapshot = jsonDecode(payload) as Map<String, dynamic>;
     final owner = profileOwner;
     final primaryKey = _profileKey, backupKey = _backupKey;
     var success = false;
     final operation = _saving.then((_) async {
+      var accountSaved = false;
       try {
-        if (owner != 'guest') {
-          await persistAccountProfile?.call(owner, snapshot);
+        if (owner != 'guest' && persistAccountProfile != null) {
+          await persistAccountProfile!(owner, snapshot);
+          accountSaved = true;
         }
         final previous = _storage?.getString(primaryKey);
         if (previous != null) {
@@ -104,7 +164,14 @@ class LocalPreferences {
           }
         }
 
-        success = await _storage?.setString(primaryKey, payload) ?? false;
+        // The account store is the durable owner-scoped source; preferences
+        // are its compatibility mirror, not a second required commit.
+        try {
+          success = await _storage?.setString(primaryKey, payload) ?? false;
+        } catch (_) {
+          success = false;
+        }
+        success = success || accountSaved;
         if (success) {
           try {
             onProfileSaved?.call(owner, snapshot);
@@ -113,11 +180,43 @@ class LocalPreferences {
           }
         }
       } catch (_) {
-        success = false;
+        success = accountSaved;
+      }
+      if (profileOwner == owner) {
+        if (success && next != null) _profile = next;
+        // A staged purchase failure leaves the original profile untouched.
+        if (next == null || success) profileSaveFailed = !success;
+        notifyListeners();
       }
     });
     _saving = operation;
     return operation.then((_) => success);
+  }
+
+  /// Stage the entire purchase. No debit/ownership is visible before a durable
+  /// write, and repeat taps cannot spend the same balance concurrently.
+  Future<CosmeticPurchase> buyCosmetic(String id) async {
+    if (!canSpend) return CosmeticPurchase.signInRequired;
+    if (_buying || !profileReady || profileSaveFailed) {
+      return CosmeticPurchase.unavailable;
+    }
+    final price = shopCosmetics[id];
+    if (price == null || profile.owned.contains(id)) {
+      return CosmeticPurchase.unavailable;
+    }
+    if (profile.scrap < price) return CosmeticPurchase.insufficientFunds;
+    _buying = true;
+    try {
+      final next = PlayerProfile.fromJson(profile.toJson());
+      next.scrap -= price;
+      next.owned.add(id);
+      next.cosmetic = id;
+      return await saveProfile(next: next)
+          ? CosmeticPurchase.saved
+          : CosmeticPurchase.saveFailed;
+    } finally {
+      _buying = false;
+    }
   }
 
   Future<void> activateProfile(String owner, {PlayerProfile? initial}) async {
@@ -127,6 +226,7 @@ class LocalPreferences {
     }
     _storage ??= await SharedPreferences.getInstance();
     await _storage!.setString('profile.activeOwner', owner);
+    profileOwner = owner;
     await load();
     if (initial != null) {
       profile = initial;

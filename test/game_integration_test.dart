@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:regun/services/run_store.dart';
 import 'package:regun/components/enemies/shadow_boss_component.dart';
 import 'package:regun/components/enemies/shadow_projectile.dart';
 import 'dart:io';
@@ -25,10 +27,20 @@ class SilentAudio extends SoloudPlay {
   Future<void> play(String assetPath) async {}
 }
 
+// Persistence is covered separately; the scene test must not depend on a
+// platform directory/plugin while awaiting settlement and replacing the world.
+class _SceneStore extends RunStore {
+  @override
+  Future<bool> write(Map<String, dynamic> snapshot) async => true;
+  @override
+  Future<void> clear({String? expectedRunId}) async {}
+}
+
 void main() {
   testWidgets(
       'native game scene mounts, pauses for upgrades, clamps and restarts',
       (tester) async {
+    SharedPreferences.setMockInitialValues({});
     tester.view.physicalSize = const Size(844, 390);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -46,7 +58,7 @@ void main() {
         overrides: [soloudPlayProvider.overrideWithValue(SilentAudio())],
         child: MaterialApp(
             theme: ThemeData.dark(),
-            home: const RepaintBoundary(key: capture, child: BaseView())),
+            home: RepaintBoundary(key: capture, child: BaseView(runStore: _SceneStore()))),
       ));
       game = tester
           .widget<RiverpodAwareGameWidget>(find.byType(RiverpodAwareGameWidget))
@@ -204,7 +216,10 @@ void main() {
     expect(game.world.children.whereType<ShadowProjectile>(), isEmpty);
     expect(game.director.bossActive, isFalse);
 
-    game.gameOver();
+    await tester.runAsync(() async {
+      game.gameOver();
+      await game.leaveRun();
+    });
     await tester.pump();
     await tester.pump(const Duration(seconds: 2));
     await tester.pump(const Duration(milliseconds: 300));
@@ -217,8 +232,11 @@ void main() {
           .writeAsBytes(bytes!.buffer.asUint8List());
       image.dispose();
     });
-    game.restartGame();
-    await tester.runAsync(() => game.ready());
+    await tester.runAsync(() async {
+      await game.leaveRun();
+      game.restartGame();
+      await game.ready();
+    });
     // Dense long-run simulation. Keep moving to avoid ending the test run;
     // this checks population bounds and entity lifecycle, not mobile frame rate.
     // Enough test health to keep the simulation running through contact hits.

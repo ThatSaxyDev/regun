@@ -54,7 +54,7 @@ void main() {
       'ENEMIES',
       'CHALLENGES',
       'STYLE',
-      'CREDITS'
+      'ABOUT'
     ]) {
       expect(find.text(label).hitTestable(), findsOneWidget);
       final rect = tester.getRect(find.text(label));
@@ -90,7 +90,7 @@ void main() {
     expect(last.bottom, lessThan(390 - 21 - 16));
     expect(tester.getRect(find.text('BACK')), back);
     // Switching from the bottom of a long section starts the next section at its top.
-    await tester.tap(find.text('CREDITS'));
+    await tester.tap(find.text('ABOUT'));
     await tester.pumpAndSettle();
     expect(find.text('REGUN').hitTestable(), findsOneWidget);
     for (final tab in ['UPGRADES', 'ENEMIES', 'CHALLENGES', 'STYLE']) {

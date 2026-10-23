@@ -1,3 +1,4 @@
+import 'package:regun/widgets/wallet_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/click_button.dart';
@@ -12,12 +13,13 @@ class MenuPage extends StatelessWidget {
     this.footer,
     this.maxWidth = 1100,
     this.hideHeader = false,
+    this.showWallet = false,
   });
   final String title;
   final Widget body;
   final Widget? navigation, footer;
   final double maxWidth;
-  final bool hideHeader;
+  final bool hideHeader, showWallet;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -63,6 +65,10 @@ class MenuPage extends StatelessWidget {
                       ],
                     ),
                   ),
+                if (showWallet) ...[
+                  const WalletBar(),
+                  const SizedBox(height: 8),
+                ],
                 if (navigation != null)
                   Padding(
                     padding: const EdgeInsets.only(right: 12, bottom: 12),

@@ -1,3 +1,4 @@
+import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/upgrade_offer_copy.dart';
 import 'package:regun/systems/upgrade_details.dart';
@@ -111,9 +112,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     if (_leaving) return;
     _leaving = true;
     await _myGame.leaveRun();
-    if (!_myGame.loadout.training &&
-        _myGame.gameState.gameplayState != GameplayState.gameOver &&
-        _myGame.saveIssue != null) {
+    if (!_myGame.loadout.training && _myGame.saveIssue != null) {
       _leaving = false;
       if (mounted) setState(() {});
       return;
@@ -770,6 +769,15 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        const WalletBar(),
+                        const SizedBox(height: 12),
+                        if (!widget.loadout.training) ...[
+                          Text(
+                            'This run: +${_myGame.earnedScrap} Scrap',
+                            style: const TextStyle(color: _brass, fontSize: 12),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         if (_myGame.gameNotifier.canFuse) ...[
                           ClickButton(
                             text: 'Fuse core',
@@ -1148,6 +1156,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
         mainAxisSize: MainAxisSize.min,
         children: [
           _heading('END OF THE LINE'),
+          const SizedBox(height: 12),
+          const WalletBar(),
           if (state.causeOfDeath.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -1166,7 +1176,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
               _readout('${state.kills}', 'KILLS'),
               _readout('${state.bosses}', 'BOSSES'),
               _readout('${state.score}', 'SCORE'),
-              _readout('+${_myGame.earnedScrap}', 'SCRAP'),
+              _readout('+${_myGame.earnedScrap}', 'THIS RUN SCRAP'),
             ],
           ),
           const SizedBox(height: 14),

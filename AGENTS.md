@@ -518,3 +518,17 @@ selects this MP3; arena/boss themes keep their original WAVs. Music preferences,
 looping, lifecycle and one-voice replacement remain unchanged. Combat regeneration
 preserves the menu MP3 and manifest; do not restore the old menu WAV. See
 `docs/art/ACTION_MUSIC_REVIEW.md`; native listening remains a hands-on check.
+
+
+## Earned wallet and email-gated spending (2026-10-23)
+
+The first wallet slice uses observable LocalPreferences for banked Solo Scrap on
+Home, Collection, Loadout, Pause and Results. Credits remains unavailable; online
+Scrap is a separate last-observed account total, never summed into spendable Solo
+Scrap. Guests may earn/view Scrap and play Solo/Training, but purchases require an
+attached verified email account with no unresolved profile conflict. Gate spending
+in the service as well as UI; sign-in never auto-confirms a purchase. Owned styles
+can still be equipped. Keep staged purchase saving, duplicate-tap protection and
+failed-settlement retry before clearing recovery data. This is not a verified
+server wallet or a crash-proof terminal reward journal. No billing is implemented.
+See docs/RUN_PROGRESSION_AND_WALLET_PLAN.md and docs/WALLET_IMPLEMENTATION.md.

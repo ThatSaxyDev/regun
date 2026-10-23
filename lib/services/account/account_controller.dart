@@ -128,6 +128,7 @@ class AccountController extends ChangeNotifier {
       }
     }
     preferences.persistAccountProfile = _persist;
+    preferences.spendingAuthorized = () => verified && attached && !conflict;
     _notify();
   }
 
