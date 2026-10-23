@@ -528,7 +528,12 @@ Scrap is a separate last-observed account total, never summed into spendable Sol
 Scrap. Guests may earn/view Scrap and play Solo/Training, but purchases require an
 attached verified email account with no unresolved profile conflict. Gate spending
 in the service as well as UI; sign-in never auto-confirms a purchase. Owned styles
-can still be equipped. Keep staged purchase saving, duplicate-tap protection and
-failed-settlement retry before clearing recovery data. This is not a verified
-server wallet or a crash-proof terminal reward journal. No billing is implemented.
+can still be equipped offline after relaunch. All NEW purchases require an online
+`/purchase` response; no local fallback or cached-auth spending. The server owns
+Solo wallet balance/shop ownership, imports legacy skins once, canonicalizes cloud
+saves, and records idempotent purchase receipts. `earnedScrapTotal` is monotonic
+and device-reported; it prevents stale balance refunds, not offline cheating.
+Online Scrap stays separate. Progress reset preserves purchased skins. Keep
+operation IDs across lost responses, duplicate-tap protection and failed-settlement
+retry. No real-money billing or crash-proof terminal reward journal is implemented.
 See docs/RUN_PROGRESSION_AND_WALLET_PLAN.md and docs/WALLET_IMPLEMENTATION.md.

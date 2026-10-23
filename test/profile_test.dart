@@ -32,10 +32,13 @@ void main() {
           'shadowPalette'
         ]));
     expect(profile.scrap, 100);
+    expect(profile.earnedScrapTotal, 100);
     expect(settle(), isEmpty);
     expect(profile.scrap, 100);
+    expect(profile.earnedScrapTotal, 100);
     final reloaded = PlayerProfile.fromJson(profile.toJson());
     expect(reloaded.settledRuns, contains('run1'));
+    expect(reloaded.earnedScrapTotal, 100);
     expect(reloaded.weaponUnlocked(WeaponType.arcCaster), isTrue);
     expect(reloaded.owned, contains('shadowPalette'));
   });

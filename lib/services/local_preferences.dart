@@ -15,6 +15,8 @@ enum CosmeticPurchase {
   insufficientFunds,
   unavailable,
   saveFailed,
+  onlineRequired,
+  pendingConfirmation,
 }
 
 class LocalPreferences extends ChangeNotifier {
@@ -30,6 +32,7 @@ class LocalPreferences extends ChangeNotifier {
   bool profileSaveFailed = false;
   bool _buying = false;
   bool Function()? spendingAuthorized;
+  Future<CosmeticPurchase> Function(String id)? purchaseOnline;
   bool get canSpend =>
       profileOwner != 'guest' && (spendingAuthorized?.call() ?? false);
 
@@ -139,16 +142,18 @@ class LocalPreferences extends ChangeNotifier {
     }
   }
 
-  Future<bool> saveProfile({PlayerProfile? next}) {
+  Future<bool> saveProfile({PlayerProfile? next, bool notifyAccount = true}) {
     final payload = jsonEncode((next ?? profile).toJson());
     final snapshot = jsonDecode(payload) as Map<String, dynamic>;
     final owner = profileOwner;
     final primaryKey = _profileKey, backupKey = _backupKey;
     var success = false;
     final operation = _saving.then((_) async {
-      var accountSaved = false;
+      var accountSaved = !notifyAccount && owner != 'guest';
       try {
-        if (owner != 'guest' && persistAccountProfile != null) {
+        if (notifyAccount &&
+            owner != 'guest' &&
+            persistAccountProfile != null) {
           await persistAccountProfile!(owner, snapshot);
           accountSaved = true;
         }
@@ -193,27 +198,21 @@ class LocalPreferences extends ChangeNotifier {
     return operation.then((_) => success);
   }
 
-  /// Stage the entire purchase. No debit/ownership is visible before a durable
-  /// write, and repeat taps cannot spend the same balance concurrently.
+  /// Ownership already cached on this device remains usable offline. A new
+  /// purchase has no local fallback: only the account service may authorize it.
   Future<CosmeticPurchase> buyCosmetic(String id) async {
     if (!canSpend) return CosmeticPurchase.signInRequired;
     if (_buying || !profileReady || profileSaveFailed) {
       return CosmeticPurchase.unavailable;
     }
-    final price = shopCosmetics[id];
-    if (price == null || profile.owned.contains(id)) {
+    if (!shopCosmetics.containsKey(id) || profile.owned.contains(id)) {
       return CosmeticPurchase.unavailable;
     }
-    if (profile.scrap < price) return CosmeticPurchase.insufficientFunds;
+    final purchase = purchaseOnline;
+    if (purchase == null) return CosmeticPurchase.onlineRequired;
     _buying = true;
     try {
-      final next = PlayerProfile.fromJson(profile.toJson());
-      next.scrap -= price;
-      next.owned.add(id);
-      next.cosmetic = id;
-      return await saveProfile(next: next)
-          ? CosmeticPurchase.saved
-          : CosmeticPurchase.saveFailed;
+      return await purchase(id);
     } finally {
       _buying = false;
     }

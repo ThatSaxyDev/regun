@@ -16,8 +16,9 @@ String walletAmount(int value) {
 /// Banked profile value only. Run XP, cores and provisional Scrap never enter
 /// this display. Credits deliberately remain unknown until a real wallet exists.
 class WalletBar extends StatelessWidget {
-  const WalletBar({super.key, this.preferences});
+  const WalletBar({super.key, this.preferences, this.showLabels = true});
   final LocalPreferences? preferences;
+  final bool showLabels;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +26,7 @@ class WalletBar extends StatelessWidget {
     return ListenableBuilder(
       listenable: source,
       builder: (context, _) => Align(
+        widthFactor: 1,
         alignment: Alignment.centerRight,
         child: Wrap(
           alignment: WrapAlignment.end,
@@ -33,6 +35,7 @@ class WalletBar extends StatelessWidget {
           children: [
             _BalanceCell(
               label: 'SCRAP',
+              showLabel: showLabels,
               amount: source.profileReady
                   ? walletAmount(source.profile.scrap)
                   : '—',
@@ -43,6 +46,7 @@ class WalletBar extends StatelessWidget {
             ),
             _BalanceCell(
               label: 'CREDITS',
+              showLabel: showLabels,
               amount: '—',
               glyph: PixelGlyph.star,
               color: const Color(0xff9CACAB),
@@ -63,12 +67,13 @@ class _BalanceCell extends StatelessWidget {
     required this.color,
     required this.onTap,
     this.pending = false,
+    this.showLabel = true,
   });
   final String label, amount;
   final PixelGlyph glyph;
   final Color color;
   final VoidCallback onTap;
-  final bool pending;
+  final bool pending, showLabel;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -99,16 +104,18 @@ class _BalanceCell extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontFamily: FontFam.orbitron,
-                          fontSize: 8,
-                          letterSpacing: 1,
-                          color: color,
+                      if (showLabel) ...[
+                        Text(
+                          label,
+                          style: TextStyle(
+                            fontFamily: FontFam.orbitron,
+                            fontSize: 8,
+                            letterSpacing: 1,
+                            color: color,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 3),
+                        const SizedBox(height: 3),
+                      ],
                       Text(
                         amount,
                         style: const TextStyle(
@@ -156,7 +163,7 @@ Future<void> showWallet(
             '${source.profileSaveFailed
                 ? 'Save needed. Retry before spending.'
                 : source.canSpend
-                ? 'Earned in Solo. Spend on styles.'
+                ? 'Solo earnings. Connect to buy styles. Owned styles work offline.'
                 : 'Sign in with email to spend Scrap.'}\n\n'
             'Credits: —\nNot available yet.\n\n'
             'Online Scrap: ${source.onlineScrap == null ? '—' : walletAmount(source.onlineScrap!)}\n'

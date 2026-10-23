@@ -1,4 +1,3 @@
-import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/navigation/game_page_route.dart';
 
 import 'dart:async';
@@ -80,32 +79,9 @@ class _LoadoutViewState extends State<LoadoutView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            widget.training ? 'TRAINING' : 'LOADOUT',
-                            style: const TextStyle(
-                              fontFamily: FontFam.pressStart,
-                              fontSize: 18,
-                              color: Color(0xffE5DDD1),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    ClickButtonM(
-                      text: 'Back',
-                      width: 100,
-                      height: 44,
-                      onTap: () => Navigator.of(context).pop(),
-                    ),
-                  ],
+                MenuHeader(
+                  title: widget.training ? 'TRAINING' : 'LOADOUT',
+                  showWallet: true,
                 ),
                 const SizedBox(height: 12),
                 IntrinsicHeight(
@@ -145,11 +121,7 @@ class _LoadoutViewState extends State<LoadoutView> {
                         key: ValueKey(_catalog),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const WalletBar(),
-                            const SizedBox(height: 12),
-                            ..._options(),
-                          ],
+                          children: _options(),
                         ),
                       );
                       if (box.maxWidth < 480 && box.maxHeight > 300) {

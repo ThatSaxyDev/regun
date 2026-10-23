@@ -1,3 +1,4 @@
+import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/views/controls_view.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -48,6 +49,13 @@ void main() {
             home:
                 const RepaintBoundary(key: capture, child: CollectionView()))));
     await tester.pumpAndSettle();
+    final wallet = tester.getRect(find.byType(WalletBar));
+    final title = tester.getRect(find.text('COLLECTION'));
+    expect(find.text('SCRAP'), findsNothing);
+    expect(find.text('CREDITS'), findsNothing);
+    expect(wallet.left, greaterThan(title.right));
+    expect(wallet.center.dy, closeTo(title.center.dy, 1));
+    expect(wallet.right, lessThan(tester.getRect(find.text('BACK')).left));
     for (final label in [
       'UPGRADES',
       'FUSIONS',
@@ -89,6 +97,7 @@ void main() {
         .getRect(find.byKey(const ValueKey('collection-card-Hunter Swarm')));
     expect(last.bottom, lessThan(390 - 21 - 16));
     expect(tester.getRect(find.text('BACK')), back);
+    expect(tester.getRect(find.byType(WalletBar)), wallet);
     // Switching from the bottom of a long section starts the next section at its top.
     await tester.tap(find.text('ABOUT'));
     await tester.pumpAndSettle();

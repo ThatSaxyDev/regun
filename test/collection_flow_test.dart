@@ -47,7 +47,7 @@ void main() {
         'ENEMIES',
         'CHALLENGES',
         'STYLE',
-        'CREDITS'
+        'ABOUT'
       ]) {
         await tester.ensureVisible(find.text(tab));
         await tester.tap(find.text(tab));

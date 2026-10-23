@@ -3,6 +3,7 @@ import 'package:regun/data/loadout.dart';
 class PlayerProfile {
   PlayerProfile({
     this.scrap = 0,
+    this.earnedScrapTotal = 0,
     this.totalKills = 0,
     this.totalBossVictories = 0,
     this.scorpionKills = 0,
@@ -32,6 +33,7 @@ class PlayerProfile {
        settledRuns = settledRuns ?? {},
        owned = owned ?? {'standard'};
   final Map<String, int> survivorCounters;
+  int earnedScrapTotal;
   int totalBossVictories;
   int scrap, totalKills, scorpionKills, eliteKills, bestSeconds, bestScore;
   int assistedBestScore, assistedBestSeconds;
@@ -124,6 +126,7 @@ class PlayerProfile {
     scorpionKills += scorpions;
     eliteKills += elites;
     scrap += earnedScrap;
+    earnedScrapTotal = (earnedScrapTotal + earnedScrap).clamp(0, 1000000000);
     if (assisted) {
       if (score > assistedBestScore) assistedBestScore = score;
       if (seconds > assistedBestSeconds) assistedBestSeconds = seconds;
@@ -192,6 +195,7 @@ class PlayerProfile {
     'assistedBestScore': assistedBestScore,
     'assistedBestSeconds': assistedBestSeconds,
     'scrap': scrap,
+    'earnedScrapTotal': earnedScrapTotal,
     'totalKills': totalKills,
     'scorpionKills': scorpionKills,
     'eliteKills': eliteKills,
@@ -236,6 +240,7 @@ class PlayerProfile {
             e.key as String: (e.value as int).clamp(0, 1000000000),
       },
       scrap: number('scrap'),
+      earnedScrapTotal: number('earnedScrapTotal'),
       totalKills: number('totalKills'),
       totalBossVictories: number('totalBossVictories'),
       scorpionKills: number('scorpionKills'),

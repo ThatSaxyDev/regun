@@ -54,14 +54,34 @@ void main() {
   );
 
   test(
-    'purchase stages debit, serializes taps, and persists exactly once',
+    'a cached verified session without a purchase service cannot spend',
     () async {
       final preferences = LocalPreferences();
       await preferences.activateProfile(_owner);
       preferences.spendingAuthorized = () => true;
       preferences.profile.scrap = 150;
-      final gate = Completer<void>();
-      preferences.persistAccountProfile = (_, _) => gate.future;
+      expect(
+        await preferences.buyCosmetic('copper'),
+        CosmeticPurchase.onlineRequired,
+      );
+      expect(preferences.profile.scrap, 150);
+      expect(preferences.profile.owned.contains('copper'), isFalse);
+    },
+  );
+
+  test(
+    'only the online purchase callback can grant; repeat taps are serialized',
+    () async {
+      final preferences = LocalPreferences();
+      await preferences.activateProfile(_owner);
+      preferences.spendingAuthorized = () => true;
+      preferences.profile.scrap = 150;
+      final response = Completer<CosmeticPurchase>();
+      var requests = 0;
+      preferences.purchaseOnline = (_) {
+        requests++;
+        return response.future;
+      };
       final first = preferences.buyCosmetic('copper');
       expect(
         await preferences.buyCosmetic('moss'),
@@ -69,40 +89,11 @@ void main() {
       );
       expect(preferences.profile.scrap, 150);
       expect(preferences.profile.owned.contains('copper'), isFalse);
-      gate.complete();
-      expect(await first, CosmeticPurchase.saved);
-      expect(preferences.profile.scrap, 50);
-      expect(preferences.profile.owned.contains('copper'), isTrue);
-      expect(
-        await preferences.buyCosmetic('copper'),
-        CosmeticPurchase.unavailable,
-      );
-      preferences.persistAccountProfile = null;
-      final recovered = LocalPreferences();
-      await recovered.load();
-      expect(recovered.profile.scrap, 50);
-      expect(recovered.profile.cosmetic, 'copper');
-    },
-  );
-
-  test(
-    'failed staged save leaves balance/ownership intact and can retry',
-    () async {
-      final preferences = LocalPreferences();
-      await preferences.activateProfile(_owner);
-      preferences.spendingAuthorized = () => true;
-      preferences.profile.scrap = 120;
-      preferences.persistAccountProfile = (_, _) async =>
-          throw StateError('disk');
-      expect(
-        await preferences.buyCosmetic('copper'),
-        CosmeticPurchase.saveFailed,
-      );
-      expect(preferences.profile.scrap, 120);
+      response.complete(CosmeticPurchase.onlineRequired);
+      expect(await first, CosmeticPurchase.onlineRequired);
+      expect(requests, 1);
+      expect(preferences.profile.scrap, 150);
       expect(preferences.profile.owned.contains('copper'), isFalse);
-      preferences.persistAccountProfile = null;
-      expect(await preferences.buyCosmetic('copper'), CosmeticPurchase.saved);
-      expect(preferences.profile.scrap, 20);
     },
   );
 

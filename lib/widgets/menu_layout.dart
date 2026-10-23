@@ -37,38 +37,8 @@ class MenuPage extends StatelessWidget {
                 if (!hideHeader)
                   Padding(
                     padding: const EdgeInsets.only(right: 12, bottom: 12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                title,
-                                style: const TextStyle(
-                                  fontFamily: FontFam.pressStart,
-                                  fontSize: 18,
-                                  color: Color(0xffE5DDD1),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        ClickButtonM(
-                          text: 'Back',
-                          width: 100,
-                          height: 44,
-                          onTap: () => Navigator.of(context).pop(),
-                        ),
-                      ],
-                    ),
+                    child: MenuHeader(title: title, showWallet: showWallet),
                   ),
-                if (showWallet) ...[
-                  const WalletBar(),
-                  const SizedBox(height: 8),
-                ],
                 if (navigation != null)
                   Padding(
                     padding: const EdgeInsets.only(right: 12, bottom: 12),
@@ -86,6 +56,54 @@ class MenuPage extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+/// Title and balances share one pinned header; only narrow/large-text layouts
+/// wrap the title group. Back retains its own trailing touch target.
+class MenuHeader extends StatelessWidget {
+  const MenuHeader({super.key, required this.title, this.showWallet = false});
+  final String title;
+  final bool showWallet;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Expanded(
+        child: LayoutBuilder(
+          builder: (context, box) => Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: box.maxWidth),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: FontFam.pressStart,
+                      fontSize: 18,
+                      color: Color(0xffE5DDD1),
+                    ),
+                  ),
+                ),
+              ),
+              if (showWallet) const WalletBar(showLabels: false),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(width: 16),
+      ClickButtonM(
+        text: 'Back',
+        width: 100,
+        height: showWallet ? 48 : 44,
+        onTap: () => Navigator.of(context).pop(),
+      ),
+    ],
   );
 }
 

@@ -1,3 +1,4 @@
+import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/widgets/survivor_portrait.dart';
 import 'package:regun/data/loadout.dart';
 
@@ -106,6 +107,12 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       await show(tester);
+      final wallet = tester.getRect(find.byType(WalletBar));
+      final title = tester.getRect(find.text('TRAINING'));
+      expect(find.text('SCRAP'), findsNothing);
+      expect(find.text('CREDITS'), findsNothing);
+      expect(wallet.left, greaterThan(title.right));
+      expect(wallet.center.dy, closeTo(title.center.dy, 1));
       await tester.runAsync(() async {
         await Future<void>.delayed(const Duration(milliseconds: 50));
       });
@@ -117,6 +124,7 @@ void main() {
         });
         await tester.pumpAndSettle();
         expect(find.byKey(const Key('loadout-summary')), findsOneWidget);
+        expect(tester.getRect(find.byType(WalletBar)), wallet);
         expect(find.text('START').hitTestable(), findsOneWidget);
         expect(find.textContaining(c.role), findsOneWidget);
         if (c == CharacterType.flint || c == CharacterType.harrow) {

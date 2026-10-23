@@ -348,7 +348,11 @@ class _CollectionViewState extends State<CollectionView> {
         final result = await LocalPreferences.shared.buyCosmetic(id);
         if (result != CosmeticPurchase.saved) {
           _purchaseIssue = result == CosmeticPurchase.saveFailed
-              ? 'Could not save. No Scrap spent. Try again.'
+              ? 'Could not save. Retry to check your purchase.'
+              : result == CosmeticPurchase.pendingConfirmation
+              ? 'Retry your earlier purchase to confirm its status.'
+              : result == CosmeticPurchase.onlineRequired
+              ? 'Connect to purchase. Retry to check its status.'
               : 'Purchase unavailable. Check your wallet.';
         }
       } else {
