@@ -1,6 +1,7 @@
 """Original instrumental combat score. Deterministic; NumPy + ffmpeg required.
 No samples, voices, licensed melodies or generation-service credentials.
-16-bar arrangements, circular tails, mono PCM16/44.1kHz, menu + combat.
+16-bar combat arrangements, circular tails, mono PCM16/44.1kHz.
+Preserves the creator-selected stereo menu MP3 and its manifest entry.
 """
 from pathlib import Path
 import hashlib, json, subprocess, wave
@@ -8,7 +9,6 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 RATE = 44100
 TRACKS = {
-    'menu': (124, 38, 83, 'Dark low-string pulse, half-time backbeat and action-ready anticipation'),
     'breach': (138, 38, 101, 'Syncopated low-string ostinato and breakbeat pressure'),
     'foundry': (146, 36, 211, 'Grinding chugs, heavy floor toms and machinery pulse'),
     'boss': (156, 38, 307, 'Double-time pursuit, staggered accents and minor-second tension'),
@@ -19,7 +19,9 @@ def hz(note): return 440 * 2 ** ((note-69)/12)
 
 
 def generate():
-    rows = []
+    rows = [r for r in json.loads((ROOT/'docs/art/ACTION_MUSIC_MANIFEST.json').read_text())
+            if r['file']=='music_menu.mp3']
+    assert len(rows)==1 and (ROOT/'assets/audio/music_menu.mp3').exists(), 'Retain the selected menu MP3'
     for name, (bpm, root, seed, description) in TRACKS.items():
         rng = np.random.default_rng(seed)
         beat = 60/bpm

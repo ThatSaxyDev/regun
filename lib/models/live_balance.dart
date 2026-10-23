@@ -5,8 +5,12 @@ import 'package:regun/data/balance_catalog.dart';
 
 /// Full immutable numeric input for one run. No network dependency.
 class LiveBalance {
-  LiveBalance._(this.revision, this.hash, Map<String, num> values)
-    : values = Map.unmodifiable(values);
+  LiveBalance._(
+    this.revision,
+    this.hash,
+    Map<String, num> values,
+    this.documentCatalogId,
+  ) : values = Map.unmodifiable(values);
   static final Map<String, dynamic> catalog = jsonDecode(balanceCatalogJson);
   static final String catalogId = catalog['catalogId'];
   static final List<Map<String, dynamic>> fields = (catalog['fields'] as List)
@@ -14,10 +18,25 @@ class LiveBalance {
   static final bundled = LiveBalance.create(0, {
     for (final f in fields) f['id'] as String: f['value'] as num,
   });
+  final String documentCatalogId;
+  static Map<String, dynamic> documentCatalog(String id) {
+    if (id == catalogId) return catalog;
+    return (catalog['previousCatalogs'] as List? ?? [])
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+          (c) => c['catalogId'] == id,
+          orElse: () =>
+              throw const FormatException('Unsupported balance catalogue'),
+        );
+  }
+
   final int revision;
   final String hash;
   final Map<String, num> values;
-  static Map<String, num> validate(dynamic raw) {
+  static Map<String, num> validate(dynamic raw, {String? documentCatalogId}) {
+    final fields =
+        (documentCatalog(documentCatalogId ?? catalogId)['fields'] as List)
+            .cast<Map<String, dynamic>>();
     if (raw is! Map || raw.length != fields.length) {
       throw const FormatException('Incomplete balance');
     }
@@ -42,37 +61,48 @@ class LiveBalance {
     return result;
   }
 
-  static String digest(Map<String, num> values) => sha256
-      .convert(
-        utf8.encode(
-          jsonEncode({
-            'schema': 1,
-            'catalogId': catalogId,
-            'values': {
-              for (final key in (values.keys.toList()..sort()))
-                key: values[key],
-            },
-          }),
-        ),
-      )
-      .toString();
+  static String digest(Map<String, num> values, {String? documentCatalogId}) =>
+      sha256
+          .convert(
+            utf8.encode(
+              jsonEncode({
+                'schema': 1,
+                'catalogId': documentCatalogId ?? catalogId,
+                'values': {
+                  for (final key in (values.keys.toList()..sort()))
+                    key: values[key],
+                },
+              }),
+            ),
+          )
+          .toString();
   factory LiveBalance.create(int revision, Map<String, num> raw) {
     if (revision < 0 || revision > 1000000000) {
       throw const FormatException('Invalid revision');
     }
     final values = validate(raw);
-    return LiveBalance._(revision, digest(values), values);
+    return LiveBalance._(revision, digest(values), values, catalogId);
   }
   factory LiveBalance.fromJson(dynamic raw) {
     if (raw is! Map ||
         raw.length != 5 ||
         raw['schema'] != 1 ||
-        raw['catalogId'] != catalogId ||
+        raw['catalogId'] is! String ||
         raw['revision'] is! int) {
       throw const FormatException('Unsupported balance snapshot');
     }
-    final values = validate(raw['values']),
-        snapshot = LiveBalance.create(raw['revision'], values);
+    final id = raw['catalogId'] as String;
+    final revision = raw['revision'] as int;
+    if (revision < 0 || revision > 1000000000) {
+      throw const FormatException('Invalid revision');
+    }
+    final values = validate(raw['values'], documentCatalogId: id),
+        snapshot = LiveBalance._(
+          revision,
+          digest(values, documentCatalogId: id),
+          values,
+          id,
+        );
     if (raw['hash'] != snapshot.hash) {
       throw const FormatException('Balance hash mismatch');
     }
@@ -82,7 +112,7 @@ class LiveBalance {
       (values[key] ?? fallback).toDouble();
   Map<String, dynamic> toJson() => {
     'schema': 1,
-    'catalogId': catalogId,
+    'catalogId': documentCatalogId,
     'revision': revision,
     'hash': hash,
     'values': values,

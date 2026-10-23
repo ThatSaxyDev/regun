@@ -45,12 +45,22 @@ class OnlineGun {
       data['progress'] as Map<String, dynamic>? ?? {};
   Map<String, dynamic> get ranks =>
       data['ranks'] as Map<String, dynamic>? ?? {};
+  double strength(String key) => combatNumber(
+    data['upgradeStrengths'] is Map
+        ? Map<String, dynamic>.from(data['upgradeStrengths'])
+        : {},
+    key,
+    1,
+  );
   int rank(String key) => (ranks[key] as num? ?? 0).toInt();
   int get capacity {
     final n = rank('maxBulletsIncrease');
-    return baseCapacity +
-        n.clamp(0, 3) * (weapon == 'carbine' ? 6 : 2) +
-        (n - 3).clamp(0, 5) * (weapon == 'carbine' ? 2 : 1);
+    return (baseCapacity +
+            ((n.clamp(0, 3) * (weapon == 'carbine' ? 6 : 2) +
+                        (n - 3).clamp(0, 5) * (weapon == 'carbine' ? 2 : 1)) *
+                    strength('maxBulletsIncrease'))
+                .round())
+        .clamp(1, 100);
   }
 
   List<String> get offers => (progress['offers'] as List? ?? []).cast<String>();

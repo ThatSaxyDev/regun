@@ -21,6 +21,10 @@ class WeaponPowerBalance {
           2 => current,
           _ => throw const FormatException('Invalid weapon power balance'),
         };
+  Map<String, num> get upgradeStrengths => Map.unmodifiable({
+    for (final e in snapshot?.values.entries ?? <MapEntry<String, num>>[])
+      if (e.key.startsWith('powerups.')) e.key.split('.')[1]: e.value,
+  });
   bool get upgraded => revision == 2;
   double damage(WeaponType weapon) => upgraded
       ? n('weapons.${weapon.name}.damage', weapon.damage)

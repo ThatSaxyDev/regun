@@ -152,7 +152,7 @@ class CombatSystem {
                         : game.gameNotifier.buildBalance >= 2
                         ? 1
                         : 0) +
-                    rank(PowerUp.conductiveCore) +
+                    state.countRank(PowerUp.conductiveCore) +
                     (state.fused('stormCircuit') ? 2 : 0),
               )
             : 0;
@@ -175,7 +175,8 @@ class CombatSystem {
             excluding: visited,
             range: coilJump
                 ? 200
-                : (innate ? 240 : 170) + rank(PowerUp.conductiveCore) * 55,
+                : (innate ? 240 : 170) +
+                      state.countRank(PowerUp.conductiveCore) * 55,
           );
           if (target == null) {
             if (i < normalCount && coil) {
@@ -236,7 +237,8 @@ class CombatSystem {
     if (rank(PowerUp.fieldMedic) > 0 &&
         runtime.healGate <= 0 &&
         state.health < state.maxHealth &&
-        game.random.nextDouble() < effect(PowerUp.fieldMedic) * 0.05) {
+        game.random.nextDouble() <
+            min(.225, effect(PowerUp.fieldMedic) * 0.05)) {
       game.gameNotifier.heal();
       if (game.gameNotifier.buildBalance >= 2) {
         runtime.healGate = game.loadout.character == CharacterType.suture
@@ -288,7 +290,7 @@ class CombatSystem {
         game.random.nextDouble() < effect(PowerUp.shrapnel) * 0.18) {
       shards(
         enemy.position,
-        count: 3 + rank(PowerUp.shrapnel),
+        count: 3 + state.countRank(PowerUp.shrapnel),
         damage: 0.65,
         direction: game.myPlayer.aimDirection,
       );
@@ -397,7 +399,7 @@ class CombatSystem {
     if (rank(PowerUp.fragmentation) > 0) {
       shards(
         position,
-        count: 4 + rank(PowerUp.fragmentation) * 2,
+        count: 4 + state.countRank(PowerUp.fragmentation) * 2,
         damage: damage * 0.2,
       );
     }

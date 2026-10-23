@@ -1,18 +1,13 @@
 [
   {
-    "file": "music_menu.wav",
-    "bpm": 124,
-    "bars": 16,
-    "seconds": 30.967732426303854,
-    "description": "Dark low-string pulse, half-time backbeat and action-ready anticipation",
-    "peak": 0.76,
-    "rms": 0.10635729484214226,
-    "loop_jump": 8.673617379884035e-19,
-    "sha256": "760b6e2af28ee145bb4479d455b36dd85b53958169628a5fa6d1592770505198",
-    "source": "original deterministic composition",
-    "seed": 83,
-    "format": "mono PCM16/44100Hz",
-    "loop": true
+    "file": "music_menu.mp3",
+    "seconds": 44.0,
+    "description": "Regun \u2014 One More Run (Space Synth), creator-selected trailer score",
+    "source": "Exact creator-selected regun-space-synth-score.mp3; original deterministic stereo composition and authored fades",
+    "sourceFile": "trailer/out/regun-space-synth-score.mp3",
+    "format": "stereo MP3/48000Hz",
+    "loop": true,
+    "sha256": "3de4b1f61e721eabbd7a551fef5ab0b2ccedd477644421d4491074a396c7cba6"
   },
   {
     "file": "music_breach.wav",

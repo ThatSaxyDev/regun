@@ -250,12 +250,26 @@ class ArsenalSystem {
   int get pelletCount => !weapon.supportsScatter
       ? 1
       : weapon == WeaponType.cycloneBreacher
-      ? 5 + math.min(2, state.rank(PowerUp.numberOfBulletsPerShotIncrease)) * 2
+      ? 5 +
+            math.min(
+                  2,
+                  state.countRank(PowerUp.numberOfBulletsPerShotIncrease),
+                ) *
+                2
       : weapon == WeaponType.frostShotgun
-      ? 3 + math.min(3, state.rank(PowerUp.numberOfBulletsPerShotIncrease)) * 2
+      ? 3 +
+            math.min(
+                  3,
+                  state.countRank(PowerUp.numberOfBulletsPerShotIncrease),
+                ) *
+                2
       : weapon == WeaponType.railLance || weapon == WeaponType.beltRepeater
-      ? math.min(3, 1 + state.rank(PowerUp.numberOfBulletsPerShotIncrease))
-      : 1 + math.min(3, state.rank(PowerUp.numberOfBulletsPerShotIncrease));
+      ? math.min(3, 1 + state.countRank(PowerUp.numberOfBulletsPerShotIncrease))
+      : 1 +
+            math.min(
+              3,
+              state.countRank(PowerUp.numberOfBulletsPerShotIncrease),
+            );
 
   double _releaseDamage() {
     var amount = _baseDamage;
@@ -497,10 +511,11 @@ class ArsenalSystem {
                     : weapon == WeaponType.longwatchSniper
                     ? 3
                     : 0) +
-                state.rank(PowerUp.bulletsPhaseThrough),
+                state.countRank(PowerUp.bulletsPhaseThrough),
           ),
           bounces: weapon.supportsRicochet
-              ? state.rank(PowerUp.ricochet) + (state.fused('pinball') ? 3 : 0)
+              ? state.countRank(PowerUp.ricochet) +
+                    (state.fused('pinball') ? 3 : 0)
               : 0,
         ),
       );
@@ -981,7 +996,10 @@ class ArsenalSystem {
             ),
       );
     final ledger = f.returning ? f.returnHits : f.outHits;
-    final hitLimit = math.min(8, 3 + state.rank(PowerUp.bulletsPhaseThrough));
+    final hitLimit = math.min(
+      8,
+      3 + state.countRank(PowerUp.bulletsPhaseThrough),
+    );
     for (final target in targets) {
       final owner = game.projectileOwner(target);
       final id = owner is CombatEnemy

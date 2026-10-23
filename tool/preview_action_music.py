@@ -2,7 +2,7 @@
 Uses NumPy; runtime group gains match SoloudPlay (.6 music/.8 SFX defaults).
 """
 from pathlib import Path
-import hashlib, json, wave
+import hashlib, json, subprocess, wave
 import numpy as np
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'build/audio-review'
@@ -10,6 +10,11 @@ RATE=44100
 
 
 def read(path):
+    if path.suffix=='.mp3':
+        # Mono resampling is for listening reels/measurements only. Runtime
+        # plays the exact stereo MP3 with its original 48kHz mix.
+        raw=subprocess.check_output(['ffmpeg','-v','error','-i',str(path),'-ar',str(RATE),'-ac','1','-f','f32le','pipe:1'])
+        return np.frombuffer(raw,dtype='<f4').astype(float)
     with wave.open(str(path),'rb') as f:
         assert (f.getnchannels(),f.getsampwidth(),f.getframerate())==(1,2,RATE),path
         return np.frombuffer(f.readframes(f.getnframes()),dtype='<i2').astype(float)/32768
@@ -29,12 +34,15 @@ def main():
         path=ROOT/'assets/audio'/item['file']
         assert hashlib.sha256(path.read_bytes()).hexdigest()==item['sha256']
         a=read(path)
-        assert abs(len(a)/RATE-64*60/item['bpm'])<1/RATE
+        menu=item['file']=='music_menu.mp3'
+        expected=item['seconds'] if menu else 64*60/item['bpm']
+        assert abs(len(a)/RATE-expected)<1/RATE
         peak=float(max(abs(a)));rms=float(np.sqrt(np.mean(a*a)))
         jump=float(abs(a[0]-a[-1]));dc=float(np.mean(a))
         assert peak<=.8 and .07<rms<.25 and jump<.002 and abs(dc)<.001
-        assert np.sqrt(np.mean(a[:RATE]**2))>rms*.25 # No slow entrance.
-        assert np.sqrt(np.mean(a[-RATE:]**2))>rms*.25 # No dead loop fadeout.
+        if not menu:
+            assert np.sqrt(np.mean(a[:RATE]**2))>rms*.25 # Combat starts immediately.
+            assert np.sqrt(np.mean(a[-RATE:]**2))>rms*.25
         # Include the real loop seam in each eight-second excerpt.
         excerpt=np.concatenate([a[-RATE*4:],a[:RATE*4]])
         previews.append(excerpt*.7)
@@ -43,7 +51,7 @@ def main():
             sound=read(ROOT/'assets/audio'/name)*gain*.8
             i=round(at*RATE); n=min(len(sound),len(mix)-i)
             mix[i:i+n]+=sound[:n]
-        if item['file']!='music_menu.wav':
+        if not menu:
             for i in range(18):
                 add(f'shot_carbine_{i%3}.wav',1+i*.1,.72)
                 add('impact_carbine.wav',1.1+i*.1,.25)

@@ -467,3 +467,13 @@ payoff and Bell's single coherent strike with quieter .55s resonance. No weapon
 body art or firing/reload pattern should have changed. Verify Reduced Motion,
 cover, pause/resume and saturation. Normal unprotected runs and multi-seed boss
 comparisons are still required; stationary probes are not win-rate evidence.
+
+**Admin power-up strength / offline recovery (23 October):** Publish a small
+Production strength adjustment, let the game fetch in the background, then start a
+new run. Confirm the expected upgrade bonus and unchanged rank/fusion requirements.
+Background/close the game during a normal run, publish another value, reopen and
+Continue offline: saved balance, strength, build and position must remain pinned.
+Repeat a fresh offline launch and server timeout; controls/Start/Training/Continue
+must stay available with cached or bundled values. Automatic checkpoints represent
+the most recent successful periodic/lifecycle save, not every simulation frame.
+Admin Staging stores isolated preparation releases and has no playable preview.

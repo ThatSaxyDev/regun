@@ -27,7 +27,7 @@ void main() {
   test(
     'snapshot enforces full schema, finite bounds, relationships and hash',
     () {
-      expect(LiveBalance.bundled.values.length, 168);
+      expect(LiveBalance.bundled.values.length, 209);
       expect(
         LiveBalance.fromJson(
           jsonDecode(
@@ -93,6 +93,54 @@ void main() {
       expect(notifier.weaponPower.shellDuration(5), 4000);
       expect(WeaponPowerBalance.read(1).damage(WeaponType.shotgun), 1.2);
       expect(WeaponPowerBalance.read(2).damage(WeaponType.shotgun), 1.7);
+    },
+  );
+  test(
+    'legacy snapshots keep their original hash and default power-up strength',
+    () {
+      final raw = jsonDecode(
+        File('test/fixtures/balance-legacy-v1.json').readAsStringSync(),
+      );
+      final legacy = LiveBalance.fromJson(raw);
+      expect(legacy.values.length, 168);
+      expect(legacy.toJson(), raw);
+      final old = BalanceRepository.shared.current;
+      addTearDown(() => BalanceRepository.shared.current = old);
+      BalanceRepository.shared.current = legacy;
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(gameNotifierProvider.notifier)
+        ..resetRun();
+      final saved = notifier.checkpoint();
+      BalanceRepository.shared.current = LiveBalance.create(9, {
+        ...LiveBalance.bundled.values,
+        'powerups.heavyLoad.strength': 1.5,
+      });
+      notifier.restoreCheckpoint(saved);
+      expect(
+        container.read(gameNotifierProvider).strength(PowerUp.heavyLoad),
+        1,
+      );
+      notifier.resetRun();
+      expect(
+        container.read(gameNotifierProvider).strength(PowerUp.heavyLoad),
+        1.5,
+      );
+      final state = container
+          .read(gameNotifierProvider)
+          .copyWith(ranks: {PowerUp.heavyLoad: 3});
+      expect(state.effectRank(PowerUp.heavyLoad), 4.5);
+      expect(state.rank(PowerUp.heavyLoad), 3);
+    },
+  );
+  test(
+    'a transport construction failure cannot escape background refresh',
+    () async {
+      final repository = BalanceRepository(
+        client: () => throw StateError('unavailable'),
+      );
+      await repository.refresh(force: true);
+      expect(repository.current.hash, LiveBalance.bundled.hash);
     },
   );
   test(

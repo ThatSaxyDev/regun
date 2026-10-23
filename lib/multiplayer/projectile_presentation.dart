@@ -307,14 +307,19 @@ class ProjectilePresentation {
         gun.baseNumber('speed', weapon.speed) +
         math.min(
           800,
-          speedRank.clamp(0, 3) * 200 + (speedRank - 3).clamp(0, 5) * 40,
+          ((speedRank.clamp(0, 3) * 200 + (speedRank - 3).clamp(0, 5) * 40) *
+                  gun.strength('rapidFire'))
+              .round(),
         );
     final range =
         gun.baseNumber('range', weapon.range) +
-        rangeRank.clamp(0, 3) * 60 +
-        (rangeRank - 3).clamp(0, 5) * 24;
+        ((rangeRank.clamp(0, 3) * 60 + (rangeRank - 3).clamp(0, 5) * 24) *
+                gun.strength('bulletRangeIncrease'))
+            .round();
     final trigger = gun.rank('quickTrigger');
-    final effective = trigger.clamp(0, 3) + (trigger - 3).clamp(0, 5) * .3;
+    final effective =
+        (trigger.clamp(0, 3) + (trigger - 3).clamp(0, 5) * .3) *
+        gun.strength('quickTrigger');
     // Server advanceGun/fire runs once per50ms; match its quantized cadence.
     final cadence =
         (gun.baseNumber('cadence', weapon.cadence) *

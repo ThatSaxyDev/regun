@@ -174,8 +174,8 @@ class OnlineSession {
                     : 300,
               ) ??
               300) +
-          walking.clamp(0, 3) * 50 +
-          (walking - 3).clamp(0, 5) * 12;
+          (walking.clamp(0, 3) * 50 + (walking - 3).clamp(0, 5) * 12) *
+              (remoteGun?.strength('walkingSpeedIncrease') ?? 1);
       final alive =
           member.connected &&
           !member.expired &&
@@ -652,7 +652,7 @@ class OnlineSession {
         !_attaching) {
       _attaching = true;
       unawaited(
-        _quiet(() => client.reducers.attachCombat(version: 2))
+        _quiet(() => client.reducers.attachCombat(version: 3))
             .whenComplete(() => _attaching = false),
       );
     }
@@ -783,9 +783,11 @@ class OnlineSession {
                   : gun?.survivor == 'scrapper'
                   ? 345
                   : 300)) +
-          walking.clamp(0, 3) * 50 +
-          (walking - 3).clamp(0, 5) * 12,
-      cooldownDuration: (1.6 - effectiveQuickstep * .25).clamp(.6, 1.6),
+          (walking.clamp(0, 3) * 50 + (walking - 3).clamp(0, 5) * 12) *
+              (gun?.strength('walkingSpeedIncrease') ?? 1),
+      cooldownDuration:
+          (1.6 - effectiveQuickstep * (gun?.strength('quickstep') ?? 1) * .25)
+              .clamp(.6, 1.6),
     );
     // Returning from a local menu in the same server epoch starts at the last
     // received sequence; stale inputs from the old prediction are never replayed.

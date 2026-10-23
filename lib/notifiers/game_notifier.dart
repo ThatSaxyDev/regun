@@ -58,6 +58,7 @@ class GameNotifier extends Notifier<GameState> {
     weaponPower = WeaponPowerBalance.live(BalanceRepository.shared.current);
     _offerRandom.state = seed;
     state = GameState(
+      upgradeStrengths: weaponPower.upgradeStrengths,
       maxBullets: weaponPower.capacity(weapon),
       noOfBullets: weaponPower.capacity(weapon),
       maxHealth: weaponPower.health(character),
@@ -75,11 +76,16 @@ class GameNotifier extends Notifier<GameState> {
     final old = weapon;
     final rank = state.rank(PowerUp.maxBulletsIncrease);
     final extra =
-        min(3, rank) * (next == WeaponType.carbine ? 6 : 2) +
-        max(0, rank - 3) * (next == WeaponType.carbine ? 2 : 1);
+        ((min(3, rank) * (next == WeaponType.carbine ? 6 : 2) +
+                    max(0, rank - 3) * (next == WeaponType.carbine ? 2 : 1)) *
+                state.strength(PowerUp.maxBulletsIncrease))
+            .round();
     final capacity = next == WeaponType.prismCutter
         ? min(24, weaponPower.capacity(next) + extra)
-        : weaponPower.capacity(next) + extra;
+        : min(
+            next == WeaponType.beltRepeater ? 128 : 100,
+            weaponPower.capacity(next) + extra,
+          );
     weapon = next;
     _reloadDurationMs = _reloadElapsedMs = 0;
     _reloadSoundsLeft = _reloadCue = 0;
@@ -313,6 +319,7 @@ class GameNotifier extends Notifier<GameState> {
         : 0;
     _hurtCooldownMs = 1000; // Clear, fair resume window; no offline simulation.
     state = restored.copyWith(
+      upgradeStrengths: restoredPower.upgradeStrengths,
       gameplayState: GameplayState.paused,
       triggerSprintInvincibility: false,
     );
@@ -410,7 +417,8 @@ class GameNotifier extends Notifier<GameState> {
         (state.rank(PowerUp.scrapArmour) > 0 ||
             character == CharacterType.warden)) {
       _guardElapsed += dt;
-      if (_guardElapsed >= 20 - state.effectRank(PowerUp.scrapArmour) * 3) {
+      if (_guardElapsed >=
+          max(6.5, 20 - state.effectRank(PowerUp.scrapArmour) * 3)) {
         _guardElapsed = 0;
         state = state.copyWith(guard: true);
       }
@@ -661,7 +669,9 @@ class GameNotifier extends Notifier<GameState> {
         sprintMine();
       case PowerUp.heavyLoad:
         state = state.copyWith(
-          shotDamage: state.shotDamage + (state.rank(powerUp) <= 3 ? .35 : .1),
+          shotDamage:
+              state.shotDamage +
+              (state.rank(powerUp) <= 3 ? .35 : .1) * state.strength(powerUp),
         );
       case PowerUp.lastShell:
         state = state.copyWith(lastShellRank: state.lastShellRank + 1);
@@ -833,12 +843,15 @@ class GameNotifier extends Notifier<GameState> {
   void maxBulletsIncrease() {
     _reloadDurationMs = 0;
     _reloadSoundsLeft = 0;
-    final lateRank = state.rank(PowerUp.maxBulletsIncrease) > 3;
-    final capacity =
-        state.maxBullets +
-        (weapon == WeaponType.carbine
-            ? (lateRank ? 2 : 6)
-            : (lateRank ? 1 : 2));
+    final capacity = min(
+      weapon == WeaponType.beltRepeater ? 128 : 100,
+      state.maxBullets +
+          state.integerGain(
+            PowerUp.maxBulletsIncrease,
+            weapon == WeaponType.carbine ? 6 : 2,
+            weapon == WeaponType.carbine ? 2 : 1,
+          ),
+    );
     _quickRefillMs = 0;
     quickRefillProgress.value = 0;
     reloadProgress.value = 0;
@@ -860,14 +873,15 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void healthIncrease() => state = state.copyWith(
-    health: state.health + 1,
-    maxHealth: state.maxHealth + 1,
+    health: state.health + state.strength(PowerUp.healthIncrease).round(),
+    maxHealth: state.maxHealth + state.strength(PowerUp.healthIncrease).round(),
   );
   void resetHealth() => state = state.copyWith(health: state.maxHealth);
   void walkingSpeedIncrease() => state = state.copyWith(
     movementSpeed:
         state.movementSpeed +
-        (state.rank(PowerUp.walkingSpeedIncrease) <= 3 ? 50 : 12),
+        (state.rank(PowerUp.walkingSpeedIncrease) <= 3 ? 50 : 12) *
+            state.strength(PowerUp.walkingSpeedIncrease),
   );
   void resetWalkingSpeed() =>
       state = state.copyWith(movementSpeed: weaponPower.movement(character));
@@ -878,18 +892,19 @@ class GameNotifier extends Notifier<GameState> {
   void bulletRangeIncrease() => state = state.copyWith(
     bulletRange:
         state.bulletRange +
-        (state.rank(PowerUp.bulletRangeIncrease) <= 3 ? 60 : 24),
+        state.integerGain(PowerUp.bulletRangeIncrease, 60, 24),
   );
   void resetBulletRange() => state = state.copyWith(bulletRange: 420);
   void numberOfBulletsPerShotIncrease() => state = state.copyWith(
-    bulletNumberRange: min(4, state.bulletNumberRange + 1),
+    bulletNumberRange:
+        1 + min(3, state.countRank(PowerUp.numberOfBulletsPerShotIncrease)),
   );
   void resetBulletNumberRange() => state = state.copyWith(bulletNumberRange: 1);
   void fastReload() => state = state.copyWith(
     fastReload: true,
     fastReloadTime: max(
       850,
-      state.fastReloadTime - (state.rank(PowerUp.fastReload) <= 3 ? 500 : 30),
+      state.fastReloadTime - state.integerGain(PowerUp.fastReload, 500, 30),
     ),
   );
   void resetFastReload() =>
@@ -904,8 +919,10 @@ class GameNotifier extends Notifier<GameState> {
     }
     _invincibilityMs = state.sprintInvincibility
         ? state.sprintTimeDistance +
-              70 +
-              max(0, state.rank(PowerUp.sprintInvincibility) - 1) * 15.0
+              (70 +
+                      max(0, state.rank(PowerUp.sprintInvincibility) - 1) *
+                          15.0) *
+                  state.strength(PowerUp.sprintInvincibility)
         : state.sprintTimeDistance.toDouble();
     state = state.copyWith(triggerSprintInvincibility: true);
   }
@@ -919,7 +936,7 @@ class GameNotifier extends Notifier<GameState> {
   void rapidFire() => state = state.copyWith(
     bulletSpeed: min(
       min(weapon.velocityCeiling.toDouble(), state.baseProjectileSpeed + 800),
-      state.bulletSpeed + (state.rank(PowerUp.rapidFire) <= 3 ? 200 : 40),
+      state.bulletSpeed + state.integerGain(PowerUp.rapidFire, 200, 40),
     ),
   );
   void resetFireRate() => state = state.copyWith(bulletSpeed: 700);
@@ -935,6 +952,17 @@ class GameNotifier extends Notifier<GameState> {
 }
 
 class GameState {
+  final Map<String, num> upgradeStrengths;
+  double strength(PowerUp value) =>
+      (upgradeStrengths[value.name] ?? 1).toDouble();
+  int countRank(PowerUp value) =>
+      (rank(value) * strength(value)).round().clamp(0, 8);
+  int integerGain(PowerUp value, int early, int late) {
+    int total(int n) =>
+        ((min(n, 3) * early + max(0, n - 3) * late) * strength(value)).round();
+    return total(rank(value)) - total(max(0, rank(value) - 1));
+  }
+
   final int maxHealth;
   final bool guard;
   final int rerolls;
@@ -951,12 +979,14 @@ class GameState {
   /// Keep I–III intact; IV–VIII give smaller, bounded scalar gains.
   static double scaledRank(int rank, {double lateGain = .3}) =>
       min(rank, 3) + max(0, rank - 3) * lateGain;
-  double effectRank(PowerUp value) => scaledRank(
-    rank(value),
-    lateGain: value == PowerUp.fastReload || value == PowerUp.quickstep
-        ? .2
-        : .3,
-  );
+  double effectRank(PowerUp value) =>
+      strength(value) *
+      scaledRank(
+        rank(value),
+        lateGain: value == PowerUp.fastReload || value == PowerUp.quickstep
+            ? .2
+            : .3,
+      );
   bool fused(String id) => evolutions.contains(id);
   final int offerId;
   final int score;
@@ -992,6 +1022,7 @@ class GameState {
   final bool triggerEnemySpawn;
 
   GameState({
+    this.upgradeStrengths = const {},
     this.maxHealth = 6,
     this.guard = false,
     this.rerolls = 2,
@@ -1145,6 +1176,7 @@ class GameState {
   );
 
   GameState copyWith({
+    Map<String, num>? upgradeStrengths,
     int? maxHealth,
     bool? guard,
     int? rerolls,
@@ -1189,6 +1221,7 @@ class GameState {
     bool? triggerEnemySpawn,
   }) {
     return GameState(
+      upgradeStrengths: upgradeStrengths ?? this.upgradeStrengths,
       maxHealth: maxHealth ?? this.maxHealth,
       guard: guard ?? this.guard,
       rerolls: rerolls ?? this.rerolls,

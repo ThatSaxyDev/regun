@@ -17,10 +17,20 @@ String upgradeDetails(
   bool brief = false,
 }) {
   final r = s.rank(p), next = math.min(p.maxRank, r + 1);
-  double e(int n) => GameState.scaledRank(
-    n,
-    lateGain: p == PowerUp.fastReload || p == PowerUp.quickstep ? .2 : .3,
-  );
+  double e(int n) =>
+      s.strength(p) *
+      GameState.scaledRank(
+        n,
+        lateGain: p == PowerUp.fastReload || p == PowerUp.quickstep ? .2 : .3,
+      );
+  int countRank(int n) => (n * s.strength(p)).round().clamp(0, 8);
+  int integerGain(int early, int late) {
+    int total(int n) =>
+        ((math.min(3, n) * early + math.max(0, n - 3) * late) * s.strength(p))
+            .round();
+    return total(next) - total(r);
+  }
+
   String f(num n) => n == n.roundToDouble()
       ? n.toInt().toString()
       : n.toStringAsFixed(2).replaceFirst(RegExp(r'0$'), '');
@@ -47,8 +57,10 @@ String upgradeDetails(
       return delta(
         brief ? 'Damage bonus' : 'Primary',
         (n) => brief
-            ? math.min(3, n) * 35 + math.max(0, n - 3) * 10
-            : 1 + math.min(3, n) * .35 + math.max(0, n - 3) * .10,
+            ? (math.min(3, n) * 35 + math.max(0, n - 3) * 10) * s.strength(p)
+            : 1 +
+                  (math.min(3, n) * .35 + math.max(0, n - 3) * .10) *
+                      s.strength(p),
         unit: brief ? '%' : 'x',
       );
     case PowerUp.quickTrigger:
@@ -58,9 +70,10 @@ String upgradeDetails(
         unit: 's',
       );
     case PowerUp.maxBulletsIncrease:
-      final extra = weapon == WeaponType.carbine
-          ? (next <= 3 ? 6 : 2)
-          : (next <= 3 ? 2 : 1);
+      final extra = integerGain(
+        weapon == WeaponType.carbine ? 6 : 2,
+        weapon == WeaponType.carbine ? 2 : 1,
+      );
       return 'Magazine ${s.maxBullets} to ${weapon == WeaponType.prismCutter ? math.min(24, s.maxBullets + extra) : s.maxBullets + extra}. Refill now.';
     case PowerUp.fastReload:
       double full(int rank) {
@@ -70,8 +83,9 @@ String upgradeDetails(
                       : math.max(
                           850,
                           2500 -
-                              math.min(3, rank) * 500 -
-                              math.max(0, rank - 3) * 30,
+                              (math.min(3, rank) * 500 +
+                                      math.max(0, rank - 3) * 30) *
+                                  s.strength(p),
                         ))
                   .toDouble()
             : power.reloadMs(weapon) * math.pow(.8, e(rank));
@@ -84,29 +98,32 @@ String upgradeDetails(
     case PowerUp.numberOfBulletsPerShotIncrease:
       int count(int n) =>
           weapon == WeaponType.shotgun || weapon == WeaponType.frostShotgun
-          ? 3 + math.min(3, n) * 2
+          ? 3 + math.min(3, countRank(n)) * 2
           : weapon == WeaponType.cycloneBreacher
-          ? 5 + math.min(2, n) * 2
+          ? 5 + math.min(2, countRank(n)) * 2
           : weapon == WeaponType.railLance || weapon == WeaponType.beltRepeater
-          ? math.min(3, 1 + n)
-          : 1 + math.min(3, n);
+          ? math.min(3, 1 + countRank(n))
+          : 1 + math.min(3, countRank(n));
       return count(next) == count(r)
           ? 'Tighter projectile spread. Count stays ${count(r)}.'
           : delta('Projectiles', count);
     case PowerUp.bulletsPhaseThrough:
-      return delta(brief ? 'Enemies pierced' : 'Extra penetrations', (n) => n);
+      return delta(
+        brief ? 'Enemies pierced' : 'Extra penetrations',
+        (n) => countRank(n),
+      );
     case PowerUp.bulletRangeIncrease:
-      return 'Range ${math.min(weapon.rangeCeiling ?? 100000, s.bulletRange)} to ${math.min(weapon.rangeCeiling ?? 100000, s.bulletRange + (next <= 3 ? 60 : 24))}';
+      return 'Range ${math.min(weapon.rangeCeiling ?? 100000, s.bulletRange)} to ${math.min(weapon.rangeCeiling ?? 100000, s.bulletRange + integerGain(60, 24))}';
     case PowerUp.rapidFire:
-      return 'Speed ${f(s.bulletSpeed)} to ${f(math.min(weapon.velocityCeiling, math.min(s.baseProjectileSpeed + 800, s.bulletSpeed + (next <= 3 ? 200 : 40))))}';
+      return 'Speed ${f(s.bulletSpeed)} to ${f(math.min(weapon.velocityCeiling, math.min(s.baseProjectileSpeed + 800, s.bulletSpeed + integerGain(200, 40))))}';
     case PowerUp.walkingSpeedIncrease:
-      return 'Walking ${f(s.movementSpeed)} to ${f(s.movementSpeed + (next <= 3 ? 50 : 12))}';
+      return 'Walking ${f(s.movementSpeed)} to ${f(s.movementSpeed + (next <= 3 ? 50 : 12) * s.strength(p))}';
     case PowerUp.healthIncrease:
-      return 'Max HP ${s.maxHealth} to ${s.maxHealth + 1}. Recover one.';
+      return 'Max HP ${s.maxHealth} to ${s.maxHealth + s.strength(p).round()}. Recover ${s.strength(p) == 1 ? 'one' : s.strength(p).round()}.';
     case PowerUp.fieldMedic:
-      return '${pct('Heal chance', (n) => e(n) * .05)} per kill.${balance >= 2 ? ' ${character == CharacterType.suture ? 12 : 6}s cooldown.' : ''}';
+      return '${pct('Heal chance', (n) => math.min(.225, e(n) * .05))} per kill.${balance >= 2 ? ' ${character == CharacterType.suture ? 12 : 6}s cooldown.' : ''}';
     case PowerUp.scrapArmour:
-      return '${delta('Guard recharge', (n) => 20 - 3 * e(n), unit: 's')}. Guard now.';
+      return '${delta('Guard recharge', (n) => math.max(6.5, 20 - 3 * e(n)), unit: 's')}. Guard now.';
     case PowerUp.quickstep:
       return delta(
         'Dash cooldown',
@@ -116,7 +133,7 @@ String upgradeDetails(
     case PowerUp.sprintInvincibility:
       return delta(
         'Recovery protection',
-        (n) => n == 0 ? 0 : 70 + (n - 1) * 15,
+        (n) => n == 0 ? 0 : (70 + (n - 1) * 15) * s.strength(p),
         unit: 'ms',
       );
     case PowerUp.scavenger:
@@ -135,13 +152,13 @@ String upgradeDetails(
     case PowerUp.staticCharge:
       return pct('Chain chance', (n) => .12 * e(n));
     case PowerUp.conductiveCore:
-      return '${delta('Extra jumps', (n) => n)}. +55 jump range.';
+      return '${delta('Extra jumps', (n) => countRank(n))}. +55 jump range.';
     case PowerUp.sprintMine:
       return '${delta('Mine damage', (n) => (3.5 + e(n)) * (character == CharacterType.scrapper ? 1.4 : 1))}. One after each dash.';
     case PowerUp.fragmentation:
-      return delta('Blast shards', (n) => n == 0 ? 0 : 4 + 2 * n);
+      return delta('Blast shards', (n) => n == 0 ? 0 : 4 + 2 * countRank(n));
     case PowerUp.ricochet:
-      return delta('Extra bounces', (n) => n);
+      return delta('Extra bounces', (n) => countRank(n));
     case PowerUp.bankShot:
       return delta(
         'Bounce damage',
@@ -170,7 +187,7 @@ String upgradeDetails(
     case PowerUp.targetingLink:
       return delta('Marked drone damage', (n) => 1 + .3 * e(n), unit: 'x');
     case PowerUp.shrapnel:
-      return '${pct(brief ? 'Chance on kill' : 'Kill proc', (n) => .18 * e(n))}. ${3 + next} shards.';
+      return '${pct(brief ? 'Chance on kill' : 'Kill proc', (n) => .18 * e(n))}. ${3 + countRank(next)} shards.';
     case PowerUp.executioner:
       return '${delta(brief ? 'Shot damage' : 'Wounded primary', (n) => 1 + .3 * e(n), unit: 'x')}. Below 35% HP.';
     case PowerUp.grenadeDamage:

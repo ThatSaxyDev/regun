@@ -507,3 +507,14 @@ review (Belt/Frost/Longwatch/Cyclone); the review specifies the other numerical 
 Server parity is prepared locally with preserved PvP damage and is not deployed.
 Release identity remains1.0.0+15. Native balance, comfort and long-run performance
 remain human acceptance gates; new-run power must not be inferred from legacy Continue.
+
+
+## Menu space-synth replacement (2026-10-23)
+
+The creator-selected `regun-space-synth-score.mp3` now plays before gameplay as
+`assets/audio/music_menu.mp3`, copied byte-for-byte from `trailer/out`. Preserve
+the 44-second stereo 48kHz mix and authored fades. `SoloudPlay.playMusic('menu')`
+selects this MP3; arena/boss themes keep their original WAVs. Music preferences,
+looping, lifecycle and one-voice replacement remain unchanged. Combat regeneration
+preserves the menu MP3 and manifest; do not restore the old menu WAV. See
+`docs/art/ACTION_MUSIC_REVIEW.md`; native listening remains a hands-on check.

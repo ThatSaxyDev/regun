@@ -1219,3 +1219,17 @@ review (Belt/Frost/Longwatch/Cyclone); the review specifies the other numerical 
 Server parity is prepared locally with preserved PvP damage and is not deployed.
 Release identity remains1.0.0+15. Native balance, comfort and long-run performance
 remain human acceptance gates; new-run power must not be inferred from legacy Continue.
+
+## Remote power-up strength and offline preservation — 23 October 2026
+
+The shared balance contract now includes 41 power-up strength controls (209 values
+in total). Fresh runs capture them alongside base values; GameState reads immutable
+strengths from that snapshot and preserves actual ranks/unlocks/fusion thresholds.
+Existing combat caps still apply. Native and supported online bonus readers agree;
+capability 3 is required for custom online strength. Continue embeds the original
+snapshot, including old 168-value releases whose ID/hash remain unchanged.
+
+Automatic checkpoint scheduling/lifecycle saves and RunStore recovery were not
+replaced. Background refresh remains deduplicated, bounded and best effort, with
+last-good cache/bundled fallback. Transport-construction failures are contained too.
+No online account/configuration lookup is awaited by offline run entry.

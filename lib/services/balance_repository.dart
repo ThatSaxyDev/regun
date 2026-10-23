@@ -63,8 +63,9 @@ class BalanceRepository {
       return;
     }
     _lastAttempt = DateTime.now();
-    final transport = client();
+    http.Client? transport;
     try {
+      transport = client();
       final request = http.Request(
         'GET',
         base.resolve('/balance/v1/current?channel=production'),
@@ -89,7 +90,7 @@ class BalanceRepository {
     } catch (_) {
       /* No service failure can affect offline input, start or rewards. */
     } finally {
-      transport.close();
+      transport?.close();
     }
   }
 }

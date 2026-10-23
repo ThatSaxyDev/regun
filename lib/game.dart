@@ -1744,7 +1744,7 @@ class RegunGame extends FlameGame
     }
     final count = loadout.weapon == WeaponType.shotgun
         ? state.bulletNumberRange * 2 + 1
-        : 1 + min(3, state.rank(PowerUp.numberOfBulletsPerShotIncrease));
+        : 1 + min(3, state.countRank(PowerUp.numberOfBulletsPerShotIncrease));
     if (projectileCount + count > maxProjectiles) return false;
     audio.play('shot_${loadout.weapon.name}_${shotsFired % 3}.wav');
     shotsFired++;
@@ -1759,12 +1759,15 @@ class RegunGame extends FlameGame
       damage *=
           1 +
           GameState.scaledRank(state.lastShellRank) *
+              state.strength(PowerUp.lastShell) *
               (breachEngine ? 0.9 : 0.6);
     }
     if (_breachCharged) {
       damage *=
           1 +
-          GameState.scaledRank(state.breachRank) * (breachEngine ? 0.8 : 0.5);
+          GameState.scaledRank(state.breachRank) *
+              state.strength(PowerUp.breachLoader) *
+              (breachEngine ? 0.8 : 0.5);
     }
     _breachCharged = false;
 
@@ -1812,10 +1815,11 @@ class RegunGame extends FlameGame
           releaseId: releaseId,
           releaseBonus: releaseBonus,
           pierce:
-              state.rank(PowerUp.bulletsPhaseThrough) +
+              state.countRank(PowerUp.bulletsPhaseThrough) +
               (state.bulletsPhaseThrough ? 1 : 0),
           bounces:
-              state.rank(PowerUp.ricochet) + (state.fused('pinball') ? 3 : 0),
+              state.countRank(PowerUp.ricochet) +
+              (state.fused('pinball') ? 3 : 0),
           angle: atan2(direction.y, direction.x),
         ),
       );
