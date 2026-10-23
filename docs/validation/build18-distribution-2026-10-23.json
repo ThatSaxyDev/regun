@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "build": "18",
+  "bundleId": "dev.kiishi.regun",
+  "export": "app-store-connect",
+  "uploadedToApple": false,
+  "androidFirebaseGroup": "playtesters",
+  "androidSigningMatchesBuild17": true,
+  "analyzer": "passed",
+  "ipa": {
+    "path": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun/build/ios/ipa/regun-1.0.0-18.ipa",
+    "bytes": 162024228,
+    "sha256": "a61cb75342035e013c9d05e4edba400198d8a610ce618af6908993725e5ed473"
+  },
+  "android": {
+    "path": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun/build/app/outputs/flutter-apk/regun-1.0.0-18.apk",
+    "bytes": 219150285,
+    "sha256": "534921f71b8ace03637e8313e9e4979241000c56f113233a1b6c98946f3c79fe"
+  },
+  "androidDistributed": true
+}
