@@ -840,21 +840,6 @@ function End() {
     </Scene>
   );
 }
-function Cue({
-  at,
-  src,
-  volume = 0.4,
-}: {
-  at: number;
-  src: string;
-  volume?: number;
-}) {
-  return (
-    <Sequence from={at} durationInFrames={50}>
-      <Audio src={file(src)} volume={volume} />
-    </Sequence>
-  );
-}
 export function Trailer() {
   const f = useCurrentFrame();
   return (
@@ -882,20 +867,7 @@ export function Trailer() {
       <Sequence from={1110} durationInFrames={210}>
         <End />
       </Sequence>
-      <Audio
-        src={file("music_boss.wav")}
-        loop
-        loopVolumeCurveBehavior="extend"
-        volume={(v) =>
-          interpolate(v, [0, 12, 1285, 1319], [0, 0.56, 0.56, 0], clamp)
-        }
-      />
-      <Cue at={180} src="upgrade_pulse.wav" volume={0.3} />
-      <Cue at={365} src="shot_shotgun_0.wav" />
-      <Cue at={411} src="shot_railLance_0.wav" volume={0.32} />
-      <Cue at={570} src="upgrade_pulse.wav" volume={0.35} />
-      <Cue at={932} src="blast.wav" volume={0.28} />
-      <Cue at={1110} src="shot_shotgun_0.wav" volume={0.45} />
+      <Audio src={file("deep_space_hum.wav")} />
       <BetaBadge />
       <AbsoluteFill
         style={{

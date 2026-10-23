@@ -31,7 +31,8 @@
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
     "assets": "python3 scripts/prepare_assets.py && node scripts/prepare_beta.mjs",
-    "render": "remotion render RegunTrailer out/regun-trailer-1080p.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --concurrency=4"
+    "render": "remotion render RegunTrailer out/regun-trailer-1080p.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p --concurrency=4",
+    "audio": "python3 scripts/generate_space_hum.py"
   },
   "allowScripts": {
     "esbuild": false

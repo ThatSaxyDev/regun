@@ -1,19 +1,20 @@
 # Regun cinematic teaser
 
-44-second, 1920 × 1080, 30 fps asset-based trailer. All artwork, typography,
-music and effects come from this game's existing assets. Sprite showcases are staged promotional animation. A six-second sequence uses
+44-second, 1920 × 1080, 30 fps asset-based trailer. Artwork and typography come from the game.
+The soundtrack is an original continuous deep-space hum. Sprite showcases are staged promotional animation. A six-second sequence uses
 the actual beta gameplay excerpt from the landing page. The closing card invites
 players to the iOS/Android beta through https://regun.kiishi.space/.
 
 ## Rebuild
 
-Requires Node 22+, Python with Pillow, and dependencies installed via `npm ci`.
+Requires Node 22+, Python with Pillow and NumPy, and dependencies installed via `npm ci`.
 From the repository root:
 
 ```sh
 cd trailer
 npm ci
 npm run assets
+npm run audio
 npx remotion render RegunTrailer out/regun-trailer-1080p.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p
 ```
 
@@ -32,11 +33,12 @@ renders are ignored. Source artwork and runtime code are never modified.
 | 31–37 s | Eight-boss lineup |
 | 37–44 s | One more run / Join the beta / platform panels / website QR |
 
-Music: one continuous upbeat `music_boss.wav` loop throughout, with only opening
-and closing fades. Effects: shotgun, rail lance,
-upgrade recovery pulse and ordnance blast, with trailer-specific volume envelopes.
-Original game audio provenance remains in `art/source/audio/README.md` and
-`docs/art/ACTION_MUSIC_REVIEW.md`.
+Music: `deep_space_hum.wav`, an original 44-second beatless stereo drone.
+A warm low foundation supports soft D-major add9/6 humming harmonics, slow
+spectral drift and diffuse reverb. Three-second entrance and 4.5-second exit
+are baked into the track. No percussion, rhythmic gates, scene accents or
+weapon effects. `scripts/generate_space_hum.py` regenerates the WAV, MP3 preview
+and source manifest using NumPy and ffmpeg. The game soundtrack is unchanged.
 
 Fonts: existing Orbitron and Press Start 2P. Atlas crops use the existing manifest
 rectangles. Backgrounds: home_hideout_v2, breach_floor, foundry_floor. No new AI
@@ -51,4 +53,4 @@ returned HTTP 200 on 22 October 2026.
 
 Gameplay provenance: creator recording `ScreenRecording_10-20-2026 11-06-27_1.MP4`,
 landing-page excerpt 00:54–01:12; this cut uses seconds 4–10 of that excerpt.
-The recorded gameplay is silent; the continuous game score remains underneath.
+The recorded gameplay is silent; the continuous space drone remains underneath.
