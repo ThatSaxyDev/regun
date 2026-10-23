@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'regun_art.dart';
 
+import 'package:regun/systems/arena_bounds.dart';
+
 /// A single authored solid is one draw, independent of its decorative seams.
 /// Its intact base always shows the exact movement/projectile footprint.
 class WallArt {
@@ -11,7 +13,7 @@ class WallArt {
     bool iron = false,
     bool inside = false,
   }) {
-    final t = inside ? 24.0 : 48.0;
+    final t = inside ? ArenaBounds.fenceThickness : 48.0;
     final l = inside ? bounds.left : bounds.left - t,
         r = inside ? bounds.right : bounds.right + t;
     final top = inside ? bounds.top : bounds.top - t,
@@ -54,7 +56,7 @@ class WallArt {
     final insetX = source.width * .19, insetY = source.height * .19;
     final visual = Rect.fromLTRB(
       solid.left,
-      solid.top - 32,
+      solid.top - ArenaBounds.wallVisualRise,
       solid.right,
       solid.bottom,
     );

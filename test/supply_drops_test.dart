@@ -88,6 +88,26 @@ void main() {
     expect(lands, 1);
   });
 
+  for (final claimed in [false, true]) {
+    test('break is emitted once across restore for claimed=$claimed', () {
+      landed();
+      if (claimed) {
+        advance(8);
+        advance(3);
+      } else {
+        advance(50, player: Offset.zero);
+      }
+      expect(breaks, 1);
+      expect(drops.drop!.phase, SupplyPhase.breaking);
+      drops = SupplyDrops()..restore(drops.toJson());
+      advance(.5, player: Offset.zero);
+      expect(breaks, 1);
+      advance(2, player: Offset.zero);
+      expect(breaks, 1);
+      expect(drops.drop, isNull);
+    });
+  }
+
   test('busy upgrade grace cannot lose or duplicate an earned capture', () {
     landed();
     rewardAllowed = false;

@@ -180,7 +180,10 @@ class ArsenalSystem {
     beamFrom = beamTo = null;
   }
 
-  void dispose() {
+  void dispose() => clearField();
+
+  /// Retires ordnance for a clean practice encounter without resetting the build.
+  void clearField() {
     cancelIntent();
     flights.clear();
     rivets.clear();

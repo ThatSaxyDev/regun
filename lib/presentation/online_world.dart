@@ -1,3 +1,4 @@
+import 'package:regun/presentation/supply_pod_art.dart';
 import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/presentation/mummy_walk.dart';
@@ -237,6 +238,14 @@ class OnlineWorldArt {
             );
       case 'supply':
         final phase = d['phase'], capture = entity.number('capture');
+        SupplyPodArt.ground(
+          canvas,
+          p,
+          landed: phase == 'active' || phase == 'opened' || phase == 'breaking',
+          opacity: phase == 'breaking'
+              ? (1 - entity.number('elapsed') / 1.3).clamp(0, 1)
+              : 1,
+        );
         final paint = Paint()
           ..color = const Color(0xffAD9162)
           ..style = PaintingStyle.stroke
@@ -288,7 +297,7 @@ class OnlineWorldArt {
     sprite.render(
       canvas,
       position: Vector2(p.dx, p.dy - height),
-      size: sprite.srcSize * (116 / ref),
+      size: sprite.srcSize * (SupplyPodArt.width / ref),
       anchor: Anchor.bottomCenter,
       overridePaint: Paint()
         ..filterQuality = FilterQuality.none

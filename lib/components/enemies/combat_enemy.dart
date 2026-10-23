@@ -152,6 +152,11 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   @override
   void onMount() {
     super.onMount();
+    if (game.isRetiredActor(this)) {
+      combatHealth.damage(combatHealth.maximum);
+      removeFromParent();
+      return;
+    }
     if (parent == game.world && !isBoss && !game.registerEnemy(this)) {
       removeFromParent();
       return;

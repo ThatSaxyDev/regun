@@ -80,6 +80,23 @@ void main() {
   }
 
   Future<void> select(WidgetTester tester, String id) async {
+    if (id.startsWith('weapon-') &&
+        find
+            .byKey(const ValueKey('training-your-weapons'))
+            .evaluate()
+            .isNotEmpty) {
+      final gun = WeaponType.values.firstWhere((w) => 'weapon-${w.name}' == id);
+      final filter = find.byKey(
+        ValueKey(
+          LocalPreferences.shared.profile.weaponUnlocked(gun)
+              ? 'training-your-weapons'
+              : 'training-try-locked',
+        ),
+      );
+      await tester.ensureVisible(filter);
+      await tester.tap(filter);
+      await tester.pumpAndSettle();
+    }
     final option = find.byKey(ValueKey('loadout-$id'));
     await tester.ensureVisible(option);
     await tester.pumpAndSettle();
@@ -100,6 +117,92 @@ void main() {
       image.dispose();
     });
   }
+
+  testWidgets(
+    'Training previews and pins a locked gun without unlocking normal play',
+    (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.runAsync(() async {
+        await LocalPreferences.shared.resetProgress();
+      });
+      await show(tester);
+      await tester.tap(find.text('WEAPON'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('loadout-weapon-shotgun')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('loadout-weapon-railLance')),
+        findsNothing,
+      );
+      await select(tester, 'weapon-railLance');
+      await tester.tap(find.text('ARENA'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('WEAPON'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('loadout-weapon-railLance')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('loadout-weapon-shotgun')),
+        findsNothing,
+      );
+      expect(find.text('Rail Lance / TRAINING ONLY'), findsOneWidget);
+      expect(find.text('Unlock: 0 / 7 boss victories'), findsOneWidget);
+      final pin = find.byKey(const Key('training-pin-weapon-goal'));
+      await tester.ensureVisible(pin);
+      await tester.runAsync(() async {
+        await tester.tap(pin);
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pumpAndSettle();
+      expect(LocalPreferences.shared.profile.pinnedGoal, 'railLance');
+      expect(
+        LocalPreferences.shared.profile.weaponUnlocked(WeaponType.railLance),
+        isFalse,
+      );
+      expect(
+        LocalPreferences.shared.profile.preferredWeapon,
+        WeaponType.shotgun,
+      );
+      expect(find.text('START').hitTestable(), findsOneWidget);
+      await tester.runAsync(() async {
+        await tester.pump();
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+      });
+      await tester.pump();
+      await Scrollable.ensureVisible(
+        tester.element(find.byKey(const ValueKey('loadout-weapon-railLance'))),
+        alignment: 0,
+      );
+      await tester.pump();
+      await capture(tester, 'training-locked-goal');
+      await show(tester, training: false);
+      expect(find.byKey(const ValueKey('training-try-locked')), findsNothing);
+      await tester.tap(find.text('WEAPON'));
+      await tester.pumpAndSettle();
+      await select(tester, 'weapon-railLance');
+      expect(
+        tester.widget<Text>(find.byKey(const Key('loadout-summary'))).data,
+        contains(WeaponType.shotgun.title),
+      );
+      expect(
+        LocalPreferences.shared.profile.weaponUnlocked(WeaponType.railLance),
+        isFalse,
+      );
+      // Finish asynchronous atlas callbacks before leaving this test's clock.
+      await tester.pumpWidget(const SizedBox.shrink());
+      for (var frame = 0; frame < 3; frame++) {
+        await tester.runAsync(() async {
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        });
+        await tester.pump();
+      }
+    },
+  );
 
   testWidgets(
     'all ten survivor identities retain readable details and pinned controls',

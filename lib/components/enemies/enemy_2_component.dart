@@ -33,8 +33,10 @@ class Enemy2Component extends SpriteAnimationComponent
 
   @override
   Future<void> onLoad() async {
+    // Cache the owner before awaiting: leaving Training can detach pending loads.
+    final owner = game;
     await super.onLoad();
-    initializeHealth(6 * game.director.healthScale);
+    initializeHealth(6 * owner.director.healthScale);
     moveLeftAnimation = moveRightAnimation = RegunArt.shared.animation(
       'enemies/mummy_walk',
       count: 8,

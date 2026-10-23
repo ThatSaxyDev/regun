@@ -509,3 +509,71 @@ agree on spending and recovered charges. Physical comfort/balance remains to rev
   positive and negative map coordinates. Floor art, shadows, remains and dust
   must stay beneath player/enemy bodies. Check the same ordering online after
   deploying the matching server; do not infer deployed support from local tests.
+
+### Training weapon groups
+
+Training → Weapon starts on **Your weapons**. Choose **Try locked weapons** to
+practice any gun you have not yet earned. Selecting one shows **TRAINING ONLY**,
+its normal unlock requirement and **Pin unlock goal**. The pin appears in career
+progress/Results and survives restart. Switching Survivor/Weapon/Arena keeps the
+assembled kit and chosen group. Starting a fresh Training visit returns to Your
+weapons. Pause → Weapon practice offers the same two groups and goal action.
+
+Trying a gun does not unlock it for normal runs or grant Scrap/mastery rewards.
+Normal loadout preferences and existing earned unlocks are preserved. The free
+Training introduction still unlocks Carbine when completed or skipped. Boss Rush,
+weapon switching, survivor/arena selection and fusion practice remain available.
+
+### Training enemy pressure and bosses
+
+Pause Training → Survival practice → **Enemy pressure**:
+
+- **Light:** a small group, targeting8 nearby enemies.
+- **Normal:** the default, targeting22 nearby enemies with prompt replacement.
+- **Horde:** a dense crowd, targeting38 nearby enemies.
+
+These are bounded targets, not an instant spawn burst. Enemies spawn offscreen
+and walk in like normal survival, at every pressure level. They must never appear
+in front of the player, even near arena edges. Body/cover rules remain. Lowering pressure removes surplus farthest enemies
+without rewards. Pause and upgrade choices freeze spawning. Your choice remains
+through Restart, recovery and Boss Rush during this visit; a fresh visit starts
+Normal. Take damage remains a separate control.
+
+Selecting an individual boss keeps the crowd and its pressure setting. **Start
+Rush** clears regular enemies, pending arrivals, stray ordnance/attacks and loose
+XP, then runs boss-only encounters. It keeps your build and remembered pressure.
+Selecting an individual boss afterwards restores crowd spawning at that pressure.
+Check both arenas, rapid crowd clears, movement away from the original crowd,
+changing settings while paused, Restart and repeated Rush/boss switches. Confirm
+that bodies remain readable and leave usable space on the actual phone.
+
+
+## Fence edges and supply pod grounding
+
+In both Breach and Foundry, walk and dash against the top, right, bottom and left
+fences and into each corner. Feet must remain inside the visible fence, including
+when sliding sideways along the south rail. The bottom stop accounts for the wall
+face and the survivor's feet; combat hitboxes and camera framing remain unchanged.
+Try different survivors/facings and a Continue saved near the old boundary.
+
+After an airdrop lands, let the dust clear. The four feet should have tight dark
+contact with the floor in closed and opened states, with no detached oval below
+the pod. Check expiry/breakdown fade, Reduced Motion and player/enemy depth while
+walking around it. Contact shading is shared with online supply presentation;
+server collision/landing/capture contracts stay unchanged.
+
+
+## Airdrop routes and final blast
+
+Put a landed pod between you and a pursuing group. Check the four sides, larger
+ordinary enemies, a player standing beside the pod and a pod near an arena edge:
+they should round the pod while respecting its solid footprint and one another.
+Committed jumps/charges still hit cover instead of bending during the attack.
+When the pod disappears, the detour should stop affecting movement.
+
+Claim one pod and let another expire. Both should explode once when breakdown
+starts, with the same blast/force as landing, then finish their panel cleanup.
+The player remains safe even inside the blast. Check pressure-only enemies beyond
+the damage area, bosses/planted roles, pause and Continue during breakdown: no
+second damage pulse or replayed reward. Reset/Rush cleanup should not detonate a
+pod. The matching server source must be deployed for this behavior online.

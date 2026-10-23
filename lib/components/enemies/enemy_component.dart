@@ -18,8 +18,10 @@ class EnemyComponent extends SpriteAnimationComponent
 
   @override
   Future<void> onLoad() async {
+    // Cache the owner before awaiting: leaving Training can detach pending loads.
+    final owner = game;
     await super.onLoad();
-    initializeHealth(2 * game.director.healthScale);
+    initializeHealth(2 * owner.director.healthScale);
     moveLeftAnimation = moveRightAnimation = RegunArt.shared.animation(
       'enemies/scorpion',
       step: 1 / 12,

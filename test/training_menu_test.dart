@@ -1,3 +1,5 @@
+import 'package:regun/systems/training_pressure.dart';
+
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -105,6 +107,48 @@ void main() {
       image.dispose();
     });
   }
+
+  testWidgets(
+    'Training pressure selector stays paused, persists through restart and is ignored by Rush',
+    (tester) async {
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final game = await mount(tester, completedIntro: true);
+      game.pauseGame();
+      await tester.pump();
+      final section = find.text('SURVIVAL PRACTICE');
+      await tester.ensureVisible(section);
+      await tester.tap(section);
+      await tester.pumpAndSettle();
+      expect(find.text('Enemy pressure'), findsOneWidget);
+      final horde = find.text('HORDE');
+      await tester.ensureVisible(horde);
+      await tester.tap(horde);
+      await tester.pumpAndSettle();
+      expect(game.trainingPressure, TrainingPressure.horde);
+      expect(game.gameState.gameplayState, GameplayState.paused);
+      await capture(tester, 'training-enemy-pressure');
+      await tester.runAsync(() async {
+        game.restartGame();
+        await game.ready();
+        game.update(2);
+        await game.ready();
+      });
+      expect(game.trainingPressure, TrainingPressure.horde);
+      await tester.runAsync(() async {
+        game.startBossRush();
+        await game.ready();
+        game.update(1);
+        await game.ready();
+      });
+      expect(game.bossRush, isTrue);
+      expect(game.runtimeCounts['enemies'], 0);
+      expect(game.trainingPressure, TrainingPressure.horde);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   testWidgets(
     'upgrade rows align card edges and Ban actions with unequal copy',
@@ -260,7 +304,22 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 150));
       });
       await tester.pump();
-      expect(find.byType(WeaponThumbnail), findsNWidgets(21));
+      final earnedCount = WeaponType.values
+          .where(LocalPreferences.shared.profile.weaponUnlocked)
+          .length;
+      expect(find.byType(WeaponThumbnail), findsNWidgets(earnedCount));
+      final tryLocked = find.byKey(const ValueKey('training-try-locked'));
+      await tester.ensureVisible(tryLocked);
+      await tester.runAsync(() async {
+        await tester.tap(tryLocked);
+        await tester.pump();
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+      });
+      await tester.pump();
+      expect(
+        find.byType(WeaponThumbnail),
+        findsNWidgets(WeaponType.values.length - earnedCount),
+      );
       expect(
         RegunArt.shared.contains(WeaponType.mourningBell.atlasName),
         isTrue,

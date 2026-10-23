@@ -1,3 +1,4 @@
+import 'package:regun/widgets/training_weapon_browser.dart';
 import 'package:regun/navigation/game_page_route.dart';
 
 import 'dart:async';
@@ -36,7 +37,7 @@ class _LoadoutViewState extends State<LoadoutView> {
   ArenaType arena = ArenaType.breach;
   _Catalog _catalog = _Catalog.survivor;
   final _selectedOption = GlobalKey();
-  bool _starting = false;
+  bool _starting = false, _tryingLockedWeapons = false;
   PlayerProfile get profile => LocalPreferences.shared.profile;
 
   @override
@@ -121,7 +122,25 @@ class _LoadoutViewState extends State<LoadoutView> {
                         key: ValueKey(_catalog),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: _options(),
+                          children:
+                              _catalog == _Catalog.weapon && widget.training
+                              ? [
+                                  TrainingWeaponBrowser(
+                                    selected: weapon,
+                                    initialTryLocked: _tryingLockedWeapons,
+                                    onGroupChanged: (value) =>
+                                        _tryingLockedWeapons = value,
+                                    builder: (weapons, details) => Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: _weaponOptions(
+                                        weapons,
+                                        details: details,
+                                      ),
+                                    ),
+                                  ),
+                                ]
+                              : _options(),
                         ),
                       );
                       if (box.maxWidth < 480 && box.maxHeight > 300) {
@@ -175,30 +194,7 @@ class _LoadoutViewState extends State<LoadoutView> {
             ),
           )
           .toList(),
-    _Catalog.weapon =>
-      WeaponType.values
-          .map(
-            (w) => _option(
-              id: 'weapon-${w.name}',
-              title: w.title,
-              description:
-                  '${w.description}${WeaponMobility.label(w).isEmpty ? '' : '\n${WeaponMobility.label(w)}'}',
-              selected: weapon == w,
-              unlocked: widget.training || profile.weaponUnlocked(w),
-              lock: switch (w) {
-                WeaponType.burstRifle =>
-                  'Boss victories ${profile.totalBossVictories} / 3',
-                WeaponType.carbine => 'Complete training',
-                WeaponType.revolver => 'Defeat Shadow',
-                WeaponType.arcCaster => 'Defeat Demon',
-                _ =>
-                  'Boss victories ${profile.totalBossVictories} / ${w.victoryRequirement}',
-              },
-              art: WeaponThumbnail(w, key: ValueKey('loadout-art-${w.name}')),
-              onTap: () => setState(() => weapon = w),
-            ),
-          )
-          .toList(),
+    _Catalog.weapon => _weaponOptions(WeaponType.values),
     _Catalog.arena =>
       ArenaType.values
           .map(
@@ -221,6 +217,39 @@ class _LoadoutViewState extends State<LoadoutView> {
           )
           .toList(),
   };
+
+  List<Widget> _weaponOptions(
+    List<WeaponType> weapons, {
+    Widget? details,
+  }) => weapons
+      .map(
+        (w) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _option(
+              id: 'weapon-${w.name}',
+              title: w.title,
+              description:
+                  '${w.description}${WeaponMobility.label(w).isEmpty ? '' : '\n${WeaponMobility.label(w)}'}',
+              selected: weapon == w,
+              unlocked: widget.training || profile.weaponUnlocked(w),
+              lock: switch (w) {
+                WeaponType.burstRifle =>
+                  'Boss victories ${profile.totalBossVictories} / 3',
+                WeaponType.carbine => 'Complete training',
+                WeaponType.revolver => 'Defeat Shadow',
+                WeaponType.arcCaster => 'Defeat Demon',
+                _ =>
+                  'Boss victories ${profile.totalBossVictories} / ${w.victoryRequirement}',
+              },
+              art: WeaponThumbnail(w, key: ValueKey('loadout-art-${w.name}')),
+              onTap: () => setState(() => weapon = w),
+            ),
+            if (weapon == w && details != null) details,
+          ],
+        ),
+      )
+      .toList();
 
   Widget _option({
     required String id,

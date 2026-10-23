@@ -66,7 +66,7 @@ class ArenaScenery extends PositionComponent with HasGameReference<RegunGame> {
         );
       }
     }
-    // Same existing 24px edge trim and collision bounds, now with material faces.
+    // Fence dimensions and its visible inner edge share ArenaBounds geometry.
     WallArt.perimeter(canvas, floor, iron: foundry, inside: true);
     // A few low debris piles, never tall scenery with invisible collision.
     for (final point in [

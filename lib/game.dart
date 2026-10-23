@@ -1,3 +1,5 @@
+import 'package:regun/systems/obstacle_router.dart';
+import 'package:regun/systems/training_pressure.dart';
 import 'package:regun/models/economy/scrap_reward.dart';
 import 'package:regun/components/ui/boss_victory.dart';
 import 'package:regun/presentation/arena_viewport.dart';
@@ -156,6 +158,7 @@ class RegunGame extends FlameGame
       _bossAttacks.length + _hazards.length + count <= 8;
 
   bool registerBossAttack(BossAttack attack) {
+    if (attack.owner.isDead) return false;
     if (_bossAttacks.contains(attack)) return true;
     if (_bossAttacks.length + _hazards.length >= 8) return false;
     _bossAttacks.add(attack);
@@ -331,6 +334,11 @@ class RegunGame extends FlameGame
 
   bool get canReinforce {
     final population = enemyPopulation;
+    if (loadout.training) {
+      return !bossRush &&
+          population.arena < trainingPressure.arenaLimit &&
+          population.visible < trainingPressure.nearbyTarget;
+    }
     return director.canReinforce(
       arena: population.arena,
       visible: population.visible,
@@ -390,7 +398,9 @@ class RegunGame extends FlameGame
     'enemies': _enemies.length,
     'visibleEnemies': enemyPopulation.visible,
     'pendingEnemies': enemyPopulation.pending,
-    'populationLimit': director.populationLimit,
+    'populationLimit': loadout.training
+        ? trainingPressure.arenaLimit
+        : director.populationLimit,
     'xp': _coins.length,
     'playerProjectiles': projectileCount,
     'hostileProjectiles': _hostileProjectiles.length,
@@ -426,9 +436,13 @@ class RegunGame extends FlameGame
       : min(enemy.size.x, enemy.size.y) * 0.3;
   bool segmentBlocked(Vector2 start, Vector2 end) =>
       geometry.blocked(start, end);
-  void constrainActor(Vector2 position, double radius) =>
-      geometry.constrain(position, radius);
+  void constrainActor(
+    Vector2 position,
+    double radius, {
+    double? bottomExtent,
+  }) => geometry.constrain(position, radius, bottomExtent: bottomExtent);
   final enemyTactics = EnemyTactics();
+  final _supplyRouter = ObstacleRouter();
   final crowdOccupancy = CrowdOccupancy();
   double crowdRadius(PositionComponent actor) => actor is BossEncounter
       ? (actor as BossEncounter).kind.bodyRadius
@@ -437,14 +451,16 @@ class RegunGame extends FlameGame
   bool reserveEnemySpace(
     PositionComponent actor, {
     double minPlayerDistance = 0,
+    Rect? excludedArea,
   }) => crowdOccupancy.place(
     actor,
     crowdRadius(actor),
     (point) => geometry.constrain(point, crowdRadius(actor)),
     allowed: (point) =>
-        minPlayerDistance == 0 ||
-        point.distanceToSquared(myPlayer.position) >=
-            minPlayerDistance * minPlayerDistance,
+        (excludedArea == null || !excludedArea.contains(point.toOffset())) &&
+        (minPlayerDistance == 0 ||
+            point.distanceToSquared(myPlayer.position) >=
+                minPlayerDistance * minPlayerDistance),
   );
   Vector2 enemyIntent(PositionComponent actor, EnemyKind kind) =>
       EnemyTactics.intent(
@@ -484,6 +500,18 @@ class RegunGame extends FlameGame
               enemyTactics.side(actor),
             );
       direction = enemyTactics.spaced(actor, yielding ?? direction);
+      final drop = supplyDrops.drop;
+      if (drop != null && drop.solid && yielding == null) {
+        direction = _supplyRouter.steer(
+          actor,
+          direction,
+          myPlayer.position,
+          drop.footprint,
+          geometry,
+          radius: max(radius, crowdRadius(actor)),
+          side: enemyTactics.side(actor),
+        );
+      }
     }
     if (actor is CombatEnemy) {
       crowdOccupancy.move(
@@ -498,7 +526,12 @@ class RegunGame extends FlameGame
       return;
     }
     final previous = actor.position.clone();
-    geometry.move(actor.position, direction * (speed * dt), radius);
+    geometry.move(
+      actor.position,
+      direction * (speed * dt),
+      radius,
+      bottomExtent: actor is PlayerComponent ? actor.boundaryFootExtent : null,
+    );
     if (actor is! PlayerComponent &&
         actor.position.distanceToSquared(previous) <
             speed * speed * dt * dt * 0.2 &&
@@ -660,6 +693,105 @@ class RegunGame extends FlameGame
   late PlayerComponent myPlayer;
   final playerEntrance = PlayerEntrance();
   bool trainingDamage = false;
+  TrainingPressure trainingPressure = TrainingPressure.normal;
+  final _trainingPressureClock = TrainingPressureClock();
+  final _retiredActors = Expando<bool>('retired-practice-actor');
+  bool isRetiredActor(PositionComponent actor) => _retiredActors[actor] == true;
+  final _spawnWarnings = <SpawnWarning>{};
+  void registerSpawnWarning(SpawnWarning warning) =>
+      _spawnWarnings.add(warning);
+  void unregisterSpawnWarning(SpawnWarning warning) =>
+      _spawnWarnings.remove(warning);
+
+  void setTrainingPressure(TrainingPressure value) {
+    if (!loadout.training || trainingPressure == value) return;
+    final lower = value.nearbyTarget < trainingPressure.nearbyTarget;
+    trainingPressure = value;
+    _trainingPressureClock.reset();
+    if (lower && !bossRush) {
+      final ordinary = _enemies.toList()
+        ..sort(
+          (a, b) => b.position
+              .distanceToSquared(myPlayer.position)
+              .compareTo(a.position.distanceToSquared(myPlayer.position)),
+        );
+      for (final enemy in ordinary.take(
+        max(0, ordinary.length - value.nearbyTarget),
+      )) {
+        _retirePracticeActor(enemy);
+      }
+    }
+    resetInput();
+    revision.value++;
+  }
+
+  int get trainingNearbyEnemies => _enemies
+      .where(
+        (enemy) =>
+            !enemy.isRemoving &&
+            !enemy.isRemoved &&
+            !isRetiredActor(enemy) &&
+            enemy.position.distanceToSquared(myPlayer.position) <= 750 * 750,
+      )
+      .length;
+
+  void _retirePracticeActor(PositionComponent actor) {
+    _retiredActors[actor] = true;
+    for (final warning
+        in _spawnWarnings.where((w) => identical(w.enemy, actor)).toList()) {
+      warning.cancel();
+    }
+    if (actor.isLoaded && actor is CombatEnemy) {
+      actor.combatHealth.damage(actor.combatHealth.maximum);
+    }
+    unregisterEnemy(actor);
+    actor.removeFromParent();
+  }
+
+  void _advanceTrainingCrowd(double dt) {
+    final budget = _trainingPressureClock.advance(dt, trainingPressure);
+    if (budget == 0 || bossRush) return;
+    if (trainingNearbyEnemies < trainingPressure.nearbyTarget) {
+      // Keep the offscreen approach band alive; retire only crowds left behind.
+      final outside = camera.visibleWorldRect.inflate(300);
+      final distant = _enemies
+          .where(
+            (e) =>
+                !outside.contains(e.position.toOffset()) &&
+                e.position.distanceToSquared(myPlayer.position) > 850 * 850,
+          )
+          .take(budget)
+          .toList();
+      for (final enemy in distant) {
+        _retirePracticeActor(enemy);
+      }
+    }
+    for (
+      var i = 0;
+      i < budget &&
+          trainingNearbyEnemies < trainingPressure.nearbyTarget &&
+          canReinforce;
+      i++
+    ) {
+      _spawnEnemy(_directorEnemy());
+    }
+  }
+
+  PositionComponent _directorEnemy() {
+    final kind = director.chooseEnemy(random);
+    return switch (kind) {
+      EnemyKind.scorpion => EnemyComponent(),
+      EnemyKind.mummy => Enemy2Component(),
+      EnemyKind.ranged => Enemy3Component(),
+      _ => ArenaEnemy(
+        kind,
+        elite:
+            director.elapsed > 150 &&
+            random.nextDouble() < min(0.35, 0.12 + (director.cycle - 1) * 0.03),
+      ),
+    };
+  }
+
   void setTrainingDamage(bool enabled) {
     if (!loadout.training) return;
     trainingDamage = enabled;
@@ -920,6 +1052,11 @@ class RegunGame extends FlameGame
     if (clearSave && !loadout.training) unawaited(runStore.clear());
     timeScale = 1;
     director = EncounterDirector();
+    _trainingPressureClock.reset();
+    for (final warning in _spawnWarnings.toList()) {
+      warning.cancel();
+    }
+    _spawnWarnings.clear();
     activeBoss = null;
     _bossDamageTaken.clear();
     _bossAttacks.clear();
@@ -1362,6 +1499,7 @@ class RegunGame extends FlameGame
   }
 
   bool registerEnemy(PositionComponent enemy) {
+    if (isRetiredActor(enemy) || (loadout.training && bossRush)) return false;
     if (!_enemies.contains(enemy) && _enemies.length >= maxEnemies) {
       return false;
     }
@@ -1386,14 +1524,17 @@ class RegunGame extends FlameGame
   }
 
   void _spawnEnemy(PositionComponent enemy) {
+    if (loadout.training && bossRush) return;
     if (gameState.gameplayState != GameplayState.playing) return;
     _enemies.removeWhere((entity) => entity.isRemoving || entity.isRemoved);
     if (_enemies.length >= maxEnemies) return;
     if (!canReinforce) return;
     final floor = map.bounds.floor.deflate(60);
-    final visible = camera.visibleWorldRect.inflate(100);
+    final visible = camera.visibleWorldRect.inflate(
+      loadout.training ? 140 : 100,
+    );
     var spawn = Vector2.zero();
-    // Spawn near the view, inside the map, without appearing on the player.
+    // All pressure levels approach from the view edges like normal survival.
     for (var attempt = 0; attempt < 12; attempt++) {
       final side = random.nextInt(4);
       spawn = switch (side) {
@@ -1423,7 +1564,17 @@ class RegunGame extends FlameGame
     if (spawn.distanceToSquared(myPlayer.position) < 300 * 300) return;
     constrainActor(spawn, 50);
     enemy.position.setFrom(spawn);
-    if (!reserveEnemySpace(enemy, minPlayerDistance: 300)) return;
+    if (!reserveEnemySpace(
+      enemy,
+      minPlayerDistance: 300,
+      // Clamp/occupancy searches near an arena edge must never move a Training
+      // arrival into view. Skip a blocked arrival rather than show it spawning.
+      excludedArea: loadout.training
+          ? camera.visibleWorldRect.inflate(100)
+          : null,
+    )) {
+      return;
+    }
     encounteredEnemies.add(enemyId(enemy));
     _enemies.add(
       enemy,
@@ -1510,11 +1661,9 @@ class RegunGame extends FlameGame
 
   void _retirePracticeBosses() {
     for (final old in bosses.toList()) {
-      final health = (old as CombatEnemy).combatHealth;
       // Retire practice targets without kill rewards or a core; owned attacks
       // see the dead health object and clean themselves up on their next tick.
-      health.damage(health.maximum);
-      old.removeFromParent();
+      _retirePracticeActor(old);
     }
     bossEncounter.clear();
     _bossDamageTaken.clear();
@@ -1591,15 +1740,38 @@ class RegunGame extends FlameGame
   void startBossRush() {
     if (!loadout.training) return;
     _retirePracticeBosses();
+    for (final warning in _spawnWarnings.toList()) {
+      warning.cancel();
+    }
     for (final enemy in _enemies.toList()) {
-      enemy.removeFromParent();
+      _retirePracticeActor(enemy);
     }
-    for (final area in _hazards.toList()) {
-      area.removeFromParent();
+    for (final component in <Component>[
+      ..._hazards,
+      ..._bossAttacks,
+      ..._hostileProjectiles,
+      ..._projectiles,
+      ..._coins,
+      ..._mines,
+      ..._fires,
+      ..._effects,
+      ..._bursts,
+      ...world.children.whereType<GrenadeComponent>(),
+    ]) {
+      component.removeFromParent();
     }
-    for (final shot in _hostileProjectiles.toList()) {
-      shot.removeFromParent();
-    }
+    _hazards.clear();
+    _bossAttacks.clear();
+    _hostileProjectiles.clear();
+    _projectiles.clear();
+    _coins.clear();
+    _mines.clear();
+    _fires.clear();
+    _effects.clear();
+    _bursts.clear();
+    arsenal?.clearField();
+    _upgradePulsePending = false;
+    _trainingPressureClock.reset();
     bossRush = true;
     supplyDrops.reset(random.state ^ 0x51a7);
     _syncSupplyArt(false);
@@ -1968,23 +2140,11 @@ class RegunGame extends FlameGame
         unawaited(saveCheckpoint());
       }
       _advanceRush(dt);
-      if (director.advance(dt) &&
-          !bossRush &&
-          (!loadout.training || _enemies.length < 4)) {
-        final kind = director.chooseEnemy(random);
-        final enemy = switch (kind) {
-          EnemyKind.scorpion => EnemyComponent(),
-          EnemyKind.mummy => Enemy2Component(),
-          EnemyKind.ranged => Enemy3Component(),
-          _ => ArenaEnemy(
-            kind,
-            elite:
-                director.elapsed > 150 &&
-                random.nextDouble() <
-                    min(0.35, 0.12 + (director.cycle - 1) * 0.03),
-          ),
-        };
-        _spawnEnemy(enemy);
+      final reinforce = director.advance(dt);
+      if (loadout.training) {
+        if (!bossRush) _advanceTrainingCrowd(dt);
+      } else if (reinforce && !bossRush) {
+        _spawnEnemy(_directorEnemy());
       }
       if (director.bossDue && !loadout.training) {
         spawnBoss(director.chooseBoss(random));
@@ -2043,7 +2203,11 @@ class RegunGame extends FlameGame
         },
         onCharge: (step) => audio.play('supply_charge_$step.wav'),
         onWarning: () => audio.play('supply_incoming.wav'),
-        onBreak: () => audio.play('supply_break.wav'),
+        onBreak: () {
+          audio.play('supply_break.wav');
+          final position = supplyDrops.drop?.position;
+          if (position != null) _impactSupplyDrop(position);
+        },
       );
     }
     _syncSupplyArt(supplyDrops.drop != null && !bossRush);
@@ -2085,12 +2249,16 @@ class RegunGame extends FlameGame
     return null;
   }
 
-  /// Only the landing transition calls this. The crush footprint remains lethal
-  /// to ordinary enemies, with a grenade-strength blast and outer pressure wave.
   void landSupplyDrop(Offset position) {
+    audio.play('supply_land.wav');
+    _impactSupplyDrop(position);
+  }
+
+  /// Landing and the one transition into breakdown share the same friendly
+  /// crush, grenade blast and pressure wave. Saved breaking phases do not repeat.
+  void _impactSupplyDrop(Offset position) {
     _landingSupply = true;
     try {
-      audio.play('supply_land.wav');
       final center = Vector2(position.dx, position.dy);
       for (final target in liveEnemies.toList()) {
         final enemy = target as CombatEnemy;
@@ -2118,7 +2286,11 @@ class RegunGame extends FlameGame
       _landingSupply = false;
     }
     // A player caught beneath a friendly pod is displaced, never damaged.
-    constrainActor(myPlayer.position, 30);
+    constrainActor(
+      myPlayer.position,
+      30,
+      bottomExtent: myPlayer.boundaryFootExtent,
+    );
     for (final target in liveEnemies.toList()) {
       moveTo(target, target.position.clone(), crowdRadius(target));
     }

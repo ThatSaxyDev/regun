@@ -67,3 +67,23 @@ recovery tests passed; the checkpoint/Continue subset also passed10 tests. Serve
 passes in both repositories. Rendered and inspected the narrow large-text victory
 plate and actual Queen/pod scene in build/test-previews/boss-vanquished.png and
 queen-ground-layers.png. No physical-device acceptance or live deployment is claimed.
+
+
+## Supply follow-up —23October2026
+
+Ordinary enemy pursuit now chooses a body-clear corner route around the solid
+pod, instead of repeatedly pushing against its front face. Cached routes keep a
+chosen side until a clear approach opens; collision/occupancy still own every
+step. Edge-side routes reject fence crossings, and enemies already touching a
+face can move away. Committed leaps/charges retain their original straight heading
+and stop at cover. Frozen/planted/boss behavior and collision dimensions stay.
+The server's existing obstacle graph has the matching contact/stand-off correction.
+
+At the start of breakdown, both claimed and expired pods now release the same
+impact as landing: lethal ordinary crush within62+body,3% boss maximum HP in that
+inner area,8 damage within205+body and the same130-unit outer pressure band.
+Player health, ammo and capture/reward rules are unchanged. Existing ember/blast
+presentation accompanies the separating panels. Phase transitions emit this once;
+restoring breaking state, later frames and reset/Rush removal cannot replay it.
+App and authoritative server share this behavior. Verification is recorded in the
+latest progress entry; native comfort/fairness remains creator review.

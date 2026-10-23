@@ -13,8 +13,8 @@ class ArenaGeometry {
     yield* dynamicObstacles?.call() ?? const <Rect>[];
   }
 
-  void constrain(Vector2 point, double radius) {
-    bounds.constrainPlayer(point, radius);
+  void constrain(Vector2 point, double radius, {double? bottomExtent}) {
+    bounds.constrainPlayer(point, radius, bottomExtent: bottomExtent);
     for (final obstacle in solids) {
       final expanded = obstacle.inflate(radius);
       if (!expanded.contains(point.toOffset())) continue;
@@ -41,14 +41,19 @@ class ArenaGeometry {
     }
   }
 
-  void move(Vector2 point, Vector2 delta, double radius) {
+  void move(
+    Vector2 point,
+    Vector2 delta,
+    double radius, {
+    double? bottomExtent,
+  }) {
     final steps = (delta.length / (radius * 0.6).clamp(8, 50)).ceil().clamp(
       1,
       256,
     );
     for (var i = 0; i < steps; i++) {
       point.addScaled(delta, 1 / steps);
-      constrain(point, radius);
+      constrain(point, radius, bottomExtent: bottomExtent);
     }
   }
 

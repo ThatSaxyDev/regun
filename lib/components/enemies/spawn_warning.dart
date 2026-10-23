@@ -7,15 +7,27 @@ import 'package:regun/notifiers/game_notifier.dart';
 
 class SpawnWarning extends PositionComponent {
   SpawnWarning({required this.game, required this.enemy})
-    : super(position: enemy.position.clone(), priority: -5);
+    : super(position: enemy.position.clone(), priority: -5) {
+    game.registerSpawnWarning(this);
+  }
   final RegunGame game;
   final PositionComponent enemy;
   double elapsed = 0;
-  bool _spawned = false;
+  bool _spawned = false, _cancelled = false;
+  void cancel() {
+    _cancelled = true;
+    game.unregisterEnemy(enemy);
+    game.unregisterSpawnWarning(this);
+    removeFromParent();
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
-    if (parent != game.world) {
+    if (_cancelled ||
+        game.isRetiredActor(enemy) ||
+        (game.loadout.training && game.bossRush) ||
+        parent != game.world) {
       removeFromParent();
       return;
     }
@@ -30,6 +42,7 @@ class SpawnWarning extends PositionComponent {
 
   @override
   void onRemove() {
+    game.unregisterSpawnWarning(this);
     if (!_spawned) game.unregisterEnemy(enemy);
     super.onRemove();
   }

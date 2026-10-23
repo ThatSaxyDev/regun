@@ -1198,7 +1198,8 @@ void main() {
     (tester) async {
       final game = await mount(tester, WeaponType.anchorEngine, _Audio());
       await tester.runAsync(() async {
-        final center = game.myPlayer.position + Vector2(400, 0);
+        // Isolate the measured pull from ambient practice body occupancy.
+        final center = game.myPlayer.position + Vector2(700, 0);
         final mobile = _PullTarget(center + Vector2(120, 0));
         final planted = _PlantedTarget(center + Vector2(0, 130));
         await game.world.addAll([mobile, planted]);
@@ -1504,6 +1505,14 @@ void main() {
                 }
               }
             }
+            // Keep this fixed-build benchmark out of upgrade pickers when
+            // the denser Training crowd supplies XP during the simulation.
+            final fixedBuild = game.gameNotifier.checkpoint();
+            fixedBuild['state'] = game.gameState
+                .copyWith(noOfCoinsToUpgrade: 1000000, xP: 0)
+                .toJson();
+            game.gameNotifier.restoreCheckpoint(fixedBuild);
+            game.gameNotifier.playGame();
             final targets = [
               for (var i = 0; i < 5; i++)
                 _Target(
@@ -1555,7 +1564,12 @@ void main() {
             });
             game.weaponJoystick.delta.setZero();
             await advance(game, 5, held: false);
-            expect(game.arsenal!.endgame.effectCount, 0);
+            expect(
+              game.arsenal!.endgame.effectCount,
+              0,
+              reason:
+                  '${weapon.name} / $developed / ${game.gameState.gameplayState}',
+            );
           });
           await tester.pumpWidget(const SizedBox());
           expect(tester.takeException(), isNull);

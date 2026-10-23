@@ -6,6 +6,7 @@ import 'package:regun/game.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/boss_art.dart';
+import 'package:regun/presentation/supply_pod_art.dart';
 import 'package:regun/systems/supply_drops.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 
@@ -77,7 +78,12 @@ class SupplyDropField extends PositionComponent
         );
       }
     }
-    BossArt.contactShadow(canvas, const Offset(0, 5), 62);
+    SupplyPodArt.ground(
+      canvas,
+      Offset.zero,
+      landed: d.solid || breaking,
+      opacity: fade,
+    );
     if (d.phase == SupplyPhase.warning || d.phase == SupplyPhase.falling) {
       // The small central pad, rather than the capture perimeter, marks crush.
       AttackVfx.stamp(
@@ -171,7 +177,7 @@ class SupplyDropBody extends PositionComponent
       final art = RegunArt.shared;
       final sprite = art.rawSprite('arenas/supply_pod', d.claimed ? 1 : 0);
       final reference = art.rawSprite('arenas/supply_pod', 0).srcSize.x;
-      final size = sprite.srcSize * (116 / reference);
+      final size = sprite.srcSize * (SupplyPodArt.width / reference);
       final falling = d.phase == SupplyPhase.falling;
       final q = (d.elapsed / .65).clamp(0.0, 1.0);
       final height = falling && !game.preferences.reducedMotion

@@ -555,3 +555,77 @@ Ground warnings/shadows/dust/remains/guides belong in world floor siblings, neve
 inside a depth-sorted actor. Keep pod bodies depth sorted and Marshal's requested
 laser aerial. Read docs/COMBAT_RECOVERY_AND_SUPPLY.md. Physical feel/readability
 acceptance and deployment remain open.
+
+## Guided Training weapon catalogue (2026-10-23)
+
+Training keeps access to every weapon, with Your weapons (normal earned unlocks)
+as the default and a separate Try locked weapons group. Loadout and Pause weapon
+practice share TrainingWeaponBrowser. Locked selection shows Training only plus
+its CareerProgress requirement and a durable Pin unlock goal action; Carbine uses
+`training`. Never grant normal ownership/rewards, spend Scrap or change normal
+preferred loadouts through this preview. Keep group/kit selection across catalogue
+tabs, reset the group for a fresh visit, and preserve Training's existing boss,
+fusion, survivor/arena access and introduction completion. Keep selected goal
+information beside its item and atlas acquire/release lifetimes intact.
+
+## Training pressure and Boss Rush cleanup (2026-10-23)
+
+TrainingPressure owns Light/Normal/Horde population/refill only (nearby8/22/38,
+arena12/30/54); fresh visits default Normal, Restart/recovery/Rush retain choice.
+Do not restore the four-enemy Training limit. Keep bounded active-clock batches,
+pending body reservations, safe player distance and offscreen retirement without
+rewards. All pressure levels spawn beyond the viewport and approach normally;
+never restore the player-centered ring. Training placement excludes the padded
+viewport even after arena clamping/occupancy search; skip blocked arrivals. Normal
+must supply approaching enemies, including after
+moving/clearing. Pause/picker/deployment freeze spawning. Normal-run director and
+combat stats remain independent of this selector.
+
+Individual practice bosses keep the crowd and selected pressure. Boss Rush clears
+ordinary/pending enemies, prior bosses, stray attacks/ordnance/XP and supply state,
+then stays boss-only without resetting the build or paying cleanup rewards.
+SpawnWarning cancellation and retired-actor mount guards prevent late arrivals;
+keep weak actor retirement markers and dead-owner attack rejection. Switching back
+to an individual boss resumes pressure. No premium charge, progression or reward
+change belongs in this practice setting.
+
+
+## Fence contact and planted supply pods (2026-10-23)
+
+`ArenaBounds.floor` remains the authored/art rectangle. `interior` is the actual
+fenced walking space: exclude the24-unit rail on all sides and the south wall's
+32-unit raised face. `WallArt` shares both constants; keep art and collision in
+sync. Player movement/dash adds `boundaryFootExtent` (grounded sprite bottom at
+center+38 for100-unit art, plus4 clearance) only at the south perimeter. Do not
+change combat hitboxes, camera/world size or Foundry obstacle footprints for this
+visual correction. All four edges/corners in both arenas have real-dash/render
+regressions. The inside/outside perimeter variants remain distinct; online maps
+keep their server-defined geometry.
+
+`SupplyPodArt.ground` supplies compact chassis occlusion and four contact patches
+at the cropped pod's feet. Native/online floor layers share it; base remains at
+the existing bottom-center anchor. No oversized detached ellipse, idle bobbing,
+bitmap edit or gameplay footprint change. Warning/fall keep projected shadow;
+landed contact persists after dust clears and fades with breakdown. Keep all
+floor shading below actors. Phone contact/readability approval remains open.
+
+
+## Supply navigation and breakdown blast (2026-10-23)
+
+Ordinary movable enemies route around an active/opened pod via `ObstacleRouter`:
+a bounded six-node corner search with weak per-actor routes, body clearance and
+legal arena-side choices. Keep actual movement through crowd occupancy/geometry;
+no teleporting, speed bonus, nonsolid pod or steering of committed leaps/charges,
+knockback/pulse displacement, bosses or planted roles. Clear contact must permit
+escape from a face; larger bodies can pursue a legal stand-off point when the
+player stands close to the pod. A removed pod stops affecting pursuit immediately.
+
+Landing and the single transition into breakdown now share the full supply impact:
+62-unit inner crush (ordinary lethal /3% maximum boss HP),8-damage205-unit grenade
+blast plus130-unit pressure band, friendly to players, no ammo/Fragmentation.
+Claimed and expired pods both blast at breakdown start; reset/Rush cleanup does
+not. Breaking phase persists before later frames, so restore cannot replay it.
+Reuse existing ember VFX/blast and supply-break cues. Server `stepSupplies` has a
+matching break callback; its authoritative ordinary routing allows escape from
+exact contact and routes larger bodies to legal contact range. No live deployment
+or physical acceptance is implied by source tests/builds.

@@ -1312,3 +1312,149 @@ Verification:16 focused layout/death/settlement/pause tests pass; analyzer clean
 Matrix includes568×320/portrait and1.5× text. Existing real-game pause/death renders
 and new results-{width}-{scale}.png renders were inspected. This source change
 has not been built or installed on the phone.
+
+## Guided weapon access in Training — 23 October 2026
+
+Training's Weapon catalogue and Pause → Weapon practice now share the same
+browser. Each visit begins with **Your weapons**, using normal earned unlocks.
+**Try locked weapons** exposes the remaining arsenal for unrestricted practice.
+Selecting one labels it TRAINING ONLY, shows the actual career unlock requirement
+and offers Pin unlock goal using the existing durable profile field. Carbine pins
+`training`, matching its introduction requirement. Switching catalogue tabs keeps
+the chosen group and assembled kit; browsing never silently changes an equipped
+gun. A fresh visit starts with Your weapons again.
+
+The goal panel sits with the selected weapon; it remains visible as context when
+browsing the earned group while a locked gun is equipped for Training. Pinning
+changes only the goal, never ownership, Scrap, challenge/mastery counters or normal
+loadout preferences. Failed goal persistence shows an error. Trying a weapon does
+not unlock it for normal runs. Training settlement still grants no rewards;
+existing first-use introduction completion and its Carbine unlock remain intact.
+Survivor/arena practice, protected health, boss/rush and fusion practice are kept.
+
+Tests cover both actual entry points, every weapon's Training selection, normal
+locks, pin persistence/failure, Carbine goal mapping, all-earned empty state,
+selection/group retention, atlas release/budget, introductory flows and compact/
+enlarged layouts. Real artwork was inspected in
+build/test-previews/loadout-training-locked-goal.png. No server/admin changes,
+release identity change, installation or deployment is performed by this pass.
+
+## Training enemy pressure and clean Boss Rush — 23 October 2026
+
+Training Pause → Survival practice now has Enemy pressure: Light / Normal / Horde.
+Normal is the default for a fresh visit. Nearby ordinary-enemy targets are8/22/38,
+with arena caps12/30/54, bounded refill batches1/2/3 and active-time intervals
+.38/.16/.10s. This replaces Training's former four-enemy limit. Spawns use safe
+offscreen edge candidates like normal survival (superseding the initial
+340–500-unit player-centered ring after creator feedback). All three pressure
+levels approach from beyond the viewport. Existing body/cover placement and
+minimum300-unit separation remain; a padded viewport exclusion is enforced during
+occupancy placement so arena-edge clamping cannot place arrivals on screen.
+Blocked arrivals are skipped instead of using a visible spawn warning.
+Pending arrivals count toward capacity. Distant offscreen Training enemies retire
+without rewards so walking away cannot exhaust the arena budget. Lowering pressure
+retires surplus farthest bodies without awarding kills. Normal refill was tested
+after clearing a crowd and moving away, in both arenas.
+
+Pause, picker and deployment/recovery freeze refill; long frames never build an
+unbounded backlog. The pressure choice survives Restart/recovery/Rush within the
+visit, but a new Training visit defaults Normal. Damage protection stays separate.
+No normal-run spawn cadence, enemy stats, earned progression or rewards changed.
+
+Individual boss selection preserves regular enemies and continues the selected
+pressure. Boss Rush retires the prior bosses/regular enemies, cancels pending
+arrival warnings, removes stray attacks, XP, mines, ground fire and in-flight
+ordnance, and resets supply state before its boss-only sequence. It does not
+award cleanup kills/XP or erase the current build. A retired actor cannot mount
+later; ordinary mounting/spawning is rejected during Rush. Selecting an individual
+boss exits Rush and resumes the saved pressure. Manual next-round and all-boss
+practice tools remain available. The existing two-boss Rush ceiling is preserved.
+
+Verification: analyzer clean;94 Training/director/crowd/entrance/UI/arsenal
+regressions pass together. The whole suite previously passed590 tests with five
+skips and exposed a fixed-build arsenal benchmark interrupted by new Training XP.
+That benchmark now preserves its base/VIII build with a test-only high XP gate;
+the anchor pull fixture is separated from ambient body occupancy. All65 arsenal
+tests pass in the final94-test run. Physical pressure, movement space, comfort and
+device performance remain creator playtest gates. No app build, version change,
+server deployment or installation is performed by this pass.
+
+
+### Training arrival correction —23October2026
+
+Creator clarified that pressure means enemies approaching from offscreen like
+normal survival, never popping up around the player. Training now shares normal
+edge selection, with a140-unit candidate margin and100-unit excluded viewport
+through body placement. Normal-run placement remains unchanged. Light/Normal/
+Horde refill/caps, individual boss crowds and clean Boss Rush remain intact.
+Density tests allow approach travel time; dedicated arrival regressions exercise
+all three modes at center/four corners in both arenas. Physical feel remains for
+creator review; no build/install is performed.
+
+Final correction verification:94 Training/UI/crowd/director/arsenal tests pass
+and analyzer is clean. Arrival checks cover Light/Normal/Horde at center and all
+four corners in both arenas. Preserve a300-unit offscreen approach band when
+retiring distant crowds, so incoming enemies are not recycled before entry.
+The regression run also caught pending ordinary-enemy loads consulting a detached
+component tree after leaving; all three legacy enemy loaders now cache their game
+reference before awaiting initialization.
+
+
+## Fence alignment and airdrop contact —23October2026
+
+Creator reported the survivor standing on the south fence and asked to inspect
+all edges; also reported a slightly floating airdrop. The rendered24-unit inside
+perimeter previously occupied the same floor rectangle used for movement, while
+its south face rises another32 units. `ArenaBounds.interior` now excludes that
+visible rail/face, with shared `WallArt` dimensions. Player walking/dash additionally
+keeps its actual grounded feet (38 units below center at100-unit draw size) four
+units inside the south visible edge. The combat circle stays30; camera, outer
+world, wall artwork, primary combat rules and Foundry pillars remain unchanged.
+
+All four edges and four corners in Breach/Foundry are exercised with real large
+movement steps, exact stopping assertions and inspected scene captures:
+`build/test-previews/fence-breach.png` and `fence-foundry.png`. Top/side body/head
+occlusion follows existing grounded sprite depth; feet stay within the fence.
+
+Supply pod art already has tightly cropped frames and a bottom-center ground
+anchor. Its broad shadow centered five units below the feet made it appear lifted.
+Shared `SupplyPodArt.ground` now places tight chassis occlusion behind the base and
+four dark contact patches directly under the front/rear feet. Native and online
+presentation share the contact, planted only after landing and fading through
+breakdown. Art, capture radius, collision footprint, landing damage/timing, rewards
+and supply scheduling remain unchanged. Existing closed/open/landing/breakdown
+captures were inspected. Analyzer is clean; the full suite passes595 tests with
+five intentional skips. No build/install/version change; physical contact/
+readability remains creator review.
+
+
+## Solid-pod routing and breakdown boom —23October2026
+
+Creator reported pursuers sticking against the airdrop and requested a grenade-like
+boom when it breaks, matching landing impact. Native ordinary pursuit now uses a
+six-node corner route around active/opened pod cover, retaining body clearance,
+legal fence-side routes and a weak per-actor committed route until clear. Exact
+face contact permits outward escape; large bodies aim for legal contact range
+when a player is close to cover. Actual movement still goes through occupancy/
+geometry with existing speed. Bosses, planted roles, force displacement and
+committed leap/charge headings remain unchanged. The authoritative graph receives
+the matching exact-contact and large-body target correction.
+
+Both claimed and expired pod transitions into breaking share landing's friendly
+impact:62-unit inner crush (ordinary lethal /3% maximum boss health),8 damage at
+205-unit blast radius and130-unit outer pressure. Existing ember material/blast
+and shell-break cues play with panel cleanup. Player health/ammo, capture/reward
+and normal schedules remain unchanged. The persisted breaking phase prevents a
+second blast after Continue; reset/Rush removal never calls the transition.
+The matching server callback/impact helper is implemented without schema changes.
+
+Verification: the full app suite passes604 tests with five optional skips. After
+the final inclusive fence-side routing adjustment,36 focused routing/supply/
+crowd/tactics tests pass together; analyzer is clean. The matching server passes
+120 tests, typecheck and module build (`npm run verify`), including actual contact
+routes and close-cover targets, claimed/expired damage/pressure and persistence.
+Tests cover small/large body approaches from four sides, fence-constrained routes,
+packs, committed attacks, actual player safety inside the blast, paused expiry
+and breaking-phase restore. No app package build, phone installation or production
+deployment is performed; physical navigation feel and blast fairness remain
+creator review.

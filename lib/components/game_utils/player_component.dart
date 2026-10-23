@@ -33,6 +33,9 @@ class PlayerComponent extends SpriteAnimationComponent
 
   final double playerRadius;
   static const collisionRadius = 30.0;
+  // Grounded survivor art ends at 88% of its centered draw box. Keep the feet
+  // four units inside the visible south fence without enlarging combat hitboxes.
+  double get boundaryFootExtent => size.y * .38 + 4;
   final List<SpriteAnimation> _idle = [], _run = [];
   final List<SpriteAnimation> _dash = [], _brace = [], _hurt = [];
   int _facingRow = 0;
@@ -166,7 +169,11 @@ class PlayerComponent extends SpriteAnimationComponent
       );
     }
     // Direct geometric bounds also handle large dash steps and corner sliding.
-    game.constrainActor(position, collisionRadius);
+    game.constrainActor(
+      position,
+      collisionRadius,
+      bottomExtent: boundaryFootExtent,
+    );
   }
 
   @override

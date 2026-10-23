@@ -1,3 +1,5 @@
+import 'package:regun/systems/training_pressure.dart';
+import 'package:regun/widgets/training_weapon_browser.dart';
 import 'package:regun/widgets/run_results_panel.dart';
 import 'package:regun/models/economy/career_progress.dart';
 import 'package:regun/widgets/boss_victory_banner.dart';
@@ -835,27 +837,40 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     PracticeSection(
       key: const Key('practice-weapons'),
       title: 'WEAPON PRACTICE',
-      summary: '${_myGame.loadout.weapon.title} equipped / 21 weapons',
-      builder: (_) => MenuCardGrid(
-        minColumnWidth: 180,
-        children: [
-          for (final weapon in WeaponType.values)
-            WeaponPracticeTile(
-              key: ValueKey('practice-weapon-${weapon.name}'),
-              weapon: weapon,
-              selected: weapon == _myGame.loadout.weapon,
-              onTap: _changingWeapon
-                  ? null
-                  : () async {
-                      setState(() => _changingWeapon = true);
-                      try {
-                        await _myGame.changeTrainingWeapon(weapon);
-                      } finally {
-                        if (mounted) setState(() => _changingWeapon = false);
-                      }
-                    },
-            ),
-        ],
+      summary: '${_myGame.loadout.weapon.title} equipped / choose a weapon',
+      builder: (_) => TrainingWeaponBrowser(
+        selected: _myGame.loadout.weapon,
+        preferences: _myGame.preferences,
+        builder: (weapons, details) => MenuCardGrid(
+          minColumnWidth: 180,
+          children: [
+            for (final weapon in weapons)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  WeaponPracticeTile(
+                    key: ValueKey('practice-weapon-${weapon.name}'),
+                    weapon: weapon,
+                    selected: weapon == _myGame.loadout.weapon,
+                    onTap: _changingWeapon
+                        ? null
+                        : () async {
+                            setState(() => _changingWeapon = true);
+                            try {
+                              await _myGame.changeTrainingWeapon(weapon);
+                            } finally {
+                              if (mounted) {
+                                setState(() => _changingWeapon = false);
+                              }
+                            }
+                          },
+                  ),
+                  if (weapon == _myGame.loadout.weapon && details != null)
+                    details,
+                ],
+              ),
+          ],
+        ),
       ),
     ),
     const SizedBox(height: 12),
@@ -865,20 +880,51 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       summary: _myGame.trainingDamage
           ? 'Damage on / return after falling'
           : 'Damage off / practice safely',
-      builder: (_) => SettingsChoice(
-        label: 'Take damage',
-        options: [
-          PixelOption(
-            label: 'Off',
-            width: 80,
-            selected: !_myGame.trainingDamage,
-            onTap: () => setState(() => _myGame.setTrainingDamage(false)),
+      builder: (_) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SettingsChoice(
+            label: 'Take damage',
+            options: [
+              PixelOption(
+                label: 'Off',
+                width: 80,
+                selected: !_myGame.trainingDamage,
+                onTap: () => setState(() => _myGame.setTrainingDamage(false)),
+              ),
+              PixelOption(
+                label: 'On',
+                width: 80,
+                selected: _myGame.trainingDamage,
+                onTap: () => setState(() => _myGame.setTrainingDamage(true)),
+              ),
+            ],
           ),
-          PixelOption(
-            label: 'On',
-            width: 80,
-            selected: _myGame.trainingDamage,
-            onTap: () => setState(() => _myGame.setTrainingDamage(true)),
+          const SizedBox(height: 16),
+          SettingsChoice(
+            label: 'Enemy pressure',
+            options: [
+              for (final pressure in TrainingPressure.values)
+                PixelOption(
+                  label: pressure.label,
+                  width: pressure == TrainingPressure.normal ? 110 : 96,
+                  selected: _myGame.trainingPressure == pressure,
+                  onTap: () =>
+                      setState(() => _myGame.setTrainingPressure(pressure)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _myGame.bossRush
+                ? 'Boss Rush clears the field. Enemy pressure resumes in individual boss practice.'
+                : 'Individual bosses fight alongside this crowd. Boss Rush stays boss-only.',
+            style: const TextStyle(
+              fontFamily: FontFam.orbitron,
+              fontSize: 10,
+              height: 1.5,
+              color: _muted,
+            ),
           ),
         ],
       ),
