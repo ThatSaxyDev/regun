@@ -1,20 +1,29 @@
+import 'package:regun/models/live_balance.dart';
 import 'package:regun/data/loadout.dart';
 
 /// A run keeps its numerical revision. Saved payload damage is never multiplied
 /// during Continue; revision 1 retains the former values and field geometry.
 class WeaponPowerBalance {
-  const WeaponPowerBalance._(this.revision);
+  const WeaponPowerBalance._(this.revision, [this.snapshot]);
+  final LiveBalance? snapshot;
+  factory WeaponPowerBalance.live(LiveBalance snapshot) =>
+      WeaponPowerBalance._(2, snapshot);
   static const legacy = WeaponPowerBalance._(1);
   static const current = WeaponPowerBalance._(2);
   final int revision;
-  static WeaponPowerBalance read(dynamic value) => switch (value) {
-    null || 1 => legacy,
-    2 => current,
-    _ => throw const FormatException('Invalid weapon power balance'),
-  };
+  static WeaponPowerBalance read(dynamic value, [dynamic rawSnapshot]) =>
+      rawSnapshot != null
+      ? (value == 2
+            ? WeaponPowerBalance.live(LiveBalance.fromJson(rawSnapshot))
+            : throw const FormatException('Invalid live balance'))
+      : switch (value) {
+          null || 1 => legacy,
+          2 => current,
+          _ => throw const FormatException('Invalid weapon power balance'),
+        };
   bool get upgraded => revision == 2;
   double damage(WeaponType weapon) => upgraded
-      ? weapon.damage
+      ? n('weapons.${weapon.name}.damage', weapon.damage)
       : switch (weapon) {
           WeaponType.shotgun => 1.2,
           WeaponType.carbine => 0.762,
@@ -34,16 +43,43 @@ class WeaponPowerBalance {
           WeaponType.mourningBell => 4.5,
           _ => weapon.damage,
         };
-  double get sporeDps => upgraded ? 2.4 : .8;
-  double get sporeRadius => upgraded ? 150 : 100;
-  double get sporeLifetime => upgraded ? 3 : 2.5;
-  double get sporeTick => .25;
-  int get sporeTargets => upgraded ? 12 : 8;
-  int get sporeCapacity => 4;
-  double get sporeStride => upgraded ? .75 : 1;
-  double get eliteSporeStride => upgraded ? .85 : 1;
-  double get mortarRadius => upgraded ? 185 : 145;
-  double get rivetDamage => upgraded ? 2.5 : 1.75;
-  double get rivetRadius => upgraded ? 155 : 125;
-  double get anchorRadius => upgraded ? 190 : 165;
+  double get sporeDps => upgraded ? n('effects.sporelobber.sporeDps', 2.4) : .8;
+  double get sporeRadius =>
+      upgraded ? n('effects.sporelobber.sporeRadius', 150) : 100;
+  double get sporeLifetime =>
+      upgraded ? n('effects.sporelobber.sporeLifetime', 3) : 2.5;
+  double get sporeTick => n('effects.sporelobber.sporeTick', .25);
+  int get sporeTargets =>
+      upgraded ? n('effects.sporelobber.sporeTargets', 12).toInt() : 8;
+  int get sporeCapacity => n('effects.sporelobber.sporeCapacity', 4).toInt();
+  double get sporeStride =>
+      upgraded ? n('effects.sporelobber.sporeStride', .75) : 1;
+  double get eliteSporeStride =>
+      upgraded ? n('effects.sporelobber.eliteSporeStride', .85) : 1;
+  double get mortarRadius =>
+      upgraded ? n('effects.scrapmortar.mortarRadius', 185) : 145;
+  double get rivetDamage =>
+      upgraded ? n('effects.rivetdriver.rivetDamage', 2.5) : 1.75;
+  double get rivetRadius =>
+      upgraded ? n('effects.rivetdriver.rivetRadius', 155) : 125;
+  double get anchorRadius =>
+      upgraded ? n('effects.anchorengine.anchorRadius', 190) : 165;
+  double n(String key, num fallback) =>
+      snapshot?.number(key, fallback) ?? fallback.toDouble();
+  int capacity(WeaponType w) =>
+      n('weapons.${w.name}.capacity', w.capacity).toInt();
+  double cadence(WeaponType w) => n('weapons.${w.name}.cadence', w.cadence);
+  int reloadMs(WeaponType w) =>
+      n('weapons.${w.name}.reloadMs', w.reloadMs).toInt();
+  int range(WeaponType w) => n('weapons.${w.name}.range', w.range).toInt();
+  double speed(WeaponType w) => n('weapons.${w.name}.speed', w.speed);
+  int health(CharacterType c) =>
+      n('survivors.${c.name}.health', c.health).toInt();
+  double movement(CharacterType c) => n('survivors.${c.name}.speed', c.speed);
+  double survivorDamage(CharacterType c) =>
+      n('survivors.${c.name}.damage', c.damage);
+  double shellScale() => reloadMs(WeaponType.shotgun) / 3200;
+  double shellInterval() => ShotgunReload.shellIntervalMs * shellScale();
+  int shellDuration(int missing) =>
+      (ShotgunReload.durationFor(missing) * shellScale()).round();
 }

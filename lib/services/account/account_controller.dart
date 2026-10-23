@@ -37,6 +37,7 @@ class AccountController extends ChangeNotifier {
   bool _applying = false, _disposed = false;
   int _generation = 0;
   final List<String> _revocations = [];
+  void Function(String accountId)? onGuestAttached;
   bool conflict = false;
   String issue = '';
   String get username => account?['username'] as String? ?? '';
@@ -361,6 +362,15 @@ class AccountController extends ChangeNotifier {
       }
     });
     conflict = false;
+    if (sourceOwner == 'guest' &&
+        generation == _generation &&
+        preferences.profileOwner == id) {
+      try {
+        onGuestAttached?.call(id);
+      } catch (_) {
+        /* Background directory linkage never gates local play. */
+      }
+    }
     _notify();
     await sync();
   }

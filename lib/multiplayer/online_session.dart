@@ -163,12 +163,17 @@ class OnlineSession {
       final key = member.identity.toHexString;
       if (key == identity) continue;
       final walking = fighters[key]?.rank('walkingSpeedIncrease') ?? 0;
+      final remoteGun = fighters[key];
       final speed =
-          (fighters[key]?.survivor == 'warden'
-              ? 261
-              : fighters[key]?.survivor == 'scrapper'
-              ? 345
-              : 300) +
+          (remoteGun?.baseNumber(
+                'movement',
+                remoteGun.survivor == 'warden'
+                    ? 261
+                    : remoteGun.survivor == 'scrapper'
+                    ? 345
+                    : 300,
+              ) ??
+              300) +
           walking.clamp(0, 3) * 50 +
           (walking - 3).clamp(0, 5) * 12;
       final alive =
@@ -647,7 +652,7 @@ class OnlineSession {
         !_attaching) {
       _attaching = true;
       unawaited(
-        _quiet(() => client.reducers.attachCombat(version: 1))
+        _quiet(() => client.reducers.attachCombat(version: 2))
             .whenComplete(() => _attaching = false),
       );
     }
@@ -765,11 +770,19 @@ class OnlineSession {
         dashSeq: mine.dashSeq.toInt(),
       ),
       movementSpeed:
-          (gun?.survivor == 'warden'
-              ? 261
-              : gun?.survivor == 'scrapper'
-              ? 345
-              : 300) +
+          (gun?.baseNumber(
+                'movement',
+                gun?.survivor == 'warden'
+                    ? 261
+                    : gun?.survivor == 'scrapper'
+                    ? 345
+                    : 300,
+              ) ??
+              (gun?.survivor == 'warden'
+                  ? 261
+                  : gun?.survivor == 'scrapper'
+                  ? 345
+                  : 300)) +
           walking.clamp(0, 3) * 50 +
           (walking - 3).clamp(0, 5) * 12,
       cooldownDuration: (1.6 - effectiveQuickstep * .25).clamp(.6, 1.6),

@@ -1,3 +1,4 @@
+import 'package:regun/services/player_registry.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/services/account/account_api.dart';
@@ -68,6 +69,11 @@ class _AccountSettingsState extends State<AccountSettings> {
               fontWeight: FontWeight.w700,
             ),
           ),
+          if (!account.verified)
+            ValueListenableBuilder<String>(
+              valueListenable: PlayerRegistry.shared.guestName,
+              builder: (context, name, _) => Text(name, style: style),
+            ),
           if (account.email.isNotEmpty) Text(account.email, style: style),
           if (account.verified) Text(account.saveLabel, style: style),
           if (!widget.manage)

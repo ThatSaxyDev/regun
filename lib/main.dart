@@ -1,3 +1,7 @@
+import 'package:regun/services/account/account_controller.dart';
+import 'package:regun/services/player_registry.dart';
+import 'package:regun/services/local_preferences.dart';
+import 'package:regun/services/balance_repository.dart';
 import 'package:regun/widgets/game_presentation.dart';
 import 'package:regun/navigation/game_page_route.dart';
 
@@ -46,6 +50,12 @@ void main() async {
   } catch (error) {
     Logger('main').severe('Soloud player starting error: $error');
   }
+  LocalPreferences.shared.onProfileSaved = (owner, snapshot) =>
+      unawaited(PlayerRegistry.shared.record(owner, snapshot));
+  AccountController.shared.onGuestAttached = (id) =>
+      unawaited(PlayerRegistry.shared.linkGuest(id));
+  unawaited(PlayerRegistry.shared.initialize());
+  unawaited(BalanceRepository.shared.start());
   runApp(const ProviderScope(child: GameApp()));
 }
 
@@ -81,7 +91,11 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) unawaited(_resumeAudioOutput());
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_resumeAudioOutput());
+      unawaited(BalanceRepository.shared.refresh());
+      unawaited(PlayerRegistry.shared.refresh());
+    }
   }
 
   @override

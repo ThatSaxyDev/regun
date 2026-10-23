@@ -411,6 +411,7 @@ void main() {
         expect(s.balance.sporeRadius, 150);
         final old = jsonDecode(jsonEncode(fresh)) as Map<String, dynamic>;
         old.remove('weaponPowerBalance');
+        old.remove('balanceSnapshot');
         final oldArsenal = old['arsenal'] as Map<String, dynamic>;
         oldArsenal.remove('powerBalance');
         oldArsenal['patches'][0]['damage'] = .8;

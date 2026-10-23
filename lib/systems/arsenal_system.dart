@@ -114,7 +114,8 @@ class ArsenalSystem {
   double sustainedFire = 0;
   final muzzleJitter = Vector2.zero();
   double get beltCadence =>
-      .085 + (.040 - .085) * (sustainedFire / 8).clamp(0.0, 1.0);
+      balance.cadence(weapon) *
+      (1 + (.040 / .085 - 1) * (sustainedFire / 8).clamp(0.0, 1.0));
   double _idle = 0, _cooling = 0, _patchTick = 0;
   int nextAttack = 1;
   final _releaseContexts = <int, (int, double)>{};
@@ -149,7 +150,8 @@ class ArsenalSystem {
       : 0;
   double get _trigger =>
       math.pow(.85, state.effectRank(PowerUp.quickTrigger)).toDouble();
-  double get _damageScale => state.shotDamage * game.loadout.character.damage;
+  double get _damageScale =>
+      state.shotDamage * balance.survivorDamage(game.loadout.character);
   double get _baseDamage => balance.damage(weapon) * _damageScale;
   bool get ready =>
       _blocked <= 1e-8 &&
@@ -212,7 +214,7 @@ class ArsenalSystem {
     if (fired) {
       cooldown = math.max(
         weapon == WeaponType.longwatchSniper ? .65 : .4,
-        weapon.cadence * _trigger,
+        balance.cadence(weapon) * _trigger,
       );
     }
     return fired;
@@ -236,7 +238,12 @@ class ArsenalSystem {
   }
 
   double get effectiveRange => math.min(
-    weapon.rangeCeiling?.toDouble() ?? double.infinity,
+    weapon.rangeCeiling == null
+        ? double.infinity
+        : math.max(
+            balance.range(weapon).toDouble(),
+            weapon.rangeCeiling!.toDouble(),
+          ),
     state.bulletRange.toDouble(),
   );
 
@@ -378,7 +385,7 @@ class ArsenalSystem {
       charge = math.min(.45, charge + dt);
       if (charge >= .45 - 1e-8 && _rounds()) {
         charge = 0;
-        cooldown = math.max(.35, .65 * _trigger);
+        cooldown = math.max(.35, (balance.cadence(weapon) - .45) * _trigger);
       }
     } else if (weapon == WeaponType.beltRepeater) {
       if (spool == 0) audio.play('spin_beltRepeater.wav');
@@ -408,7 +415,7 @@ class ArsenalSystem {
           WeaponType.scrapMortar => .55,
           WeaponType.sporeLobber => .40,
           _ => .14,
-        }, weapon.cadence * _trigger);
+        }, balance.cadence(weapon) * _trigger);
       }
     }
   }
@@ -760,8 +767,8 @@ class ArsenalSystem {
     _loop(true);
     _released(tick: true, cue: starting);
     cooldown = weapon == WeaponType.cinderHose
-        ? math.max(.075, .10 * _trigger)
-        : .10;
+        ? math.max(.075, balance.cadence(weapon) * _trigger)
+        : balance.cadence(weapon);
   }
 
   void lodge(PositionComponent target) {
@@ -1079,8 +1086,12 @@ class ArsenalSystem {
     'endgame': endgame.checkpoint(),
   };
 
-  static void validate(Map<String, dynamic> map, WeaponType weapon) {
-    final savedBalance = WeaponPowerBalance.read(map['powerBalance']);
+  static void validate(
+    Map<String, dynamic> map,
+    WeaponType weapon, {
+    WeaponPowerBalance? power,
+  }) {
+    final savedBalance = power ?? WeaponPowerBalance.read(map['powerBalance']);
     if (map.containsKey('releaseContexts') && map['releaseContexts'] is! Map) {
       throw const FormatException('Invalid release contexts');
     }
@@ -1143,7 +1154,7 @@ class ArsenalSystem {
             : k == 'cooling'
             ? 1
             : k == 'patchTick'
-            ? .25
+            ? savedBalance.sporeTick
             : 1e9,
       );
     }
@@ -1234,7 +1245,7 @@ class ArsenalSystem {
   }
 
   void restore(Map<String, dynamic> map) {
-    validate(map, weapon);
+    validate(map, weapon, power: balance);
     if (WeaponPowerBalance.read(map['powerBalance']).revision !=
         balance.revision) {
       throw const FormatException('Mismatched weapon power balance');

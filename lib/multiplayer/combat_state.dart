@@ -31,12 +31,16 @@ class OnlineGun {
   double get health => combatNumber(data, 'health');
   double get maxHealth => combatNumber(data, 'maximumHealth', 6);
   int get ammo => combatNumber(data, 'ammo').toInt();
-  int get baseCapacity => switch (weapon) {
+  Map<String, dynamic> get base =>
+      data['base'] is Map ? Map<String, dynamic>.from(data['base']) : {};
+  double baseNumber(String key, num fallback) =>
+      combatNumber(base, key, fallback.toDouble());
+  int get baseCapacity => baseNumber('capacity', switch (weapon) {
     'carbine' => 24,
     'burstRifle' => 18,
     'revolver' || 'arcCaster' => 6,
     _ => 5,
-  };
+  }).toInt();
   Map<String, dynamic> get progress =>
       data['progress'] as Map<String, dynamic>? ?? {};
   Map<String, dynamic> get ranks =>

@@ -1753,7 +1753,7 @@ class RegunGame extends FlameGame
     var damage =
         state.shotDamage *
         gameNotifier.weaponPower.damage(loadout.weapon) *
-        loadout.character.damage;
+        gameNotifier.weaponPower.survivorDamage(loadout.character);
     breachEngine = state.fused('breachEngine');
     if (state.noOfBullets == 1) {
       damage *=
@@ -1895,7 +1895,7 @@ class RegunGame extends FlameGame
           max(0, dt - wait),
           held: firing,
           interval:
-              loadout.weapon.cadence *
+              gameNotifier.weaponPower.cadence(loadout.weapon) *
               pow(.85, gameState.effectRank(PowerUp.quickTrigger)),
           ready: () =>
               !gameState.reloading &&
@@ -1911,7 +1911,7 @@ class RegunGame extends FlameGame
         _fireCooldown = max(0, _fireCooldown - dt);
         if (_fireCooldown <= 0 && firing && spawnShotgunBullets()) {
           _fireCooldown =
-              loadout.weapon.cadence *
+              gameNotifier.weaponPower.cadence(loadout.weapon) *
               pow(0.85, gameState.effectRank(PowerUp.quickTrigger));
         }
       }

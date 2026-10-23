@@ -1,3 +1,4 @@
+import 'package:regun/services/balance_repository.dart';
 import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/systems/survivor_runtime.dart';
 import 'package:regun/data/loadout.dart';
@@ -54,17 +55,17 @@ class GameNotifier extends Notifier<GameState> {
     weapon = loadout.weapon;
     character = loadout.character;
     buildBalance = 2;
-    weaponPower = WeaponPowerBalance.current;
+    weaponPower = WeaponPowerBalance.live(BalanceRepository.shared.current);
     _offerRandom.state = seed;
     state = GameState(
-      maxBullets: weapon.capacity,
-      noOfBullets: weapon.capacity,
-      maxHealth: character.health,
-      health: character.health,
-      movementSpeed: character.speed,
-      bulletRange: weapon.range,
-      bulletSpeed: weapon.speed,
-      baseProjectileSpeed: weapon.speed,
+      maxBullets: weaponPower.capacity(weapon),
+      noOfBullets: weaponPower.capacity(weapon),
+      maxHealth: weaponPower.health(character),
+      health: weaponPower.health(character),
+      movementSpeed: weaponPower.movement(character),
+      bulletRange: weaponPower.range(weapon),
+      bulletSpeed: weaponPower.speed(weapon),
+      baseProjectileSpeed: weaponPower.speed(weapon),
       guard: character == CharacterType.warden,
     );
   }
@@ -77,8 +78,8 @@ class GameNotifier extends Notifier<GameState> {
         min(3, rank) * (next == WeaponType.carbine ? 6 : 2) +
         max(0, rank - 3) * (next == WeaponType.carbine ? 2 : 1);
     final capacity = next == WeaponType.prismCutter
-        ? min(24, next.capacity + extra)
-        : next.capacity + extra;
+        ? min(24, weaponPower.capacity(next) + extra)
+        : weaponPower.capacity(next) + extra;
     weapon = next;
     _reloadDurationMs = _reloadElapsedMs = 0;
     _reloadSoundsLeft = _reloadCue = 0;
@@ -90,12 +91,15 @@ class GameNotifier extends Notifier<GameState> {
       maxBullets: capacity,
       noOfBullets: capacity,
       reloading: false,
-      bulletRange: next.range + max(0, state.bulletRange - old.range),
+      bulletRange:
+          weaponPower.range(next) +
+          max(0, state.bulletRange - weaponPower.range(old)),
       bulletSpeed: min(
         2000,
-        next.speed + max(0, state.bulletSpeed - old.speed),
+        weaponPower.speed(next) +
+            max(0, state.bulletSpeed - weaponPower.speed(old)),
       ),
-      baseProjectileSpeed: next.speed,
+      baseProjectileSpeed: weaponPower.speed(next),
     );
   }
 
@@ -121,6 +125,8 @@ class GameNotifier extends Notifier<GameState> {
     'xpCurve': 3,
     'buildBalance': buildBalance,
     'weaponPowerBalance': weaponPower.revision,
+    if (weaponPower.snapshot != null)
+      'balanceSnapshot': weaponPower.snapshot!.toJson(),
     'survivorRuntime': survivor.toJson(),
     'choiceGrace': _choiceGrace,
     'weaponBalance': 2,
@@ -144,6 +150,7 @@ class GameNotifier extends Notifier<GameState> {
   void restoreCheckpoint(Map<String, dynamic> snapshot) {
     final restoredPower = WeaponPowerBalance.read(
       snapshot['weaponPowerBalance'],
+      snapshot['balanceSnapshot'],
     );
     var restored = GameState.fromJson(
       Map<String, dynamic>.from(snapshot['state'] as Map),
@@ -276,7 +283,9 @@ class GameNotifier extends Notifier<GameState> {
         restored.reloading &&
         _reloadDurationMs > 0) {
       final missing = restored.maxBullets - restored.noOfBullets;
-      final normal = reloadDurationFor(min(missing, weapon.capacity));
+      final normal = reloadDurationFor(
+        min(missing, weaponPower.capacity(weapon)),
+      );
       if (normal > 0) {
         final progress = (_reloadElapsedMs / _reloadDurationMs).clamp(0.0, 1.0);
         final duration = restored.fastReload
@@ -327,12 +336,8 @@ class GameNotifier extends Notifier<GameState> {
     _reloadTactical =
         manual && weapon.supportsTacticalReload && state.noOfBullets > 0;
     final normal = weapon == WeaponType.shotgun
-        ? reloadDurationFor(
-            state.maxBullets > weapon.capacity
-                ? min(missing, weapon.capacity)
-                : missing,
-          )
-        : weapon.reloadMs;
+        ? weaponPower.shellDuration(min(missing, 5))
+        : weaponPower.reloadMs(weapon);
     _reloadDurationMs = weapon == WeaponType.shotgun
         ? (state.fastReload ? min(state.fastReloadTime, normal) : normal)
               .toDouble()
@@ -359,7 +364,7 @@ class GameNotifier extends Notifier<GameState> {
         : 0;
     reloadProgress.value = 0;
     _nextReloadSoundMs =
-        ShotgunReload.shellIntervalMs * (_reloadTactical ? .70 : 1.0);
+        weaponPower.shellInterval() * (_reloadTactical ? .70 : 1.0);
     state = state.copyWith(reloading: true);
     ref
         .read(soloudPlayProvider)
@@ -437,7 +442,7 @@ class GameNotifier extends Notifier<GameState> {
       ref.read(soloudPlayProvider).play('reload_shotgun_shell.wav');
       _reloadSoundsLeft--;
       _nextReloadSoundMs +=
-          ShotgunReload.shellIntervalMs * (_reloadTactical ? .70 : 1.0);
+          weaponPower.shellInterval() * (_reloadTactical ? .70 : 1.0);
     }
     if (weapon == WeaponType.shotgun &&
         !_reloadTactical &&
@@ -865,7 +870,7 @@ class GameNotifier extends Notifier<GameState> {
         (state.rank(PowerUp.walkingSpeedIncrease) <= 3 ? 50 : 12),
   );
   void resetWalkingSpeed() =>
-      state = state.copyWith(movementSpeed: character.speed);
+      state = state.copyWith(movementSpeed: weaponPower.movement(character));
   void sprintDistanceIncrease() =>
       state = state.copyWith(sprintTimeDistance: state.sprintTimeDistance + 15);
   void resetSprintTimeDistance() =>

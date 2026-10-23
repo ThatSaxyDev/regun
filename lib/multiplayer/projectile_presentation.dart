@@ -304,20 +304,25 @@ class ProjectilePresentation {
     final speedRank = gun.rank('rapidFire'),
         rangeRank = gun.rank('bulletRangeIncrease');
     final speed =
-        weapon.speed +
+        gun.baseNumber('speed', weapon.speed) +
         math.min(
           800,
           speedRank.clamp(0, 3) * 200 + (speedRank - 3).clamp(0, 5) * 40,
         );
     final range =
-        weapon.range +
+        gun.baseNumber('range', weapon.range) +
         rangeRank.clamp(0, 3) * 60 +
         (rangeRank - 3).clamp(0, 5) * 24;
     final trigger = gun.rank('quickTrigger');
     final effective = trigger.clamp(0, 3) + (trigger - 3).clamp(0, 5) * .3;
     // Server advanceGun/fire runs once per50ms; match its quantized cadence.
     final cadence =
-        (weapon.cadence * math.pow(.85, effective) / .05 - 1e-8).ceil() * .05;
+        (gun.baseNumber('cadence', weapon.cadence) *
+                    math.pow(.85, effective) /
+                    .05 -
+                1e-8)
+            .ceil() *
+        .05;
     _nextFire = now - _nextFire <= .025 ? _nextFire + cadence : now + cadence;
     final shot = ++_nextShot;
     _predictedShots['$burst:$shot'] = now;

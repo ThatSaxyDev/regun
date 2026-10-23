@@ -21,13 +21,20 @@ class RunCheckpoint {
       final loadout = Loadout.fromJson(
         Map<String, dynamic>.from(map['loadout'] as Map),
       );
-      final power = WeaponPowerBalance.read(map['weaponPowerBalance']);
+      final power = WeaponPowerBalance.read(
+        map['weaponPowerBalance'],
+        map['balanceSnapshot'],
+      );
       if (map['arsenal'] case final Map raw) {
         if (WeaponPowerBalance.read(raw['powerBalance']).revision !=
             power.revision) {
           return false;
         }
-        ArsenalSystem.validate(Map<String, dynamic>.from(raw), loadout.weapon);
+        ArsenalSystem.validate(
+          Map<String, dynamic>.from(raw),
+          loadout.weapon,
+          power: power,
+        );
       }
       if (map.containsKey('buildBalance') &&
           ![1, 2].contains(map['buildBalance'])) {

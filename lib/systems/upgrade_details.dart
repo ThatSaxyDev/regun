@@ -1,3 +1,5 @@
+import 'package:regun/data/weapon_power_balance.dart';
+
 import 'dart:math' as math;
 
 import 'package:regun/data/loadout.dart';
@@ -10,6 +12,7 @@ String upgradeDetails(
   GameState s,
   WeaponType weapon, {
   int balance = 2,
+  WeaponPowerBalance power = WeaponPowerBalance.current,
   CharacterType character = CharacterType.rook,
   bool brief = false,
 }) {
@@ -51,7 +54,7 @@ String upgradeDetails(
     case PowerUp.quickTrigger:
       return delta(
         brief ? 'Time between shots' : 'Firing interval',
-        (n) => weapon.cadence * math.pow(.85, e(n)),
+        (n) => power.cadence(weapon) * math.pow(.85, e(n)),
         unit: 's',
       );
     case PowerUp.maxBulletsIncrease:
@@ -63,7 +66,7 @@ String upgradeDetails(
       double full(int rank) {
         final value = weapon == WeaponType.shotgun
             ? (rank == 0
-                      ? 3200
+                      ? power.reloadMs(weapon)
                       : math.max(
                           850,
                           2500 -
@@ -71,7 +74,7 @@ String upgradeDetails(
                               math.max(0, rank - 3) * 30,
                         ))
                   .toDouble()
-            : weapon.reloadMs * math.pow(.8, e(rank));
+            : power.reloadMs(weapon) * math.pow(.8, e(rank));
         return (character == CharacterType.flint
                 ? math.max(weapon == WeaponType.shotgun ? 850 : 0, value * .88)
                 : value) /

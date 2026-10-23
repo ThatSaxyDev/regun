@@ -1,7 +1,7 @@
 # Regun cinematic teaser
 
 44-second, 1920 × 1080, 30 fps asset-based trailer. Artwork and typography come from the game.
-The soundtrack is an original continuous deep-space hum. Sprite showcases are staged promotional animation. A six-second sequence uses
+The soundtrack is an original melodic space-synth score. Sprite showcases are staged promotional animation. A six-second sequence uses
 the actual beta gameplay excerpt from the landing page. The closing card invites
 players to the iOS/Android beta through https://regun.kiishi.space/.
 
@@ -33,12 +33,16 @@ renders are ignored. Source artwork and runtime code are never modified.
 | 31–37 s | Eight-boss lineup |
 | 37–44 s | One more run / Join the beta / platform panels / website QR |
 
-Music: `deep_space_hum.wav`, an original 44-second beatless stereo drone.
-A warm low foundation supports soft D-major add9/6 humming harmonics, slow
-spectral drift and diffuse reverb. Three-second entrance and 4.5-second exit
-are baked into the track. No percussion, rhythmic gates, scene accents or
-weapon effects. `scripts/generate_space_hum.py` regenerates the WAV, MP3 preview
-and source manifest using NumPy and ffmpeg. The game soundtrack is unchanged.
+Music: `space_synth_score.wav`, an original 44-second melodic synth arrangement.
+Seven connected chord sections follow the edit, with warm stereo pads, a rounded
+lead motif, legato bass and an answering high voice. There are no drums or
+sequenced percussion. Airy tonal transitions anticipate the scene cuts; softened
+recorded weapon textures follow the four weapon close-ups, and a warm harmonic
+arrival supports the beta invitation. The gameplay excerpt remains silent beneath
+the score. `scripts/generate_synth_score.py` regenerates the master, music/design
+stems, MP3 preview and cue manifest using NumPy and ffmpeg. The original drone
+experiment remains reproducible with `scripts/generate_space_hum.py`. Game audio
+assets are unchanged.
 
 Fonts: existing Orbitron and Press Start 2P. Atlas crops use the existing manifest
 rectangles. Backgrounds: home_hideout_v2, breach_floor, foundry_floor. No new AI
@@ -53,4 +57,4 @@ returned HTTP 200 on 22 October 2026.
 
 Gameplay provenance: creator recording `ScreenRecording_10-20-2026 11-06-27_1.MP4`,
 landing-page excerpt 00:54–01:12; this cut uses seconds 4–10 of that excerpt.
-The recorded gameplay is silent; the continuous space drone remains underneath.
+The recorded gameplay is silent; the integrated synth score remains underneath.

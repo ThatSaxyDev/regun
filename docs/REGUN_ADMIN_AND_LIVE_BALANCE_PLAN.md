@@ -37,7 +37,7 @@ The existing game release and live server are unaffected by opening the admin ap
 ## Admin application
 
 Audience: the creator and explicitly authorized game operators. Desktop/web first,
-with a usable narrow-screen layout. Charcoal/olive surfaces, restrained brass,
+with first-class iPhone support and native macOS/iPhone release builds. Charcoal/olive surfaces, restrained brass,
 Orbitron headings, readable body type, tables/forms rather than a game HUD.
 
 Workspace: `../regun-admin`, independent Flutter package, platforms web/macOS/iOS/
@@ -45,6 +45,21 @@ Android, its own lockfile, README, AGENTS, tests, configuration example and Make
 A workspace file links the three folders for convenient development without moving
 source or copying game secrets. No game assets beyond reusable brand fonts are
 needed; the admin app must not initialize Flame, SoLoud, player saves or purchases.
+
+Responsive requirements (creator-approved):
+- iPhone portrait and landscape: catalogue → detail navigation, full-width forms,
+  bottom navigation, SafeArea and keyboard-aware scrolling. No horizontally clipped
+  desktop tables; review rows stack old/new values. Preserve draft input on Back,
+  tab changes and rotation. Touch/focus targets are at least48 logical pixels.
+- macOS: persistent navigation, catalogue/editor split view, resizable windows,
+  pointer/keyboard editing and keyboard shortcuts. Collapse cleanly in narrow windows.
+- Large text: layouts reflow rather than shrink text; field labels and validation
+  remain visible. Respect reduced motion and system text scaling.
+- Verify320/390px phones, landscape,768px/tablet and1280px desktop, including an
+  open keyboard and increased text scale. Render actual screens before delivery.
+- Produce release builds for macOS and physical iPhone; the admin app has its own
+  bundle identifier and never replaces the Regun game. Native builds use public
+  connection settings only; admin passwords are entered at login, not compiled in.
 
 Initial flows:
 1. Browse weapons, survivors and field/payload values; search by name/key.
@@ -114,7 +129,9 @@ allowlisted server operations with a server-only principal whose privileges are
 restricted to balance administration, separate from identity delivery.
 
 Provide sign-out and session revocation. Password rotation must invalidate existing
-admin sessions. Require fresh authentication for publishing and rollback. Use
+admin sessions. Administrator sessions last30 days and survive native app restarts. Do not require
+five-minute reauthentication for publishing or rollback; every action still checks
+server session expiry, revocation and the current password configuration. Use
 Secure/HttpOnly/SameSite cookies and CSRF protection for the web session; native
 clients keep any session credential in platform secure storage. Never persist the
 password in browser storage or preferences. Bootstrap/revoke through an operator
@@ -136,7 +153,7 @@ using SpacetimeDB as persistence/authority. It can also deliver a small public
 GET `/balance/v1/current?channel=production&capability=...` with ETag/hash and bounded
 cache headers. This route is a proposed API, not an endpoint currently deployed.
 Use exact CORS origins and HTTPS in production. Admin operations require verified
-short-lived sessions and CSRF protection if cookie-authenticated. Do not add another
+30-day revocable sessions and CSRF protection if cookie-authenticated. Do not add another
 standalone database/service merely for configuration.
 
 ## Game adoption (phase 3)
@@ -211,3 +228,44 @@ build numbers. Do not repurpose `COMBAT_VERSION` for every numerical adjustment.
 Future useful admin areas: enemy/boss/upgrade tuning, player support, economy,
 announcements, reports and release controls. They need distinct permissions and
 plans; the initial balance app must not invent destructive player-account tools.
+
+
+## Users, guest identity and invisible background work — 23 October2026
+
+Add an authenticated Users directory with search, paginated records and individual
+profiles: account/guest identity, username, created/last-seen timestamps, linked
+devices and gameplay stats. Separate self-reported offline metrics from authoritative
+online results; neither offline counters nor guest reports can grant purchases,
+entitlements, competitive ranks or rewards. No fabricated preview user records.
+
+Guests receive a random stable device identifier and secret, stored locally. Their
+temporary display name derives from that ID, never a hardware/advertising ID.
+No login or network call is required to create it or play. Persist reports locally,
+upload in the background, authenticate ownership of reports and deduplicate by
+monotonic sequence. A verified account may explicitly link its owned guest device;
+never merge accounts by guessed email or sum duplicate cumulative counters.
+Account records and guest records stay distinguishable in the directory.
+
+All configuration/stats/account/update work is best-effort background activity.
+Remove the Home checking-for-updates label and automatic update modal/gate. A
+binary update still uses the OS distribution flow; background configuration cannot
+silently replace an iOS executable. A binary update notice must not disable solo,
+Training or Continue. Online-only compatibility restrictions remain online-only.
+
+Native admin sessions use secure storage for30 days; sign-out, password rotation,
+revocation and expiry invalidate them. Browser sessions stay in memory unless a
+separate secure HttpOnly-cookie flow is implemented; never persist a password.
+
+
+## Implementation delivery — 23 October 2026
+
+The server gateway, private SpacetimeDB releases/sessions/player records, native
+admin publishing/users UI, offline cache/checkpoint reader and authoritative room
+pinning are implemented. The staged rollout list above records the original plan,
+not pending local-only status. The current scope is single owner and 168 base
+weapon/survivor/area values; further economy/enemy/role features remain separate.
+See ../regun-server/docs/ADMIN_AND_LIVE_BALANCE.md for copy/paste environment setup,
+protocol, tests and directory-scaling limits. Native secure admin sessions last
+30 days without a five-minute publication re-login. Home background update checks
+have no visible gate. Production needs the server environment and redeployment,
+plus updated game/admin builds; a Git push alone does not set those variables.

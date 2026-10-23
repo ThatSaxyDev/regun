@@ -12,6 +12,7 @@ class LocalPreferences {
   static final shared = LocalPreferences();
   PlayerProfile profile = PlayerProfile();
   String profileOwner = 'guest';
+  void Function(String owner, Map<String, dynamic> snapshot)? onProfileSaved;
   Future<void> Function(String owner, Map<String, dynamic> snapshot)?
   persistAccountProfile;
   String get _profileKey =>
@@ -104,6 +105,13 @@ class LocalPreferences {
         }
 
         success = await _storage?.setString(primaryKey, payload) ?? false;
+        if (success) {
+          try {
+            onProfileSaved?.call(owner, snapshot);
+          } catch (_) {
+            /* Reporting cannot undo a local save. */
+          }
+        }
       } catch (_) {
         success = false;
       }

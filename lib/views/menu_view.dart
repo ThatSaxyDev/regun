@@ -1,3 +1,4 @@
+import 'package:regun/services/player_registry.dart';
 import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/services/account/account_controller.dart';
@@ -5,7 +6,7 @@ import 'package:regun/services/account/account_api.dart';
 import 'package:regun/widgets/account_flow.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
-import 'package:regun/widgets/app_update_gate.dart';
+import 'package:regun/services/app_updates.dart';
 import 'package:regun/services/online_availability.dart';
 import 'package:regun/widgets/online_coming_soon.dart';
 import 'package:regun/models/run_checkpoint.dart';
@@ -37,7 +38,6 @@ class _MenuViewState extends ConsumerState<MenuView>
   Timer? _policyTimer, _accountIssueTimer;
   String? _accountIssue;
   bool _foreground = true, _openingOnline = false;
-  bool _noticeBusy = false;
   Map<String, dynamic>? _saved;
   bool _ready = false;
   @override
@@ -51,6 +51,15 @@ class _MenuViewState extends ConsumerState<MenuView>
       }
     });
     unawaited(_refresh());
+    unawaited(_checkBinaryUpdate());
+  }
+
+  Future<void> _checkBinaryUpdate() async {
+    try {
+      await ref.read(appUpdatesProvider).check();
+    } catch (_) {
+      /* Fully silent and never gates offline entry. */
+    }
   }
 
   void _policyChanged() {
@@ -136,6 +145,12 @@ class _MenuViewState extends ConsumerState<MenuView>
     unawaited(_online.refresh());
     await ref.read(accountProvider).localProfileReady;
     await LocalPreferences.shared.load();
+    unawaited(
+      PlayerRegistry.shared.record(
+        LocalPreferences.shared.profileOwner,
+        LocalPreferences.shared.profile.toJson(),
+      ),
+    );
     final saved = await RunStore.shared.read(validate: RunCheckpoint.valid);
     if (!mounted) return;
     final audio = ref.read(soloudPlayProvider);
@@ -182,7 +197,6 @@ class _MenuViewState extends ConsumerState<MenuView>
   Future<void> _inviteAfterPlay() async {
     final account = ref.read(accountProvider);
     if (_inviting ||
-        _noticeBusy ||
         account.verified ||
         !account.api.configured ||
         !_foreground ||
@@ -195,7 +209,6 @@ class _MenuViewState extends ConsumerState<MenuView>
       final prefs = await SharedPreferences.getInstance();
       if (prefs.getBool('cloudInvite.v1.shown') == true) return;
       if (!mounted ||
-          _noticeBusy ||
           !_foreground ||
           !(ModalRoute.of(context)?.isCurrent ?? false)) {
         _inviting = false;
@@ -259,55 +272,41 @@ class _MenuViewState extends ConsumerState<MenuView>
   }
 
   @override
-  Widget build(BuildContext context) => AppUpdateGate(
-    onBusyChanged: (busy) {
-      _noticeBusy = busy;
-      if (!busy &&
-          _ready &&
-          (LocalPreferences.shared.profile.tutorialComplete ||
-              LocalPreferences.shared.profile.settledRuns.isNotEmpty)) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) unawaited(_inviteAfterPlay());
-        });
-      }
-    },
-    child: Scaffold(
-      backgroundColor: const Color(0xff171319),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          HomeMenu(
-            ready: _ready,
-            bestScore: LocalPreferences.shared.bestScore,
-            reducedMotion: LocalPreferences.shared.reducedMotion,
-            onContinue: _saved == null ? null : _continue,
-            onPlay: _play,
-            onlineAvailable: _online.enabled,
-            onlineChecking:
-                _openingOnline ||
-                _online.state == OnlineAvailabilityState.checking,
-            onOnline: _openOnline,
-            onTraining: () async {
-              await _open(const LoadoutView(training: true));
-              if (mounted && LocalPreferences.shared.profile.tutorialComplete) {
-                unawaited(_inviteAfterPlay());
-              }
-            },
-            onCollection: () => _open(const CollectionView()),
-            onSettings: () =>
-                _open(const SettingsView(allowProgressReset: true)),
-          ),
-          if (_accountIssue != null)
-            Positioned(
-              left: 24,
-              right: 24,
-              bottom: 24,
-              child: IgnorePointer(
-                child: GameNoticeStrip(message: _accountIssue!),
-              ),
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xff171319),
+    body: Stack(
+      fit: StackFit.expand,
+      children: [
+        HomeMenu(
+          ready: _ready,
+          bestScore: LocalPreferences.shared.bestScore,
+          reducedMotion: LocalPreferences.shared.reducedMotion,
+          onContinue: _saved == null ? null : _continue,
+          onPlay: _play,
+          onlineAvailable: _online.enabled,
+          onlineChecking:
+              _openingOnline ||
+              _online.state == OnlineAvailabilityState.checking,
+          onOnline: _openOnline,
+          onTraining: () async {
+            await _open(const LoadoutView(training: true));
+            if (mounted && LocalPreferences.shared.profile.tutorialComplete) {
+              unawaited(_inviteAfterPlay());
+            }
+          },
+          onCollection: () => _open(const CollectionView()),
+          onSettings: () => _open(const SettingsView(allowProgressReset: true)),
+        ),
+        if (_accountIssue != null)
+          Positioned(
+            left: 24,
+            right: 24,
+            bottom: 24,
+            child: IgnorePointer(
+              child: GameNoticeStrip(message: _accountIssue!),
             ),
-        ],
-      ),
+          ),
+      ],
     ),
   );
 }

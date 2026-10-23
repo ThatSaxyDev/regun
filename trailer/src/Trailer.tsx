@@ -867,7 +867,7 @@ export function Trailer() {
       <Sequence from={1110} durationInFrames={210}>
         <End />
       </Sequence>
-      <Audio src={file("deep_space_hum.wav")} />
+      <Audio src={file("space_synth_score.wav")} />
       <BetaBadge />
       <AbsoluteFill
         style={{
