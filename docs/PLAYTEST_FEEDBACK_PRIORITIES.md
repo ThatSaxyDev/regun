@@ -94,3 +94,24 @@ Recommended first gameplay pass after admin recovery: compact boss HUD and
 clearer accepted-damage feedback, then shared hurt-geometry review and measured
 shotgun tuning. Upgrade impact and opening difficulty follow. Full unique
 upgrade animations and campaign work should not delay those clearer problems.
+
+
+## Delivery map
+
+| Pass | Deliverable | Phone acceptance |
+|---|---|---|
+| 1 — See the fight | Compact boss HUD and stronger accepted-health-loss presentation | Fight remains visible on small landscape screens; damage, guard and protection are immediately distinguishable. |
+| 2 — Fairness and shotgun | One consistent hurt-volume contract; compare stronger shotgun damage through admin | Near misses match the visible body; fast shots/leaps and online damage agree; shotgun rewards close accurate hits without erasing tougher roles. |
+| 3 — Meaningful progression | Review first-rank upgrade impact and explicit opening-boss difficulty | A fresh player can identify the benefit of their pick and learn the first boss; later encounters retain pressure and variety. |
+| 4 — Personality | Brief boss introductions and family-appropriate upgrade reactions | Bosses are recognisable; celebrations add character without covering warnings or imposing repeated long pauses. |
+| 5 — Purpose | Clear next milestone and run/progression copy | A new player can explain what they are trying to do and what persists after a run; no unimplemented campaign is promised. |
+
+Treat passes 1 and 2 as the first device-review candidate, rather than bundling
+all feedback into one large update. Render the HUD/hurt presentation before
+finalising it; verify authoritative geometry and admin/API/mobile balance parity;
+then review a real phone build. Tune from that review before proceeding to passes
+3–5. Keep separate comparisons for presentation and actual difficulty changes.
+Gameplay parameters that affect online outcomes must match the server; purely
+visual HUD/hurt presentation does not need arbitrary new admin controls. New-run
+balance pinning, Continue compatibility, control placement and Reduced Motion
+remain acceptance requirements for every pass.
