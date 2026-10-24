@@ -1,3 +1,4 @@
+import 'package:regun/systems/boss_attack_shape.dart';
 import 'package:regun/models/boss_history.dart';
 import 'package:regun/services/account/account_api.dart';
 import 'package:regun/models/solo_recovery.dart';
@@ -553,15 +554,57 @@ class RegunGame extends FlameGame
     }
   }
 
-  void moveTo(PositionComponent actor, Vector2 target, double radius) =>
-      crowdOccupancy.move(
-        actor,
-        target - actor.position,
-        radius: crowdRadius(actor),
-        constrain: (point) =>
-            geometry.constrain(point, max(radius, crowdRadius(actor))),
-        slide: false,
-      );
+  void clearMinionsInBossShape(
+    BossAttackShape shape,
+    double progress, {
+    double previous = 0,
+  }) {
+    for (final enemy in liveEnemies.toList()) {
+      if (enemy is CombatEnemy &&
+          !enemy.isBoss &&
+          shape.hits(
+            enemy.position,
+            progress,
+            previous: previous,
+            body: crowdRadius(enemy),
+          ) &&
+          !segmentBlocked(shape.points.first, enemy.position)) {
+        enemy.crushByBoss();
+      }
+    }
+  }
+
+  void clearMinionsInBossPath(Vector2 from, Vector2 to, double radius) {
+    bool touches(PositionComponent e) =>
+        BulletComponent.segmentDistanceSquared(e.position, from, to) <=
+            pow(radius + crowdRadius(e), 2) &&
+        !segmentBlocked(from, e.position);
+    for (final warning in _spawnWarnings.toList()) {
+      if (touches(warning.enemy)) warning.cancel();
+    }
+    for (final enemy in liveEnemies.toList()) {
+      if (enemy is CombatEnemy && !enemy.isBoss && touches(enemy)) {
+        enemy.crushByBoss();
+      }
+    }
+  }
+
+  void moveTo(
+    PositionComponent actor,
+    Vector2 target,
+    double radius, {
+    bool crushMinions = false,
+  }) => crowdOccupancy.move(
+    actor,
+    target - actor.position,
+    radius: crowdRadius(actor),
+    constrain: (point) =>
+        geometry.constrain(point, max(radius, crowdRadius(actor))),
+    slide: false,
+    beforeStep: crushMinions && actor is CombatEnemy && actor.isBoss
+        ? (from, to) => clearMinionsInBossPath(from, to, crowdRadius(actor) + 4)
+        : null,
+  );
 
   void addCombatEffectForKill(
     Vector2 position, {

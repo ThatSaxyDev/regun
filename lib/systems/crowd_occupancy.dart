@@ -141,6 +141,7 @@ class CrowdOccupancy {
     required void Function(Vector2) constrain,
     bool slide = true,
     double side = 1,
+    void Function(Vector2 from, Vector2 to)? beforeStep,
   }) {
     if (!_radii.containsKey(actor) && !place(actor, radius, constrain)) return;
     final steps = (delta.length / 12).ceil().clamp(1, 256);
@@ -151,6 +152,7 @@ class CrowdOccupancy {
       final from = actor.position.clone();
       var next = from + step;
       constrain(next);
+      beforeStep?.call(from, next);
       final blocker = _blocker(actor, from, next, radius);
       if (blocker != null) {
         if (!slide) break;

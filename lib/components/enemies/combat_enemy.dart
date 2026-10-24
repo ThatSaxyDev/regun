@@ -173,7 +173,16 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   }
 
   @override
-  bool takeDamage(double amount) {
+  bool takeDamage(double amount) => _applyDamage(amount);
+
+  /// Boss collateral uses the normal death presentation, without player rewards.
+  bool crushByBoss() {
+    if (isBoss || !isLoaded) return false;
+    lastDamageSource = 'boss';
+    return _applyDamage(combatHealth.current, bossCollateral: true);
+  }
+
+  bool _applyDamage(double amount, {bool bossCollateral = false}) {
     if (isRemoving || game.gameState.gameplayState != GameplayState.playing) {
       return false;
     }
@@ -190,7 +199,16 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
       if (this is SpriteAnimationComponent) {
         (this as SpriteAnimationComponent).playing = true;
       }
-      game.enemyDefeated(this, xp: xpReward, score: scoreReward, boss: isBoss);
+      if (bossCollateral) {
+        game.unregisterEnemy(this);
+      } else {
+        game.enemyDefeated(
+          this,
+          xp: xpReward,
+          score: scoreReward,
+          boss: isBoss,
+        );
+      }
       onCombatDeath();
     }
     return true;

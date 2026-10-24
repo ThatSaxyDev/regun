@@ -13,6 +13,7 @@ import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/components/enemies/boss_encounter.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
+import 'package:regun/systems/boss_attack_shape.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -149,6 +150,16 @@ class PatternBoss extends PositionComponent
   void _impact() {
     game.audio.play('impact_boss.wav');
     if (kind == BossKind.demon && pattern == 0) {
+      game.clearMinionsInBossShape(
+        BossAttackShape.sweep(
+          position,
+          340,
+          angle: atan2(_direction.y, _direction.x) - 1.75,
+          arc: 3.5,
+          width: 0,
+        ),
+        1,
+      );
       final delta = game.myPlayer.position - position;
       if (delta.length < 340 &&
           delta.normalized().dot(_direction) >= cos(1.75) &&
@@ -244,6 +255,7 @@ class PatternBoss extends PositionComponent
             _origin +
                 (_target - _origin) * (clock / activeDuration).clamp(0, 1),
             75,
+            crushMinions: true,
           );
           if (BulletComponent.segmentDistanceSquared(
                     game.myPlayer.position,

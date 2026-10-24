@@ -1,3 +1,4 @@
+import 'package:regun/systems/boss_attack_shape.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
@@ -204,6 +205,7 @@ class ShadowBossComponent extends PositionComponent
           _dashStart +
               (_dashEnd - _dashStart) * (_phaseTime / 0.48).clamp(0, 1),
           80,
+          crushMinions: true,
         );
         if (BulletComponent.segmentDistanceSquared(
                   game.myPlayer.position,
@@ -227,6 +229,10 @@ class ShadowBossComponent extends PositionComponent
               position: position.clone(),
               radius: 225,
             ),
+          );
+          game.clearMinionsInBossShape(
+            BossAttackShape.circle(position, 270),
+            1,
           );
           if (distance <= 270 &&
               !game.segmentBlocked(position, game.myPlayer.position)) {

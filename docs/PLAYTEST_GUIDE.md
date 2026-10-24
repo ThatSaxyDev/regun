@@ -622,3 +622,14 @@ repeats; later bags return to the normal shuffle. Counts begin with observed win
 from this update, not fabricated splits of old aggregate totals. Settle a few runs,
 then compare openings. Training/Rush wins must not affect the ordering. Continue
 must preserve the already-chosen bag, including after a revive. See BOSS_VARIETY.md.
+
+## Boss attack collateral — 24 October 2026
+
+In Training, use individual boss practice with Hordes. Ordinary boss movement
+must leave minions alive. Shadow dash and Demon charge should clear the actual
+body corridor only once the attack begins. Sweeps/ground strikes should kill
+minions inside the active shape, preserving safe pockets and solid cover.
+Warnings and paused attacks must not kill. Other bosses remain unharmed.
+Player damage, timing and protection remain as before; boss-caused minion deaths
+must not increase player kills, score, XP or kill-triggered bonuses. See
+BOSS_COLLATERAL.md. Native feel/readability and online play need hands-on review.

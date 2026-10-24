@@ -66,6 +66,9 @@ class BossAttack extends PositionComponent with HasGameReference<RegunGame> {
       onImpact?.call();
       game.audio.play(sound);
     }
+    if (age >= delay + warning && damage > 0) {
+      game.clearMinionsInBossShape(shape, progress, previous: previous);
+    }
     if (age >= delay + warning &&
         !_hit &&
         shape.hits(game.myPlayer.position, progress, previous: previous) &&

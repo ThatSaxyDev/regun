@@ -471,6 +471,159 @@ void main() {
   );
 
   testWidgets(
+    'ordinary boss movement spares minions; a committed lunge clears only its body path',
+    (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final game = await mount(tester);
+      game.spawnBoss(BossKind.demon);
+      await tester.runAsync(game.ready);
+      final boss = game.bosses.single;
+      boss.position.setValues(-500, 0);
+      final victim = EnemyComponent(position: Vector2(-250, 0)),
+          safe = EnemyComponent(position: Vector2(-250, 250));
+      await tester.runAsync(() async {
+        game.world.addAll([victim, safe]);
+        await game.ready();
+      });
+      game.crowdOccupancy.rebuild(game.liveEnemies, game.crowdRadius);
+      final kills = game.gameState.kills,
+          score = game.gameState.score,
+          drops = game.runtimeCounts['xp'];
+      game.moveTo(boss, Vector2(300, 0), 80);
+      expect(victim.combatHealth.isDead, isFalse);
+      expect(boss.position.x, lessThan(-250));
+      boss.position.setValues(-500, 0);
+      game.crowdOccupancy.rebuild(game.liveEnemies, game.crowdRadius);
+      game.moveTo(boss, Vector2(300, 0), 80, crushMinions: true);
+      expect(victim.combatHealth.isDead, isTrue);
+      expect(safe.combatHealth.isDead, isFalse);
+      expect(boss.position.x, closeTo(300, .01));
+      expect(game.gameState.kills, kills);
+      expect(game.gameState.score, score);
+      expect(game.runtimeCounts['xp'], drops);
+      expect(victim.takeDamage(100), isFalse);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'boss sweep kills only its active arc and preserves the safe inner pocket',
+    (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final game = await mount(tester);
+      final hit = EnemyComponent(position: Vector2(300, 0)),
+          inside = EnemyComponent(position: Vector2.zero()),
+          later = EnemyComponent(position: Vector2(0, 300));
+      final owner = CombatHealth(10),
+          attack = BossAttack(
+            shape: BossAttackShape.sweep(
+              Vector2.zero(),
+              400,
+              angle: 0,
+              arc: math.pi / 2,
+              innerRadius: 180,
+            ),
+            owner: owner,
+            warning: 1,
+            active: 1,
+          );
+      await tester.runAsync(() async {
+        game.world.addAll([hit, inside, later]);
+        game.addBossAttack(attack);
+        await game.ready();
+      });
+      attack.update(.9);
+      expect(hit.combatHealth.isDead, isFalse);
+      game.pauseGame();
+      attack.update(2);
+      expect(hit.combatHealth.isDead, isFalse);
+      game.resumeGame();
+      attack.update(.12);
+      expect(hit.combatHealth.isDead, isTrue);
+      expect(inside.combatHealth.isDead, isFalse);
+      expect(later.combatHealth.isDead, isFalse);
+      attack.update(.98);
+      expect(later.combatHealth.isDead, isTrue);
+      expect(inside.combatHealth.isDead, isFalse);
+      expect(game.gameState.kills, 0);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'boss lunges and active ground strikes respect solid cover and owner death',
+    (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final game = await mount(
+        tester,
+        loadout: const Loadout(training: true, arena: ArenaType.foundry),
+      );
+      final wall = game.geometry.obstacles.first,
+          y = game.geometry.obstacles.first.center.dy;
+      game.spawnBoss(BossKind.demon);
+      await tester.runAsync(game.ready);
+      final boss = game.bosses.single;
+      boss.position.setValues(wall.left - 300, y);
+      final front = EnemyComponent(position: Vector2(wall.left - 160, y)),
+          covered = EnemyComponent(position: Vector2(wall.right + 160, y));
+      await tester.runAsync(() async {
+        game.world.addAll([front, covered]);
+        await game.ready();
+      });
+      game.crowdOccupancy.rebuild(game.liveEnemies, game.crowdRadius);
+      game.moveTo(boss, Vector2(wall.right + 300, y), 80, crushMinions: true);
+      expect(front.combatHealth.isDead, isTrue);
+      expect(covered.combatHealth.isDead, isFalse);
+      expect(
+        boss.position.x,
+        lessThanOrEqualTo(wall.left - game.crowdRadius(boss) + .01),
+      );
+      game.clearMinionsInBossShape(
+        BossAttackShape.circle(Vector2(wall.left - 100, y), 1000),
+        1,
+      );
+      expect(covered.combatHealth.isDead, isFalse);
+      final owner = CombatHealth(10),
+          hazard = HostileArea(
+            position: covered.position.clone(),
+            radius: 90,
+            warning: 1,
+            active: .3,
+            bossKind: BossKind.queen,
+            ownerHealth: owner,
+          );
+      await tester.runAsync(() async {
+        game.world.add(hazard);
+        await game.ready();
+      });
+      hazard.update(.9);
+      expect(covered.combatHealth.isDead, isFalse);
+      owner.damage(10);
+      hazard.update(.2);
+      expect(covered.combatHealth.isDead, isFalse);
+      final ground = HostileArea(
+        position: covered.position.clone(),
+        radius: 90,
+        warning: 1,
+        active: .3,
+        bossKind: BossKind.queen,
+        ownerHealth: CombatHealth(10),
+      );
+      await tester.runAsync(() async {
+        game.world.add(ground);
+        await game.ready();
+      });
+      ground.update(1.05);
+      expect(covered.combatHealth.isDead, isTrue);
+      expect(game.gameState.kills, 0);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
     'committed attacks warn, absorb one guard hit, freeze and retire',
     (tester) async {
       addTearDown(tester.view.resetPhysicalSize);

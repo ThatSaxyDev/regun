@@ -1,3 +1,4 @@
+import 'package:regun/systems/boss_attack_shape.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
@@ -43,7 +44,15 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
       return;
     }
     if (game.gameState.gameplayState != GameplayState.playing) return;
+    final previousAge = age;
     age += dt;
+    if (age >= warning &&
+        previousAge < warning + active &&
+        bossKind != null &&
+        damage > 0) {
+      game.clearMinionsInBossShape(BossAttackShape.circle(position, radius), 1);
+    }
+
     if (age >= warning + active) {
       removeFromParent();
       return;

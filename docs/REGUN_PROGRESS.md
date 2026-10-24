@@ -1558,3 +1558,12 @@ excluded. Server validates and preserves the additive profile field; protected
 admin records show the observed breakdown. Hosted co-op retains its shared
 shuffle. See [BOSS_VARIETY.md](BOSS_VARIETY.md). Source only; device/deployment
 review pending.
+
+## Boss attacks clear minions — 24 October 2026
+
+Native and module combat now clear minions through committed lunge corridors and
+active boss strike geometry. Ordinary boss movement and warnings never clear
+minions. Wall/body constraints, sweep safe pockets and owner cleanup remain;
+collateral uses normal deaths without player rewards/procs. See
+[BOSS_COLLATERAL.md](BOSS_COLLATERAL.md). No admin/ENV change; source is not deployed
+or physically accepted by this entry.
