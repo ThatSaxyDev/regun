@@ -1056,7 +1056,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       child: ColoredBox(
         color: const Color(0xB30D0A10),
         child: SafeArea(
-          minimum: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          minimum: const EdgeInsets.fromLTRB(16, 24, 16, 8),
           child: Column(
             children: [
               Wrap(
