@@ -1,0 +1,26 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/supply_navigation_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +9: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +10: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +11: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_health_strip_test.dart: paired boss strips stay compact at large text 1.0
+00:00 +12: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:00 +13: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:01 +14: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:01 +15: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/supply_navigation_test.dart: real expired breakdown blasts once and spares the player
+00:01 +16: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/supply_navigation_test.dart: real expired breakdown blasts once and spares the player
+00:01 +17: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: each weapon fires its own visuals/audio, hits once, and clears hit feedback
+00:01 +18: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: each weapon fires its own visuals/audio, hits once, and clears hit feedback
+00:03 +19: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: damage cues track health loss, settings, protection and pause
+00:03 +20: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: distance damage is frame independent and secondary shots stay unchanged
+00:06 +21: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: held aim waits for full reloads and hostile dart pauses
+00:06 +22: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: render distinct firing and mechanical reload stages for review
+00:06 +23: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: (tearDownAll)
+00:06 +23: All tests passed!

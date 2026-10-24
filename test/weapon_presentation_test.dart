@@ -1,3 +1,7 @@
+import 'package:regun/components/enemies/enemy_component.dart';
+import 'package:regun/components/enemies/shadow_projectile.dart';
+import 'package:flame/collisions.dart';
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/models/player_profile.dart';
 
@@ -47,6 +51,14 @@ class _Audio extends SoloudPlay {
 }
 
 void main() {
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    for (final font in ['PressStart2P', 'Orbitron']) {
+      await (FontLoader(
+        font,
+      )..addFont(rootBundle.load('assets/fonts/$font-Regular.ttf'))).load();
+    }
+  });
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
 
@@ -59,6 +71,120 @@ void main() {
     );
     await LocalPreferences.shared.saveProfile();
   });
+  testWidgets(
+    'swept hostile rounds share the smaller hurt footprint and render compact boss HUD',
+    (tester) async {
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [soloudPlayProvider.overrideWithValue(_Audio())],
+            child: const MaterialApp(
+              home: RepaintBoundary(
+                key: Key('hurt-review'),
+                child: BaseView(loadout: Loadout(training: true)),
+              ),
+            ),
+          ),
+        );
+        final game =
+            tester
+                    .widget<RiverpodAwareGameWidget>(
+                      find.byType(RiverpodAwareGameWidget),
+                    )
+                    .game!
+                as RegunGame;
+        await game.loaded;
+        await tester.pump();
+        await game.ready();
+        game.update(2);
+        game.trainingDamage = true;
+        expect(
+          game.myPlayer.children.whereType<CircleHitbox>().single.radius,
+          PlayerHurtGeometry.radius,
+        );
+        expect(game.myPlayer.size.x, 100);
+        for (final entry in [
+          (false, 34.0, false),
+          (false, 32.0, true),
+          (true, 36.0, false),
+          (true, 34.0, true),
+        ]) {
+          game.gameNotifier.advanceTime(1);
+          game.myPlayer.position.setValues(200, entry.$2);
+          final shot = entry.$1
+              ? ShadowProjectile(
+                  position: Vector2(-200, entry.$2),
+                  direction: Vector2(1, 0),
+                  speed: 800,
+                )
+              : Enemy3Projectile(position: Vector2(-200, entry.$2), speed: 800);
+          await game.world.add(shot);
+          await game.ready();
+          game.myPlayer.position.setZero();
+          final health = game.gameState.health;
+          shot.update(.5);
+          expect(
+            game.gameState.health,
+            health - (entry.$3 ? 1 : 0),
+            reason: 'shadow=${entry.$1} offset=${entry.$2}',
+          );
+          shot.removeFromParent();
+          await game.ready();
+        }
+        for (final offset in [
+          Vector2(52, 0),
+          Vector2(0, 52),
+          Vector2(50, 0),
+          Vector2(0, 50),
+        ]) {
+          game.gameNotifier.advanceTime(1);
+          final enemy = EnemyComponent(position: offset);
+          await game.world.add(enemy);
+          await game.ready();
+          final health = game.gameState.health;
+          enemy.update(0);
+          expect(
+            game.gameState.health,
+            health - (offset.length < 51.5 ? 1 : 0),
+          );
+          enemy.removeFromParent();
+          await game.ready();
+        }
+        game.practiceBoss(BossKind.marshal);
+        await game.ready();
+        game.spawnBoss(BossKind.magistrate, companion: true);
+        await game.ready();
+        await tester.pump();
+        expect(
+          find.byKey(const ValueKey('boss-health-marshal')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey('boss-health-magistrate')),
+          findsOneWidget,
+        );
+        final strip = tester.getRect(
+          find.byKey(const ValueKey('boss-health-marshal')),
+        );
+        expect(strip.height, lessThanOrEqualTo(24));
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find.byKey(const Key('hurt-review')),
+        );
+        final image = await boundary.toImage(pixelRatio: 2);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        await Directory('build/test-previews').create(recursive: true);
+        await File('build/test-previews/compact-boss-hurt.png')
+            .writeAsBytes(bytes!.buffer.asUint8List());
+        image.dispose();
+      });
+      await tester.pumpWidget(const SizedBox());
+      expect(tester.takeException(), isNull);
+    },
+  );
   testWidgets(
     'bullet impacts shove within occupancy, resist mass and cannot stack-lock',
     (tester) async {
@@ -398,7 +524,7 @@ void main() {
       game.update(.3);
       expect(game.damageFeedback.remaining, remaining);
       game.resumeGame();
-      game.damageFeedback.update(.51);
+      game.damageFeedback.update(.91);
       await tester.pump();
       expect(find.text('-1'), findsNothing);
       game.gameNotifier.advanceTime(.6);

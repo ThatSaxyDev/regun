@@ -212,6 +212,9 @@ void main() {
           reason: 'Committed attacks do not steer around cover',
         );
         enemy.position.setValues(-100, -180);
+        // Leave room beyond cover for sixteen non-overlapping bodies to gather
+        // around the player; this tests passage rather than crowd compression.
+        game.myPlayer.position.setValues(650, -26);
         final pack = <PositionComponent>[
           enemy,
           for (var i = 1; i < 16; i++)
@@ -238,7 +241,7 @@ void main() {
           pack.every((body) => body.position.x > 91),
           isTrue,
           reason:
-              'A pursuing pack must pass the pod, not queue against its face',
+              'A pursuing pack must pass the pod, not queue against its face: ${pack.map((body) => body.position).toList()}',
         );
         await tester.pumpWidget(const SizedBox());
       });

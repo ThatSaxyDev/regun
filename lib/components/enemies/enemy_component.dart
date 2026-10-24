@@ -1,3 +1,4 @@
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 
@@ -58,6 +59,11 @@ class EnemyComponent extends SpriteAnimationComponent
     //! MOVE ENEMY TOWARDS PLAYER
     const speed = 60;
     game.moveActor(this, direction, speed.toDouble(), dt);
+    const contact = 25.5 + PlayerHurtGeometry.radius;
+    if (position.distanceToSquared(playerPosition) <= contact * contact &&
+        !game.segmentBlocked(position, playerPosition)) {
+      game.damagePlayer(cause: 'Scorpion');
+    }
 
     if (playerPosition.x > position.x) {
       animation = moveRightAnimation;

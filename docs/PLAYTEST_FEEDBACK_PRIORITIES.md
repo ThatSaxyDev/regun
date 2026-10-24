@@ -115,3 +115,13 @@ Gameplay parameters that affect online outcomes must match the server; purely
 visual HUD/hurt presentation does not need arbitrary new admin controls. New-run
 balance pinning, Continue compatibility, control placement and Reduced Motion
 remain acceptance requirements for every pass.
+
+
+## First implementation pass — 25 October 2026
+
+Combat visibility and the shared smaller hurt footprint are implemented locally;
+see [COMBAT_VISIBILITY_AND_HURTBOX.md](COMBAT_VISIBILITY_AND_HURTBOX.md) for actual
+behavior, evidence and rollout limits. This supersedes the proposed 26-unit
+comparison above. The creator tuned shotgun values in admin independently;
+this implementation deliberately makes no shotgun/catalogue/publication changes.
+Other feedback items remain planned.

@@ -1,3 +1,4 @@
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/presentation/burster_walk.dart';
 
 import 'dart:math' as math;
@@ -161,7 +162,7 @@ class ArenaEnemy extends PositionComponent
                     before,
                     position,
                   ) <
-                  52 * 52 &&
+                  PlayerHurtGeometry.reach(52) * PlayerHurtGeometry.reach(52) &&
               !game.segmentBlocked(position, game.myPlayer.position)) {
             game.damagePlayer(cause: kind.title);
           }
@@ -182,7 +183,9 @@ class ArenaEnemy extends PositionComponent
             clock = 0;
           }
         } else if (phase == 1 && clock > 0.75) {
-          if (distance < 140) game.damagePlayer(cause: kind.title);
+          if (distance < PlayerHurtGeometry.reach(140)) {
+            game.damagePlayer(cause: kind.title);
+          }
           game.addCombatEffect(
             CombatEffect(
               position: position.clone(),
@@ -212,7 +215,9 @@ class ArenaEnemy extends PositionComponent
             clock = 0;
           }
         } else if (clock >= 0.9) {
-          if (distance < 150) game.damagePlayer(cause: kind.title);
+          if (distance < PlayerHurtGeometry.reach(150)) {
+            game.damagePlayer(cause: kind.title);
+          }
           combatHealth.damage(
             combatHealth.maximum,
           ); // A self-detonation grants no kill reward.

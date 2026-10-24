@@ -674,3 +674,21 @@ leaps/charges must still stop at cover. Repeat in online co-op after matching
 server deployment. The future sentry must register its base in the same geometry;
 70×44 proxy and adjacent-cover regressions cover that foundation, not a completed
 sentry feature. See AIRDROP_NAVIGATION_FIX.md.
+
+
+## Combat visibility and hurt footprint — 25 October 2026
+
+Fight one boss, then a Training pair on small landscape screens and larger text.
+The top HUD should show thin transparent name/health strips without an opaque
+combat plate. Check the enrage marker and both identities. Take a real hit, then
+compare guard absorption and protection: only lost HP should show the warmer
+survivor response, stronger brackets and the .9s HP readout above the body/heart.
+Repeat with Reduced Motion, muted audio, pause and restart; movement must stay
+responsive and the camera steady.
+
+Graze Revenant darts and Shadow bolts: a clearly missed smaller body should be
+safe, but fast rounds crossing the body between frames should still hit. Check
+Skitter leaps, Shadow/Demon charges, ground edges and ring safe pockets; movement
+clearance against fences/pods is unchanged. Repeat online only after matching
+server deployment. Confirm fresh runs still use your chosen admin shotgun values;
+this change does not publish or modify them. See COMBAT_VISIBILITY_AND_HURTBOX.md.

@@ -1,3 +1,4 @@
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -100,7 +101,9 @@ class Enemy2Component extends SpriteAnimationComponent
     final distanceToPlayer = (playerPosition - position).length;
 
     //! DEFINE A MINIMUM DISTANCE TO STOP BEFORE TOUCHING THE PLAYER
-    const minimumDistance = 40.0; // Adjust this value as needed
+    final minimumDistance = PlayerHurtGeometry.reach(
+      40,
+    ); // Adjust this value as needed
 
     //! MOVE ENEMY TOWARDS PLAYER IF IT'S FARTHER THAN THE MINIMUM DISTANCE
     if (distanceToPlayer > minimumDistance) {

@@ -2524,7 +2524,7 @@ class RegunGame extends FlameGame
       );
     }
     if (gameState.health < health) {
-      myPlayer.hurtFlash = 0.32;
+      myPlayer.hurtFlash = 0.48;
       damageFeedback.trigger(amount: health - gameState.health);
       if (activeBoss != null) {
         _bossWasHit = true;

@@ -1,3 +1,4 @@
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/systems/boss_attack_shape.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/presentation/boss_vfx.dart';
@@ -212,7 +213,7 @@ class ShadowBossComponent extends PositionComponent
                   before,
                   position,
                 ) <
-                80 * 80 &&
+                PlayerHurtGeometry.reach(80) * PlayerHurtGeometry.reach(80) &&
             !game.segmentBlocked(before, game.myPlayer.position)) {
           game.damagePlayer(cause: 'Shadow dash');
         }
@@ -234,7 +235,7 @@ class ShadowBossComponent extends PositionComponent
             BossAttackShape.circle(position, 270),
             1,
           );
-          if (distance <= 270 &&
+          if (distance <= PlayerHurtGeometry.reach(270) &&
               !game.segmentBlocked(position, game.myPlayer.position)) {
             game.damagePlayer(cause: 'Shadow strike');
           }

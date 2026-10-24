@@ -1,3 +1,5 @@
+import 'package:regun/components/weapons/bullet_component.dart';
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
@@ -114,6 +116,18 @@ class Enemy3Projectile extends PositionComponent
     }
     final before = position.clone();
     position.addScaled(_velocity, dt);
+    final contact = bulletRadius + PlayerHurtGeometry.radius;
+    if (BulletComponent.segmentDistanceSquared(
+              game.myPlayer.position,
+              before,
+              position,
+            ) <=
+            contact * contact &&
+        !game.segmentBlocked(before, game.myPlayer.position)) {
+      game.damagePlayer(cause: 'Revenant shot');
+      removeFromParent();
+      return;
+    }
     if (game.segmentBlocked(before, position) ||
         position.distanceToSquared(startPosition!) >
             maxTravelDistance * maxTravelDistance ||

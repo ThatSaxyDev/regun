@@ -7,7 +7,7 @@ import 'package:regun/notifiers/game_notifier.dart';
 class DamageFeedback extends PositionComponent
     with HasGameReference<RegunGame> {
   DamageFeedback() : super(priority: 100000);
-  static const duration = .5;
+  static const duration = .9;
   final healthLost = ValueNotifier<int>(0);
   double remaining = 0;
   void trigger({required int amount}) {

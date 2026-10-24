@@ -650,3 +650,19 @@ API/admin components and rank fixtures agree. The shared catalog has314 fields.
 Wide admin headers place art beside copy. Mobile upgrade offers use a compact
 header/wider columns and a pinned reroll footer; long/large text scrolls inside.
 No publication/installation or physical acceptance is implied by builds/tests.
+
+
+## Combat visibility and player hurt geometry (2026-10-25)
+
+Read sibling game docs/COMBAT_VISIBILITY_AND_HURTBOX.md (game repo: docs path).
+Player damage footprint is26 via PlayerHurtGeometry / PLAYER_HURT_RADIUS; keep
+movement/cover clearance30 and art/feet unchanged. Legacy center-authored contact
+ranges replace their included30-unit player portion instead of adding another
+margin. Revenant7 and Shadow9 hostile radii use swept contact, not a competing
+frame-end player callback. Scorpion contact is the same circular distance above
+and beside the survivor. Keep ordinary/legacy boss hazard parity and safe pockets.
+Compact transparent boss strips replace opaque plates; accepted HP loss has a
+.48s survivor cue and .9s local/HUD readout, with a single70ms pale onset omitted
+in Reduced Motion. Guard/protection do not emit health-loss cues. Creator-edited
+shotgun/live balance is untouched; no catalogue/publication change is needed.
+Phone review and matching hosted deployment remain separate from local builds.

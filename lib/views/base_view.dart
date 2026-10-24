@@ -1,3 +1,4 @@
+import 'package:regun/widgets/boss_health_strip.dart';
 import 'package:regun/widgets/rank_path_preview.dart';
 import 'package:regun/services/economy/armory_repository.dart';
 import 'package:regun/widgets/solo_revive_panel.dart';
@@ -464,36 +465,16 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                   children: [
                     for (final boss in bosses)
                       Flexible(
-                        child: Container(
-                          constraints: const BoxConstraints(maxWidth: 380),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          color: const Color(0xD91D1821),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${(boss as BossEncounter).kind.title.toUpperCase()}${(boss as BossEncounter).enraged ? ' / ENRAGED' : ''}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontFamily: FontFam.pressStart,
-                                  fontSize: bosses.length > 1 ? 8 : 10,
-                                  color: _paper,
-                                ),
-                              ),
-                              const SizedBox(height: 7),
-                              LinearProgressIndicator(
-                                value:
-                                    (boss as CombatEnemy).combatHealth.fraction,
-                                minHeight: 5,
-                                color: const Color(0xffC782A3),
-                                backgroundColor: const Color(0xff392B3D),
-                              ),
-                            ],
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 300),
+                          child: BossHealthStrip(
+                            key: ValueKey(
+                              'boss-health-${(boss as BossEncounter).kind.name}',
+                            ),
+                            name: (boss as BossEncounter).kind.title,
+                            fraction:
+                                (boss as CombatEnemy).combatHealth.fraction,
+                            enraged: (boss as BossEncounter).enraged,
                           ),
                         ),
                       ),

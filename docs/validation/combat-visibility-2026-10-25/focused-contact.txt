@@ -1,0 +1,22 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: (setUpAll)
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:00 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:00 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:00 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: swept hostile rounds share the smaller hurt footprint and render compact boss HUD
+00:01 +9: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/supply_navigation_test.dart: real Mummy pursuit rounds a solid pod; committed movement still stops at it
+00:01 +10: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: bullet impacts shove within occupancy, resist mass and cannot stack-lock
+00:01 +11: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/supply_navigation_test.dart: real expired breakdown blasts once and spares the player
+00:01 +12: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: each weapon fires its own visuals/audio, hits once, and clears hit feedback
+00:01 +13: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: each weapon fires its own visuals/audio, hits once, and clears hit feedback
+00:03 +14: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: damage cues track health loss, settings, protection and pause
+00:04 +15: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: distance damage is frame independent and secondary shots stay unchanged
+00:06 +16: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: held aim waits for full reloads and hostile dart pauses
+00:06 +17: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: render distinct firing and mechanical reload stages for review
+00:07 +18: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_presentation_test.dart: (tearDownAll)
+00:07 +18: All tests passed!

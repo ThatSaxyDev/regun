@@ -808,7 +808,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                   OnlineObjectives(session: session),
                   OnlineCombatHud(session: session),
                 ],
-                if (seconds - damageAt < .5)
+                if (seconds - damageAt < .9)
                   Positioned.fill(
                     child: IgnorePointer(
                       child: DecoratedBox(
@@ -817,7 +817,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                             colors: [
                               Colors.transparent,
                               const Color(0xffA54F42).withValues(
-                                alpha: (1 - (seconds - damageAt) / .5) * .35,
+                                alpha: (1 - (seconds - damageAt) / .9) * .35,
                               ),
                             ],
                             stops: const [.65, 1],
@@ -826,7 +826,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                       ),
                     ),
                   ),
-                if (seconds - damageAt < .5)
+                if (seconds - damageAt < .9)
                   Positioned(
                     top: 110,
                     left: 16,
@@ -1235,7 +1235,7 @@ class _ArenaPainter extends CustomPainter {
       final p =
           positions[member.identity.toHexString] ?? Offset(member.x, member.y);
       final key = member.identity.toHexString, gun = session.fighters[key];
-      final hurt = seconds - (hurtTimes[key] ?? -10) < .32;
+      final hurt = seconds - (hurtTimes[key] ?? -10) < .48;
       final shotAge = seconds - (shotTimes[key] ?? -10);
       final color = member.team == 0
           ? const Color(0xffA9C990)

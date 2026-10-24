@@ -1,3 +1,4 @@
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/theme/pixel_glyph.dart';
@@ -15,9 +16,6 @@ import 'package:regun/components/weapons/weapon_art.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:regun/presentation/regun_art.dart';
-import 'package:regun/components/enemies/enemy_component.dart';
-import 'package:regun/components/enemies/enemy_3_projectile.dart';
-import 'package:regun/components/enemies/shadow_projectile.dart';
 import 'package:regun/components/game_utils/coin_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -63,7 +61,7 @@ class PlayerComponent extends SpriteAnimationComponent
     animation = _idle[0];
     add(
       CircleHitbox(
-        radius: collisionRadius,
+        radius: PlayerHurtGeometry.radius,
         position: size / 2,
         anchor: Anchor.center,
         collisionType: CollisionType.active,
@@ -258,7 +256,7 @@ class PlayerComponent extends SpriteAnimationComponent
       'engineer' => const Color(0xffF2D28D),
       _ => null,
     };
-    paint.colorFilter = hurtFlash > .25 && !game.preferences.reducedMotion
+    paint.colorFilter = hurtFlash > .41 && !game.preferences.reducedMotion
         ? const ColorFilter.mode(Color(0xffFFF0DB), BlendMode.srcATop)
         : hurtFlash > 0
         ? const ColorFilter.mode(Color(0xffEFA28E), BlendMode.modulate)
@@ -396,10 +394,30 @@ class PlayerComponent extends SpriteAnimationComponent
             Offset(size.x / 2 + dx * 33, size.y / 2),
             Offset(size.x / 2 + dx * 26, size.y / 2 + 13),
           ],
-          const Color(0xffD7A69C),
-          4,
+          const Color(0xffF4B39B),
+          6,
         );
       }
+    }
+    if (game.damageFeedback.remaining > 0) {
+      final label = TextPainter(
+        text: TextSpan(
+          text: '-${game.damageFeedback.healthLost.value} HP',
+          style: const TextStyle(
+            fontFamily: 'Orbitron',
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: Color(0xffFFD0BA),
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final origin = Offset((size.x - label.width) / 2, -18);
+      canvas.drawRect(
+        origin & Size(label.width, label.height),
+        Paint()..color = const Color(0xdd291C1C),
+      );
+      label.paint(canvas, origin);
     }
     if (game.gameState.guard) {
       // A quiet status badge, never enemy chain sprites around the body.
@@ -420,17 +438,6 @@ class PlayerComponent extends SpriteAnimationComponent
   }
 
   @override
-  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
-    if (other is CombatEnemy && other.freezeHeld) return;
-    super.onCollision(intersectionPoints, other);
-    if (other is EnemyComponent &&
-        !other.isRemoving &&
-        game.damagePlayer(cause: 'Scorpion')) {
-      // Contact hurts the player; it does not bypass enemy health.
-    }
-  }
-
-  @override
   void onCollisionStart(
     Set<Vector2> intersectionPoints,
     PositionComponent other,
@@ -443,12 +450,6 @@ class PlayerComponent extends SpriteAnimationComponent
       other.removeFromParent();
       game.audio.play('coinSound2.wav');
       game.gameNotifier.increaseXP(other.value);
-    } else if (other is Enemy3Projectile || other is ShadowProjectile) {
-      if (other.isRemoving) return;
-      other.removeFromParent();
-      game.damagePlayer(
-        cause: other is ShadowProjectile ? 'Shadow bolt' : 'Revenant shot',
-      );
     }
   }
 }

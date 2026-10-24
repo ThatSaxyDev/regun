@@ -1,3 +1,4 @@
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/models/combat_health.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:flame/collisions.dart';
@@ -33,7 +34,7 @@ class ShadowProjectile extends PositionComponent
       return;
     }
     direction ??= (game.myPlayer.position - position).normalized();
-    add(CircleHitbox(radius: 11, collisionType: CollisionType.passive));
+    add(CircleHitbox(radius: 9, collisionType: CollisionType.passive));
   }
 
   @override
@@ -53,7 +54,7 @@ class ShadowProjectile extends PositionComponent
               before,
               position,
             ) <=
-            39 * 39 &&
+            (9 + PlayerHurtGeometry.radius) * (9 + PlayerHurtGeometry.radius) &&
         !game.segmentBlocked(before, game.myPlayer.position)) {
       game.damagePlayer(cause: 'Shadow bolt');
       removeFromParent();

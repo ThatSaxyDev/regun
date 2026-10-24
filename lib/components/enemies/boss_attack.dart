@@ -1,3 +1,4 @@
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/presentation/boss_art.dart';
 import 'package:flame/components.dart';
@@ -71,7 +72,12 @@ class BossAttack extends PositionComponent with HasGameReference<RegunGame> {
     }
     if (age >= delay + warning &&
         !_hit &&
-        shape.hits(game.myPlayer.position, progress, previous: previous) &&
+        shape.hits(
+          game.myPlayer.position,
+          progress,
+          previous: previous,
+          body: PlayerHurtGeometry.radius,
+        ) &&
         !game.segmentBlocked(shape.points.first, game.myPlayer.position)) {
       if (game.damagePlayer(amount: damage, cause: cause)) _hit = true;
     }

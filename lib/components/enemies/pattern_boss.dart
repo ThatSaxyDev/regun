@@ -1,3 +1,4 @@
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
@@ -161,7 +162,7 @@ class PatternBoss extends PositionComponent
         1,
       );
       final delta = game.myPlayer.position - position;
-      if (delta.length < 340 &&
+      if (delta.length < PlayerHurtGeometry.reach(340) &&
           delta.normalized().dot(_direction) >= cos(1.75) &&
           !game.segmentBlocked(position, game.myPlayer.position)) {
         game.damagePlayer(amount: 2, cause: 'Demon cleave');
@@ -262,7 +263,7 @@ class PatternBoss extends PositionComponent
                     before,
                     position,
                   ) <
-                  85 * 85 &&
+                  PlayerHurtGeometry.reach(85) * PlayerHurtGeometry.reach(85) &&
               !game.segmentBlocked(before, game.myPlayer.position)) {
             game.damagePlayer(amount: 2, cause: 'Demon charge');
           }

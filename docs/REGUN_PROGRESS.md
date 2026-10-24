@@ -1634,3 +1634,19 @@ Authoritative ordinary movement gains matching bounded body slides. New dense
 pod/proposed-sentry-footprint cases and real mixed-enemy pursuit supplement old
 isolated/straight-line tests. See AIRDROP_NAVIGATION_FIX.md for evidence and
 scope. No installation, publication or live server deployment is implied.
+
+
+## Combat visibility and smaller shared hurt footprint — 25 October 2026
+
+Compact transparent boss name/health strips replace the large opaque plates;
+paired identities/enrage/accessibility remain. Accepted-health-loss cues use a
+.48s survivor response, stronger local brackets and .9s local/HUD loss readout,
+with unchanged haptic/sound gating and steady camera. Damage uses a shared
+26-unit player hurt radius; movement/cover clearance stays 30. Legacy combined
+contact reaches replace their prior 30-unit player portion, while boss shapes
+and hostile sweeps use the shared radius explicitly. Revenant rounds now sweep
+instead of depending on frame-end collision. Native/hosted near-hit/miss fixtures
+agree; legacy center-authored online areas no longer gain an extra player margin.
+Read COMBAT_VISIBILITY_AND_HURTBOX.md. The creator's admin-edited shotgun values
+are untouched; no catalogue generation/publication, installation or deployment
+is implied. Phone visibility/comfort and difficulty remain for review.

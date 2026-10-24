@@ -1,3 +1,4 @@
+import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/systems/boss_attack_shape.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/presentation/boss_vfx.dart';
@@ -70,7 +71,9 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
       game.audio.play(poison ? 'impact_poison.wav' : 'impact_boss.wav');
     }
     if (age >= warning &&
-        position.distanceToSquared(game.myPlayer.position) < radius * radius) {
+        position.distanceToSquared(game.myPlayer.position) <
+            PlayerHurtGeometry.reach(radius) *
+                PlayerHurtGeometry.reach(radius)) {
       game.damagePlayer(amount: damage, cause: cause);
     }
   }
