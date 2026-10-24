@@ -1490,3 +1490,13 @@ See REVIVE_POLICY.md for trust boundaries, rollout and phone checks. Offline Sol
 eligibility/earnings remain device-reported; receipts do not prove fair ranked
 combat and this contract must not back cash value. Source changes do not deploy,
 bump the current release, build a package or install on a phone.
+
+
+## Original intro restored (24 October 2026)
+
+Restored Flame → godKiishi → Menu at the creator's request. Existing native Rook
+launch art stays. The original engine layers/creator bitmap and timing are reused,
+with a cancellable owned timeline, paused background playback, still Reduced
+Motion presentation and one-shot menu route replacement. Existing local startup
+preparation remains before the intro; menu/update/account/music behavior is not
+moved into it. See ROOK_BRANDING.md and startup/menu/update regression tests.

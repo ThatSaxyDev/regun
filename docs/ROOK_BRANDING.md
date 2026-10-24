@@ -14,10 +14,36 @@ The launcher and startup use Rook's front-facing helmet, cyan visor and ochre sc
 
 [Android's splash-screen guidance](https://developer.android.com/develop/ui/views/launch/splash-screen) requires an icon without a background to fit a circle of diameter 192dp in its 288dp area. The generated Android 12 mark's critical radius is **0.3114×canvas width**, below the allowed **1/3**. Native splash uses one opaque `#161B18` background; the mark itself has transparency. iOS uses centered launch art.
 
-Flutter startup displays the same mark and background, then replaces its route with Menu after local preferences and the image are ready. There is no extra engine-logo/old-arrow interstitial or forced logo timer. The 280ms menu fade is disabled for Reduced Motion, and mounted guards protect an interrupted startup.
+The20 October Flutter startup initially displayed the same Rook mark and background,
+then replaced its route with Menu after local preparation. The creator restored the
+original Flame/godKiishi intro on24 October; see the current flow below.
 
 ## Generation and acceptance
 
 `dart run flutter_launcher_icons` and `dart run flutter_native_splash:create` regenerate native assets from `pubspec.yaml`. The splash generator also updates web startup; retain the SoLoud loader before Flutter bootstrap. Launcher generator version 0.14.4 adds the required configurable adaptive inset. Generators resize/export the source art; no hand-painted native-size variants are needed.
 
 Verified: source/derived dimensions, opaque iOS store icon, unmasked square source, adaptive foreground XML/background, critical Android alpha bounds and Android 12 bounds. Human Home Screen appearance, OS icon caching, device splash transitions and themed launcher behavior still need hands-on review.
+
+
+## Restored intro —24 October 2026
+
+The creator explicitly requested the original Flame engine intro followed by the
+original `assets/images/splash_image.png` godKiishi artwork, then Menu. Rook remains
+the native launch/launcher identity. Flutter uses the original Flame package's logo
+layers and pulsing composite; each logo retains its original3.2-second beat
+(750ms fade in,2s hold,450ms fade out). Reduced Motion shows still logos without
+fades or the pulsing Flame, preserving the same sequence.
+
+Local preferences/account-cache initialization and image precaching complete
+before the sequence begins. Account initialization remains local; no network
+request is added. Menu still owns passive update checking, music and account
+flows. One owned animation controller sequences the two logos instead of the
+package's uncancellable delayed callbacks. Backgrounding freezes it and the logo
+pulse; resume continues the same sequence. Disposal cancels animation, mounted
+checks guard pending preparation and a one-shot route replacement prevents
+returning to the intro from Menu.
+
+Startup tests check ordering, completed route replacement, Reduced Motion,
+background/resume and disposal alongside existing menu/update regressions.
+Rendered evidence: `build/test-previews/startup-flame.png` and
+`startup-godkiishi.png`. No native launch asset or release version change is made.
