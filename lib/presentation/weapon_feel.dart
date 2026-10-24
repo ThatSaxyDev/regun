@@ -59,6 +59,39 @@ class WeaponFeel {
   }
 
   static WeaponFeel of(WeaponType type) => switch (type) {
+    WeaponType.houndrack => const WeaponFeel(
+      Color(0xffEDC48A),
+      68,
+      .30,
+      3.5,
+      .08,
+      16,
+      6,
+      14,
+      22,
+    ),
+    WeaponType.stormOrb => const WeaponFeel(
+      Color(0xffB7DFD5),
+      65,
+      .30,
+      8,
+      .18,
+      22,
+      16,
+      12,
+      36,
+    ),
+    WeaponType.ringCaster => const WeaponFeel(
+      Color(0xffD6DBBF),
+      62,
+      .30,
+      6,
+      .16,
+      12,
+      8,
+      0,
+      28,
+    ),
     WeaponType.shotgun => const WeaponFeel(
       Color(0xffE9BC75),
       64,

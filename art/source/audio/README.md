@@ -83,3 +83,14 @@ low mechanical body/ratchet textures, not ringing oscillators.122 expansion cues
 pass validation; representative mixed peak.6483. All previously packaged WAVs
 outside the six were hash-compared and remain byte-identical. See
 validation/heavy-weapon-feel-2026-10-22 and HEAVY_WEAPON_FEEL_REVIEW.md under docs.
+
+## Rocket propulsion and passing orb — 24 October2026
+
+`generate_frontier_audio.py` overrides the earlier rifle-like Houndrack launches
+with low-pressure ignition (existing CC0 cannon), a small pump contact and
+original deterministic filtered propulsion air. Storm Orb uses the existing CC0
+rifle mechanism under original low electrical launch/hum/crackle layers. Four
+short shared flight/zap/pass cues are added; no external recording or voice.
+Full expansion generation invokes this correction last. See
+`docs/art/FRONTIER_AUDIO_REVIEW.md` for native gains, overlap limits, hashes and
+review commands. Other weapons/music/reload recordings are preserved.

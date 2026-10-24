@@ -1,0 +1,5 @@
+python3 tool/preview_frontier_audio.py
+11 propulsion/electrical cues verified; 18-rocket + orb listening/stress reel peak 0.4240.
+
+python3 tool/preview_expansion_audio.py
+148 expansion cues verified; reel peak 0.6483.

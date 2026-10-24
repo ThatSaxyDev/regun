@@ -701,45 +701,6 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     ),
   );
 
-  Widget _overlay({required Widget child}) => Positioned.fill(
-    child: ColoredBox(
-      color: const Color(0xB30D0A10),
-      child: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: child,
-          ),
-        ),
-      ),
-    ),
-  );
-
-  Widget _heading(String text, {String? subtitle}) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontFamily: FontFam.pressStart,
-          fontSize: 22,
-          height: 1.5,
-          color: _paper,
-        ),
-      ),
-      if (subtitle != null)
-        Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: _muted, fontSize: 13),
-          ),
-        ),
-    ],
-  );
-
   Future<void> _openSettings() async {
     await Navigator.of(context).push(
       GamePageRoute(
@@ -1080,107 +1041,162 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     ),
   ];
 
-  Widget _upgradePicker(GameState state) => _overlay(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _heading(
-          state.evolutionChoices.isNotEmpty
-              ? 'FUSE'
-              : _myGame.gameNotifier.supplyOffer
-              ? 'AIRDROP'
-              : 'UPGRADE',
-          subtitle: state.evolutionChoices.isNotEmpty
-              ? null
-              : _myGame.gameNotifier.supplyOffer
-              ? 'Supply secured'
-              : 'Level ${state.currentLevel}',
-        ),
-        const SizedBox(height: 16),
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth:
-                ((state.evolutionChoices.length + state.powerUpChoices.length) *
-                            222 -
-                        12)
-                    .clamp(210, 654)
-                    .toDouble(),
-          ),
-          child: MenuCardGrid(
-            minColumnWidth: 210,
+  Widget _upgradePicker(GameState state) {
+    final title = state.evolutionChoices.isNotEmpty
+        ? 'FUSE'
+        : _myGame.gameNotifier.supplyOffer
+        ? 'AIRDROP'
+        : 'UPGRADE';
+    final subtitle = state.evolutionChoices.isNotEmpty
+        ? null
+        : _myGame.gameNotifier.supplyOffer
+        ? 'Supply secured'
+        : 'Level ${state.currentLevel}';
+    return Positioned.fill(
+      child: ColoredBox(
+        color: const Color(0xB30D0A10),
+        child: SafeArea(
+          minimum: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
             children: [
-              for (final id in state.evolutionChoices)
-                _upgradeCard(
-                  fusionRecipes.firstWhere((r) => r.id == id).title,
-                  fusionRecipes.firstWhere((r) => r.id == id).description,
-                  'FUSION',
-                  () => _myGame.gameNotifier.fuse(id, offerId: state.offerId),
-                  glyph: fusionGlyph(id),
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 16,
+                runSpacing: 4,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: FontFam.pressStart,
+                      fontSize: 16,
+                      height: 1.3,
+                      color: _paper,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontFamily: FontFam.orbitron,
+                        fontSize: 12,
+                        color: _muted,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: SingleChildScrollView(
+                  key: const Key('upgrade-offer-scroll'),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth:
+                            ((state.evolutionChoices.length +
+                                            state.powerUpChoices.length) *
+                                        282 -
+                                    12)
+                                .clamp(210, 900)
+                                .toDouble(),
+                      ),
+                      child: MenuCardGrid(
+                        minColumnWidth: 210,
+                        children: [
+                          for (final id in state.evolutionChoices)
+                            _upgradeCard(
+                              fusionRecipes.firstWhere((r) => r.id == id).title,
+                              fusionRecipes
+                                  .firstWhere((r) => r.id == id)
+                                  .description,
+                              'FUSION',
+                              () => _myGame.gameNotifier.fuse(
+                                id,
+                                offerId: state.offerId,
+                              ),
+                              glyph: fusionGlyph(id),
+                            ),
+                          for (final choice in state.powerUpChoices)
+                            _upgradeCard(
+                              choice == PowerUp.dashCapacity &&
+                                      state.rank(choice) > 0
+                                  ? 'Triple Dash'
+                                  : choice.title,
+                              upgradeDescription(
+                                choice,
+                                rank: state.rank(choice),
+                              ),
+                              choice == PowerUp.salvage
+                                  ? 'RECOVERY'
+                                  : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${state.rankLimit(choice)}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',
+                              () => _myGame.gameNotifier.applyPowerUp(
+                                choice,
+                                offerId: state.offerId,
+                              ),
+                              copy: UpgradeOfferCopy(
+                                key: ValueKey(
+                                  '${state.offerId}-${choice.name}-${state.rank(choice)}',
+                                ),
+                                description: upgradeDescription(
+                                  choice,
+                                  rank: state.rank(choice),
+                                ),
+                                summary: upgradeDetails(
+                                  choice,
+                                  state,
+                                  _myGame.loadout.weapon,
+                                  balance: _myGame.gameNotifier.buildBalance,
+                                  power: _myGame.gameNotifier.weaponPower,
+                                  character: _myGame.loadout.character,
+                                  brief: true,
+                                ),
+                                details: upgradeDetails(
+                                  choice,
+                                  state,
+                                  _myGame.loadout.weapon,
+                                  balance: _myGame.gameNotifier.buildBalance,
+                                  power: _myGame.gameNotifier.weaponPower,
+                                  character: _myGame.loadout.character,
+                                ),
+                                initiallyExpanded: _myGame.loadout.training,
+                              ),
+                              glyph: choice.glyph,
+                              onBan: state.bans > 0 && choice != PowerUp.salvage
+                                  ? () => _myGame.gameNotifier.ban(
+                                      choice,
+                                      offerId: state.offerId,
+                                    )
+                                  : null,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              for (final choice in state.powerUpChoices)
-                _upgradeCard(
-                  choice == PowerUp.dashCapacity && state.rank(choice) > 0
-                      ? 'Triple Dash'
-                      : choice.title,
-                  upgradeDescription(choice, rank: state.rank(choice)),
-                  choice == PowerUp.salvage
-                      ? 'RECOVERY'
-                      : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${state.rankLimit(choice)}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',
-                  () => _myGame.gameNotifier.applyPowerUp(
-                    choice,
-                    offerId: state.offerId,
+              ),
+              if (state.evolutionChoices.isEmpty && state.rerolls > 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: ClickButtonM(
+                    key: const Key('upgrade-reroll'),
+                    text: 'Reroll (${state.rerolls})',
+                    width:
+                        170 *
+                        MediaQuery.textScalerOf(context)
+                            .scale(1)
+                            .clamp(1.0, 2.0),
+                    height: 48,
+                    onTap: () =>
+                        _myGame.gameNotifier.reroll(offerId: state.offerId),
                   ),
-                  copy: UpgradeOfferCopy(
-                    key: ValueKey(
-                      '${state.offerId}-${choice.name}-${state.rank(choice)}',
-                    ),
-                    description: upgradeDescription(
-                      choice,
-                      rank: state.rank(choice),
-                    ),
-                    summary: upgradeDetails(
-                      choice,
-                      state,
-                      _myGame.loadout.weapon,
-                      balance: _myGame.gameNotifier.buildBalance,
-                      power: _myGame.gameNotifier.weaponPower,
-                      character: _myGame.loadout.character,
-                      brief: true,
-                    ),
-                    details: upgradeDetails(
-                      choice,
-                      state,
-                      _myGame.loadout.weapon,
-                      balance: _myGame.gameNotifier.buildBalance,
-                      power: _myGame.gameNotifier.weaponPower,
-                      character: _myGame.loadout.character,
-                    ),
-                    initiallyExpanded: _myGame.loadout.training,
-                  ),
-                  glyph: choice.glyph,
-                  onBan: state.bans > 0 && choice != PowerUp.salvage
-                      ? () => _myGame.gameNotifier.ban(
-                          choice,
-                          offerId: state.offerId,
-                        )
-                      : null,
                 ),
             ],
           ),
         ),
-        if (state.evolutionChoices.isEmpty && state.rerolls > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: ClickButtonM(
-              text: 'Reroll (${state.rerolls})',
-              width: 170,
-              height: 44,
-              onTap: () => _myGame.gameNotifier.reroll(offerId: state.offerId),
-            ),
-          ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 
   Widget _upgradeCard(
     String title,
@@ -1198,7 +1214,9 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(
+            MediaQuery.sizeOf(context).height < 460 ? 12 : 16,
+          ),
           constraints: const BoxConstraints(minHeight: 148),
           decoration: BoxDecoration(
             border: Border.all(color: const Color(0xff75604C)),
@@ -1208,32 +1226,42 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PixelIcon(glyph, size: 20),
-                  const SizedBox(width: 8),
+                  PixelIcon(
+                    glyph,
+                    size: 32,
+                    key: ValueKey('upgrade-glyph-$title'),
+                  ),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      category,
-                      style: const TextStyle(
-                        fontFamily: FontFam.orbitron,
-                        fontSize: 9,
-                        color: _brass,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontFamily: FontFam.pressStart,
+                            fontSize: 11,
+                            height: 1.5,
+                            color: _paper,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          category,
+                          style: const TextStyle(
+                            fontFamily: FontFam.orbitron,
+                            fontSize: 9,
+                            color: _brass,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontFamily: FontFam.pressStart,
-                  fontSize: 11,
-                  height: 1.6,
-                  color: _paper,
-                ),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               copy ??
                   Text(
                     description,

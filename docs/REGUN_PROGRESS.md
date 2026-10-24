@@ -1595,3 +1595,23 @@ retain their previous balance. The shared catalogue now defaults to11.25 damage;
 mobile/API/admin Heavy Load previews distinguish quick and charged shots. No new
 admin controls or hosted weapons were added. See WEAPON_DEVICE_REVIEW.md for
 rollout and physical review. Catalogue generation is not production publication.
+
+
+## 2026-10-24 — three selected weapons across game/admin/API
+
+Houndrack, Storm Orb and Ring Caster bring Solo/Training to 24. Complete behavior, art, audio, reload, bounded effects, save/restore and live numeric controls are implemented alongside admin component comparison and authenticated API preview. The shared catalog has 313 fields; historical run pinning and multiplayer admission are preserved. Read [THREE_WEAPONS_REVIEW.md](THREE_WEAPONS_REVIEW.md) and its validation evidence. Deployment/install/publication and physical balance/readability remain separate.
+
+
+## 24 October2026 — weapon feedback, menu fit and Revolver identity
+
+Current source implements a muzzle-launched slowly opening iron cutter, stronger
+accelerating rockets with flat distance damage, and an orb that crosses enemies
+with once-per-body bonus damage. Bounded propulsion/flight/zap/pass cues replace
+the early audio. Mobile upgrade glyphs are larger, with compact offers and a
+pinned reroll footer; wide admin headers put the artwork beside the copy.
+Revolver owns one innate enemy ricochet without buying/granting a perk.
+`weapons.revolver.ricochets` is an editable base stat, default1/integer0–3;
+Ricochet upgrades add to it. Shared catalog314 fields; API/admin/rank/native/hosted
+contracts and historical catalog compatibility are synchronized. See sibling
+game `docs/WEAPON_FEEDBACK_REVIEW.md` for implementation and validation. No live
+publication, installation or physical acceptance is implied.

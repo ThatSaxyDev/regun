@@ -44,7 +44,8 @@
         750,
         1.12,
         0.98
-      ]
+      ],
+      "ricochets": 1
     },
     "arcCaster": {
       "capacity": 6,
@@ -177,7 +178,10 @@
     "anchorEngine": 0.93,
     "faultlineDriver": 0.94,
     "cycloneBreacher": 0.94,
-    "mourningBell": 0.95
+    "mourningBell": 0.95,
+    "houndrack": 0.96,
+    "stormOrb": 0.97,
+    "ringCaster": 0.97
   },
   "weaponReactions": {
     "shotgun": [
@@ -209,6 +213,24 @@
       0.09,
       0,
       0.5
+    ],
+    "houndrack": [
+      14,
+      0.1,
+      0,
+      0.5
+    ],
+    "stormOrb": [
+      30,
+      0.16,
+      0.04,
+      0.8
+    ],
+    "ringCaster": [
+      42,
+      0.18,
+      0.06,
+      0.8
     ]
   }
 }

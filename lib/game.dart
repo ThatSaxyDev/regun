@@ -128,6 +128,8 @@ class RegunGame extends FlameGame
   ArsenalSystem? arsenal;
   int _nextCombatId = 1;
   bool _weaponArtHeld = false, _cinderArtHeld = false, _survivorArtHeld = false;
+  bool _ringArtHeld = false;
+  bool get ringArtReady => _ringArtHeld;
   int _trainingWeaponEpoch = 0;
   static const maxProjectiles = 256;
   static const maxHostileProjectiles = 128;
@@ -1013,6 +1015,14 @@ class RegunGame extends FlameGame
         return;
       }
       _cinderArtHeld = true;
+    }
+    if (loadout.weapon == WeaponType.ringCaster) {
+      await RegunArt.shared.acquire('effects/cutter_ring');
+      if (disposed) {
+        RegunArt.shared.release('effects/cutter_ring');
+        return;
+      }
+      _ringArtHeld = true;
     }
     controls = preferences.controls;
 
@@ -1934,9 +1944,19 @@ class RegunGame extends FlameGame
     final names = [
       if (next.hasLeasedArt) next.atlasName,
       if (next == WeaponType.cinderHose) 'effects/cinder_flame',
+      if (next == WeaponType.ringCaster) 'effects/cutter_ring',
     ];
-    for (final name in names) {
-      await RegunArt.shared.acquire(name);
+    final acquired = <String>[];
+    try {
+      for (final name in names) {
+        await RegunArt.shared.acquire(name);
+        acquired.add(name);
+      }
+    } catch (_) {
+      for (final name in acquired) {
+        RegunArt.shared.release(name);
+      }
+      rethrow;
     }
     if (disposed ||
         epoch != _trainingWeaponEpoch ||
@@ -1954,6 +1974,7 @@ class RegunGame extends FlameGame
     _projectiles.clear();
     if (_weaponArtHeld) RegunArt.shared.release(loadout.weapon.atlasName);
     if (_cinderArtHeld) RegunArt.shared.release('effects/cinder_flame');
+    if (_ringArtHeld) RegunArt.shared.release('effects/cutter_ring');
     loadout = Loadout(
       weapon: next,
       character: loadout.character,
@@ -1962,6 +1983,7 @@ class RegunGame extends FlameGame
     );
     _weaponArtHeld = next.hasLeasedArt;
     _cinderArtHeld = next == WeaponType.cinderHose;
+    _ringArtHeld = next == WeaponType.ringCaster;
     gameNotifier.changeTrainingWeapon(next);
     arsenal = ArsenalSystem(this);
     burstFire.reset();
@@ -2118,6 +2140,7 @@ class RegunGame extends FlameGame
               state.countRank(PowerUp.bulletsPhaseThrough) +
               (state.bulletsPhaseThrough ? 1 : 0),
           bounces:
+              gameNotifier.weaponPower.ricochets(loadout.weapon) +
               state.countRank(PowerUp.ricochet) +
               (state.fused('pinball') ? 3 : 0),
           angle: atan2(direction.y, direction.x),
@@ -2601,6 +2624,10 @@ class RegunGame extends FlameGame
     if (_cinderArtHeld) {
       _cinderArtHeld = false;
       RegunArt.shared.release('effects/cinder_flame');
+    }
+    if (_ringArtHeld) {
+      _ringArtHeld = false;
+      RegunArt.shared.release('effects/cutter_ring');
     }
     arsenal?.dispose();
     if (_weaponArtHeld) {

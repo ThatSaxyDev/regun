@@ -40,6 +40,12 @@ class SoloudPlay {
       final names = [
         for (var i = 0; i < 3; i++) 'shot_${weapon.name}_$i.wav',
         'impact_${weapon.name}.wav',
+        if (weapon == WeaponType.houndrack || weapon == WeaponType.stormOrb)
+          'flight_${weapon.name}.wav',
+        if (weapon == WeaponType.stormOrb) ...[
+          'zap_stormOrb.wav',
+          'pass_stormOrb.wav',
+        ],
         if (weapon == WeaponType.twinVerdict) ...[
           'prime_twinVerdict.wav',
           'verdict_twinVerdict.wav',
@@ -50,6 +56,7 @@ class SoloudPlay {
         ],
         if (weapon == WeaponType.faultlineDriver) 'section_faultlineDriver.wav',
         if (weapon == WeaponType.mourningBell) 'echo_mourningBell.wav',
+        if (weapon == WeaponType.ringCaster) 'return_ringCaster.wav',
         if (weapon == WeaponType.beltRepeater) 'spin_beltRepeater.wav',
         if (weapon.isContinuous || weapon == WeaponType.beltRepeater)
           'sustain_${weapon.name}.wav',
@@ -120,7 +127,11 @@ class SoloudPlay {
     try {
       if (!_soloud.isInitialized || _sfxVolume == 0) return;
       final now = _clock.elapsedMilliseconds;
-      final limit = assetPath.startsWith('section_')
+      final limit = assetPath.startsWith('flight_')
+          ? (assetPath == 'flight_houndrack.wav' ? 220 : 320)
+          : assetPath == 'zap_stormOrb.wav' || assetPath == 'pass_stormOrb.wav'
+          ? 120
+          : assetPath.startsWith('section_')
           ? 90
           : assetPath == 'upgrade_pulse.wav'
           ? 120
@@ -137,7 +148,17 @@ class SoloudPlay {
       _lastPlayed[assetPath] = now;
       final source = await _source(assetPath);
       if (_soloud.isInitialized) {
-        final gain = assetPath.startsWith('prime_')
+        final gain = assetPath.startsWith('flight_')
+            ? (assetPath == 'flight_houndrack.wav' ? .12 : .15)
+            : assetPath == 'zap_stormOrb.wav'
+            ? .28
+            : assetPath == 'pass_stormOrb.wav'
+            ? .34
+            : assetPath.startsWith('shot_houndrack')
+            ? .62
+            : assetPath.startsWith('shot_stormOrb')
+            ? .6
+            : assetPath.startsWith('prime_')
             ? .22
             : assetPath.startsWith('verdict_')
             ? .50

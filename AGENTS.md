@@ -629,3 +629,24 @@ Reuse existing ember VFX/blast and supply-break cues. Server `stepSupplies` has 
 matching break callback; its authoritative ordinary routing allows escape from
 exact contact and routes larger bodies to legal contact range. No live deployment
 or physical acceptance is implied by source tests/builds.
+
+
+## Houndrack, Storm Orb and Ring Caster (2026-10-24)
+
+The selected three expand Solo/Training to 24. Read `docs/THREE_WEAPONS_REVIEW.md` before modifying them. `FrontierArsenal` owns bounded single-acquisition micro-rockets, passage-damage orbs and a player-centered expanding/returning cutting edge (empty interior, once per body per phase). Preserve paid phase checkpoints, pause/deployment freeze, cover, capacity-before-spend and last-ring reload deferral. Generated live catalog has 313 fields, including 18 behavior controls; ring thickness drives both art and collision. Mobile/admin/API component projections and historical catalogs must agree. New hosted multiplayer admission remains disabled. No deployment or physical acceptance is implied.
+
+
+## Weapon feedback and intrinsic Revolver (2026-10-24)
+
+Read sibling game `docs/WEAPON_FEEDBACK_REVIEW.md` for current contracts. Ring
+emerges at the muzzle, travels slowly while expanding (65% travel/35% radius),
+then recalls; use the leased256px generated iron cutter, not rectangular links.
+Orb crosses bodies with a saved once-per-body bonus ledger. Rockets accelerate
+30–100% over.55s, acquire45° and turn4.5rad/s by default, with explicit flat
+distance damage. Preserve bounded shared flight/zap/pass audio events. Revolver
+now has innate enemy ricochets through `weapons.revolver.ricochets` (default1,0–3),
+not a granted rank/slot. Upgrades add to the base; mobile and hosted firing,
+API/admin components and rank fixtures agree. The shared catalog has314 fields.
+Wide admin headers place art beside copy. Mobile upgrade offers use a compact
+header/wider columns and a pinned reroll footer; long/large text scrolls inside.
+No publication/installation or physical acceptance is implied by builds/tests.

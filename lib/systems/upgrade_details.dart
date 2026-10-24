@@ -196,7 +196,12 @@ String upgradeDetails(
     case PowerUp.fragmentation:
       return delta('Blast shards', (n) => n == 0 ? 0 : 4 + 2 * countRank(n));
     case PowerUp.ricochet:
-      return delta('Extra bounces', (n) => countRank(n));
+      return weapon == WeaponType.revolver
+          ? delta(
+              'Total enemy ricochets',
+              (n) => power.ricochets(weapon) + countRank(n),
+            )
+          : delta('Extra bounces', (n) => countRank(n));
     case PowerUp.bankShot:
       return delta(
         'Bounce damage',

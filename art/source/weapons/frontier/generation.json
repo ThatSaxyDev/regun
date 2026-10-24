@@ -1,0 +1,140 @@
+[
+  {
+    "id": "houndrack",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "alphaBounds": [
+      [
+        104,
+        54,
+        1671,
+        577
+      ],
+      [
+        101,
+        590,
+        857,
+        844
+      ],
+      [
+        1049,
+        629,
+        1631,
+        834
+      ]
+    ],
+    "drawSize": [
+      68,
+      22.6956
+    ],
+    "grip": 0.3,
+    "muzzleHeight": 0.44,
+    "sha256": "be4fc3d6c231042647e926fe47af54c219d4333194c7c2b3a886534fde54458c",
+    "tool": "built-in image_gen",
+    "source": "/Users/kiishidavid/.codex/generated_images/01a16e53-d3aa-7542-bb86-2f6e039e9119/exec-f09b6d31-e159-4523-9685-02342d9c51c4.png",
+    "feedSocket": [
+      22,
+      -1
+    ],
+    "feedWidth": 13,
+    "boltSocket": [
+      18,
+      -4.5
+    ],
+    "boltWidth": 11
+  },
+  {
+    "id": "storm_orb",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "alphaBounds": [
+      [
+        45,
+        13,
+        1730,
+        560
+      ],
+      [
+        153,
+        560,
+        651,
+        854
+      ],
+      [
+        1050,
+        613,
+        1677,
+        829
+      ]
+    ],
+    "drawSize": [
+      65,
+      21.1009
+    ],
+    "grip": 0.3,
+    "muzzleHeight": 0.45,
+    "sha256": "f6c5b28bde8905ba0922887ce266470e6a027711d1483aa7fb394381e89b4071",
+    "tool": "built-in image_gen",
+    "source": "/Users/kiishidavid/.codex/generated_images/01a16e53-d3aa-7542-bb86-2f6e039e9119/exec-bc54667c-0be0-441c-9c47-d0a3efffe0f5.png",
+    "feedSocket": [
+      23,
+      2.7
+    ],
+    "feedWidth": 9,
+    "boltSocket": [
+      36,
+      -3.5
+    ],
+    "boltWidth": 13
+  },
+  {
+    "id": "ring_caster",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "alphaBounds": [
+      [
+        200,
+        41,
+        1645,
+        565
+      ],
+      [
+        252,
+        579,
+        762,
+        853
+      ],
+      [
+        1130,
+        579,
+        1555,
+        847
+      ]
+    ],
+    "drawSize": [
+      62,
+      22.483
+    ],
+    "grip": 0.3,
+    "muzzleHeight": 0.48,
+    "sha256": "fec98446ef1457e397267baa7448018096d557253cbf76eeea0ee65ccab9ec0a",
+    "tool": "built-in image_gen",
+    "source": "/Users/kiishidavid/.codex/generated_images/01a16e53-d3aa-7542-bb86-2f6e039e9119/exec-c2a0e165-ca0e-40af-9997-f505e5aecf63.png",
+    "feedSocket": [
+      20,
+      -3.5
+    ],
+    "feedWidth": 10.5,
+    "boltSocket": [
+      36.5,
+      -3.4
+    ],
+    "boltWidth": 10.5
+  }
+]

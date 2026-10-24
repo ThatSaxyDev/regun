@@ -25,11 +25,36 @@ class RankEffects {
     final mag = base('capacity', 5),
         cadence = base('cadence', .35),
         reload = base('reloadMs', 3200);
+    if ({'houndrack', 'stormOrb', 'ringCaster'}.contains(weapon) &&
+        ({
+              'numberOfBulletsPerShotIncrease',
+              'bulletsPhaseThrough',
+              'ricochet',
+              'bankShot',
+            }.contains(id) ||
+            (weapon == 'ringCaster' && id == 'rapidFire'))) {
+      return {};
+    }
     switch (id) {
       case 'heavyLoad':
         final multiplier = 1 + total(.35, .1);
         return {
           'Damage multiplier': multiplier,
+          if (weapon == 'houndrack' ||
+              weapon == 'stormOrb' ||
+              weapon == 'ringCaster')
+            'Primary hit damage': base('damage', 1) * multiplier,
+          if (weapon == 'stormOrb')
+            'Arc damage per tick':
+                (v['effects.stormorb.orbArcDamage'] ?? 1.2) * multiplier,
+          if (weapon == 'houndrack')
+            'Secondary splash damage':
+                (v['effects.houndrack.rocketSplashDamage'] ?? .45) * multiplier,
+          if (weapon == 'ringCaster')
+            'Return hit damage':
+                base('damage', 4.5) *
+                multiplier *
+                (v['effects.ringcaster.ringReturnScale'] ?? 1.25),
           if (weapon == 'railLance') ...{
             'Quick shot damage': base('damage', 11.25) * multiplier,
             'Full charge damage':
@@ -65,6 +90,9 @@ class RankEffects {
                   'anchorEngine': .4,
                   'faultlineDriver': .4,
                   'sporeLobber': .40,
+                  'houndrack': .055,
+                  'stormOrb': .45,
+                  'ringCaster': .6,
                 }[weapon] ??
                 .14,
             interval,
@@ -136,6 +164,9 @@ class RankEffects {
               'prismCutter': 560,
               'sporeLobber': 600,
               'anchorEngine': 760,
+              'houndrack': 900,
+              'stormOrb': 850,
+              'ringCaster': 460,
             }[weapon] ??
             100000;
         return {
@@ -205,7 +236,9 @@ class RankEffects {
       case 'fragmentation':
         return {'Blast shards': n == 0 ? 0 : 4 + 2 * count};
       case 'ricochet':
-        return {'Extra bounces': count};
+        return weapon == 'revolver'
+            ? {'Total enemy ricochets': base('ricochets', 1) + count}
+            : {'Extra bounces': count};
       case 'bankShot':
         return {'Bounce multiplier': n == 0 ? .7 : m.min(1.4, 1 + .08 * e)};
       case 'lastShell':

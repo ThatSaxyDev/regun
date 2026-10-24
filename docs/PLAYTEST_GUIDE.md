@@ -633,3 +633,32 @@ Warnings and paused attacks must not kill. Other bosses remain unharmed.
 Player damage, timing and protection remain as before; boss-caused minion deaths
 must not increase player kills, score, XP or kill-triggered bonuses. See
 BOSS_COLLATERAL.md. Native feel/readability and online play need hands-on review.
+
+
+## Houndrack / Storm Orb / Ring Caster review
+
+Use Training to access all three. Houndrack should feel like continuous miniature rockets with mild correction, not hard homing; test blockers and clustered splash. Send Storm Orb past a pack and compare passage arcs with an immediate body hit; verify cover stops arcs. Hold/release Ring Caster at several radii, move with it and watch outward/return edge cuts: its interior must stay empty. Test early release, last charge, reload, pause, Continue and Reduced Motion. In admin adjust one of the 18 behavior fields, compare the authenticated API preview, publish through the existing workflow and start a fresh run; Continue must retain its pinned values. See [THREE_WEAPONS_REVIEW.md](THREE_WEAPONS_REVIEW.md). Native comfort/audio/performance and tuning still need hands-on approval.
+
+
+## Weapon feedback, innate Revolver and power-up layout — 24 October 2026
+
+This supersedes the initial three-weapon review above. In Training, fire Ring
+Caster while stationary and moving: a compact cutter should emerge from the
+muzzle, travel forward slowly while growing, then return to the gun when
+released. Check early release, cover, last charge, pause and Continue.
+Houndrack should accelerate into its acquired target with audible propulsion
+and a quiet flight hiss; compare near/far primary damage (no distance drop-off).
+Storm Orb should pass through several enemies, apply extra damage once to each
+crossed body, and produce separate crossing crackles and accepted-arc zaps.
+
+Start Revolver without upgrades: a round should ricochet once to a different
+nearby enemy. Its Ricochet rank must still be zero. Buying the upgrade adds to
+that innate count. Admin exposes Enemy ricochets beside base damage; compare
+API component/rank previews and fresh game/hosted snapshots after normal
+publication. Continue retains its pinned values.
+
+Open the power-up picker on small landscape phones and with larger text.
+Default offers, their Ban buttons and Reroll should fit; at larger text, scroll
+the offers while Reroll stays pinned. Inspect the larger glyphs. In wide admin
+panes the item artwork should sit right of title/description; narrow panes
+stack. See WEAPON_FEEDBACK_REVIEW.md and its validation frames/audio mix.

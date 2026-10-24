@@ -1,0 +1,925 @@
+
+> verify
+> npm --prefix spacetimedb run verify
+
+
+> regun-server@1.0.0 verify
+> npm run typecheck && npm test && npm run build
+
+
+> regun-server@1.0.0 typecheck
+> tsc --noEmit
+
+
+> regun-server@1.0.0 test
+> tsx --test tests/*.test.ts
+
+TAP version 13
+# Subtest: all eight normal roles preserve baseline health and separate hit/body occupancy
+ok 1 - all eight normal roles preserve baseline health and separate hit/body occupancy
+  ---
+  duration_ms: 0.867084
+  type: 'test'
+  ...
+# Subtest: Skitter commits one heading before warning and sweeps its complete bounded leap
+ok 2 - Skitter commits one heading before warning and sweeps its complete bounded leap
+  ---
+  duration_ms: 1.48825
+  type: 'test'
+  ...
+# Subtest: committed leaps cannot cross a living enemy body or a wall
+ok 3 - committed leaps cannot cross a living enemy body or a wall
+  ---
+  duration_ms: 0.209875
+  type: 'test'
+  ...
+# Subtest: normal bullet response is bounded per target; nests and sentinels stay planted
+ok 4 - normal bullet response is bounded per target; nests and sentinels stay planted
+  ---
+  duration_ms: 0.420958
+  type: 'test'
+  ...
+# Subtest: annular sweeps keep the inside pocket and moving rings preserve a real gap
+ok 5 - annular sweeps keep the inside pocket and moving rings preserve a real gap
+  ---
+  duration_ms: 0.132542
+  type: 'test'
+  ...
+# Subtest: nearby Skitters take turns, land in recovery, and do not jump through cover or from long range
+ok 6 - nearby Skitters take turns, land in recovery, and do not jump through cover or from long range
+  ---
+  duration_ms: 1.159584
+  type: 'test'
+  ...
+# Subtest: all admitted guns deliver full decaying impulse independently of pursuit
+ok 7 - all admitted guns deliver full decaying impulse independently of pursuit
+  ---
+  duration_ms: 0.347833
+  type: 'test'
+  ...
+# Subtest: heavy reactions respect shield mass, recovery and living body occupancy
+ok 8 - heavy reactions respect shield mass, recovery and living body occupancy
+  ---
+  duration_ms: 0.425291
+  type: 'test'
+  ...
+# Subtest: committed boss movement crushes the real body corridor, not bystanders or other bosses
+ok 9 - committed boss movement crushes the real body corridor, not bystanders or other bosses
+  ---
+  duration_ms: 1.040792
+  type: 'test'
+  ...
+# Subtest: wall-clipped charges cannot kill minions behind cover or outside the travelled segment
+ok 10 - wall-clipped charges cannot kill minions behind cover or outside the travelled segment
+  ---
+  duration_ms: 0.777375
+  type: 'test'
+  ...
+# Subtest: sweeps preserve the inside pocket and use only the newly swept arc
+ok 11 - sweeps preserve the inside pocket and use only the newly swept arc
+  ---
+  duration_ms: 0.364
+  type: 'test'
+  ...
+# Subtest: profile history names match the roster and malformed counts are rejected
+ok 12 - profile history names match the roster and malformed counts are rejected
+  ---
+  duration_ms: 0.639334
+  type: 'test'
+  ...
+# Subtest: shadow normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 13 - shadow normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 15.019708
+  type: 'test'
+  ...
+# Subtest: shadow enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 14 - shadow enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 11.78225
+  type: 'test'
+  ...
+# Subtest: demon normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 15 - demon normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 15.921166
+  type: 'test'
+  ...
+# Subtest: demon enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 16 - demon enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 9.606333
+  type: 'test'
+  ...
+# Subtest: queen normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 17 - queen normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 6.990375
+  type: 'test'
+  ...
+# Subtest: queen enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 18 - queen enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 70.333292
+  type: 'test'
+  ...
+# Subtest: bellkeeper normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 19 - bellkeeper normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 130.747208
+  type: 'test'
+  ...
+# Subtest: bellkeeper enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 20 - bellkeeper enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 25.02825
+  type: 'test'
+  ...
+# Subtest: magistrate normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 21 - magistrate normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 5.023375
+  type: 'test'
+  ...
+# Subtest: magistrate enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 22 - magistrate enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 7.162042
+  type: 'test'
+  ...
+# Subtest: saint normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 23 - saint normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 6.402208
+  type: 'test'
+  ...
+# Subtest: saint enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 24 - saint enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 2.876291
+  type: 'test'
+  ...
+# Subtest: sovereign normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 25 - sovereign normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 3.39525
+  type: 'test'
+  ...
+# Subtest: sovereign enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 26 - sovereign enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 3.324
+  type: 'test'
+  ...
+# Subtest: marshal normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 27 - marshal normal: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 4.518875
+  type: 'test'
+  ...
+# Subtest: marshal enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+ok 28 - marshal enraged: long moving-target simulation keeps warning stages, bounded attacks and planted geometry
+  ---
+  duration_ms: 4.203208
+  type: 'test'
+  ...
+# Subtest: Bellkeeper reserves the close clapper for its authored range while tolls remain available at range
+ok 29 - Bellkeeper reserves the close clapper for its authored range while tolls remain available at range
+  ---
+  duration_ms: 0.213292
+  type: 'test'
+  ...
+# Subtest: burst rifle releases three actual rounds at .0/.1/.2 and repeats at .6
+ok 30 - burst rifle releases three actual rounds at .0/.1/.2 and repeats at .6
+  ---
+  duration_ms: 1.120417
+  type: 'test'
+  ...
+# Subtest: subshots read current aim; complete upgraded volleys share a measured muzzle
+ok 31 - subshots read current aim; complete upgraded volleys share a measured muzzle
+  ---
+  duration_ms: 0.197542
+  type: 'test'
+  ...
+# Subtest: saturation and reload never spend or release an unissued burst round
+ok 32 - saturation and reload never spend or release an unissued burst round
+  ---
+  duration_ms: 0.144875
+  type: 'test'
+  ...
+# Subtest: Quick Trigger preserves .1 subshot spacing and .3 minimum burst period
+ok 33 - Quick Trigger preserves .1 subshot spacing and .3 minimum burst period
+  ---
+  duration_ms: 0.141792
+  type: 'test'
+  ...
+# Subtest: empty Burst Rifle reload retains its bolt cycle and two-second duration
+ok 34 - empty Burst Rifle reload retains its bolt cycle and two-second duration
+  ---
+  duration_ms: 0.072
+  type: 'test'
+  ...
+# Subtest: admin capacity caps stop redundant offers, reject overflow and preserve old releases
+ok 35 - admin capacity caps stop redundant offers, reject overflow and preserve old releases
+  ---
+  duration_ms: 4.180708
+  type: 'test'
+  ...
+# Subtest: authoritative dash reserve cannot chain inside a dash and recharges one slot at a time
+ok 36 - authoritative dash reserve cannot chain inside a dash and recharges one slot at a time
+  ---
+  duration_ms: 0.485833
+  type: 'test'
+  ...
+# Subtest: shotgun keeps centered three pellets, base timing and exact muzzle/range/speed
+ok 37 - shotgun keeps centered three pellets, base timing and exact muzzle/range/speed
+  ---
+  duration_ms: 2.206333
+  type: 'test'
+  ...
+# Subtest: capacity is checked before spending ammo or partially emitting a shotgun volley
+ok 38 - capacity is checked before spending ammo or partially emitting a shotgun volley
+  ---
+  duration_ms: 0.378208
+  type: 'test'
+  ...
+# Subtest: all non-carbine weapons commit a complete reload despite held firing
+ok 39 - all non-carbine weapons commit a complete reload despite held firing
+  ---
+  duration_ms: 0.466833
+  type: 'test'
+  ...
+# Subtest: all supported weapons have tactical top-ups and full empty reloads
+ok 40 - all supported weapons have tactical top-ups and full empty reloads
+  ---
+  duration_ms: 0.244875
+  type: 'test'
+  ...
+# Subtest: swept first contact hits the nearest hostile body, never a teammate or owner
+ok 41 - swept first contact hits the nearest hostile body, never a teammate or owner
+  ---
+  duration_ms: 0.364583
+  type: 'test'
+  ...
+# Subtest: damage uses exact first contact distance, clamps range, and does not compound
+ok 42 - damage uses exact first contact distance, clamps range, and does not compound
+  ---
+  duration_ms: 0.359625
+  type: 'test'
+  ...
+# Subtest: cover beats bodies behind it; a projectile cannot start or tunnel inside cover
+ok 43 - cover beats bodies behind it; a projectile cannot start or tunnel inside cover
+  ---
+  duration_ms: 0.984875
+  type: 'test'
+  ...
+# Subtest: one lethal transition, bounded health and invulnerable bodies cannot absorb damage
+ok 44 - one lethal transition, bounded health and invulnerable bodies cannot absorb damage
+  ---
+  duration_ms: 0.124042
+  type: 'test'
+  ...
+# Subtest: carbine grouping remains straight and within its bounded per-shot offset
+ok 45 - carbine grouping remains straight and within its bounded per-shot offset
+  ---
+  duration_ms: 6.328125
+  type: 'test'
+  ...
+# Subtest: server shot/burst/pellet identities remain stable through travel
+ok 46 - server shot/burst/pellet identities remain stable through travel
+  ---
+  duration_ms: 0.424667
+  type: 'test'
+  ...
+# Subtest: changing a correlation burst never bypasses firing/reload/ammo/capacity
+ok 47 - changing a correlation burst never bypasses firing/reload/ammo/capacity
+  ---
+  duration_ms: 0.099042
+  type: 'test'
+  ...
+# Subtest: shotgun power revision strengthens enemy hits while preserving player damage
+ok 48 - shotgun power revision strengthens enemy hits while preserving player damage
+  ---
+  duration_ms: 0.105958
+  type: 'test'
+  ...
+# Subtest: all admitted weapons preserve PvP ratios while lifting enemy damage
+ok 49 - all admitted weapons preserve PvP ratios while lifting enemy damage
+  ---
+  duration_ms: 0.308833
+  type: 'test'
+  ...
+# Subtest: Revolver ricochet is intrinsic, follows pinned base values and stacks without granting a rank
+ok 50 - Revolver ricochet is intrinsic, follows pinned base values and stacks without granting a rank
+  ---
+  duration_ms: 0.084834
+  type: 'test'
+  ...
+# Subtest: TypeScript matches the same versioned weapon/survivor/boss/XP fixture checked by Flutter
+ok 51 - TypeScript matches the same versioned weapon/survivor/boss/XP fixture checked by Flutter
+  ---
+  duration_ms: 0.831625
+  type: 'test'
+  ...
+# Subtest: walking weight matches Flutter and is applied once after survivor/VIII speed
+ok 52 - walking weight matches Flutter and is applied once after survivor/VIII speed
+  ---
+  duration_ms: 0.229458
+  type: 'test'
+  ...
+# Subtest: dash is immune across all three movement steps, then vulnerable; upgrade adds recovery
+ok 53 - dash is immune across all three movement steps, then vulnerable; upgrade adds recovery
+  ---
+  duration_ms: 0.666834
+  type: 'test'
+  ...
+# Subtest: Marshal gun/beam collinearity and barrel reach in eight mirrored directions
+ok 54 - Marshal gun/beam collinearity and barrel reach in eight mirrored directions
+  ---
+  duration_ms: 0.588791
+  type: 'test'
+  ...
+# Subtest: economy accepts only implemented cosmetic IDs, bounded whole prices and availability
+ok 55 - economy accepts only implemented cosmetic IDs, bounded whole prices and availability
+  ---
+  duration_ms: 1.262958
+  type: 'test'
+  ...
+# Subtest: secondary has two charges, shared first recharge and separate primary ammunition
+ok 56 - secondary has two charges, shared first recharge and separate primary ammunition
+  ---
+  duration_ms: 0.807
+  type: 'test'
+  ...
+# Subtest: grenade crosses bodies, lands and bounces before its single fuse blast
+ok 57 - grenade crosses bodies, lands and bounces before its single fuse blast
+  ---
+  duration_ms: 1.62
+  type: 'test'
+  ...
+# Subtest: offer/downed/dead players cannot spend a grenade; ranks have a bounded blast
+ok 58 - offer/downed/dead players cannot spend a grenade; ranks have a bounded blast
+  ---
+  duration_ms: 0.103833
+  type: 'test'
+  ...
+# Subtest: independent grenade heading and drag range never alter weapon aim or base maximum
+ok 59 - independent grenade heading and drag range never alter weapon aim or base maximum
+  ---
+  duration_ms: 0.090125
+  type: 'test'
+  ...
+# Subtest: grenade reserve adds only new slots, preserves its clock and caps at four
+ok 60 - grenade reserve adds only new slots, preserves its clock and caps at four
+  ---
+  duration_ms: 0.1125
+  type: 'test'
+  ...
+# Subtest: all contract defaults validate and invalid/missing/unknown values fail
+ok 61 - all contract defaults validate and invalid/missing/unknown values fail
+  ---
+  duration_ms: 2.187709
+  type: 'test'
+  ...
+# Subtest: authoritative gun snapshots pin supported base values without payload bloat
+ok 62 - authoritative gun snapshots pin supported base values without payload bloat
+  ---
+  duration_ms: 0.925292
+  type: 'test'
+  ...
+# Subtest: legacy guns and in-flight rounds keep their compiled fallback behavior
+ok 63 - legacy guns and in-flight rounds keep their compiled fallback behavior
+  ---
+  duration_ms: 0.052625
+  type: 'test'
+  ...
+# Subtest: power-up overrides scale bonuses, preserve ranks and pin the map
+ok 64 - power-up overrides scale bonuses, preserve ranks and pin the map
+  ---
+  duration_ms: 0.203084
+  type: 'test'
+  ...
+# Subtest: old releases keep their original content hash and can be expanded for rollback
+ok 65 - old releases keep their original content hash and can be expanded for rollback
+  ---
+  duration_ms: 3.234917
+  type: 'test'
+  ...
+# Subtest: ashen_cloister_1v1: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+ok 66 - ashen_cloister_1v1: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+  ---
+  duration_ms: 9.409834
+  type: 'test'
+  ...
+# Subtest: ashen_cloister_2v2: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+ok 67 - ashen_cloister_2v2: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+  ---
+  duration_ms: 2.6955
+  type: 'test'
+  ...
+# Subtest: ashen_cloister_3v3: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+ok 68 - ashen_cloister_3v3: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+  ---
+  duration_ms: 4.966875
+  type: 'test'
+  ...
+# Subtest: ironworks_relay_1v1: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+ok 69 - ironworks_relay_1v1: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+  ---
+  duration_ms: 1.997292
+  type: 'test'
+  ...
+# Subtest: ironworks_relay_2v2: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+ok 70 - ironworks_relay_2v2: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+  ---
+  duration_ms: 5.234209
+  type: 'test'
+  ...
+# Subtest: ironworks_relay_3v3: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+ok 71 - ironworks_relay_3v3: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+  ---
+  duration_ms: 7.678958
+  type: 'test'
+  ...
+# Subtest: ossuary_cross_1v1: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+ok 72 - ossuary_cross_1v1: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+  ---
+  duration_ms: 1.724333
+  type: 'test'
+  ...
+# Subtest: ossuary_cross_2v2: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+ok 73 - ossuary_cross_2v2: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+  ---
+  duration_ms: 2.578125
+  type: 'test'
+  ...
+# Subtest: ossuary_cross_3v3: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+ok 74 - ossuary_cross_3v3: disjoint authored cover, two spawn exits, route/AI clearance and symmetric opportunities
+  ---
+  duration_ms: 3.635584
+  type: 'test'
+  ...
+# Subtest: admission rejects mismatched or mixed-size competitive variants
+ok 75 - admission rejects mismatched or mixed-size competitive variants
+  ---
+  duration_ms: 0.290291
+  type: 'test'
+  ...
+# Subtest: XP curve, funded offers and overflow grace require a later pickup
+ok 76 - XP curve, funded offers and overflow grace require a later pickup
+  ---
+  duration_ms: 1.17275
+  type: 'test'
+  ...
+# Subtest: all thirty-three families reach VIII; effective scalar rank remains distinct
+ok 77 - all thirty-three families reach VIII; effective scalar rank remains distinct
+  ---
+  duration_ms: 1.169792
+  type: 'test'
+  ...
+# Subtest: Extended Tube immediately cancels/refills without shortening a later full shotgun reload
+ok 78 - Extended Tube immediately cancels/refills without shortening a later full shotgun reload
+  ---
+  duration_ms: 0.241292
+  type: 'test'
+  ...
+# Subtest: cores bank explicitly, require real III/II recipes and cannot grant a third slot
+ok 79 - cores bank explicitly, require real III/II recipes and cannot grant a third slot
+  ---
+  duration_ms: 0.14775
+  type: 'test'
+  ...
+# Subtest: supply receipts survive grace and cannot be replayed or spend XP
+ok 80 - supply receipts survive grace and cannot be replayed or spend XP
+  ---
+  duration_ms: 0.143541
+  type: 'test'
+  ...
+# Subtest: reroll/ban are offer-bound and do not replenish their run limits
+ok 81 - reroll/ban are offer-bound and do not replenish their run limits
+  ---
+  duration_ms: 0.155875
+  type: 'test'
+  ...
+# Subtest: receipt queues bounded commands without moving or acknowledging simulation
+ok 82 - receipt queues bounded commands without moving or acknowledging simulation
+  ---
+  duration_ms: 0.630709
+  type: 'test'
+  ...
+# Subtest: one command grants one server-owned step; no input duration or position authority
+ok 83 - one command grants one server-owned step; no input duration or position authority
+  ---
+  duration_ms: 0.37625
+  type: 'test'
+  ...
+# Subtest: dash consumes an edge once, follows movement and obeys solid/body occupancy
+ok 84 - dash consumes an edge once, follows movement and obeys solid/body occupancy
+  ---
+  duration_ms: 0.127792
+  type: 'test'
+  ...
+# Subtest: burst shedding applies recent movement once and acknowledges obsolete input
+ok 85 - burst shedding applies recent movement once and acknowledges obsolete input
+  ---
+  duration_ms: 0.0925
+  type: 'test'
+  ...
+# Subtest: shedding keeps first dash edge and original heading before later turns
+ok 86 - shedding keeps first dash edge and original heading before later turns
+  ---
+  duration_ms: 0.070916
+  type: 'test'
+  ...
+# Subtest: a fresh packet cannot keep an expired queued dash alive
+ok 87 - a fresh packet cannot keep an expired queued dash alive
+  ---
+  duration_ms: 0.060709
+  type: 'test'
+  ...
+# Subtest: shared mobile/API rank component fixture and numeric bounds
+ok 88 - shared mobile/API rank component fixture and numeric bounds
+  ---
+  duration_ms: 13.814208
+  type: 'test'
+  ...
+# Subtest: authoritative grants use pinned curves; legacy guns retain legacy totals
+ok 89 - authoritative grants use pinned curves; legacy guns retain legacy totals
+  ---
+  duration_ms: 0.589416
+  type: 'test'
+  ...
+# Subtest: exhausted capped reload and innate Arc chance are excluded but fusion access survives
+ok 90 - exhausted capped reload and innate Arc chance are excluded but fusion access survives
+  ---
+  duration_ms: 2.368791
+  type: 'test'
+  ...
+# Subtest: new-policy shotgun reload runtime matches preview at fractional authored weights
+ok 91 - new-policy shotgun reload runtime matches preview at fractional authored weights
+  ---
+  duration_ms: 0.790209
+  type: 'test'
+  ...
+# Subtest: co-op caps at three and every PvP format has two equal teams
+ok 92 - co-op caps at three and every PvP format has two equal teams
+  ---
+  duration_ms: 0.492875
+  type: 'test'
+  ...
+# Subtest: co-op requires two or three ready, connected players
+ok 93 - co-op requires two or three ready, connected players
+  ---
+  duration_ms: 0.09875
+  type: 'test'
+  ...
+# Subtest: malformed and super-speed vectors rejected, diagonals normalized
+ok 94 - malformed and super-speed vectors rejected, diagonals normalized
+  ---
+  duration_ms: 0.41475
+  type: 'test'
+  ...
+# Subtest: export preserves empty Breach and six Foundry blockers
+ok 95 - export preserves empty Breach and six Foundry blockers
+  ---
+  duration_ms: 0.041042
+  type: 'test'
+  ...
+# Subtest: large dash cannot cross walls, bounds or occupied bodies
+ok 96 - large dash cannot cross walls, bounds or occupied bodies
+  ---
+  duration_ms: 0.326
+  type: 'test'
+  ...
+# Subtest: wall slide keeps tangent motion and diagonal dash stays in bounds
+ok 97 - wall slide keeps tangent motion and diagonal dash stays in bounds
+  ---
+  duration_ms: 0.05425
+  type: 'test'
+  ...
+# Subtest: terminal result and online balance are committed once, including repeated finalization and late retries
+ok 98 - terminal result and online balance are committed once, including repeated finalization and late retries
+  ---
+  duration_ms: 1.27225
+  type: 'test'
+  ...
+# Subtest: leavers retain one immutable result, forfeit their own reward and cannot overwrite it on final snapshot
+ok 99 - leavers retain one immutable result, forfeit their own reward and cannot overwrite it on final snapshot
+  ---
+  duration_ms: 0.259
+  type: 'test'
+  ...
+# Subtest: server interruption voids the reward instead of replaying a stalled world
+ok 100 - server interruption voids the reward instead of replaying a stalled world
+  ---
+  duration_ms: 0.251959
+  type: 'test'
+  ...
+# Subtest: session aliases settle into canonical account totals once
+ok 101 - session aliases settle into canonical account totals once
+  ---
+  duration_ms: 0.339292
+  type: 'test'
+  ...
+# Subtest: deleted account tombstones prevent late match rewards from recreating its balance
+ok 102 - deleted account tombstones prevent late match rewards from recreating its balance
+  ---
+  duration_ms: 0.201375
+  type: 'test'
+  ...
+# Subtest: disabled until reviewed; five minutes and 500 banked required
+ok 103 - disabled until reviewed; five minutes and 500 banked required
+  ---
+  duration_ms: 0.800209
+  type: 'test'
+  ...
+# Subtest: one atomic 500 debit per run; status and activation never spend; stale balance cannot restore it
+ok 104 - one atomic 500 debit per run; status and activation never spend; stale balance cannot restore it
+  ---
+  duration_ms: 0.224584
+  type: 'test'
+  ...
+# Subtest: close tombstone prevents a delayed spend; committed close recovers the receipt
+ok 105 - close tombstone prevents a delayed spend; committed close recovers the receipt
+  ---
+  duration_ms: 0.163375
+  type: 'test'
+  ...
+# Subtest: reset epochs and another account cannot reuse recovery; kill switch preserves already paid activation
+ok 106 - reset epochs and another account cannot reuse recovery; kill switch preserves already paid activation
+  ---
+  duration_ms: 0.234417
+  type: 'test'
+  ...
+# Subtest: current balance is checked again at debit, without consuming the offer
+ok 107 - current balance is checked again at debit, without consuming the offer
+  ---
+  duration_ms: 0.080708
+  type: 'test'
+  ...
+# Subtest: old unpaid quotes cannot debit a higher price; already paid receipts still recover
+ok 108 - old unpaid quotes cannot debit a higher price; already paid receipts still recover
+  ---
+  duration_ms: 0.127
+  type: 'test'
+  ...
+# Subtest: separate serializable RNG agrees with integer arithmetic and preserves its intervals
+ok 109 - separate serializable RNG agrees with integer arithmetic and preserves its intervals
+  ---
+  duration_ms: 0.500667
+  type: 'test'
+  ...
+# Subtest: committed warning and fall release exactly one crush across restoration
+ok 110 - committed warning and fall release exactly one crush across restoration
+  ---
+  duration_ms: 0.18825
+  type: 'test'
+  ...
+# Subtest: capture pauses outside, multiple eligible players cannot accelerate it, expiry continues
+ok 111 - capture pauses outside, multiple eligible players cannot accelerate it, expiry continues
+  ---
+  duration_ms: 0.522333
+  type: 'test'
+  ...
+# Subtest: full capture waiting on grace never silently extends the pod lifetime
+ok 112 - full capture waiting on grace never silently extends the pod lifetime
+  ---
+  duration_ms: 0.158625
+  type: 'test'
+  ...
+# Subtest: break blast is once across persisted expired phase
+ok 113 - break blast is once across persisted expired phase
+  ---
+  duration_ms: 0.088666
+  type: 'test'
+  ...
+# Subtest: break blast is once across persisted claimed phase
+ok 114 - break blast is once across persisted claimed phase
+  ---
+  duration_ms: 0.0425
+  type: 'test'
+  ...
+# Subtest: survival scene persists the director, pending bodies and supply clocks across frames
+ok 115 - survival scene persists the director, pending bodies and supply clocks across frames
+  ---
+  duration_ms: 3.898208
+  type: 'test'
+  ...
+# Subtest: guard absorbs without a health cue, downed needs three fresh in-range revive seconds
+ok 116 - guard absorbs without a health cue, downed needs three fresh in-range revive seconds
+  ---
+  duration_ms: 2.344458
+  type: 'test'
+  ...
+# Subtest: stale revive packets and damage interrupt revive progress; bleed-out remains dead
+ok 117 - stale revive packets and damage interrupt revive progress; bleed-out remains dead
+  ---
+  duration_ms: 0.279125
+  type: 'test'
+  ...
+# Subtest: dash mines, fragmentation and drone damage use bounded secondary effects without repeated kill rewards
+ok 118 - dash mines, fragmentation and drone damage use bounded secondary effects without repeated kill rewards
+  ---
+  duration_ms: 5.665667
+  type: 'test'
+  ...
+# Subtest: one collected XP body funds each participant once and retains overflow until a later pickup
+ok 119 - one collected XP body funds each participant once and retains overflow until a later pickup
+  ---
+  duration_ms: 0.426167
+  type: 'test'
+  ...
+# Subtest: Foundry vents require a defeated boss, use authored anchors and pause while a boss lives
+ok 120 - Foundry vents require a defeated boss, use authored anchors and pause while a boss lives
+  ---
+  duration_ms: 0.180292
+  type: 'test'
+  ...
+# Subtest: boss break re-entry returns a bled-out friend beside a living teammate in clear space
+ok 121 - boss break re-entry returns a bled-out friend beside a living teammate in clear space
+  ---
+  duration_ms: 0.222375
+  type: 'test'
+  ...
+# Subtest: confirmed upgrade pulses once, clears only present nearby hostile bullets and never protects player
+ok 122 - confirmed upgrade pulses once, clears only present nearby hostile bullets and never protects player
+  ---
+  duration_ms: 0.425417
+  type: 'test'
+  ...
+# Subtest: upgrade wave respects cover and planted enemy mass
+ok 123 - upgrade wave respects cover and planted enemy mass
+  ---
+  duration_ms: 2.914583
+  type: 'test'
+  ...
+# Subtest: boss death grants two overflow health once to each living teammate
+ok 124 - boss death grants two overflow health once to each living teammate
+  ---
+  duration_ms: 0.45825
+  type: 'test'
+  ...
+# Subtest: grenade pressure pushes outer enemies without damage and respects cover
+ok 125 - grenade pressure pushes outer enemies without damage and respects cover
+  ---
+  duration_ms: 0.187208
+  type: 'test'
+  ...
+# Subtest: supply landing has blast/pressure, solid footprint and safe player displacement
+ok 126 - supply landing has blast/pressure, solid footprint and safe player displacement
+  ---
+  duration_ms: 0.827917
+  type: 'test'
+  ...
+# Subtest: supply expired breakdown repeats landing impact once, without hurting players
+ok 127 - supply expired breakdown repeats landing impact once, without hurting players
+  ---
+  duration_ms: 0.418166
+  type: 'test'
+  ...
+# Subtest: supply claimed breakdown repeats landing impact once, without hurting players
+ok 128 - supply claimed breakdown repeats landing impact once, without hurting players
+  ---
+  duration_ms: 0.264333
+  type: 'test'
+  ...
+# Subtest: ordinary enemies route away from exact pod contact while committed attacks stay straight
+ok 129 - ordinary enemies route away from exact pod contact while committed attacks stay straight
+  ---
+  duration_ms: 14.024292
+  type: 'test'
+  ...
+# Subtest: boss warning does not kill; active collateral grants no XP, score or player kills
+ok 130 - boss warning does not kill; active collateral grants no XP, score or player kills
+  ---
+  duration_ms: 0.740375
+  type: 'test'
+  ...
+# Subtest: TypeScript shares deterministic version1 fixtures with Dart
+ok 131 - TypeScript shares deterministic version1 fixtures with Dart
+  ---
+  duration_ms: 1.289708
+  type: 'test'
+  ...
+# Subtest: capacity and repeat weights stay bounded without losing basic or Lucky Find upgrades
+ok 132 - capacity and repeat weights stay bounded without losing basic or Lucky Find upgrades
+  ---
+  duration_ms: 0.083875
+  type: 'test'
+  ...
+# Subtest: server persists recent offers, keeps legacy progress policy, and respects bans and rank caps
+ok 133 - server persists recent offers, keeps legacy progress policy, and respects bans and rank caps
+  ---
+  duration_ms: 0.644125
+  type: 'test'
+  ...
+# Subtest: reserved and reviewed harmful/evasive names fail without blocking benign fragments
+ok 134 - reserved and reviewed harmful/evasive names fail without blocking benign fragments
+  ---
+  duration_ms: 1.172708
+  type: 'test'
+  ...
+# Subtest: monthly limits use UTC boundaries including year rollover
+ok 135 - monthly limits use UTC boundaries including year rollover
+  ---
+  duration_ms: 0.104375
+  type: 'test'
+  ...
+# Subtest: legacy skins/balance migrate once; later saves cannot mint shop ownership or restore a debit
+ok 136 - legacy skins/balance migrate once; later saves cannot mint shop ownership or restore a debit
+  ---
+  duration_ms: 2.171791
+  type: 'test'
+  ...
+# Subtest: migration accepts legacy profiles without a cumulative earnings field
+ok 137 - migration accepts legacy profiles without a cumulative earnings field
+  ---
+  duration_ms: 0.46975
+  type: 'test'
+  ...
+# Subtest: production catalogue controls exact price/availability; old intents replay without another debit
+ok 138 - production catalogue controls exact price/availability; old intents replay without another debit
+  ---
+  duration_ms: 1.867875
+  type: 'test'
+  ...
+# Subtest: a cancellation tombstone rejects a delayed purchase without spending
+ok 139 - a cancellation tombstone rejects a delayed purchase without spending
+  ---
+  duration_ms: 0.240875
+  type: 'test'
+  ...
+# Subtest: wallet reconciliation preserves boss history, including saves from older clients
+ok 140 - wallet reconciliation preserves boss history, including saves from older clients
+  ---
+  duration_ms: 0.286958
+  type: 'test'
+  ...
+# Subtest: fixed six IDs, high-price range, and legacy aliases
+ok 141 - fixed six IDs, high-price range, and legacy aliases
+  ---
+  duration_ms: 0.475333
+  type: 'test'
+  ...
+# Subtest: 9999 cannot buy;10000 grants once permanently with zero left
+ok 142 - 9999 cannot buy;10000 grants once permanently with zero left
+  ---
+  duration_ms: 0.9975
+  type: 'test'
+  ...
+# Subtest: boss count alone and forged uploaded ownership cannot bypass the purchase
+ok 143 - boss count alone and forged uploaded ownership cannot bypass the purchase
+  ---
+  duration_ms: 0.100458
+  type: 'test'
+  ...
+# Subtest: quote, visibility, reset epoch and account checks occur before debit
+ok 144 - quote, visibility, reset epoch and account checks occur before debit
+  ---
+  duration_ms: 0.241
+  type: 'test'
+  ...
+# Subtest: cancelled intent cannot be replayed, including a delayed original request
+ok 145 - cancelled intent cannot be replayed, including a delayed original request
+  ---
+  duration_ms: 0.064833
+  type: 'test'
+  ...
+# Subtest: old free grants are removed, paid receipts are retained, and migration repeats safely
+ok 146 - old free grants are removed, paid receipts are retained, and migration repeats safely
+  ---
+  duration_ms: 0.126208
+  type: 'test'
+  ...
+# Subtest: free imports, boss counts, aliases and disabled sales never grant a paid weapon
+ok 147 - free imports, boss counts, aliases and disabled sales never grant a paid weapon
+  ---
+  duration_ms: 0.129375
+  type: 'test'
+  ...
+# Subtest: disabling sales and resetting counters never revoke owners or make unowned guns free
+ok 148 - disabling sales and resetting counters never revoke owners or make unowned guns free
+  ---
+  duration_ms: 0.182042
+  type: 'test'
+  ...
+# Subtest: server prices, boss milestones and names match the shared Armory fixture
+ok 149 - server prices, boss milestones and names match the shared Armory fixture
+  ---
+  duration_ms: 0.57275
+  type: 'test'
+  ...
+1..149
+# tests 149
+# suites 0
+# pass 149
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 580.6795
+
+> regun-server@1.0.0 build
+> spacetime build
+
+Build finished successfully.

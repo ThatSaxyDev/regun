@@ -7,6 +7,9 @@ from generate_reload_audio import CUES, generate
 ROOT=Path(__file__).resolve().parents[1]; RATE=44100
 # Source, pitch, low-pass, transient duration. Individual mechanisms stay short.
 SPECS={
+ 'houndrack':('ak47.ogg',1.32,2200,.12,'carbine'),
+ 'stormOrb':('cannon_01.ogg',.72,1600,.32,'arcCaster'),
+ 'ringCaster':('shotgun_pump_springyspringo.wav',1.22,2300,.28,'revolver'),
  'railLance':('cannon_01.ogg',1.12,1900,.32,'arcCaster'),
  'rivetDriver':('ak47.ogg',1.4,2800,.14,'carbine'),
  'cinderHose':('cannon_01.ogg',.68,1300,.12,'arcCaster'),
@@ -44,6 +47,7 @@ def write(name,a,peak,event,rows,loop=False,decay=7):
 
 ENDGAME={'twinVerdict','flakRegent','anchorEngine','faultlineDriver','cycloneBreacher','mourningBell'}
 EVENTS={
+ 'return_ringCaster.wav':('rifle_reload_springyspringo.wav',1.22,2500,.27,.55),
  'prime_twinVerdict.wav':('rifle_reload_springyspringo.wav',1.35,2300,.09,.38),
  'verdict_twinVerdict.wav':('cannon_01.ogg',.82,2500,.36,.78),
  'plant_anchorEngine.wav':('shotgun_pump_springyspringo.wav',.72,1600,.20,.64),
@@ -99,5 +103,7 @@ def main():
  path=ROOT/'docs/art/WEAPON_AUDIO_MANIFEST.csv';old=list(csv.reader(path.open()));names={r[0]for r in rows}
  with path.open('w',newline='')as f:
   w=csv.writer(f,lineterminator='\n');w.writerows([old[0]]+[r for r in old[1:]if r[0]not in names and (ROOT/'assets/audio'/r[0]).exists()]+rows)
+ from generate_frontier_audio import generate as generate_frontier
+ generate_frontier()
  print('Expansion shots, impacts, mechanisms and sustain loops generated.')
 if __name__=='__main__':main()

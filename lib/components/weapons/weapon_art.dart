@@ -348,6 +348,45 @@ void paintWeapon(
           .rawSprite(spec.atlas, spec.bolt!)
           .render(canvas, size: Vector2(11, 3.8));
       canvas.restore();
+    case WeaponType.houndrack:
+    case WeaponType.stormOrb:
+    case WeaponType.ringCaster:
+      final feedWidth = spec.feedWidth!;
+      final feedHeight = feedWidth * part.srcSize.y / part.srcSize.x;
+      final feedSocket = spec.feedSocket!;
+      part.render(
+        canvas,
+        position: Vector2(
+          feedSocket.dx - feedWidth / 2,
+          feedSocket.dy - feedHeight / 2 + (movingReload ? swapTravel * 18 : 0),
+        ),
+        size: Vector2(feedWidth, feedHeight),
+      );
+      final closure = art.rawSprite(spec.atlas, spec.bolt!);
+      final travel = reducedMotion
+          ? 0.0
+          : loading
+          ? (tactical ? 0.0 : pulse(p, .82, .86, .94) * 6)
+          : recoil * (type == WeaponType.houndrack ? 2 : 4);
+      canvas.save();
+      final boltSocket = spec.boltSocket!, boltWidth = spec.boltWidth!;
+      canvas.translate(boltSocket.dx - travel, boltSocket.dy);
+      if (type == WeaponType.ringCaster && !loading && !reducedMotion) {
+        canvas.rotate(charge * .12);
+      }
+      final boltHeight = boltWidth * closure.srcSize.y / closure.srcSize.x;
+      closure.render(
+        canvas,
+        position: Vector2(-boltWidth / 2, -boltHeight / 2),
+        size: Vector2(boltWidth, boltHeight),
+      );
+      canvas.restore();
+      if (!loading && type == WeaponType.ringCaster && charge > 0) {
+        canvas.drawRect(
+          Rect.fromLTWH(12, -5, 9 * charge, 2),
+          Paint()..color = const Color(0xffBDDACB),
+        );
+      }
     case WeaponType.arcCaster:
       final lift = movingReload ? swapTravel * 10 : 0.0;
       part.render(

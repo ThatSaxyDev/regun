@@ -2,6 +2,7 @@ import 'package:regun/systems/rail_lance_timing.dart';
 import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/presentation/endgame_vfx.dart';
+import 'package:regun/presentation/frontier_vfx.dart';
 import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/systems/sniper_sway.dart';
 import 'package:regun/systems/flame_flow.dart';
@@ -26,6 +27,7 @@ import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/presentation/weapon_art_spec.dart';
 
 part 'endgame_arsenal.dart';
+part 'frontier_arsenal.dart';
 
 enum ArsenalFlightKind { disc, mortar, spore, flak, anchor }
 
@@ -103,6 +105,7 @@ class SporePatch {
 class ArsenalSystem {
   ArsenalSystem(this.game) : audio = game.audio;
   late final endgame = EndgameArsenal(this);
+  late final frontier = FrontierArsenal(this);
   final SoloudPlay audio;
   final RegunGame game;
   final flights = <ArsenalFlight>[],
@@ -132,16 +135,24 @@ class ArsenalSystem {
   Map<PositionComponent, SporePatch> _sporeContacts = {};
   String get loopOwner => 'arsenal:${identityHashCode(this)}';
   int get flightCount => flights.where((f) => !f.spent).length;
-  int get projectileReservations => flights
-      .where((f) => !f.spent)
-      .fold(0, (sum, f) => sum + (f.kind == ArsenalFlightKind.flak ? 4 : 1));
+  int get projectileReservations =>
+      frontier.shots.length +
+      flights
+          .where((f) => !f.spent)
+          .fold(
+            0,
+            (sum, f) => sum + (f.kind == ArsenalFlightKind.flak ? 4 : 1),
+          );
   int get effectCount =>
       endgame.effectCount +
+      frontier.effectCount +
       rivets.length +
       patches.length +
       (_loopOn || flame.tongues.isNotEmpty ? 1 : 0);
   bool get hasRivets => rivets.isNotEmpty;
-  double get visualCharge => weapon == WeaponType.twinVerdict
+  double get visualCharge => weapon == WeaponType.ringCaster
+      ? frontier.ringProgress
+      : weapon == WeaponType.twinVerdict
       ? (endgame.brandReady ? 1 : 0)
       : weapon == WeaponType.beltRepeater
       ? spool / .4
@@ -194,6 +205,7 @@ class ArsenalSystem {
     flame.clear();
     sniperSway.reset();
     endgame.clear();
+    frontier.clear();
   }
 
   void cancelAim() {
@@ -325,7 +337,7 @@ class ArsenalSystem {
     game.gameNotifier.decreaseBullets();
     nextAttack++;
     _idle = 0;
-    if (state.noOfBullets == 0) {
+    if (state.noOfBullets == 0 && weapon != WeaponType.ringCaster) {
       game.gameNotifier.reloadBullets();
     }
   }
@@ -370,6 +382,7 @@ class ArsenalSystem {
     _wasReloading = state.reloading;
     _advanceTransients(dt);
     endgame.advance(dt);
+    frontier.advance(dt, held: !rawAim.isZero() && !state.reloading);
     if (weapon == WeaponType.cinderHose) {
       final direction = rawAim.isZero() ? game.myPlayer.aimDirection : aim;
       flame.advance(
@@ -440,6 +453,8 @@ class ArsenalSystem {
               weapon == WeaponType.scrapMortar ||
               weapon == WeaponType.sporeLobber
           ? _launch()
+          : frontier.handles
+          ? frontier.fire()
           : weapon == WeaponType.flakRegent
           ? endgame.fireFlak()
           : weapon == WeaponType.mourningBell
@@ -447,6 +462,9 @@ class ArsenalSystem {
           : _rounds();
       if (fired) {
         cooldown = math.max(switch (weapon) {
+          WeaponType.houndrack => .055,
+          WeaponType.stormOrb => .45,
+          WeaponType.ringCaster => .6,
           WeaponType.frostShotgun => .45,
           WeaponType.reaperDisc => .35,
           WeaponType.scrapMortar => .55,
@@ -1137,6 +1155,7 @@ class ArsenalSystem {
     'rivets': [for (final r in rivets) r.toJson()],
     'patches': [for (final p in patches) p.toJson()],
     'endgame': endgame.checkpoint(),
+    if (frontier.handles) 'frontier': frontier.checkpoint(),
   };
 
   static void validate(
@@ -1181,6 +1200,7 @@ class ArsenalSystem {
       SniperSway.validate(map['sniperSway'] as Map);
     }
     EndgameArsenal.validate(map['endgame'], weapon);
+    FrontierArsenal.validate(map['frontier'], weapon, map['nextAttack']);
     if (map['schema'] != 1 || map['weapon'] != weapon.name) {
       throw const FormatException('Invalid arsenal state');
     }
@@ -1336,6 +1356,7 @@ class ArsenalSystem {
     }
     _wasReloading = map['wasReloading'] as bool;
     endgame.restore(map['endgame']);
+    frontier.restore(map['frontier']);
     sniperSway.reset();
     if (map['sniperSway'] is Map) sniperSway.restore(map['sniperSway'] as Map);
     for (final raw in map['flights'] as List) {
@@ -1395,6 +1416,7 @@ class ArsenalOverlay extends PositionComponent
     final view = canvas.getLocalClipBounds().inflate(300);
     final grade = BossArt.ambient(game.loadout.arena);
     system.endgame.render(canvas, floor: floor, view: view, grade: grade);
+    if (!floor) system.frontier.render(canvas, view);
     if (floor) {
       for (final p in system.patches) {
         if (!view.contains(p.position.toOffset())) continue;

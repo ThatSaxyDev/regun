@@ -58,6 +58,11 @@ class LiveBalance {
         result['${prefix}sporeLifetime']! < result['${prefix}sporeTick']!) {
       throw const FormatException('Invalid field relationship');
     }
+    if (result.containsKey('effects.stormorb.orbLifetime') &&
+        result['effects.stormorb.orbLifetime']! <
+            result['effects.stormorb.orbTick']!) {
+      throw const FormatException('Orb lifetime must include an arc tick');
+    }
     return result;
   }
 

@@ -23,7 +23,7 @@ enum WeaponType {
   ),
   revolver(
     'Revolver',
-    'Heavy rounds. Cylinder reload.',
+    'Heavy rounds ricochet to another enemy.',
     6,
     0.65,
     3.6,
@@ -210,6 +210,36 @@ enum WeaponType {
     400,
     1000,
     3000,
+  ),
+  houndrack(
+    'Houndrack',
+    'Accelerating micro-rockets seek a target.',
+    40,
+    .11,
+    1.1,
+    650,
+    780,
+    2800,
+  ),
+  stormOrb(
+    'Storm Orb',
+    'Lightning passes through. Crossed bodies take extra damage.',
+    6,
+    1.1,
+    3.8,
+    650,
+    330,
+    2800,
+  ),
+  ringCaster(
+    'Ring Caster',
+    'Launch a cutting ring. Hold to expand; release to recall.',
+    4,
+    1.2,
+    4.5,
+    340,
+    600,
+    3000,
   );
 
   const WeaponType(
@@ -251,6 +281,9 @@ enum WeaponType {
         WeaponType.faultlineDriver => 'faultline_driver',
         WeaponType.cycloneBreacher => 'cyclone_breacher',
         WeaponType.mourningBell => 'mourning_bell',
+        WeaponType.houndrack => 'houndrack',
+        WeaponType.stormOrb => 'storm_orb',
+        WeaponType.ringCaster => 'ring_caster',
         _ => 'arsenal',
       }}';
   int get victoryRequirement => switch (this) {
@@ -271,6 +304,9 @@ enum WeaponType {
     WeaponType.faultlineDriver => 44,
     WeaponType.cycloneBreacher => 48,
     WeaponType.mourningBell => 52,
+    WeaponType.houndrack => 56,
+    WeaponType.stormOrb => 60,
+    WeaponType.ringCaster => 64,
     _ => 0,
   };
   bool get supportsScatter =>
@@ -298,11 +334,18 @@ enum WeaponType {
       }.contains(this);
   bool get supportsVelocity =>
       supportsScatter ||
-      {WeaponType.reaperDisc, WeaponType.sporeLobber}.contains(this);
+      {
+        WeaponType.reaperDisc,
+        WeaponType.sporeLobber,
+        WeaponType.houndrack,
+        WeaponType.stormOrb,
+      }.contains(this);
   bool get isContinuous =>
       this == WeaponType.cinderHose || this == WeaponType.prismCutter;
   bool get hasDirectHits =>
-      this != WeaponType.scrapMortar && this != WeaponType.anchorEngine;
+      this != WeaponType.scrapMortar &&
+      this != WeaponType.anchorEngine &&
+      this != WeaponType.ringCaster;
   bool get hasLastRound => this != WeaponType.prismCutter;
   bool get supportsRange => true;
   int? get rangeCeiling => switch (this) {
@@ -313,6 +356,9 @@ enum WeaponType {
     prismCutter => 560,
     sporeLobber => 600,
     anchorEngine => 760,
+    ringCaster => 460,
+    stormOrb => 850,
+    houndrack => 900,
     _ => null,
   };
   int get velocityCeiling => this == reaperDisc

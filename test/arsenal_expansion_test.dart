@@ -494,7 +494,9 @@ void main() {
             } else {
               await advance(
                 game,
-                weapon == WeaponType.railLance
+                weapon == WeaponType.ringCaster
+                    ? .8
+                    : weapon == WeaponType.railLance
                     ? .66
                     : weapon == WeaponType.beltRepeater
                     ? .425
@@ -936,7 +938,7 @@ void main() {
   test(
     'all twenty-one have meaningful upgrade capabilities and packaged cues',
     () {
-      expect(WeaponType.values.length, 21);
+      expect(WeaponType.values.length, 24);
       for (final w in WeaponType.values) {
         for (final p in PowerUp.values) {
           if (!weaponSupportsPowerUp(w, p)) {

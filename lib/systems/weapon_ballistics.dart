@@ -17,6 +17,7 @@ class WeaponBallistics {
     WeaponType.shotgun => const WeaponBallistics(120, 380, 1.20, .90),
     WeaponType.carbine => const WeaponBallistics(100, 600, 1.10, .95),
     WeaponType.revolver => const WeaponBallistics(110, 750, 1.12, .98),
+    WeaponType.houndrack => const WeaponBallistics(0, 900, 1, 1),
     WeaponType.burstRifle => const WeaponBallistics(100, 700, 1, 1),
     WeaponType.arcCaster => const WeaponBallistics(100, 520, 1.08, .98),
     WeaponType.cycloneBreacher => const WeaponBallistics(210, 300, 1, .60),

@@ -1,3 +1,4 @@
+import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/systems/weapon_reaction.dart';
 import 'package:regun/systems/weapon_mobility.dart';
 
@@ -23,6 +24,9 @@ void main() {
     for (final w in WeaponType.values.where((w) => !w.usesArsenalRuntime)) {
       final s = fixture['weapons'][w.name] as Map, b = WeaponBallistics.of(w);
       final reaction = WeaponReaction.of(w);
+      if (w == WeaponType.revolver) {
+        expect(WeaponPowerBalance.current.ricochets(w), s['ricochets']);
+      }
       expect([
         reaction.distance,
         reaction.duration,

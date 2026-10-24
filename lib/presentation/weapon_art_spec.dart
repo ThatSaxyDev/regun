@@ -14,7 +14,13 @@ class WeaponArtSpec {
     this.grip, {
     this.bolt,
     this.muzzleHeight = .55,
+    this.feedSocket,
+    this.feedWidth,
+    this.boltSocket,
+    this.boltWidth,
   });
+  final Offset? feedSocket, boltSocket;
+  final double? feedWidth, boltWidth;
   final String atlas;
   final int body, mechanism;
   final int? bolt;
@@ -24,6 +30,48 @@ class WeaponArtSpec {
   double get muzzle => muzzleSocket.dx - gripSocket.dx;
 
   static WeaponArtSpec of(WeaponType type) => switch (type) {
+    WeaponType.houndrack => const WeaponArtSpec(
+      'weapons/houndrack',
+      0,
+      1,
+      68,
+      22.6956,
+      .30,
+      bolt: 2,
+      muzzleHeight: 0.44,
+      feedSocket: Offset(22, -1),
+      feedWidth: 13,
+      boltSocket: Offset(18, -4.5),
+      boltWidth: 11,
+    ),
+    WeaponType.stormOrb => const WeaponArtSpec(
+      'weapons/storm_orb',
+      0,
+      1,
+      65,
+      21.1009,
+      .30,
+      bolt: 2,
+      muzzleHeight: 0.45,
+      feedSocket: Offset(23, 2.7),
+      feedWidth: 9,
+      boltSocket: Offset(36, -3.5),
+      boltWidth: 13,
+    ),
+    WeaponType.ringCaster => const WeaponArtSpec(
+      'weapons/ring_caster',
+      0,
+      1,
+      62,
+      22.483,
+      .30,
+      bolt: 2,
+      muzzleHeight: 0.48,
+      feedSocket: Offset(20, -3.5),
+      feedWidth: 10.5,
+      boltSocket: Offset(36.5, -3.4),
+      boltWidth: 10.5,
+    ),
     WeaponType.shotgun => const WeaponArtSpec(
       'weapons/arsenal',
       0,

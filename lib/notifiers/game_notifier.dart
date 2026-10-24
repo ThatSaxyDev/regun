@@ -1058,6 +1058,7 @@ class GameState {
     'weapons.${w.name}.reloadMs': power.reloadMs(w),
     'weapons.${w.name}.range': power.range(w),
     'weapons.${w.name}.speed': power.speed(w),
+    'weapons.${w.name}.ricochets': power.ricochets(w),
     'survivors.${c.name}.health': power.health(c),
     'survivors.${c.name}.speed': power.movement(c),
   };
@@ -1689,7 +1690,9 @@ List<PowerUp> eligiblePowerUps(
       return false;
     }
     if (p == PowerUp.faradayReserve && !chain) return false;
-    if (p == PowerUp.bankShot && state.rank(PowerUp.ricochet) == 0) {
+    if (p == PowerUp.bankShot &&
+        state.rank(PowerUp.ricochet) == 0 &&
+        power.ricochets(weapon) == 0) {
       return false;
     }
     if (p == PowerUp.targetingLink && state.rank(PowerUp.orbitDrone) == 0) {

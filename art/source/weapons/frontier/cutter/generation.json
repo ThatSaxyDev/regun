@@ -1,0 +1,15 @@
+{
+  "prompt": "Use case: production game sprite. Make ONE isolated top-down cutting ring projectile for Regun, a dark weathered pixel-art shooter. Reference image is STYLE/MATERIAL reference only (the attached ring gun), not an edit target. Entire sprite is a precisely circular open iron saw-ring, viewed straight overhead, centered exactly at image center. Outer tip radius 46% of canvas width, inner opening radius 36% of canvas width. The center is completely transparent and large. Thin connected weathered iron annular blade, 24 unmistakable angular outward hooked saw teeth, alternating polished steel cutting edges and dark olive/blackened iron backing, six small restrained brass fastening plates and tiny rivets. Strong tangible irregular chipped metal silhouette, coarse crisp pixel clusters, NOT a string of evenly spaced rectangles, NOT clean vector outlines, no neon halo, no radial beams, no particles, no floor, no shadow, no text, no labels, no weapon or hand. All area outside the cutter and in the central opening must be transparent. Square transparent canvas. Consistent restrained stone/olive/steel/brass Regun palette. The ring must look like a dangerous saw blade fired from the matching gun and remain legible as a 256px runtime texture.",
+  "tool": "built-in image_gen",
+  "source": "/Users/kiishidavid/.codex/generated_images/01a16e53-d3aa-7542-bb86-2f6e039e9119/exec-360ce683-a047-44e4-a243-fe341200d8bd.png",
+  "sha256": "ada8f6b0f0c4e6f631a8775543560c38a1e0dfe10727c35618b8f122300863a6",
+  "runtimeDecode": [
+    256,
+    256
+  ],
+  "meshSegments": 96,
+  "sourceAnnulusRadii": [
+    0.25,
+    0.495
+  ]
+}

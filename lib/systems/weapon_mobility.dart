@@ -24,6 +24,9 @@ class WeaponMobility {
     'faultlineDriver': .94,
     'cycloneBreacher': .94,
     'mourningBell': .95,
+    'houndrack': .96,
+    'stormOrb': .97,
+    'ringCaster': .97,
   };
   static double of(WeaponType weapon) => multipliers[weapon.name] ?? 1;
   static double speed(WeaponType weapon, double baseline) =>
