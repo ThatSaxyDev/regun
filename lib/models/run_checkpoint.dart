@@ -1,3 +1,4 @@
+import 'package:regun/models/solo_recovery.dart';
 import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/systems/survivor_runtime.dart';
 import 'package:regun/systems/arsenal_system.dart';
@@ -121,7 +122,15 @@ class RunCheckpoint {
       final state = GameState.fromJson(
         Map<String, dynamic>.from(map['state'] as Map),
       ).copyWith(upgradeStrengths: power.upgradeStrengths);
-      if (state.health <= 0 ||
+      final recovery = map['recovery'] is Map
+          ? SoloRecovery.fromJson(map['recovery'] as Map)
+          : null;
+      final deadRecovery =
+          recovery != null &&
+          !loadout.training &&
+          ['offered', 'requested', 'ended'].contains(recovery.stage);
+      if ((state.health <= 0 && !deadRecovery) ||
+          state.health < 0 ||
           state.health > 1000000 ||
           state.maxHealth <= 0 ||
           state.maxHealth > 10000 ||

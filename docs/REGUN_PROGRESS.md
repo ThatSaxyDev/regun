@@ -1458,3 +1458,35 @@ packs, committed attacks, actual player safety inside the blast, paused expiry
 and breaking-phase restore. No app package build, phone installation or production
 deployment is performed; physical navigation feel and blast fairness remain
 creator review.
+
+## Earned Solo revival (24 October 2026)
+
+Implemented the creator's55-Scrap /five-active-minute rule across app, account
+API/database, nginx route and admin. At least55 must have been banked before the
+run and remain available at debit; one revive maximum. Current-run earnings wait
+for the final decision. Training/co-op/Versus and legacy saves do not acquire an
+allowance. The server policy defaults disabled; deployment/phone acceptance and
+an explicit reviewed admin publication precede rollout. Billing remains deferred.
+
+The death overlay uses existing pixel type, notice frame and ClickButton art,
+with a compact Scrap balance next to the title, a quiet run summary, one recovery
+panel and pinned End run/Revive actions. Normal844×390 and667×375 landscape renders
+fit without scrolling. Large-text body content scrolls while actions stay visible.
+Offline checking, uncertain spend, prepared return and Save & menu have distinct
+states. No countdown, automatic purchase or repeated spending on reconnect.
+
+Critical recovery writes replace both owner-scoped checkpoint copies inside one
+serialized queue operation. Server receipts bind account/run/reset epoch; atomic
+spend, status, cancellation tombstones and activation prevent duplicate debit.
+Prepared recovery persists before activation/combat. Reopening it grants the same
+recovery with full two-second protection, not a second purchase. Same build,
+boss/enemy health and phase, half health/full magazine; grenades are unchanged.
+Revived runs keep separate score/time personal bests, as clarified by the creator.
+The revive prompt does not explain that distinction; final results use “Revived
+best”. Ordinary rewards/unlocks retain their existing conditions, and the
+one-revive cap remains independent of accessibility assistance.
+
+See REVIVE_POLICY.md for trust boundaries, rollout and phone checks. Offline Solo
+eligibility/earnings remain device-reported; receipts do not prove fair ranked
+combat and this contract must not back cash value. Source changes do not deploy,
+bump the current release, build a package or install on a phone.

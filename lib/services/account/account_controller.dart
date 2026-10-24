@@ -672,6 +672,40 @@ class AccountController extends ChangeNotifier {
     _notify();
   }
 
+  Future<Map<String, dynamic>> soloRecoveryRequest(
+    Map<String, dynamic> body,
+  ) async {
+    await initialize();
+    if (!verified || !attached) {
+      throw const AccountError('Sign in with the email that owns this run.');
+    }
+    final owner = session!.accountId, generation = _generation;
+    // The run is frozen. Local-play ownership prevents profile switches, while
+    // ordinary account sync is safe and does not settle this run's earnings.
+    if (body['action'] == 'offer') await sync();
+    if (_local == null ||
+        !attached ||
+        (body['action'] == 'offer' && (pending || conflict))) {
+      throw const AccountError('Sync your account before reviving.');
+    }
+    final epoch = body['epoch'] == '' ? _local!['epoch'] : body['epoch'];
+    final data = await api.request(
+      '/solo-revive',
+      token: await accessToken(),
+      body: {...body, 'epoch': epoch},
+    );
+    if (generation != _generation ||
+        session?.accountId != owner ||
+        !attached ||
+        data['accountId'] != owner) {
+      throw const AccountError('Account changed. Recovery is paused.');
+    }
+    account = data;
+    await _confirmWallet(data);
+    _notify();
+    return data;
+  }
+
   Future<CosmeticPurchase> purchaseCosmetic(
     String item, {
     int? displayedPrice,

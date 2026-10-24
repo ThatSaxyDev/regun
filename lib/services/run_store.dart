@@ -84,6 +84,34 @@ class RunStore {
     return operation.then((_) => saved);
   }
 
+  /// Critical recovery transitions replace both completed copies before spend
+  /// or combat resume. An older live backup must not reset a paid allowance.
+  Future<bool> writeRecovery(Map<String, dynamic> snapshot) {
+    final owner = LocalPreferences.shared.profileOwner;
+    final payload = jsonEncode(snapshot);
+    var saved = false;
+    // One queue operation owns both copies; a background save or owner switch
+    // cannot interleave between them and restore a pre-purchase backup.
+    final operation = _pending.then((_) async {
+      final file = await _file(owner);
+      if (file == null) return;
+      try {
+        final temporary = File('${file.path}.tmp');
+        await temporary.writeAsString(payload, flush: true);
+        if (await file.exists()) await file.copy('${file.path}.bak');
+        await temporary.rename(file.path);
+        final backupTemporary = File('${file.path}.bak.tmp');
+        await backupTemporary.writeAsString(payload, flush: true);
+        await backupTemporary.rename('${file.path}.bak');
+        saved = true;
+      } on FileSystemException {
+        // Never debit or resume until both durable copies are confirmed.
+      }
+    });
+    _pending = operation;
+    return operation.then((_) => saved);
+  }
+
   Future<void> clear({String? expectedRunId}) => _clear(
     LocalPreferences.shared.profileOwner,
     expectedRunId: expectedRunId,

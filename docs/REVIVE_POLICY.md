@@ -1,71 +1,83 @@
-# Continue policy — implementation contract
+# Earned Solo revive — implementation and rollout
 
-23 October 2026. Defined for the non-billing economy pass. **Not enabled**:
-there is no continue purchase, charge pack, ad SDK or death-screen sales prompt.
-This separates the agreed product rules from functionality that has not shipped.
+24 October 2026. Implemented in app, account gateway, database module and admin.
+**The server policy defaults disabled.** This source change does not deploy or
+publish a new app. Billing, ads, charge packs and free first-use allowances remain
+outside this pass.
 
-## Eligibility and fairness
+## Player rules
 
-- One economy-funded continue per ordinary Solo run, shared across every future
-  source: earned allowance, Scrap or purchased charge. Restart/reconnect never
-  resets the cap. No offer in Training, online co-op, PvP, ranked, seeded daily
-  challenges or an explicitly uncontinued mastery trial.
-- The player chooses Continue or ends the run. No countdown, repeated prompts,
-  automatic purchase, losing-streak targeting or price based on account/spending.
-- All sources give exactly the same recovery: the same build and boss phase,
-  half normal maximum health rounded up, full existing weapon magazine, and the
-  existing two-second deployment protection. No extra upgrades, core capacity,
-  grenade charges or better offers. Final values need device playtesting before
-  enabling; they must be pinned in the run's continue offer.
-- Re-entry uses a validated safe location and the existing deployment timeline;
-  pause/background freeze it. A one-time local bullet clear may protect landing,
-  but never cancels bosses, resets boss health, pays repeated kill rewards or
-  erases the arena's persistent hazards.
-- Record `continued` independently of aim assistance/accessibility preferences.
-  Continued runs retain ordinary Scrap and horizontal unlocks, but cannot award
-  an explicitly uncontinued prestige feat or enter an uncontinued leaderboard.
-  Explain this before confirmation; do not retroactively punish purchases.
+- At most one revive per normal Solo run, after **300 active seconds**. No Training,
+  co-op or Versus offer. Existing legacy checkpoints acquire no new allowance.
+- **55 Scrap**, with at least55 banked before starting and55 still available at
+  server debit. Unclaimed current-run earnings cannot fund it. Requires email
+  sign-in and a successful online account-server confirmation. Ordinary offline
+  play and use of previously owned cosmetics remain available.
+- Explicit Revive or End run. No countdown, automatic purchase, personalized price
+  or loss/spend-driven combat difficulty.55/300 are creator-chosen trial values,
+  not measured average affordability.
+- Same build, enemies/boss health/phase and live-balance snapshot. A checked landing
+  point, half maximum health rounded up, full current magazine and two active
+  seconds of protection. No grenade refill, upgrades, fusion capacity or repeated
+  kill rewards. Nearby hostile bullets clear once; arena hazards remain.
+- Revived runs retain ordinary Scrap and unlock progress. Their personal best
+  score/time are separate from runs without a revive and accessibility-assisted
+  records. The death/revive prompt does not explain record categories; final
+  results identify the relevant best as “Revived best”. Training stays accessible.
 
-## Earned access and pricing
+## Durable confirmation
 
-A future first-use allowance should be earned once per account through ordinary
-play, not depend on payment or reset on reinstall. Reserve its exact milestone
-until we can assess first-session pacing. Do not make basic learning require a
-paid recovery. Controls and Training remain free.
+The owner-scoped run checkpoint records starting funds, reset epoch, decision stage
+and continued flag. Both primary and backup are replaced before spending and before
+resuming. Final settlement waits for the revive decision; an ended checkpoint is
+written before applying ordinary rewards with existing settled-run IDs.
 
-Do not activate a Scrap price from a hypothetical average. The current unchanged
-formula pays salvage + floor(kills/10) + 15*bosses + floor(seconds/60). A synthetic
-300-kill, one-boss, ten-minute attempt pays55 plus salvage. A provisional50-Scrap
-continue would therefore consume nearly that entire example reward; it could be
-a loss tax for struggling players. Measure the actual distribution first. A
-candidate price and starter allowance must be reviewed together, with a retained
-no-continue comparison and cosmetic affordability. There is no live price today.
+POST `/solo-revive` uses authenticated email accounts. `offer` checks policy and
+reported eligibility. `buy` atomically debits55 and records one receipt keyed by
+account/run. `status` never spends. `close` writes an unpaid cancellation tombstone
+or returns an already-paid receipt. `activate` confirms the prepared recovery and
+remains allowed after policy disable. Reset invalidates old epochs. Repeated
+requests cannot debit again; an activated receipt cannot heal an older death save.
 
-## Server and persistence requirements before enabling
+A lost response shows a confirmation state. Retry reads that receipt before cloud
+comparison, avoiding a false save conflict from the debit's new revision. Save &
+menu preserves the decision for Continue/re-authentication. A prepared recovery
+resumes after confirmation; backgrounding keeps combat paused. Ending an uncertain
+purchase needs server cancellation or recovery of its committed receipt.
 
-1. Introduce a durable pending-recovery phase *before* final settlement. Capture
-   the exact run/account/reset epoch, death checkpoint, used flag and offer terms.
-   Current final-death settlement must not be followed by an unjournaled revive.
-2. Every new economy spend requires email sign-in and an online server response.
-   Preserve offline ordinary play and offline use of owned permanent styles.
-   Do not promise offline consumption of a cash-backed charge without a separate
-   reservation/reconciliation design.
-3. Atomically reserve/debit once and bind a recovery receipt to that run. A lost
-   response checks the same receipt; reopening does not create a second spend.
-   Account switches, reset, expired runs and already-settled runs reject the offer.
-4. Persist the confirmed receipt and consumed flag before resuming combat.
-   Recovery after crash resumes that same decision. An unusable run must retain
-   or release the reserved charge through an auditable operation.
-5. Settle normal rewards exactly once at final death/end. Add a durable settlement
-   journal and crash fault tests before enabling. Existing settled-run IDs and
-   best-effort checkpoint recovery are insufficient for paid recovery.
-6. Admin may inspect receipts and reports; it cannot change the one-continue cap,
-   competitive exclusions, combat difficulty or source parity through catalogue
-   fields. Billing verification, charge restoration/refunds and cash prices are
-   a separate later project.
+**Trust boundary:** offline Solo time, starting funds and cumulative earnings are
+device-reported. Server authentication, wallet debits, epochs and per-run receipts
+are authoritative, but this is not anti-cheat proof for local combat. Do not reuse
+this earned-currency contract for cash-backed value or ranked competition.
 
-Acceptance must include offline death, timeout before/after debit, kill during
-receipt persistence, repeated callbacks, account switch/reset, background during
-re-entry and one-continue enforcement after restart. Physical fairness, comfort
-and progression impact remain creator playtest gates. Research rationale:
-[Economy recommendation](research/ECONOMY_RECOMMENDATION_2026-10-23.md).
+## Admin and deployment
+
+Economy → Solo revives shows fixed55/300/one-run terms and an enable/disable control.
+Publication uses existing operator/session checks, reason, expected revision and
+durable request ID. Review shows old/new settings. Drafts/pending publication
+survive navigation; retry sends the same operation. A stale revision needs a
+refreshed draft and new review. Price/combat strength are not editable here.
+
+Players → Scrap wallet shows revive receipts. Economy reports separate paid
+revive count/spend from cosmetic purchases. These are operational earned-currency
+reports, not cash revenue or financial books.
+
+Deploy module, gateway and nginx route together through the existing deployment
+flow, preserving signing/publisher state and stored data. Deploy matching admin
+and app before enabling a reviewed pilot. Disable stops new spending while still
+allowing paid recovery. No new billing credential or table migration is required.
+
+## Acceptance
+
+Automated checks cover55/300 boundaries, guests/Training/second use, atomic debit,
+lost acknowledgement, cancellation, account/reset isolation, journal write failure,
+prepared recovery after reopening, paused landing, unchanged ordnance, exactly-once
+rewards, wallet reconciliation and admin retry after a lost publication reply.
+Rendered ordinary landscape layouts keep actions visible without scrolling.
+
+Phone checks before rollout: death before/after five minutes;54/55 starting Scrap;
+connected/offline death; no second revive; pause/background during landing; force
+close while confirming then Continue; retained boss health/build/ordnance; End run
+earnings; admin disable during offered/paid recovery. Assess readability, comfort,
+fairness and cosmetic affordability with users. Automated checks do not establish
+native feel or balance. See the existing economy research for original rationale.

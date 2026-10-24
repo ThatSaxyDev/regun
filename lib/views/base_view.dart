@@ -1,3 +1,4 @@
+import 'package:regun/widgets/solo_revive_panel.dart';
 import 'package:regun/systems/training_pressure.dart';
 import 'package:regun/widgets/training_weapon_browser.dart';
 import 'package:regun/widgets/run_results_panel.dart';
@@ -55,8 +56,11 @@ class BaseView extends StatefulWidget {
     this.showTrainingIntro = false,
     this.resumeSnapshot,
     this.runStore,
+    this.recoveryTransport,
   });
   final RunStore? runStore;
+  final Future<Map<String, dynamic>> Function(Map<String, dynamic>)?
+  recoveryTransport;
   final Loadout loadout;
   final bool showTrainingIntro;
   final Map<String, dynamic>? resumeSnapshot;
@@ -89,11 +93,13 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       loadout: widget.loadout,
       resumeSnapshot: widget.resumeSnapshot,
       runStore: widget.runStore,
+      recoveryTransport: widget.recoveryTransport,
     );
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _myGame.applicationActive = state == AppLifecycleState.resumed;
     if (state != AppLifecycleState.resumed && _myGame.isMounted) {
       _myGame.pauseGame();
       _myGame.resetInput();
@@ -250,6 +256,12 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                         _pauseMenu(),
                       if (state.gameplayState == GameplayState.gameOver)
                         _results(state),
+                      ValueListenableBuilder<int>(
+                        valueListenable: _myGame.revision,
+                        builder: (context, _, child) => _myGame.recovery.pending
+                            ? _recoveryPanel()
+                            : const SizedBox.shrink(),
+                      ),
                       if (_trainingIntro) ...[
                         const ModalBarrier(
                           dismissible: false,
@@ -1219,6 +1231,18 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     ),
   );
 
+  Widget _recoveryPanel() => Positioned.fill(
+    child: SoloRevivePanel(
+      state: _myGame.gameState,
+      recovery: _myGame.recovery,
+      banked: _myGame.preferences.profile.scrap,
+      onBuy: _myGame.buySoloRecovery,
+      onRetry: _myGame.checkSoloRecovery,
+      onEnd: _myGame.endRecoveryRun,
+      onMenu: _leave,
+    ),
+  );
+
   Widget _results(GameState state) => Positioned.fill(
     child: ValueListenableBuilder<int>(
       valueListenable: _myGame.revision,
@@ -1230,7 +1254,15 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           scrapBreakdown: _myGame.scrapReward.breakdown,
           nextGoal: goal == null ? null : '${goal.title} / ${goal.detail}',
           record:
-              '${_myGame.assisted ? 'ASSISTED BEST ${_myGame.preferences.profile.assistedBestScore}' : 'BEST ${_myGame.preferences.bestScore}'} / LONGEST ${runTime(_myGame.assisted ? _myGame.preferences.profile.assistedBestSeconds : _myGame.preferences.bestSeconds)}',
+              '${_myGame.recovery.continued
+                  ? 'REVIVED BEST ${_myGame.preferences.profile.continuedBestScore}'
+                  : _myGame.assisted
+                  ? 'ASSISTED BEST ${_myGame.preferences.profile.assistedBestScore}'
+                  : 'BEST ${_myGame.preferences.bestScore}'} / LONGEST ${runTime(_myGame.recovery.continued
+                  ? _myGame.preferences.profile.continuedBestSeconds
+                  : _myGame.assisted
+                  ? _myGame.preferences.profile.assistedBestSeconds
+                  : _myGame.preferences.bestSeconds)}',
           unlocks: [
             for (final id in _myGame.newUnlocks)
               challenges.where((c) => c.id == id).firstOrNull?.reward ?? id,

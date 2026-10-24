@@ -1,3 +1,6 @@
+import 'package:regun/services/account/account_api.dart';
+import 'package:regun/models/solo_recovery.dart';
+import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/systems/obstacle_router.dart';
 import 'package:regun/systems/training_pressure.dart';
 import 'package:regun/models/economy/scrap_reward.dart';
@@ -70,6 +73,8 @@ import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/systems/repeating_action.dart';
 import 'package:regun/utils/soloud_play.dart';
 
+part 'systems/solo_recovery_runtime.dart';
+
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
   RegunGame(
@@ -78,6 +83,7 @@ class RegunGame extends FlameGame
     this.resumeSnapshot,
     this.startPaused = false,
     RunStore? runStore,
+    this.recoveryTransport,
   }) : runStore = runStore ?? RunStore.shared,
        super(camera: CameraComponent(viewport: ArenaViewport()));
 
@@ -87,6 +93,10 @@ class RegunGame extends FlameGame
   final RunStore runStore;
   final Map<String, dynamic>? resumeSnapshot;
   late String runId;
+  SoloRecovery recovery = SoloRecovery(owner: 'guest', startingScrap: 0);
+  bool applicationActive = true;
+  Future<Map<String, dynamic>> Function(Map<String, dynamic>)?
+  recoveryTransport;
   bool _settled = false;
   bool _settlementSaved = false, _waitingToRestart = false;
   bool assisted = false;
@@ -1002,7 +1012,7 @@ class RegunGame extends FlameGame
       gameNotifierProvider.select((state) => state.gameplayState),
       (previous, phase) {
         if (phase == GameplayState.gameOver) {
-          _settlement = settleRun();
+          _settlement = handleSoloDeath();
         }
         if (_started && phase != GameplayState.gameOver) {
           scheduleMicrotask(() {
@@ -1036,6 +1046,10 @@ class RegunGame extends FlameGame
   void _startRun({bool clearSave = true}) {
     runId = DateTime.now().microsecondsSinceEpoch.toString();
     _settled = false;
+    recovery = SoloRecovery(
+      owner: preferences.profileOwner,
+      startingScrap: preferences.profile.scrap,
+    );
     _settlementSaved = false;
     assisted = preferences.aimAssist;
     trainingStep = 0;
@@ -1152,6 +1166,7 @@ class RegunGame extends FlameGame
 
     return {
       'schema': 2,
+      'recovery': recovery.toJson(),
       'id': runId,
       'loadout': loadout.toJson(),
       ...gameNotifier.checkpoint(),
@@ -1208,10 +1223,15 @@ class RegunGame extends FlameGame
   }
 
   Future<bool> saveCheckpoint() async {
-    if (!_started || _settled || loadout.training || gameState.health <= 0) {
+    if (!_started ||
+        _settled ||
+        loadout.training ||
+        (gameState.health <= 0 && !recovery.pending)) {
       return false;
     }
-    final saved = await runStore.write(checkpoint());
+    final saved = recovery.pending
+        ? await runStore.writeRecovery(checkpoint())
+        : await runStore.write(checkpoint());
     if (isMounted) {
       final issue = saved ? null : 'Run could not be saved.';
       if (saveIssue != issue) {
@@ -1233,6 +1253,10 @@ class RegunGame extends FlameGame
 
   Future<void> settleRun() async {
     if (_settled || loadout.training) return;
+    if (recovery.stage != 'alive' || recovery.continued) {
+      recovery.stage = 'ended';
+      if (!await persistRecovery()) return;
+    }
     _settled = true;
     final settledId = runId;
     final state = gameState;
@@ -1252,10 +1276,11 @@ class RegunGame extends FlameGame
       foundFusions: state.evolutions,
       enemies: encounteredEnemies,
       assisted: assisted,
+      continued: recovery.continued,
       survivorProgress: gameNotifier.survivor.toJson(),
       dashes: dashCount,
     );
-    if (!assisted) {
+    if (!assisted && !recovery.continued) {
       await preferences.record(
         score: state.score,
         seconds: state.survivalSeconds,
@@ -1272,8 +1297,14 @@ class RegunGame extends FlameGame
 
   Future<void> leaveRun() async {
     resetInput();
+    if (recovery.pending) {
+      await persistRecovery();
+      return;
+    }
     if (gameState.gameplayState == GameplayState.gameOver) {
       await _settlement;
+      if (!_settled) await settleRun();
+      if (!_settled) return;
       if (preferences.profileSaveFailed) {
         final saved = await preferences.saveProfile();
         if (!saved) return;
@@ -1305,7 +1336,15 @@ class RegunGame extends FlameGame
           preferences.profile.settledRuns.contains(snapshot['id'])) {
         throw const FormatException('Checkpoint no longer available');
       }
-      if (stateSnapshot.health <= 0) {
+      recovery = snapshot['recovery'] is Map
+          ? SoloRecovery.fromJson(snapshot['recovery'] as Map)
+          : SoloRecovery(owner: 'guest', startingScrap: 0);
+      if (recovery.owner != preferences.profileOwner &&
+          recovery.owner != 'guest') {
+        throw const FormatException('Recovery belongs to another account');
+      }
+      if (stateSnapshot.health <= 0 &&
+          !['offered', 'requested', 'ended'].contains(recovery.stage)) {
         throw const FormatException('Finished run');
       }
       final records = (snapshot['enemies'] as List).cast<Map>();
@@ -1483,7 +1522,10 @@ class RegunGame extends FlameGame
         }
       }
       _syncSupplyArt(supplyDrops.drop != null && !bossRush);
-      gameNotifier.restoreCheckpoint(snapshot);
+      gameNotifier.restoreCheckpoint(
+        snapshot,
+        allowDead: recovery.stage != 'alive',
+      );
       _updateCamera();
       revision.value++;
       // Restored attacks restart at anticipation; old flying shots/hazards are
@@ -2043,21 +2085,23 @@ class RegunGame extends FlameGame
         audio.play('impact_guard.wav');
       }
       final centerCamera = map.bounds.cameraPosition(
-        Vector2.zero(),
+        playerEntrance.landingPosition,
         camera.viewport.virtualSize / camera.viewfinder.zoom,
       );
       camera.viewfinder.position =
           playerEntrance.cameraFrom +
           (centerCamera - playerEntrance.cameraFrom) *
               playerEntrance.cameraProgress;
-      if (playerEntrance.atCenter) myPlayer.position.setZero();
+      if (playerEntrance.atCenter) {
+        myPlayer.position.setFrom(playerEntrance.landingPosition);
+      }
       if (playerEntrance.elapsed >= playerEntrance.fall) damageFeedback.reset();
       // Mount pending components without advancing attacks or contact damage.
       super.update(0);
       if (playerEntrance.elapsed >= playerEntrance.duration) {
         final respawn = playerEntrance.respawning;
         playerEntrance.cancel();
-        if (respawn) {
+        if (respawn && loadout.training) {
           grenades.setCapacity(gameState.grenadeCapacity);
           grenades.reset();
           for (final shot
@@ -2435,6 +2479,7 @@ class RegunGame extends FlameGame
   }
 
   void restartGame() {
+    if (recovery.pending) return;
     // Normal settled results restart immediately. Only failed/in-flight saves
     // need an asynchronous retry before replacing the run world.
     if (gameState.gameplayState == GameplayState.gameOver &&

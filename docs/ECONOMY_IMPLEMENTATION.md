@@ -1,8 +1,8 @@
 # Earned economy — app, API and admin
 
 23 October 2026. Non-billing implementation. Preserve build19 and the existing
-Telling configuration. Apple/Google billing, Credits top-ups, ads and revive
-purchases are not enabled. This pass is local source until the three repositories
+Telling configuration. Apple/Google billing, Credits top-ups and ads remain deferred. The24 October
+earned Solo revive implementation defaults disabled pending a reviewed rollout. This pass is local source until the three repositories
 are built/deployed. Existing unrelated trailer work is untouched.
 
 ## Items2–10
@@ -17,7 +17,7 @@ are built/deployed. Existing unrelated trailer work is untouched.
 |7 · Server authority|Independent immutable catalogue releases; exact catalogue/revision/epoch checks; atomic debit/grant/receipt. Safe cancellation tombstones block a delayed original request, or restore an already committed receipt. No automatic spend after refresh/reconnect.|
 |8 · Admin|Toolbar → Scrap economy. Persisted per-origin/channel drafts, review/reason, staging/production, expected-base conflict protection, idempotent publication, audit and restore-history-as-draft. Restore publishes a new reviewed release.|
 |9 · Reporting|Authenticated7/30/90-day earned/imported/spent flows, current balances, purchases by finish, request/failure counts. Newly observed unlock milestones include cumulative run count and active minutes; aggregated median/sample counts are explicitly device-reported.|
-|10 · Revives|[Continue policy](REVIVE_POLICY.md) defines eligibility, source parity, rewards, UX and persistence requirements. No live revive purchase or premature price is enabled.|
+|10 · Revives|[Revive implementation](REVIVE_POLICY.md):55 pre-run banked Scrap, five active minutes, one normal Solo revive; online authenticated debit/receipt recovery, durable death decision, separate revived personal bests without death-prompt record copy, admin enable/disable. Defaults disabled.|
 
 ## Progression and earning
 

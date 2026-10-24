@@ -10,6 +10,7 @@ class PlayerEntrance {
   bool active = false, respawning = false, reduced = false;
   double elapsed = 0;
   final cameraFrom = Vector2.zero();
+  final landingPosition = Vector2.zero();
   double get fall => respawning ? (reduced ? .25 : .5) : 0;
   double get pan => respawning ? (reduced ? .25 : 1.0) : 0;
   double get landingStart => fall + pan + .2;
@@ -35,12 +36,14 @@ class PlayerEntrance {
     required bool respawn,
     required bool reducedMotion,
     required Vector2 camera,
+    Vector2? target,
   }) {
     active = true;
     respawning = respawn;
     reduced = reducedMotion;
     elapsed = 0;
     cameraFrom.setFrom(camera);
+    landingPosition.setFrom(target ?? Vector2.zero());
   }
 
   void cancel() {

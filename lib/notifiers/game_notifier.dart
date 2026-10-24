@@ -153,7 +153,10 @@ class GameNotifier extends Notifier<GameState> {
     'nextReloadSoundMs': _nextReloadSoundMs,
   };
 
-  void restoreCheckpoint(Map<String, dynamic> snapshot) {
+  void restoreCheckpoint(
+    Map<String, dynamic> snapshot, {
+    bool allowDead = false,
+  }) {
     final restoredPower = WeaponPowerBalance.read(
       snapshot['weaponPowerBalance'],
       snapshot['balanceSnapshot'],
@@ -161,7 +164,8 @@ class GameNotifier extends Notifier<GameState> {
     var restored = GameState.fromJson(
       Map<String, dynamic>.from(snapshot['state'] as Map),
     );
-    if (restored.health <= 0 ||
+    if ((restored.health <= 0 && !allowDead) ||
+        restored.health < 0 ||
         restored.health > 10000 ||
         restored.maxBullets < 1 ||
         restored.maxBullets > (weapon == WeaponType.beltRepeater ? 128 : 100) ||
@@ -320,7 +324,9 @@ class GameNotifier extends Notifier<GameState> {
     _hurtCooldownMs = 1000; // Clear, fair resume window; no offline simulation.
     state = restored.copyWith(
       upgradeStrengths: restoredPower.upgradeStrengths,
-      gameplayState: GameplayState.paused,
+      gameplayState: restored.health == 0
+          ? GameplayState.gameOver
+          : GameplayState.paused,
       triggerSprintInvincibility: false,
     );
   }
@@ -821,7 +827,18 @@ class GameNotifier extends Notifier<GameState> {
     );
   }
 
-  void grantResumeGrace() => _hurtCooldownMs = 1000;
+  void grantResumeGrace({int milliseconds = 1000}) =>
+      _hurtCooldownMs = milliseconds.toDouble();
+
+  void prepareSoloRevive() {
+    refillPractice();
+    _hurtCooldownMs = 2000;
+    state = state.copyWith(
+      health: (state.maxHealth / 2).ceil(),
+      causeOfDeath: '',
+      gameplayState: GameplayState.paused,
+    );
+  }
 
   void recoverTrainingPlayer() {
     refillPractice();

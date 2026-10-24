@@ -12,6 +12,8 @@ class PlayerProfile {
     this.eliteKills = 0,
     this.bestSeconds = 0,
     this.bestScore = 0,
+    this.continuedBestScore = 0,
+    this.continuedBestSeconds = 0,
     this.assistedBestScore = 0,
     this.assistedBestSeconds = 0,
     Map<String, int>? survivorCounters,
@@ -42,6 +44,7 @@ class PlayerProfile {
   int totalBossVictories;
   int scrap, totalKills, scorpionKills, eliteKills, bestSeconds, bestScore;
   int assistedBestScore, assistedBestSeconds;
+  int continuedBestScore, continuedBestSeconds;
   final Set<String> challenges,
       discoveredEnemies,
       fusions,
@@ -107,6 +110,7 @@ class PlayerProfile {
     required Set<String> foundFusions,
     required Set<String> enemies,
     bool assisted = false,
+    bool continued = false,
     Map<String, dynamic> survivorProgress = const {},
     int dashes = 0,
   }) {
@@ -137,7 +141,10 @@ class PlayerProfile {
     eliteKills += elites;
     scrap += earnedScrap;
     earnedScrapTotal = (earnedScrapTotal + earnedScrap).clamp(0, 1000000000);
-    if (assisted) {
+    if (continued) {
+      if (score > continuedBestScore) continuedBestScore = score;
+      if (seconds > continuedBestSeconds) continuedBestSeconds = seconds;
+    } else if (assisted) {
       if (score > assistedBestScore) assistedBestScore = score;
       if (seconds > assistedBestSeconds) assistedBestSeconds = seconds;
     } else {
@@ -163,7 +170,7 @@ class PlayerProfile {
       if ((survivorCounters['healed'] ?? 0) >= 40) 'suture',
       if (eliteKills >= 15 && totalBossVictories >= 3) 'harrow',
       if (totalKills >= 500) 'scrapper',
-      if (bestSeconds >= 480) 'warden',
+      if ((continued ? seconds : bestSeconds) >= 480) 'warden',
       if (bosses.contains('shadow')) 'revolver',
       if (bosses.contains('demon')) 'arcCaster',
       if (bosses.contains('queen')) ...['foundry', 'queenTrophy'],
@@ -210,6 +217,8 @@ class PlayerProfile {
     'unlockMilestones': unlockMilestones,
     'survivorCounters': survivorCounters,
     'totalBossVictories': totalBossVictories,
+    'continuedBestScore': continuedBestScore,
+    'continuedBestSeconds': continuedBestSeconds,
     'assistedBestScore': assistedBestScore,
     'assistedBestSeconds': assistedBestSeconds,
     'scrap': scrap,
@@ -280,6 +289,8 @@ class PlayerProfile {
       eliteKills: number('eliteKills'),
       bestSeconds: number('bestSeconds'),
       bestScore: number('bestScore'),
+      continuedBestScore: number('continuedBestScore'),
+      continuedBestSeconds: number('continuedBestSeconds'),
       assistedBestScore: number('assistedBestScore'),
       assistedBestSeconds: number('assistedBestSeconds'),
       challenges: strings('challenges'),

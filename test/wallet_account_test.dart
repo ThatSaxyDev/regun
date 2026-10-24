@@ -147,6 +147,95 @@ void main() {
     controller.dispose();
   });
 
+  test('Solo receipt recovery works under the play lease after a lost debit response', () async {
+    final dir = await Directory.systemTemp.createTemp('regun-revive-account');
+    addTearDown(() => dir.delete(recursive: true));
+    final store = AccountLocalStore(directory: dir);
+    final profile = PlayerProfile(scrap: 120).toJson();
+    var paid = false, buys = 0, statusCalls = 0;
+    Map<String, dynamic> status() => {
+      'accountId': owner,
+      'username': 'rook',
+      'requiresRename': false,
+      'cloud': {
+        'revision': paid ? '2' : '1',
+        'epoch': '0',
+        'payload': {...profile, 'scrap': paid ? 65 : 120},
+      },
+    };
+    final api = AccountApi(
+      endpoint: Uri.parse('https://account.example'),
+      client: () => MockClient((request) async {
+        if (request.url.path == '/solo-revive') {
+          final body = jsonDecode(request.body) as Map;
+          expect(body['epoch'], '0');
+          if (body['action'] == 'buy') {
+            buys++;
+            paid = true;
+            throw const SocketException('lost debit acknowledgement');
+          }
+          return http.Response(
+            jsonEncode({
+              ...status(),
+              'revive': {
+                'run': 'run-test',
+                'epoch': '0',
+                'price': 55,
+                'paid': paid,
+                'state': paid ? 'purchased' : 'offered',
+              },
+            }),
+            200,
+          );
+        }
+        statusCalls++;
+        return http.Response(jsonEncode(status()), 200);
+      }),
+    );
+    await store.write(owner, {
+      'profile': profile,
+      'revision': '1',
+      'epoch': '0',
+      'pending': false,
+      'operation': 'initial',
+    });
+    final preferences = LocalPreferences();
+    await preferences.activateProfile(owner);
+    final controller = AccountController(
+      api: api,
+      secrets: Secrets(),
+      store: store,
+      preferences: preferences,
+    );
+    await controller.initialize();
+    await controller.beginLocalPlay();
+    addTearDown(() {
+      controller.endLocalPlay();
+      controller.dispose();
+    });
+    final request = <String, dynamic>{
+      'run': 'run-test',
+      'epoch': '',
+      'seconds': 300,
+      'startingScrap': 120,
+    };
+    await controller.soloRecoveryRequest({...request, 'action': 'offer'});
+    await expectLater(
+      controller.soloRecoveryRequest({...request, 'action': 'buy'}),
+      throwsA(isA<AccountError>()),
+    );
+    final before = statusCalls;
+    final result = await controller
+        .soloRecoveryRequest({...request, 'action': 'status'})
+        .timeout(const Duration(seconds: 2));
+    expect(result['revive']['paid'], isTrue);
+    expect(statusCalls, before); // No stale pre-receipt cloud comparison.
+    expect(buys, 1);
+    expect(controller.conflict, isFalse);
+    expect(preferences.profile.scrap, 65);
+    expect((await store.read(owner))!['revision'], '2');
+  });
+
   test(
     'non-JSON HTTP errors retain status while malformed success is uncertain',
     () async {
