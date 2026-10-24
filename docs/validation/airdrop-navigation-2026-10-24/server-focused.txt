@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: crowded flanking pursuit clears temporary cover without crossing bodies
+ok 1 - crowded flanking pursuit clears temporary cover without crossing bodies
+  ---
+  duration_ms: 892.331916
+  type: 'test'
+  ...
+# Subtest: temporary cover steering checks flanking movement even with a clear player sightline
+ok 2 - temporary cover steering checks flanking movement even with a clear player sightline
+  ---
+  duration_ms: 0.160583
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1047.821084

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/game.dart';
 import 'package:regun/systems/arena_bounds.dart';
@@ -64,7 +65,6 @@ void main() {
                 body,
                 desired,
                 target,
-                pod.footprint,
                 geometry,
                 radius: radius,
                 side: side,
@@ -110,41 +110,17 @@ void main() {
       final desired = (target - body.position).normalized();
       geometry.move(
         body.position,
-        router.steer(
-              body,
-              desired,
-              target,
-              pod.footprint,
-              geometry,
-              radius: 52,
-              side: -1,
-            ) *
+        router.steer(body, desired, target, geometry, radius: 52, side: -1) *
             (90 / 60),
         52,
       );
     }
     expect(body.position.distanceTo(target), lessThan(5));
     body.position.setValues(-840, -250);
-    router.steer(
-      body,
-      Vector2(0, 1),
-      target,
-      pod.footprint,
-      geometry,
-      radius: 52,
-      side: -1,
-    );
+    router.steer(body, Vector2(0, 1), target, geometry, radius: 52, side: -1);
     solid = false;
     expect(
-      router.steer(
-        body,
-        Vector2(0, 1),
-        target,
-        pod.footprint,
-        geometry,
-        radius: 52,
-        side: -1,
-      ),
+      router.steer(body, Vector2(0, 1), target, geometry, radius: 52, side: -1),
       Vector2(0, 1),
     );
   });
@@ -174,15 +150,7 @@ void main() {
         final desired = (target - body.position).normalized();
         geometry.move(
           body.position,
-          router.steer(
-                body,
-                desired,
-                target,
-                pod.footprint,
-                geometry,
-                radius: 52,
-                side: 1,
-              ) *
+          router.steer(body, desired, target, geometry, radius: 52, side: 1) *
               (90 / 60),
           52,
         );
@@ -243,15 +211,17 @@ void main() {
           -26,
           reason: 'Committed attacks do not steer around cover',
         );
-        enemy.position.setValues(-320, -26);
-        final pack = [
+        enemy.position.setValues(-100, -180);
+        final pack = <PositionComponent>[
           enemy,
-          Enemy2Component(position: Vector2(-440, -26)),
-          Enemy2Component(position: Vector2(-560, -26)),
+          for (var i = 1; i < 16; i++)
+            EnemyComponent(
+              position: Vector2(-100 - (i % 4) * 105, -180 + (i ~/ 4) * 105),
+            ),
         ];
         await game.world.addAll(pack.skip(1));
         await game.ready();
-        for (var frame = 0; frame < 1500; frame++) {
+        for (var frame = 0; frame < 2400; frame++) {
           game.enemyTactics.rebuild(pack);
           game.crowdOccupancy.rebuild(pack, game.crowdRadius);
           for (final body in pack) {

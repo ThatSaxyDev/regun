@@ -165,7 +165,14 @@ class CrowdOccupancy {
         }
         next = from + tangent;
         constrain(next);
-        if (_blocker(actor, from, next, radius) != null) break;
+        if (_blocker(actor, from, next, radius) != null ||
+            next.distanceToSquared(from) < step.length2 * .04) {
+          // A solid can close the preferred side of another body. The other
+          // tangent still has to pass the same swept body/cover constraints.
+          next = from - Vector2(-normal.y, normal.x) * (step.length * side);
+          constrain(next);
+          if (_blocker(actor, from, next, radius) != null) break;
+        }
       }
       actor.position.setFrom(next);
     }

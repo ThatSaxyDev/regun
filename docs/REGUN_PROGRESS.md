@@ -1615,3 +1615,22 @@ Ricochet upgrades add to it. Shared catalog314 fields; API/admin/rank/native/hos
 contracts and historical catalog compatibility are synchronized. See sibling
 game `docs/WEAPON_FEEDBACK_REVIEW.md` for implementation and validation. No live
 publication, installation or physical acceptance is implied.
+
+
+## Airdrop-only reward proposal and existing cover correction — 24 October 2026
+
+Sentry Gun and Aura Farm are planned only in
+[AIRDROP_EXCLUSIVE_POWERUPS_PLAN.md](AIRDROP_EXCLUSIVE_POWERUPS_PLAN.md). The
+sentry proposal includes an incoming countdown with movement-based placement,
+followed by a committed landing warning; both families use finite I–III versions
+and future shared mobile/admin/API/co-op contracts. No reward, art or catalogue
+implementation has been made.
+
+Separately, the requested upgrade-title spacing and existing airdrop crowd jam
+are corrected in source. Native temporary-cover routing checks actual flanking
+heading, preserves post-route separation and permits the alternate legal body
+slide. Adjacent solids and changed destinations invalidate/rebuild routes.
+Authoritative ordinary movement gains matching bounded body slides. New dense
+pod/proposed-sentry-footprint cases and real mixed-enemy pursuit supplement old
+isolated/straight-line tests. See AIRDROP_NAVIGATION_FIX.md for evidence and
+scope. No installation, publication or live server deployment is implied.

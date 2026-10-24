@@ -662,3 +662,15 @@ Default offers, their Ban buttons and Reroll should fit; at larger text, scroll
 the offers while Reroll stays pinned. Inspect the larger glyphs. In wide admin
 panes the item artwork should sit right of title/description; narrow panes
 stack. See WEAPON_FEEDBACK_REVIEW.md and its validation frames/audio mix.
+
+
+## Temporary-cover crowd routing — 24 October 2026
+
+In Breach Training call an airdrop and lead a dense mixed pack around each face
+and corner while the pod is active/opened. Cross sides and stand close to cover;
+pursuers must round it without continuously walking into it or crossing each
+other. Check the fence-side route and chase after the pod breaks. Committed
+leaps/charges must still stop at cover. Repeat in online co-op after matching
+server deployment. The future sentry must register its base in the same geometry;
+70×44 proxy and adjacent-cover regressions cover that foundation, not a completed
+sentry feature. See AIRDROP_NAVIGATION_FIX.md.

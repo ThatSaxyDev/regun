@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: crowded flanking pursuit clears temporary cover without crossing bodies
+not ok 1 - crowded flanking pursuit clears temporary cover without crossing bodies
+  ---
+  duration_ms: 90.090708
+  type: 'test'
+  location: '/Users/kiishidavid/Documents/Dev/Projects/MINE/regun-server/spacetimedb/tests/actors.test.ts:1:805'
+  failureType: 'testCodeFailure'
+  error: 'scorpion: -92.94246181947973,-172.26190703050187,-183.05037204448206,-175.09140905629158,-274.414892890763,-174.6480879265817,-365.8171373949432,-174.56860357590776,-97.57434884881384,-82.09189252692829,-188.75887345148863,-77.8857039058975,-280.0728459174344,-76.91134879747852,-371.5325256682577,-76.18786335941851,-102.61104134962653,36.27605578354029,-193.13968042855808,28.126245828954005,-143.3591633768188,116.53497743848274,-234.6305124115023,116.71928820568337'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kiishidavid/Documents/Dev/Projects/MINE/regun-server/spacetimedb/tests/actors.test.ts:59:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 244.233666

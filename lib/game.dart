@@ -456,7 +456,7 @@ class RegunGame extends FlameGame
     double? bottomExtent,
   }) => geometry.constrain(position, radius, bottomExtent: bottomExtent);
   final enemyTactics = EnemyTactics();
-  final _supplyRouter = ObstacleRouter();
+  final _temporaryCoverRouter = ObstacleRouter();
   final crowdOccupancy = CrowdOccupancy();
   double crowdRadius(PositionComponent actor) => actor is BossEncounter
       ? (actor as BossEncounter).kind.bodyRadius
@@ -513,19 +513,21 @@ class RegunGame extends FlameGame
               myPlayer.position,
               enemyTactics.side(actor),
             );
-      direction = enemyTactics.spaced(actor, yielding ?? direction);
-      final drop = supplyDrops.drop;
-      if (drop != null && drop.solid && yielding == null) {
-        direction = _supplyRouter.steer(
+      direction = yielding ?? direction;
+      if (yielding == null &&
+          (geometry.dynamicObstacles?.call().isNotEmpty ?? false)) {
+        direction = _temporaryCoverRouter.steer(
           actor,
           direction,
           myPlayer.position,
-          drop.footprint,
           geometry,
           radius: max(radius, crowdRadius(actor)),
           side: enemyTactics.side(actor),
         );
       }
+      // Separation must act on the detour, not be discarded when a route
+      // replaces the intent. Otherwise a pack converges on the same corner.
+      direction = enemyTactics.spaced(actor, direction);
     }
     if (actor is CombatEnemy) {
       crowdOccupancy.move(

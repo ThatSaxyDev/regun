@@ -1,0 +1,16 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/obstacle_probe_test.dart
+00:00 +0: probe a crowded supply face with flanking intent
+00:00 +0 -1: probe a crowded supply face with flanking intent [E]
+  Expected: empty
+    Actual: ['[-108.3802261352539,-96.02387237548828]']
+  EnemyKind.scorpion trapped behind pod
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test/obstacle_probe_test.dart 30:7                  main.<fn>
+  
+00:00 +0 -1: probe angled pursuit near temporary cover
+00:00 +1 -1: Some tests failed.
+
+Failing tests:
+  /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/obstacle_probe_test.dart: probe a crowded supply face with flanking intent
