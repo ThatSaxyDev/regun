@@ -1,3 +1,5 @@
+import 'rail_lance_timing.dart';
+
 import 'dart:math' as m;
 
 import 'rank_curve.dart';
@@ -28,7 +30,7 @@ class RankEffects {
       case 'quickTrigger':
         var interval = cadence * m.pow(.85, e);
         if (weapon == 'railLance') {
-          interval = m.max(.35, (cadence - .45) * m.pow(.85, e));
+          interval = RailLanceTiming.cycle(cadence, m.pow(.85, e).toDouble());
         }
         if (weapon == 'beltRepeater') {
           interval = m.max(.030, cadence * m.pow(.85, e));
@@ -61,6 +63,10 @@ class RankEffects {
         }
         return {
           'Release interval (s)': interval,
+          if (weapon == 'railLance') ...{
+            'Aim charge (s)': RailLanceTiming.chargeSeconds,
+            'Recovery (s)': interval - RailLanceTiming.chargeSeconds,
+          },
           if (weapon == 'beltRepeater')
             'Fully spun interval (s)': m.max(
               .030,

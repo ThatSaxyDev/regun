@@ -72,3 +72,23 @@ Phone delivery retry: creator reconnected the iPhone; the signed correction buil
 implemented; the catalog is21. See ENDGAME_WEAPONS_REVIEW.md for the latest signed
 phone candidate,443 passing tests and playtest tasks. Earlier15-weapon
 entries above document their own delivery stage.
+
+## Rail Lance charge — 24 October 2026
+
+Initial aiming charge is now0.65s, previously0.45s. Recovery is shortened by0.20s
+so the existing held-fire cycle remains1.10s at baseline and retains the existing
+Quick Trigger curve/floor. Damage, penetration, range, ammo and reload are unchanged.
+The sight's charge fill uses the same0.65s threshold. Release cancellation and
+pause/resume intent clearing retain their existing behavior.
+
+Charge is a fixed runtime value, not an editable admin catalogue field. Admin's
+Weapons → Rail Lance → Firing interval adjusts the overall cycle, not the initial
+charge. No new remote setting or ENV was introduced. API/admin rank previews now
+separate charge, recovery and full release interval. Hosted combat still supports
+its existing weapon roster; Rail Lance has not been added to hosted rooms by this
+change. Source changes require updated app/API/admin builds, not a new balance
+publication. Check the heavier aiming commitment on a phone before acceptance.
+
+Local checks:71 targeted weapon/rank tests passed;148 module tests/build passed;
+20 gateway tests/build plus compiled smoke passed;41 admin tests and analyzers
+passed. No deployment or phone installation was performed by this pass.

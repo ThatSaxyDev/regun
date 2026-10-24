@@ -1,3 +1,4 @@
+import 'package:regun/systems/rail_lance_timing.dart';
 import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/presentation/endgame_vfx.dart';
@@ -144,7 +145,7 @@ class ArsenalSystem {
       : weapon == WeaponType.beltRepeater
       ? spool / .4
       : weapon == WeaponType.railLance
-      ? charge / .45
+      ? charge / RailLanceTiming.chargeSeconds
       : weapon == WeaponType.prismCutter
       ? (state.maxBullets - state.noOfBullets) / state.maxBullets
       : 0;
@@ -399,10 +400,10 @@ class ArsenalSystem {
     }
     if (weapon == WeaponType.railLance) {
       if (cooldown > 0) return;
-      charge = math.min(.45, charge + dt);
-      if (charge >= .45 - 1e-8 && _rounds()) {
+      charge = math.min(RailLanceTiming.chargeSeconds, charge + dt);
+      if (charge >= RailLanceTiming.chargeSeconds - 1e-8 && _rounds()) {
         charge = 0;
-        cooldown = math.max(.35, (balance.cadence(weapon) - .45) * _trigger);
+        cooldown = RailLanceTiming.recovery(balance.cadence(weapon), _trigger);
       }
     } else if (weapon == WeaponType.beltRepeater) {
       if (spool == 0) audio.play('spin_beltRepeater.wav');

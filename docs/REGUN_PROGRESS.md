@@ -1567,3 +1567,12 @@ minions. Wall/body constraints, sweep safe pockets and owner cleanup remain;
 collateral uses normal deaths without player rewards/procs. See
 [BOSS_COLLATERAL.md](BOSS_COLLATERAL.md). No admin/ENV change; source is not deployed
 or physically accepted by this entry.
+
+## Rail Lance aiming commitment — 24 October 2026
+
+Fixed charge increases0.45s →0.65s, with shorter recovery preserving existing
+sustained firing timing and Quick Trigger limits. Damage/reload/penetration stay
+unchanged. Charge sight and API/admin component previews agree; charge remains
+non-editable in admin, with no new configuration mechanism. See
+[WEAPON_DEVICE_REVIEW.md](WEAPON_DEVICE_REVIEW.md). Source validation passed;
+physical feel/deployment remain pending.

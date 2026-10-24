@@ -495,7 +495,7 @@ void main() {
               await advance(
                 game,
                 weapon == WeaponType.railLance
-                    ? .46
+                    ? .66
                     : weapon == WeaponType.beltRepeater
                     ? .425
                     : weapon == WeaponType.burstRifle
@@ -698,7 +698,7 @@ void main() {
         expect(game.arsenal!.targetingBeam, isNull);
         expect(game.gameState.noOfBullets, 3);
         game.geometry = ArenaGeometry(game.map.bounds, obstacles: [wall]);
-        await advance(game, .30);
+        await advance(game, .50);
         expect(game.shotsFired, 1);
         expect(game.gameState.noOfBullets, 2);
         await advance(game, .01, held: false);
@@ -743,7 +743,7 @@ void main() {
             expect(game.spawnShotgunBullets(), true);
             game.weaponJoystick.delta.setZero();
           } else if (weapon == WeaponType.railLance) {
-            await advance(game, .46);
+            await advance(game, .66);
           } else {
             final minRange = math.max(
               55.0,
@@ -1699,11 +1699,47 @@ void main() {
     },
   );
   testWidgets(
+    'Rail Lance waits .65 active seconds while preserving its repeated firing cycle',
+    (tester) async {
+      final game = await mount(tester, WeaponType.railLance, _Audio());
+      await tester.runAsync(() async {
+        final damage = game.gameNotifier.weaponPower.damage(
+          WeaponType.railLance,
+        );
+        await advance(game, .64);
+        expect(game.shotsFired, 0);
+        expect(game.gameState.noOfBullets, 3);
+        expect(game.arsenal!.visualCharge, closeTo(.64 / .65, .015));
+        game.pauseGame();
+        final charge = game.arsenal!.charge;
+        await advance(game, 1);
+        expect(game.arsenal!.charge, charge);
+        game.resumeGame();
+        // Resuming clears aim intent; charge must be deliberately rebuilt.
+        await advance(game, .64);
+        expect(game.shotsFired, 0);
+        await advance(game, .02);
+        expect(game.shotsFired, 1);
+        expect(game.gameState.noOfBullets, 2);
+        expect(
+          game.gameNotifier.weaponPower.damage(WeaponType.railLance),
+          damage,
+        );
+        await advance(game, .9);
+        expect(game.shotsFired, 1);
+        await advance(game, .21);
+        expect(game.shotsFired, 2);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
     'charge cancellation spends no ammo, and Frost freezes a living enemy',
     (tester) async {
       final rail = await mount(tester, WeaponType.railLance, _Audio());
       await tester.runAsync(() async {
-        await advance(rail, .3);
+        await advance(rail, .5);
         expect(rail.shotsFired, 0);
         await advance(rail, .05, held: false);
         expect(rail.arsenal!.charge, 0);
