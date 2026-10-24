@@ -369,6 +369,51 @@ void main() {
   );
 
   testWidgets(
+    'normal Solo boss history checkpoints and settles real kills once',
+    (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final game = await mount(tester, loadout: const Loadout());
+      final previous = Map<String, int>.of(game.preferences.profile.bossWins);
+      addTearDown(() {
+        game.preferences.profile.bossWins
+          ..clear()
+          ..addAll(previous);
+      });
+      game.preferences.profile.bossWins
+        ..clear()
+        ..addAll({for (final b in BossKind.values) b.name: 4, 'queen': 0});
+      game.restartGame();
+      await tick(tester, game, 150);
+      expect(game.director.chooseBoss(game.random), BossKind.queen);
+      game.spawnBoss(BossKind.shadow);
+      await tick(tester, game, 120);
+      (game.bosses.single as CombatEnemy).takeDamage(100000);
+      expect(game.bossWinCounts, {'shadow': 1});
+      final snapshot = game.checkpoint();
+      expect(RunCheckpoint.valid(snapshot), isTrue);
+      expect(
+        RunCheckpoint.valid({
+          ...snapshot,
+          'bossWinCounts': {'fake': 1},
+        }),
+        isFalse,
+      );
+      game.restartGame();
+      await tick(tester, game, 150);
+      expect(game.bossWinCounts, isEmpty);
+      expect(game.restoreRun(snapshot), isTrue);
+      await tester.runAsync(game.ready);
+      expect(game.bossWinCounts, {'shadow': 1});
+      await tester.runAsync(game.settleRun);
+      expect(game.preferences.profile.bossWins['shadow'], 5);
+      await tester.runAsync(game.settleRun);
+      expect(game.preferences.profile.bossWins['shadow'], 5);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
     'random Boss Rush draws all eight, waits for both deaths and preserves builds',
     (tester) async {
       addTearDown(tester.view.resetPhysicalSize);
@@ -550,8 +595,11 @@ void main() {
                 lessThan(boss.combatHealth.maximum),
               );
               expect(game.runtimeCounts['hazards']!, lessThanOrEqualTo(8));
-              expect(game.gameState.health, greaterThanOrEqualTo(game.gameState.maxHealth),
-                  reason: 'Protected practice stays full; boss recovery may add overflow before the next round refill.');
+              expect(
+                game.gameState.health,
+                greaterThanOrEqualTo(game.gameState.maxHealth),
+                reason: 'Protected practice stays full; boss recovery may add overflow before the next round refill.',
+              );
               expect(tester.takeException(), isNull);
             }
             await tester.pumpWidget(const SizedBox());

@@ -613,3 +613,12 @@ Review/publish through staging and production as usual. Existing saved runs must
 keep old values after publication; fresh runs must use the new release. Test
 small-screen/large-text card expansion, Training comparisons and admin forms.
 Source validation is not phone performance or physical balance approval.
+
+## Early boss variety — 24 October 2026
+
+New normal Solo runs order their first boss rotation by recorded per-boss wins:
+less-beaten bosses first, random order among ties. All eight still appear before
+repeats; later bags return to the normal shuffle. Counts begin with observed wins
+from this update, not fabricated splits of old aggregate totals. Settle a few runs,
+then compare openings. Training/Rush wins must not affect the ordering. Continue
+must preserve the already-chosen bag, including after a revive. See BOSS_VARIETY.md.

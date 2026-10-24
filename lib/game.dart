@@ -1,3 +1,4 @@
+import 'package:regun/models/boss_history.dart';
 import 'package:regun/services/account/account_api.dart';
 import 'package:regun/models/solo_recovery.dart';
 import 'package:regun/services/account/account_controller.dart';
@@ -883,6 +884,7 @@ class RegunGame extends FlameGame
   ShadowBossComponent? get shadowBoss => activeBoss is ShadowBossComponent
       ? activeBoss as ShadowBossComponent
       : null;
+  final bossWinCounts = <String, int>{};
   final defeatedBosses = <String>{},
       noHitBosses = <String>{},
       encounteredEnemies = <String>{};
@@ -1065,7 +1067,9 @@ class RegunGame extends FlameGame
     saveIssue = null;
     if (clearSave && !loadout.training) unawaited(runStore.clear());
     timeScale = 1;
-    director = EncounterDirector();
+    director = EncounterDirector(
+      bossWins: loadout.training ? null : preferences.profile.bossWins,
+    );
     _trainingPressureClock.reset();
     for (final warning in _spawnWarnings.toList()) {
       warning.cancel();
@@ -1110,6 +1114,7 @@ class RegunGame extends FlameGame
     supplyDrops.reset(random.state ^ 0x51a7);
     _syncSupplyArt(false);
     defeatedBosses.clear();
+    bossWinCounts.clear();
     noHitBosses.clear();
     encounteredEnemies.clear();
     scorpionKills = 0;
@@ -1216,6 +1221,7 @@ class RegunGame extends FlameGame
             },
       ],
       'defeatedBosses': defeatedBosses.toList(),
+      'bossWinCounts': Map<String, int>.of(bossWinCounts),
       'noHitBosses': noHitBosses.toList(),
       'encountered': encounteredEnemies.toList(),
       'scorpions': scorpionKills,
@@ -1273,6 +1279,7 @@ class RegunGame extends FlameGame
       elites: eliteKills,
       bosses: defeatedBosses,
       bossVictories: gameState.bosses,
+      bossWinCounts: bossWinCounts,
       noHitBosses: noHitBosses,
       foundFusions: state.evolutions,
       enemies: encounteredEnemies,
@@ -1438,6 +1445,11 @@ class RegunGame extends FlameGame
       }
       defeatedBosses.addAll(
         (snapshot['defeatedBosses'] as List).cast<String>(),
+      );
+      bossWinCounts.addAll(
+        snapshot.containsKey('bossWinCounts')
+            ? BossHistory.read(snapshot['bossWinCounts'])
+            : {for (final id in defeatedBosses) id: 1},
       );
       noHitBosses.addAll((snapshot['noHitBosses'] as List).cast<String>());
       encounteredEnemies.addAll(
@@ -1649,6 +1661,7 @@ class RegunGame extends FlameGame
       bossVictory.show(bossKind);
       final kind = bossKind.name;
       defeatedBosses.add(kind);
+      bossWinCounts[kind] = (bossWinCounts[kind] ?? 0) + 1;
       if (!(_bossDamageTaken.remove(enemy) ?? _bossWasHit)) {
         noHitBosses.add(kind);
       }

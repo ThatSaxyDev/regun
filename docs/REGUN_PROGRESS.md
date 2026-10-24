@@ -1548,3 +1548,13 @@ preview use the same versioned catalogue and projections. See
 scope, rollout, verification and remaining physical review. Eight remains the
 normal cap; low capacity limits, XP, rarity, fusion gates and prices are preserved.
 This entry does not claim production deployment or phone installation.
+
+## Early Solo boss variety — 24 October 2026
+
+Implemented per-boss observed victory counts and a first-bag ordering that favours
+less-beaten bosses, with random ties and existing all-eight/no-immediate-repeat
+coverage. History/bags persist through checkpoints and cloud backup; Training is
+excluded. Server validates and preserves the additive profile field; protected
+admin records show the observed breakdown. Hosted co-op retains its shared
+shuffle. See [BOSS_VARIETY.md](BOSS_VARIETY.md). Source only; device/deployment
+review pending.

@@ -1,3 +1,4 @@
+import 'package:regun/models/boss_history.dart';
 import 'package:regun/models/solo_recovery.dart';
 import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/systems/survivor_runtime.dart';
@@ -15,6 +16,14 @@ import 'package:regun/notifiers/game_notifier.dart';
 class RunCheckpoint {
   static bool valid(Map<String, dynamic> map) {
     try {
+      final opening = (map['director'] as Map?)?['openingBossWins'];
+      if (opening != null && !BossHistory.valid(opening)) {
+        return false;
+      }
+      if (map.containsKey('bossWinCounts') &&
+          !BossHistory.valid(map['bossWinCounts'])) {
+        return false;
+      }
       if (![1, 2].contains(map['schema']) ||
           map['id'] is! String ||
           (map['id'] as String).isEmpty) {

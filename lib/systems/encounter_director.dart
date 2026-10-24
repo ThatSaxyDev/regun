@@ -1,3 +1,4 @@
+import 'package:regun/models/boss_history.dart';
 import 'package:regun/data/enemies.dart';
 
 import 'dart:math';
@@ -5,6 +6,12 @@ import 'dart:math';
 /// Run time advances only during active play. Rendering slow motion cannot
 /// create a backlog of encounters or stack bosses.
 class EncounterDirector {
+  EncounterDirector({Map<String, int>? bossWins})
+    : _openingWins = bossWins == null
+          ? null
+          : Map.unmodifiable(BossHistory.read(bossWins));
+  Map<String, int>? _openingWins;
+
   double elapsed = 0;
   double _spawnElapsed = 0;
   double _nextBoss = 180;
@@ -17,6 +24,18 @@ class EncounterDirector {
     if (_bossBag.isEmpty) {
       _bossBag.addAll(BossKind.values);
       _bossBag.shuffle(random);
+      if (_openingWins != null) {
+        final order = {
+          for (var i = 0; i < _bossBag.length; i++) _bossBag[i]: i,
+        };
+        _bossBag.sort((a, b) {
+          final wins = (_openingWins![a.name] ?? 0).compareTo(
+            _openingWins![b.name] ?? 0,
+          );
+          return wins != 0 ? wins : order[a]!.compareTo(order[b]!);
+        });
+        _openingWins = null;
+      }
       if (_bossBag.first == _lastBoss) {
         final first = _bossBag.removeAt(0);
         _bossBag.add(first);
@@ -48,9 +67,17 @@ class EncounterDirector {
     'bossesDefeated': bossesDefeated,
     'bossBag': _bossBag.map((kind) => kind.name).toList(),
     'lastBoss': _lastBoss?.name,
+    if (_openingWins != null) 'openingBossWins': _openingWins,
   };
 
   void restore(Map<String, dynamic> json) {
+    final history = json['openingBossWins'];
+    if (history != null && !BossHistory.valid(history)) {
+      throw const FormatException('Invalid boss history');
+    }
+    _openingWins = history == null
+        ? null
+        : Map.unmodifiable(BossHistory.read(history));
     elapsed = (json['elapsed'] as num).toDouble();
     _spawnElapsed = (json['spawnElapsed'] as num).toDouble();
     _nextBoss = (json['nextBoss'] as num).toDouble();

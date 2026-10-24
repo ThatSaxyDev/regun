@@ -1,3 +1,4 @@
+import 'package:regun/models/boss_history.dart';
 import 'package:regun/models/economy/armory_catalog.dart';
 import 'package:regun/data/loadout.dart';
 
@@ -11,6 +12,7 @@ class PlayerProfile {
     Map<String, Map<String, int>>? unlockMilestones,
     this.totalKills = 0,
     this.totalBossVictories = 0,
+    Map<String, int>? bossWins,
     this.scorpionKills = 0,
     this.eliteKills = 0,
     this.bestSeconds = 0,
@@ -36,6 +38,7 @@ class PlayerProfile {
        legacyWeaponClaims = legacyWeaponClaims ?? {},
        unlockMilestones = unlockMilestones ?? {},
        survivorCounters = survivorCounters ?? {},
+       bossWins = BossHistory.read(bossWins),
        challenges = challenges ?? {},
        discoveredEnemies = discoveredEnemies ?? {},
        fusions = fusions ?? {},
@@ -47,6 +50,7 @@ class PlayerProfile {
   final Map<String, int> survivorCounters;
   int earnedScrapTotal, careerSeconds;
   final Map<String, Map<String, int>> unlockMilestones;
+  final Map<String, int> bossWins;
   int totalBossVictories;
   int scrap, totalKills, scorpionKills, eliteKills, bestSeconds, bestScore;
   int assistedBestScore, assistedBestSeconds;
@@ -116,6 +120,7 @@ class PlayerProfile {
     required int elites,
     required Set<String> bosses,
     int? bossVictories,
+    Map<String, int>? bossWinCounts,
     required Set<String> noHitBosses,
     required Set<String> foundFusions,
     required Set<String> enemies,
@@ -147,6 +152,12 @@ class PlayerProfile {
     );
     totalKills += kills;
     totalBossVictories += (bossVictories ?? bosses.length).clamp(0, 1000000);
+    final observed = BossHistory.read(
+      bossWinCounts ?? {for (final id in bosses) id: 1},
+    );
+    for (final e in observed.entries) {
+      bossWins[e.key] = ((bossWins[e.key] ?? 0) + e.value).clamp(0, 1000000000);
+    }
     scorpionKills += scorpions;
     eliteKills += elites;
     scrap += earnedScrap;
@@ -230,6 +241,7 @@ class PlayerProfile {
     'unlockMilestones': unlockMilestones,
     'survivorCounters': survivorCounters,
     'totalBossVictories': totalBossVictories,
+    'bossWins': bossWins,
     'continuedBestScore': continuedBestScore,
     'continuedBestSeconds': continuedBestSeconds,
     'assistedBestScore': assistedBestScore,
@@ -298,6 +310,7 @@ class PlayerProfile {
       },
       totalKills: number('totalKills'),
       totalBossVictories: number('totalBossVictories'),
+      bossWins: BossHistory.read(json['bossWins']),
       ownedWeapons: json['weaponAccessVersion'] == 2
           ? strings('ownedWeapons').where(armoryWeapons.containsKey).toSet()
           : <String>{},
