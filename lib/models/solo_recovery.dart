@@ -2,7 +2,7 @@
 /// device trust boundary; this is not authority for cash or ranked play.
 class SoloRecovery {
   SoloRecovery({required this.owner, required this.startingScrap});
-  static const price = 55, minimumSeconds = 300;
+  static const price = 500, minimumSeconds = 300;
   final String owner;
   final int startingScrap;
   String stage = 'alive', epoch = '';

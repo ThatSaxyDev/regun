@@ -60,15 +60,15 @@ Future<void> idle(RegunGame game) async {
 }
 
 void main() {
-  test('55 banked before starting and five active minutes; no Training, guests or second revive', () {
-    final r = SoloRecovery(owner: owner, startingScrap: 55);
+  test('500 banked before starting and five active minutes; no Training, guests or second revive', () {
+    final r = SoloRecovery(owner: owner, startingScrap: 500);
     expect(r.eligible(299, false), isFalse);
     expect(r.eligible(300, false), isTrue);
     expect(r.eligible(300, true), isFalse);
     r.continued = true;
     expect(r.eligible(999, false), isFalse);
     expect(
-      SoloRecovery(owner: owner, startingScrap: 54).eligible(500, false),
+      SoloRecovery(owner: owner, startingScrap: 499).eligible(500, false),
       isFalse,
     );
     expect(
@@ -87,7 +87,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       await LocalPreferences.shared.load();
       await LocalPreferences.shared.activateProfile(owner);
-      LocalPreferences.shared.profile.scrap = 120;
+      LocalPreferences.shared.profile.scrap = 1000;
       await LocalPreferences.shared.saveProfile();
       await tester.pumpWidget(
         ProviderScope(
@@ -147,12 +147,12 @@ void main() {
           }
         }
         if (b['action'] == 'activate') activated = true;
-        if (paid) LocalPreferences.shared.profile.scrap = 65;
+        if (paid) LocalPreferences.shared.profile.scrap = 500;
         return {
           'revive': {
             'run': b['run'],
             'epoch': '0',
-            'price': 55,
+            'price': 500,
             'paid': paid,
             'state': activated
                 ? 'activated'
@@ -209,7 +209,7 @@ void main() {
         game.gameOver();
         await game.leaveRun();
       });
-      expect(game.preferences.profile.scrap, 72);
+      expect(game.preferences.profile.scrap, 507);
       expect(game.preferences.profile.continuedBestScore, 123);
       expect(game.preferences.profile.continuedBestSeconds, 300);
       expect(game.preferences.profile.bestScore, 0);
@@ -220,7 +220,7 @@ void main() {
       await tester.runAsync(() async {
         await game.settleRun();
       });
-      expect(game.preferences.profile.scrap, 72);
+      expect(game.preferences.profile.scrap, 507);
       await tester.pumpWidget(const SizedBox());
     },
   );
@@ -250,7 +250,7 @@ void main() {
         await game.checkSoloRecovery();
         await game.endRecoveryRun();
       });
-      expect(game.preferences.profile.scrap, 127);
+      expect(game.preferences.profile.scrap, 1007);
       expect(game.preferences.profile.totalKills, 20);
       await tester.pumpWidget(const SizedBox());
     },
@@ -272,7 +272,7 @@ void main() {
           'revive': {
             'run': b['run'],
             'epoch': '0',
-            'price': 55,
+            'price': 500,
             'paid': paid,
             'state': activated
                 ? 'activated'
@@ -328,7 +328,7 @@ void main() {
           }
         });
         for (final stage in ['offered', 'requested', 'prepared']) {
-          final r = SoloRecovery(owner: owner, startingScrap: 120)
+          final r = SoloRecovery(owner: owner, startingScrap: 1000)
             ..stage = stage
             ..available = stage == 'offered'
             ..epoch = '0';
@@ -347,7 +347,7 @@ void main() {
                       causeOfDeath: 'Mummy strike',
                     ),
                     recovery: r,
-                    banked: 120,
+                    banked: 1000,
                     onBuy: () {},
                     onRetry: () {},
                     onEnd: () {},
@@ -391,7 +391,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-      final recovery = SoloRecovery(owner: owner, startingScrap: 120)
+      final recovery = SoloRecovery(owner: owner, startingScrap: 1000)
         ..stage = 'offered'
         ..message =
             'Connect to confirm recovery. Retry or safely end this run.';
@@ -403,7 +403,7 @@ void main() {
             home: SoloRevivePanel(
               state: GameState(),
               recovery: recovery,
-              banked: 120,
+              banked: 1000,
               onBuy: () {},
               onRetry: () {},
               onEnd: () {

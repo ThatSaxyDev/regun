@@ -1537,3 +1537,14 @@ Verification: analyzer clean; full app suite644 passed /5 opt-in skipped. Final
 policy/restore validation checks4 passed. Server TypeScript checks,137 tests and
 SpacetimeDB build passed. The deterministic40,000-draw statistical check and shared
 Dart/TypeScript offer fixtures passed. Source only; not deployed or installed.
+
+## Upgrade rank implementation — 24 October 2026
+
+Cross-project source implementation adds pinned rank policy1, per-family IV/VIII
+late-growth weights, bounded empty-rank filtering, shared component previews and
+read-only Collection/Training comparisons. Admin authoring and authenticated API
+preview use the same versioned catalogue and projections. See
+[UPGRADE_RANK_IMPLEMENTATION.md](UPGRADE_RANK_IMPLEMENTATION.md) for numerical
+scope, rollout, verification and remaining physical review. Eight remains the
+normal cap; low capacity limits, XP, rarity, fusion gates and prices are preserved.
+This entry does not claim production deployment or phone installation.

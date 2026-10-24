@@ -1,3 +1,5 @@
+import 'package:regun/systems/rank_effect_values.dart';
+import 'package:regun/systems/rank_curve.dart';
 import 'package:regun/systems/upgrade_offer_policy.dart';
 import 'package:regun/services/balance_repository.dart';
 import 'package:regun/data/weapon_power_balance.dart';
@@ -64,6 +66,7 @@ class GameNotifier extends Notifier<GameState> {
     _offerRandom.state = seed;
     state = GameState(
       upgradeStrengths: weaponPower.upgradeStrengths,
+      rankCurves: weaponPower.rankCurves,
       maxBullets: weaponPower.capacity(weapon),
       noOfBullets: weaponPower.capacity(weapon),
       maxHealth: weaponPower.health(character),
@@ -80,11 +83,12 @@ class GameNotifier extends Notifier<GameState> {
     if (state.gameplayState != GameplayState.paused) return;
     final old = weapon;
     final rank = state.rank(PowerUp.maxBulletsIncrease);
-    final extra =
-        ((min(3, rank) * (next == WeaponType.carbine ? 6 : 2) +
-                    max(0, rank - 3) * (next == WeaponType.carbine ? 2 : 1)) *
-                state.strength(PowerUp.maxBulletsIncrease))
-            .round();
+    final extra = (state.rankTotal(
+      PowerUp.maxBulletsIncrease,
+      rank,
+      next == WeaponType.carbine ? 6 : 2,
+      next == WeaponType.carbine ? 2 : 1,
+    )).round();
     final capacity = next == WeaponType.prismCutter
         ? min(24, weaponPower.capacity(next) + extra)
         : min(
@@ -345,6 +349,7 @@ class GameNotifier extends Notifier<GameState> {
     _hurtCooldownMs = 1000; // Clear, fair resume window; no offline simulation.
     state = restored.copyWith(
       upgradeStrengths: restoredPower.upgradeStrengths,
+      rankCurves: restoredPower.rankCurves,
       gameplayState: restored.health == 0
           ? GameplayState.gameOver
           : GameplayState.paused,
@@ -590,7 +595,12 @@ class GameNotifier extends Notifier<GameState> {
   void resetXP() => state = state.copyWith(xP: 0);
 
   List<PowerUp> _rollOffers() {
-    final pool = eligiblePowerUps(state, weapon: weapon, character: character);
+    final pool = eligiblePowerUps(
+      state,
+      weapon: weapon,
+      character: character,
+      power: weaponPower,
+    );
     if (_offerPolicy == UpgradeOfferPolicy.version) {
       final selected = UpgradeOfferPolicy.choose(
         eligible: pool.map((p) => p.name).toList(),
@@ -678,6 +688,11 @@ class GameNotifier extends Notifier<GameState> {
         !state.powerUpChoices.contains(powerUp)) {
       return;
     }
+    if (powerUp != PowerUp.salvage &&
+        state.rankCurves['ranks.meta.policy'] == 1 &&
+        !usefulPowerUpRank(state, powerUp, weapon, character, weaponPower)) {
+      return;
+    }
     if (powerUp != PowerUp.salvage) {
       state = state.copyWith(
         ranks: Map.unmodifiable({
@@ -711,9 +726,7 @@ class GameNotifier extends Notifier<GameState> {
         sprintMine();
       case PowerUp.heavyLoad:
         state = state.copyWith(
-          shotDamage:
-              state.shotDamage +
-              (state.rank(powerUp) <= 3 ? .35 : .1) * state.strength(powerUp),
+          shotDamage: state.shotDamage + state.gain(powerUp, .35, .1),
         );
       case PowerUp.lastShell:
         state = state.copyWith(lastShellRank: state.lastShellRank + 1);
@@ -941,9 +954,7 @@ class GameNotifier extends Notifier<GameState> {
   void resetHealth() => state = state.copyWith(health: state.maxHealth);
   void walkingSpeedIncrease() => state = state.copyWith(
     movementSpeed:
-        state.movementSpeed +
-        (state.rank(PowerUp.walkingSpeedIncrease) <= 3 ? 50 : 12) *
-            state.strength(PowerUp.walkingSpeedIncrease),
+        state.movementSpeed + state.gain(PowerUp.walkingSpeedIncrease, 50, 12),
   );
   void resetWalkingSpeed() =>
       state = state.copyWith(movementSpeed: weaponPower.movement(character));
@@ -1015,6 +1026,54 @@ class GameNotifier extends Notifier<GameState> {
 
 class GameState {
   final Map<String, num> upgradeStrengths;
+  final Map<String, num> rankCurves;
+  double rankTotal(PowerUp p, int n, double early, double tail) =>
+      RankCurve.total(n, p.name, early, tail, rankCurves) * strength(p);
+  double gain(PowerUp p, double early, double tail) =>
+      rankTotal(p, rank(p), early, tail) -
+      rankTotal(p, max(0, rank(p) - 1), early, tail);
+  double effectAt(PowerUp p, int n) => rankTotal(
+    p,
+    n,
+    1,
+    (p == PowerUp.fastReload || p == PowerUp.quickstep) ? .2 : .3,
+  );
+  Map<String, num> effectInputs(
+    WeaponType w,
+    CharacterType c,
+    WeaponPowerBalance power,
+  ) => {
+    ...?power.snapshot?.values,
+    ...rankCurves,
+    for (final p in PowerUp.values)
+      'powerups.${p.name}.${p == PowerUp.dashCapacity || p == PowerUp.grenadeCapacity ? 'capacity' : 'strength'}':
+          p == PowerUp.dashCapacity
+          ? 1 + rankLimit(p)
+          : p == PowerUp.grenadeCapacity
+          ? 2 + rankLimit(p)
+          : strength(p),
+    'weapons.${w.name}.capacity': power.capacity(w),
+    'weapons.${w.name}.cadence': power.cadence(w),
+    'weapons.${w.name}.reloadMs': power.reloadMs(w),
+    'weapons.${w.name}.range': power.range(w),
+    'weapons.${w.name}.speed': power.speed(w),
+    'survivors.${c.name}.health': power.health(c),
+    'survivors.${c.name}.speed': power.movement(c),
+  };
+  Map<String, num> rankValues(
+    PowerUp p,
+    int n,
+    WeaponType w,
+    CharacterType c,
+    WeaponPowerBalance power,
+  ) => RankEffects.values(
+    p.name,
+    n,
+    effectInputs(w, c, power),
+    weapon: w.name,
+    survivor: c.name,
+    fusions: evolutions,
+  );
   double strength(PowerUp value) =>
       (value == PowerUp.dashCapacity || value == PowerUp.grenadeCapacity)
       ? 1
@@ -1023,7 +1082,7 @@ class GameState {
       (rank(value) * strength(value)).round().clamp(0, 8);
   int integerGain(PowerUp value, int early, int late) {
     int total(int n) =>
-        ((min(n, 3) * early + max(0, n - 3) * late) * strength(value)).round();
+        rankTotal(value, n, early.toDouble(), late.toDouble()).round();
     return total(rank(value)) - total(max(0, rank(value) - 1));
   }
 
@@ -1057,14 +1116,7 @@ class GameState {
   /// Keep I–III intact; IV–VIII give smaller, bounded scalar gains.
   static double scaledRank(int rank, {double lateGain = .3}) =>
       min(rank, 3) + max(0, rank - 3) * lateGain;
-  double effectRank(PowerUp value) =>
-      strength(value) *
-      scaledRank(
-        rank(value),
-        lateGain: value == PowerUp.fastReload || value == PowerUp.quickstep
-            ? .2
-            : .3,
-      );
+  double effectRank(PowerUp value) => effectAt(value, rank(value));
   bool fused(String id) => evolutions.contains(id);
   final int offerId;
   final int score;
@@ -1101,6 +1153,7 @@ class GameState {
 
   GameState({
     this.upgradeStrengths = const {},
+    this.rankCurves = const {},
     this.maxHealth = 6,
     this.guard = false,
     this.rerolls = 2,
@@ -1146,6 +1199,7 @@ class GameState {
   });
 
   Map<String, dynamic> toJson() => {
+    'rankCurves': rankCurves,
     'maxHealth': maxHealth,
     'guard': guard,
     'rerolls': rerolls,
@@ -1191,6 +1245,7 @@ class GameState {
   };
 
   factory GameState.fromJson(Map<String, dynamic> json) => GameState(
+    rankCurves: Map<String, num>.from(json['rankCurves'] as Map? ?? {}),
     maxHealth: json['maxHealth'] as int? ?? 3,
     guard: json['guard'] as bool? ?? false,
     rerolls: json['rerolls'] as int? ?? 2,
@@ -1255,6 +1310,7 @@ class GameState {
 
   GameState copyWith({
     Map<String, num>? upgradeStrengths,
+    Map<String, num>? rankCurves,
     int? maxHealth,
     bool? guard,
     int? rerolls,
@@ -1300,6 +1356,7 @@ class GameState {
   }) {
     return GameState(
       upgradeStrengths: upgradeStrengths ?? this.upgradeStrengths,
+      rankCurves: rankCurves ?? this.rankCurves,
       maxHealth: maxHealth ?? this.maxHealth,
       guard: guard ?? this.guard,
       rerolls: rerolls ?? this.rerolls,
@@ -1575,10 +1632,35 @@ bool weaponSupportsPowerUp(WeaponType weapon, PowerUp power) => switch (power) {
   _ => true,
 };
 
+bool usefulPowerUpRank(
+  GameState state,
+  PowerUp p,
+  WeaponType weapon,
+  CharacterType character,
+  WeaponPowerBalance power,
+) {
+  return RankEffects.improves(
+        state.rankValues(p, state.rank(p), weapon, character, power),
+        state.rankValues(p, state.rank(p) + 1, weapon, character, power),
+      ) ||
+      fusionRecipes.any(
+        (f) =>
+            !state.fused(f.id) &&
+            state.evolutions.length < 2 &&
+            weaponSupportsPowerUp(weapon, f.first) &&
+            weaponSupportsPowerUp(weapon, f.second) &&
+            !state.banned.contains(f.first) &&
+            !state.banned.contains(f.second) &&
+            ((f.first == p && state.rank(p) < 3) ||
+                (f.second == p && state.rank(p) < 2)),
+      );
+}
+
 List<PowerUp> eligiblePowerUps(
   GameState state, {
   WeaponType weapon = WeaponType.shotgun,
   CharacterType character = CharacterType.rook,
+  WeaponPowerBalance power = WeaponPowerBalance.current,
 }) {
   final specialSlots = state.ranks.keys
       .where((p) => p.group == UpgradeGroup.special)
@@ -1647,6 +1729,10 @@ List<PowerUp> eligiblePowerUps(
     if (p.group == UpgradeGroup.special &&
         state.rank(p) == 0 &&
         specialSlots >= 6) {
+      return false;
+    }
+    if (state.rankCurves['ranks.meta.policy'] == 1 &&
+        !usefulPowerUpRank(state, p, weapon, character, power)) {
       return false;
     }
     return switch (p) {

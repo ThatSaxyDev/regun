@@ -208,7 +208,7 @@ class SoloRevivePanel extends StatelessWidget {
                         text: recovery.busy
                             ? 'CHECKING…'
                             : canBuy
-                            ? 'REVIVE · 55'
+                            ? 'REVIVE · ${SoloRecovery.price}'
                             : paid
                             ? 'RESUME'
                             : 'RETRY CONNECTION',

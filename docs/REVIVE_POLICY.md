@@ -9,12 +9,12 @@ outside this pass.
 
 - At most one revive per normal Solo run, after **300 active seconds**. No Training,
   co-op or Versus offer. Existing legacy checkpoints acquire no new allowance.
-- **55 Scrap**, with at least55 banked before starting and55 still available at
+- **500 Scrap**, with at least500 banked before starting and500 still available at
   server debit. Unclaimed current-run earnings cannot fund it. Requires email
   sign-in and a successful online account-server confirmation. Ordinary offline
   play and use of previously owned cosmetics remain available.
 - Explicit Revive or End run. No countdown, automatic purchase, personalized price
-  or loss/spend-driven combat difficulty.55/300 are creator-chosen trial values,
+  or loss/spend-driven combat difficulty.500/300 are creator-chosen trial values,
   not measured average affordability.
 - Same build, enemies/boss health/phase and live-balance snapshot. A checked landing
   point, half maximum health rounded up, full current magazine and two active
@@ -33,7 +33,7 @@ resuming. Final settlement waits for the revive decision; an ended checkpoint is
 written before applying ordinary rewards with existing settled-run IDs.
 
 POST `/solo-revive` uses authenticated email accounts. `offer` checks policy and
-reported eligibility. `buy` atomically debits55 and records one receipt keyed by
+reported eligibility. `buy` atomically debits500 and records one receipt keyed by
 account/run. `status` never spends. `close` writes an unpaid cancellation tombstone
 or returns an already-paid receipt. `activate` confirms the prepared recovery and
 remains allowed after policy disable. Reset invalidates old epochs. Repeated
@@ -52,7 +52,7 @@ this earned-currency contract for cash-backed value or ranked competition.
 
 ## Admin and deployment
 
-Economy → Solo revives shows fixed55/300/one-run terms and an enable/disable control.
+Economy → Solo revives shows fixed500/300/one-run terms and an enable/disable control.
 Publication uses existing operator/session checks, reason, expected revision and
 durable request ID. Review shows old/new settings. Drafts/pending publication
 survive navigation; retry sends the same operation. A stale revision needs a
@@ -69,15 +69,19 @@ allowing paid recovery. No new billing credential or table migration is required
 
 ## Acceptance
 
-Automated checks cover55/300 boundaries, guests/Training/second use, atomic debit,
+Automated checks cover500/300 boundaries, guests/Training/second use, atomic debit,
 lost acknowledgement, cancellation, account/reset isolation, journal write failure,
 prepared recovery after reopening, paused landing, unchanged ordnance, exactly-once
 rewards, wallet reconciliation and admin retry after a lost publication reply.
 Rendered ordinary landscape layouts keep actions visible without scrolling.
 
-Phone checks before rollout: death before/after five minutes;54/55 starting Scrap;
+Phone checks before rollout: death before/after five minutes;499/500 starting Scrap;
 connected/offline death; no second revive; pause/background during landing; force
 close while confirming then Continue; retained boss health/build/ordnance; End run
 earnings; admin disable during offered/paid recovery. Assess readability, comfort,
 fairness and cosmetic affordability with users. Automated checks do not establish
 native feel or balance. See the existing economy research for original rationale.
+
+Price updated to500 Scrap on24 October2026. Deploy mobile, module, gateway and
+admin together. An old unpaid55-Scrap quote cannot debit500; it is rejected.
+Already paid receipts remain recoverable without another debit. No new ENV.

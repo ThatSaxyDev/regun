@@ -1,3 +1,4 @@
+import 'package:regun/widgets/rank_path_preview.dart';
 import 'package:regun/services/economy/armory_repository.dart';
 import 'package:regun/widgets/solo_revive_panel.dart';
 import 'package:regun/systems/training_pressure.dart';
@@ -874,6 +875,18 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   );
 
   List<Widget> _trainingSections() => [
+    PracticeSection(
+      key: const Key('practice-ranks'),
+      title: 'RANK COMPARISON',
+      summary: 'Compare III, IV and VIII with this loadout',
+      builder: (_) => RankPathPreview(
+        state: _myGame.gameState,
+        weapon: _myGame.loadout.weapon,
+        character: _myGame.loadout.character,
+        power: _myGame.gameNotifier.weaponPower,
+      ),
+    ),
+    const SizedBox(height: 12),
     PracticeSection(
       key: const Key('practice-weapons'),
       title: 'WEAPON PRACTICE',

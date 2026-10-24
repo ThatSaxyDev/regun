@@ -25,6 +25,10 @@ class WeaponPowerBalance {
     for (final e in snapshot?.values.entries ?? <MapEntry<String, num>>[])
       if (e.key.startsWith('powerups.')) e.key.split('.')[1]: e.value,
   });
+  Map<String, num> get rankCurves => Map.unmodifiable({
+    for (final e in snapshot?.values.entries ?? <MapEntry<String, num>>[])
+      if (e.key.startsWith('ranks.')) e.key: e.value,
+  });
   bool get upgraded => revision == 2;
   double damage(WeaponType weapon) => upgraded
       ? n('weapons.${weapon.name}.damage', weapon.damage)

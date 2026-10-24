@@ -1,3 +1,5 @@
+import 'package:regun/data/weapon_power_balance.dart';
+import 'package:regun/services/balance_repository.dart';
 import 'package:regun/services/economy/armory_repository.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
 
@@ -30,6 +32,21 @@ class CollectionView extends StatefulWidget {
 }
 
 class _CollectionViewState extends State<CollectionView> {
+  final _rankPaths = <PowerUp>{};
+  String _rankPath(PowerUp p) {
+    final weapon = p == PowerUp.exposedSeam
+        ? WeaponType.frostShotgun
+        : p == PowerUp.sureFoot
+        ? WeaponType.beltRepeater
+        : WeaponType.values.firstWhere((w) => weaponSupportsPowerUp(w, p));
+    final power = WeaponPowerBalance.live(BalanceRepository.shared.current);
+    final state = GameState(
+      rankCurves: power.rankCurves,
+      upgradeStrengths: power.upgradeStrengths,
+    );
+    return 'Example / ${weapon.title} / Rook\n${List.generate(state.rankLimit(p), (i) => '${i + 1} / ${state.rankValues(p, i + 1, weapon, CharacterType.rook, power).entries.map((e) => '${e.key} ${e.value.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '')}').join(' / ')}').join('\n')}';
+  }
+
   int tab = 0;
   bool _savingStyle = false;
   String? _purchaseIssue;
@@ -128,8 +145,19 @@ class _CollectionViewState extends State<CollectionView> {
                   .map(
                     (p) => _card(
                       p.title,
-                      '${p.group.name.toUpperCase()} / ${p.maxRank} RANKS\n${upgradeDescription(p)}\n${upgradeDetails(p, GameState(), WeaponType.shotgun)}',
+                      '${p.group.name.toUpperCase()} / UP TO ${p.maxRank} RANKS\n${upgradeDescription(p)}${_rankPaths.contains(p) ? '\n${_rankPath(p)}' : ''}',
                       width,
+                      action: ClickButton(
+                        text: _rankPaths.contains(p)
+                            ? 'Hide ranks'
+                            : 'Rank path',
+                        height: 44,
+                        width: 160,
+                        fontSize: 8,
+                        onTap: () => setState(() {
+                          if (!_rankPaths.remove(p)) _rankPaths.add(p);
+                        }),
+                      ),
                     ),
                   )
                   .toList(),

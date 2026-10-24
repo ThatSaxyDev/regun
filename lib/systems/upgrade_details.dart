@@ -16,18 +16,61 @@ String upgradeDetails(
   CharacterType character = CharacterType.rook,
   bool brief = false,
 }) {
+  if (s.rankCurves['ranks.meta.policy'] == 1 && p != PowerUp.salvage) {
+    final before = s.rankValues(p, s.rank(p), weapon, character, power);
+    final after = s.rankValues(
+      p,
+      math.min(s.rankLimit(p), s.rank(p) + 1),
+      weapon,
+      character,
+      power,
+    );
+    String number(num n) =>
+        n.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '');
+    if (p == PowerUp.heavyLoad) {
+      return brief
+          ? 'Damage bonus ${number((before['Damage multiplier']! - 1) * 100)}% to ${number((after['Damage multiplier']! - 1) * 100)}%'
+          : 'Primary ${number(before['Damage multiplier']!)}x to ${number(after['Damage multiplier']!)}x';
+    }
+    final changed = after.keys
+        .where((k) => ((after[k] ?? 0) - (before[k] ?? 0)).abs() > 1e-8)
+        .toList();
+    final lines = [
+      for (final k in changed.take(brief ? 1 : 3))
+        '$k ${number(before[k] ?? 0)} to ${number(after[k] ?? 0)}',
+    ];
+    if (lines.isEmpty) {
+      final paths = fusionRecipes
+          .where(
+            (f) =>
+                !s.fused(f.id) &&
+                s.evolutions.length < 2 &&
+                !s.banned.contains(f.first) &&
+                !s.banned.contains(f.second) &&
+                weaponSupportsPowerUp(weapon, f.first) &&
+                weaponSupportsPowerUp(weapon, f.second) &&
+                ((f.first == p && s.rank(p) < 3) ||
+                    (f.second == p && s.rank(p) < 2)),
+          )
+          .map((f) => f.title)
+          .join(' / ');
+      return paths.isEmpty
+          ? 'No further benefit with this build.'
+          : 'Fusion path / $paths';
+    }
+    if (brief) return '${changed.first} ${number(after[changed.first]!)}';
+    if (p == PowerUp.maxBulletsIncrease) lines.add('Refill now.');
+    if (p == PowerUp.healthIncrease) {
+      lines.add('Recover ${s.strength(p).round()} HP.');
+    }
+    return lines.join(' / ');
+  }
   final r = s.rank(p), next = math.min(s.rankLimit(p), r + 1);
-  double e(int n) =>
-      s.strength(p) *
-      GameState.scaledRank(
-        n,
-        lateGain: p == PowerUp.fastReload || p == PowerUp.quickstep ? .2 : .3,
-      );
+  double e(int n) => s.effectAt(p, n);
   int countRank(int n) => (n * s.strength(p)).round().clamp(0, 8);
   int integerGain(int early, int late) {
     int total(int n) =>
-        ((math.min(3, n) * early + math.max(0, n - 3) * late) * s.strength(p))
-            .round();
+        s.rankTotal(p, n, early.toDouble(), late.toDouble()).round();
     return total(next) - total(r);
   }
 
@@ -56,11 +99,8 @@ String upgradeDetails(
     case PowerUp.heavyLoad:
       return delta(
         brief ? 'Damage bonus' : 'Primary',
-        (n) => brief
-            ? (math.min(3, n) * 35 + math.max(0, n - 3) * 10) * s.strength(p)
-            : 1 +
-                  (math.min(3, n) * .35 + math.max(0, n - 3) * .10) *
-                      s.strength(p),
+        (n) =>
+            brief ? s.rankTotal(p, n, 35, 10) : 1 + s.rankTotal(p, n, .35, .10),
         unit: brief ? '%' : 'x',
       );
     case PowerUp.quickTrigger:
@@ -80,13 +120,7 @@ String upgradeDetails(
         final value = weapon == WeaponType.shotgun
             ? (rank == 0
                       ? power.reloadMs(weapon)
-                      : math.max(
-                          850,
-                          2500 -
-                              (math.min(3, rank) * 500 +
-                                      math.max(0, rank - 3) * 30) *
-                                  s.strength(p),
-                        ))
+                      : math.max(850, 2500 - s.rankTotal(p, rank, 500, 30)))
                   .toDouble()
             : power.reloadMs(weapon) * math.pow(.8, e(rank));
         return (character == CharacterType.flint
@@ -117,7 +151,7 @@ String upgradeDetails(
     case PowerUp.rapidFire:
       return 'Speed ${f(s.bulletSpeed)} to ${f(math.min(weapon.velocityCeiling, math.min(s.baseProjectileSpeed + 800, s.bulletSpeed + integerGain(200, 40))))}';
     case PowerUp.walkingSpeedIncrease:
-      return 'Walking ${f(s.movementSpeed)} to ${f(s.movementSpeed + (next <= 3 ? 50 : 12) * s.strength(p))}';
+      return 'Walking ${f(s.movementSpeed)} to ${f(s.movementSpeed + s.rankTotal(p, next, 50, 12) - s.rankTotal(p, r, 50, 12))}';
     case PowerUp.healthIncrease:
       return 'Max HP ${s.maxHealth} to ${s.maxHealth + s.strength(p).round()}. Recover ${s.strength(p) == 1 ? 'one' : s.strength(p).round()}.';
     case PowerUp.fieldMedic:

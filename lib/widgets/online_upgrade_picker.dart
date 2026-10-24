@@ -1,3 +1,4 @@
+import 'package:regun/systems/rank_effect_values.dart';
 import 'package:regun/systems/upgrade_details.dart';
 
 import 'dart:async';
@@ -76,6 +77,51 @@ class OnlineUpgradePicker extends StatelessWidget {
     );
   }
 
+  String _delta(String id) {
+    final gun = session.gun!;
+    if ((gun.data['rankCurves'] as Map?)?['ranks.meta.policy'] != 1) return '';
+    final v = <String, num>{
+      ...Map<String, num>.from(gun.data['rankCurves'] as Map? ?? {}),
+      for (final e in (gun.data['upgradeStrengths'] as Map? ?? {}).entries)
+        'powerups.${e.key}.${{'dashCapacity', 'grenadeCapacity'}.contains(e.key) ? 'capacity' : 'strength'}':
+            e.value as num,
+      for (final e in {
+        'capacity': gun.baseCapacity,
+        'cadence': gun.baseNumber('cadence', .35),
+        'reloadMs': gun.baseNumber('reload', 3.2) * 1000,
+        'range': gun.baseNumber('range', 420),
+        'speed': gun.baseNumber('speed', 700),
+      }.entries)
+        'weapons.${gun.weapon}.${e.key}': e.value,
+    };
+    final before = RankEffects.values(
+      id,
+      gun.rank(id),
+      v,
+      weapon: gun.weapon,
+      survivor: gun.survivor,
+      fusions: Set<String>.from(gun.data['fusions'] as List? ?? []),
+    );
+    final after = RankEffects.values(
+      id,
+      gun.rank(id) + 1,
+      v,
+      weapon: gun.weapon,
+      survivor: gun.survivor,
+      fusions: Set<String>.from(gun.data['fusions'] as List? ?? []),
+    );
+    String n(num v) => v.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '');
+    final changed = after.keys.where(
+      (k) => ((after[k] ?? 0) - (before[k] ?? 0)).abs() > 1e-8,
+    );
+    return changed.isEmpty
+        ? 'Fusion prerequisite rank.'
+        : changed
+              .take(2)
+              .map((k) => '$k ${n(before[k] ?? 0)} to ${n(after[k] ?? 0)}')
+              .join(' / ');
+  }
+
   Widget _card(String id, bool fusion) {
     final power = PowerUp.values.where((p) => p.name == id).firstOrNull;
     final recipe = fusionRecipes.where((p) => p.id == id).firstOrNull;
@@ -121,6 +167,19 @@ class OnlineUpgradePicker extends StatelessWidget {
                     fontSize: 12,
                   ),
                 ),
+                if (!fusion && _delta(id).isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      _delta(id),
+                      style: const TextStyle(
+                        fontFamily: FontFam.orbitron,
+                        fontSize: 11,
+                        height: 1.5,
+                        color: Color(0xffE1BA78),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

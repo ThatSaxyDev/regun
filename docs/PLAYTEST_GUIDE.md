@@ -590,3 +590,26 @@ Record several runs: weapon, survivor, level, visible choices and selected rank.
 A single run cannot establish drop rates. Save/Continue during a picker should
 preserve the existing hand; reroll limits, bans, fusion recipes, XP costs and
 capacity limits should behave as before. Training practice remains unrestricted.
+
+## Upgrade rank review — 24 October 2026
+
+Use a fresh run with rank policy1; Continue on an older snapshot deliberately
+keeps its prior rules. Compare Heavy Load, Quick Trigger, Fast Reload, Scrap
+Armour and Ordnance Cycle at III/IV/VIII. Early ranks and total VIII power should
+match their former totals; IV/VIII redistribute late growth. Keep track of which
+later choices feel useful rather than assuming the mathematical curve feels good.
+
+Training Pause → Rank comparison uses the visit's current weapon, survivor and
+pinned balance, and does not grant anything. Collection → Upgrades → Show rank
+path gives all ranks for an example loadout. Compare card summaries/Details with
+actual magazine, reload and combat behavior. Flint shotgun reload and Fuse
+grenade recharge should stop offering further ranks once their floors are reached;
+Arc Caster's already guaranteed chaining may appear only to advance a valid fusion
+prerequisite. Coil retention can still improve after ordinary retention caps.
+
+Admin → Balance → Rank curves: change one milestone in a draft, compare baseline
+and draft paths, choose relevant weapons/survivors and check the API preview.
+Review/publish through staging and production as usual. Existing saved runs must
+keep old values after publication; fresh runs must use the new release. Test
+small-screen/large-text card expansion, Training comparisons and admin forms.
+Source validation is not phone performance or physical balance approval.

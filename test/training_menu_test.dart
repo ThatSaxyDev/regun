@@ -287,7 +287,7 @@ void main() {
       game.pauseGame();
       await tester.pump();
       expect(find.text('CONTROLS'), findsNothing);
-      expect(find.byType(PracticeSection), findsNWidgets(5));
+      expect(find.byType(PracticeSection), findsNWidgets(6));
       expect(find.byType(WeaponPracticeTile), findsNothing);
       expect(find.text('START RUSH'), findsNothing);
       final menuRect = tester.getRect(find.byKey(const Key('pause-menu-home')));
@@ -376,6 +376,7 @@ void main() {
         tester.view.physicalSize = size;
         await tester.pump();
         for (final label in [
+          'RANK COMPARISON',
           'WEAPON PRACTICE',
           'SURVIVAL PRACTICE',
           'SUPPLY PRACTICE',
@@ -392,6 +393,15 @@ void main() {
           );
           expect(find.text('RESUME').hitTestable(), findsOneWidget);
           expect(tester.takeException(), isNull, reason: '$size $label');
+          if (label == 'RANK COMPARISON') {
+            await tester.ensureVisible(find.text('NEXT'));
+            await tester.tap(find.text('NEXT'));
+            await tester.pump();
+            expect(tester.takeException(), isNull);
+            if (size.width > size.height) {
+              await capture(tester, 'training-rank-comparison');
+            }
+          }
           await tester.ensureVisible(find.text(label));
           await tester.pump();
           await tester.tap(find.text(label));

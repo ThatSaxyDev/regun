@@ -1,0 +1,620 @@
+{
+  "catalogId": "e4e59b5c82ec0e5fa4896346506e081450f24365c781f27d03e07fefc2a7463f",
+  "note": "Per-family component audit across all21 weapons and10 survivors at default/minimum/maximum strength and curves. Includes unsupported contexts, not a DPS simulation or offer count. Zero transitions are expected at caps; offer tests verify supported exclusions.",
+  "families": [
+    {
+      "id": "heavyLoad",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Damage multiplier": 2.05
+      },
+      "IV": {
+        "Damage multiplier": 2.1899999999999995
+      },
+      "VIII": {
+        "Damage multiplier": 2.55
+      }
+    },
+    {
+      "id": "quickTrigger",
+      "transitions": 5040,
+      "capped": 930,
+      "III": {
+        "Release interval (s)": 0.21494374999999996
+      },
+      "IV": {
+        "Release interval (s)": 0.2007616564403196
+      },
+      "VIII": {
+        "Release interval (s)": 0.16844309401009105
+      }
+    },
+    {
+      "id": "maxBulletsIncrease",
+      "transitions": 5040,
+      "capped": 160,
+      "III": {
+        "Magazine": 11
+      },
+      "IV": {
+        "Magazine": 12
+      },
+      "VIII": {
+        "Magazine": 16
+      }
+    },
+    {
+      "id": "fastReload",
+      "transitions": 5040,
+      "capped": 54,
+      "III": {
+        "Full reload (s)": 1
+      },
+      "IV": {
+        "Full reload (s)": 0.958
+      },
+      "VIII": {
+        "Full reload (s)": 0.85
+      }
+    },
+    {
+      "id": "numberOfBulletsPerShotIncrease",
+      "transitions": 5040,
+      "capped": 210,
+      "III": {
+        "Projectiles": 9,
+        "Spread multiplier": 1
+      },
+      "IV": {
+        "Projectiles": 9,
+        "Spread multiplier": 0.96
+      },
+      "VIII": {
+        "Projectiles": 9,
+        "Spread multiplier": 0.8
+      }
+    },
+    {
+      "id": "bulletsPhaseThrough",
+      "transitions": 5040,
+      "capped": 840,
+      "III": {
+        "Extra penetrations": 3
+      },
+      "IV": {
+        "Extra penetrations": 4
+      },
+      "VIII": {
+        "Extra penetrations": 8
+      }
+    },
+    {
+      "id": "bulletRangeIncrease",
+      "transitions": 5040,
+      "capped": 950,
+      "III": {
+        "Range": 600
+      },
+      "IV": {
+        "Range": 624
+      },
+      "VIII": {
+        "Range": 720
+      }
+    },
+    {
+      "id": "rapidFire",
+      "transitions": 5040,
+      "capped": 1470,
+      "III": {
+        "Projectile speed": 1300
+      },
+      "IV": {
+        "Projectile speed": 1340
+      },
+      "VIII": {
+        "Projectile speed": 1500
+      }
+    },
+    {
+      "id": "walkingSpeedIncrease",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Walking speed": 450
+      },
+      "IV": {
+        "Walking speed": 462
+      },
+      "VIII": {
+        "Walking speed": 510
+      }
+    },
+    {
+      "id": "healthIncrease",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Maximum HP": 9
+      },
+      "IV": {
+        "Maximum HP": 10
+      },
+      "VIII": {
+        "Maximum HP": 14
+      }
+    },
+    {
+      "id": "fieldMedic",
+      "transitions": 5040,
+      "capped": 1050,
+      "III": {
+        "Heal chance (%)": 15.000000000000002
+      },
+      "IV": {
+        "Heal chance (%)": 16.5
+      },
+      "VIII": {
+        "Heal chance (%)": 22.5
+      }
+    },
+    {
+      "id": "scrapArmour",
+      "transitions": 5040,
+      "capped": 1050,
+      "III": {
+        "Guard recharge (s)": 11
+      },
+      "IV": {
+        "Guard recharge (s)": 9.74
+      },
+      "VIII": {
+        "Guard recharge (s)": 6.5
+      }
+    },
+    {
+      "id": "quickstep",
+      "transitions": 5040,
+      "capped": 1050,
+      "III": {
+        "Dash recharge (s)": 0.8500000000000001
+      },
+      "IV": {
+        "Dash recharge (s)": 0.8
+      },
+      "VIII": {
+        "Dash recharge (s)": 0.6000000000000001
+      }
+    },
+    {
+      "id": "dashCapacity",
+      "transitions": 1050,
+      "capped": 0,
+      "III": {
+        "Dash charges": 3
+      },
+      "IV": {
+        "Dash charges": 3
+      },
+      "VIII": {
+        "Dash charges": 3
+      }
+    },
+    {
+      "id": "grenadeCapacity",
+      "transitions": 1050,
+      "capped": 0,
+      "III": {
+        "Grenade capacity": 4
+      },
+      "IV": {
+        "Grenade capacity": 4
+      },
+      "VIII": {
+        "Grenade capacity": 4
+      }
+    },
+    {
+      "id": "sprintInvincibility",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Extra protection (ms)": 100
+      },
+      "IV": {
+        "Extra protection (ms)": 115
+      },
+      "VIII": {
+        "Extra protection (ms)": 175
+      }
+    },
+    {
+      "id": "scavenger",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "XP attraction": 360
+      },
+      "IV": {
+        "XP attraction": 378
+      },
+      "VIII": {
+        "XP attraction": 450
+      }
+    },
+    {
+      "id": "luckyFind",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Special offer weight": 2.05
+      },
+      "IV": {
+        "Special offer weight": 2.155
+      },
+      "VIII": {
+        "Special offer weight": 2.575
+      }
+    },
+    {
+      "id": "hotShot",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Burn per tick": 0.8500000000000001
+      },
+      "IV": {
+        "Burn per tick": 0.91
+      },
+      "VIII": {
+        "Burn per tick": 1.15
+      }
+    },
+    {
+      "id": "accelerant",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Spread radius": 235
+      },
+      "IV": {
+        "Spread radius": 245.5
+      },
+      "VIII": {
+        "Spread radius": 287.5
+      }
+    },
+    {
+      "id": "staticCharge",
+      "transitions": 5040,
+      "capped": 240,
+      "III": {
+        "Chain chance (%)": 36
+      },
+      "IV": {
+        "Chain chance (%)": 39.599999999999994
+      },
+      "VIII": {
+        "Chain chance (%)": 54
+      }
+    },
+    {
+      "id": "conductiveCore",
+      "transitions": 5040,
+      "capped": 840,
+      "III": {
+        "Extra jumps": 3,
+        "Jump range": 165
+      },
+      "IV": {
+        "Extra jumps": 4,
+        "Jump range": 220
+      },
+      "VIII": {
+        "Extra jumps": 8,
+        "Jump range": 440
+      }
+    },
+    {
+      "id": "sprintMine",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Mine damage": 6.5
+      },
+      "IV": {
+        "Mine damage": 6.8
+      },
+      "VIII": {
+        "Mine damage": 8
+      }
+    },
+    {
+      "id": "fragmentation",
+      "transitions": 5040,
+      "capped": 840,
+      "III": {
+        "Blast shards": 10
+      },
+      "IV": {
+        "Blast shards": 12
+      },
+      "VIII": {
+        "Blast shards": 20
+      }
+    },
+    {
+      "id": "ricochet",
+      "transitions": 5040,
+      "capped": 840,
+      "III": {
+        "Extra bounces": 3
+      },
+      "IV": {
+        "Extra bounces": 4
+      },
+      "VIII": {
+        "Extra bounces": 8
+      }
+    },
+    {
+      "id": "bankShot",
+      "transitions": 5040,
+      "capped": 840,
+      "III": {
+        "Bounce multiplier": 1.24
+      },
+      "IV": {
+        "Bounce multiplier": 1.264
+      },
+      "VIII": {
+        "Bounce multiplier": 1.3599999999999999
+      }
+    },
+    {
+      "id": "lastShell",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Final release multiplier": 2.8
+      },
+      "IV": {
+        "Final release multiplier": 2.9799999999999995
+      },
+      "VIII": {
+        "Final release multiplier": 3.6999999999999997
+      }
+    },
+    {
+      "id": "breachLoader",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "First release multiplier": 2.5
+      },
+      "IV": {
+        "First release multiplier": 2.65
+      },
+      "VIII": {
+        "First release multiplier": 3.25
+      }
+    },
+    {
+      "id": "orbitDrone",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Drone damage": 1.8499999999999999,
+        "Drone interval (s)": 0.55
+      },
+      "IV": {
+        "Drone damage": 1.9549999999999998,
+        "Drone interval (s)": 0.5050000000000001
+      },
+      "VIII": {
+        "Drone damage": 2.375,
+        "Drone interval (s)": 0.32500000000000007
+      }
+    },
+    {
+      "id": "targetingLink",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Marked drone multiplier": 1.9
+      },
+      "IV": {
+        "Marked drone multiplier": 1.9899999999999998
+      },
+      "VIII": {
+        "Marked drone multiplier": 2.3499999999999996
+      }
+    },
+    {
+      "id": "shrapnel",
+      "transitions": 5040,
+      "capped": 420,
+      "III": {
+        "Kill proc (%)": 54,
+        "Shards": 6
+      },
+      "IV": {
+        "Kill proc (%)": 59.4,
+        "Shards": 7
+      },
+      "VIII": {
+        "Kill proc (%)": 81,
+        "Shards": 11
+      }
+    },
+    {
+      "id": "executioner",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Wounded damage multiplier": 1.9
+      },
+      "IV": {
+        "Wounded damage multiplier": 1.9899999999999998
+      },
+      "VIII": {
+        "Wounded damage multiplier": 2.3499999999999996
+      }
+    },
+    {
+      "id": "grenadeDamage",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Grenade damage": 12.8
+      },
+      "IV": {
+        "Grenade damage": 13.280000000000001
+      },
+      "VIII": {
+        "Grenade damage": 15.2
+      }
+    },
+    {
+      "id": "grenadeRadius",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Blast radius": 254.2
+      },
+      "IV": {
+        "Blast radius": 259.12
+      },
+      "VIII": {
+        "Blast radius": 278.79999999999995
+      }
+    },
+    {
+      "id": "grenadeRecharge",
+      "transitions": 5040,
+      "capped": 882,
+      "III": {
+        "Charge recharge (s)": 13.5
+      },
+      "IV": {
+        "Charge recharge (s)": 12.870000000000001
+      },
+      "VIII": {
+        "Charge recharge (s)": 11.25
+      }
+    },
+    {
+      "id": "braceLoader",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Reload walking bonus (%)": 12
+      },
+      "IV": {
+        "Reload walking bonus (%)": 13.2
+      },
+      "VIII": {
+        "Reload walking bonus (%)": 18
+      }
+    },
+    {
+      "id": "sureFoot",
+      "transitions": 5040,
+      "capped": 840,
+      "III": {
+        "Weight penalty recovered (%)": 24
+      },
+      "IV": {
+        "Weight penalty recovered (%)": 26.400000000000002
+      },
+      "VIII": {
+        "Weight penalty recovered (%)": 36
+      }
+    },
+    {
+      "id": "scouringHeat",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Elite/boss burn bonus (%)": 30
+      },
+      "IV": {
+        "Elite/boss burn bonus (%)": 33
+      },
+      "VIII": {
+        "Elite/boss burn bonus (%)": 45
+      }
+    },
+    {
+      "id": "faradayReserve",
+      "transitions": 5040,
+      "capped": 72,
+      "III": {
+        "Chain retention (%)": 71
+      },
+      "IV": {
+        "Chain retention (%)": 71.6
+      },
+      "VIII": {
+        "Chain retention (%)": 74
+      }
+    },
+    {
+      "id": "blastHarness",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Ordinary push bonus (%)": 30
+      },
+      "IV": {
+        "Ordinary push bonus (%)": 33
+      },
+      "VIII": {
+        "Ordinary push bonus (%)": 45
+      }
+    },
+    {
+      "id": "exposedSeam",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Frozen primary bonus (%)": 18
+      },
+      "IV": {
+        "Frozen primary bonus (%)": 19.799999999999997
+      },
+      "VIII": {
+        "Frozen primary bonus (%)": 27
+      }
+    },
+    {
+      "id": "measuredShot",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Prepared release bonus (%)": 24
+      },
+      "IV": {
+        "Prepared release bonus (%)": 26.400000000000002
+      },
+      "VIII": {
+        "Prepared release bonus (%)": 36
+      }
+    },
+    {
+      "id": "closeQuarters",
+      "transitions": 5040,
+      "capped": 0,
+      "III": {
+        "Close primary bonus (%)": 18
+      },
+      "IV": {
+        "Close primary bonus (%)": 19.799999999999997
+      },
+      "VIII": {
+        "Close primary bonus (%)": 27
+      }
+    }
+  ]
+}

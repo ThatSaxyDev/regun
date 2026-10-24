@@ -27,7 +27,7 @@ void main() {
   test(
     'snapshot enforces full schema, finite bounds, relationships and hash',
     () {
-      expect(LiveBalance.bundled.values.length, 211);
+      expect(LiveBalance.bundled.values.length, 278);
       expect(
         LiveBalance.fromJson(
           jsonDecode(

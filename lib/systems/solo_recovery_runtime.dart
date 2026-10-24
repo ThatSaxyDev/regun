@@ -113,7 +113,7 @@ extension SoloRecoveryRuntime on RegunGame {
       recovery.stage = 'offered';
       return;
     }
-    recovery.message = 'Confirming 55 Scrap revive…';
+    recovery.message = 'Confirming ${SoloRecovery.price} Scrap revive…';
     _recoveryChanged();
     await _acceptRecoveryResponse(await _recoveryCall('buy'));
   });

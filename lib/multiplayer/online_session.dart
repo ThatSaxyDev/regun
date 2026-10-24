@@ -50,6 +50,7 @@ class OnlineSession {
   final AuthTokenStore tokens;
   bool get usesAccountIdentity => tokens is AccountOnlineTokens;
   bool chargeUpgradesAvailable = false, groundOrdnanceAvailable = false;
+  bool rankCurvesAvailable = false;
   bool grenadesAvailable = false, grenadeAimingAvailable = false;
   bool predictionAvailable = false;
   bool predictionReducedMotion = false;
@@ -393,6 +394,9 @@ class OnlineSession {
       grenadeAimingAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'aim_grenade',
       );
+      rankCurvesAvailable = (schemaJson['reducers'] as List? ?? []).any(
+        (v) => v is Map && v['name'] == 'rank_curve_support',
+      );
       chargeUpgradesAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'charge_upgrades',
       );
@@ -692,7 +696,11 @@ class OnlineSession {
       unawaited(
         _quiet(
           () => client.reducers.attachCombat(
-            version: chargeUpgradesAvailable ? 4 : 3,
+            version: rankCurvesAvailable
+                ? 5
+                : chargeUpgradesAvailable
+                ? 4
+                : 3,
           ),
         ).whenComplete(() => _attaching = false),
       );

@@ -151,7 +151,7 @@ void main() {
     final dir = await Directory.systemTemp.createTemp('regun-revive-account');
     addTearDown(() => dir.delete(recursive: true));
     final store = AccountLocalStore(directory: dir);
-    final profile = PlayerProfile(scrap: 120).toJson();
+    final profile = PlayerProfile(scrap: 1000).toJson();
     var paid = false, buys = 0, statusCalls = 0;
     Map<String, dynamic> status() => {
       'accountId': owner,
@@ -160,7 +160,7 @@ void main() {
       'cloud': {
         'revision': paid ? '2' : '1',
         'epoch': '0',
-        'payload': {...profile, 'scrap': paid ? 65 : 120},
+        'payload': {...profile, 'scrap': paid ? 500 : 1000},
       },
     };
     final api = AccountApi(
@@ -180,7 +180,7 @@ void main() {
               'revive': {
                 'run': 'run-test',
                 'epoch': '0',
-                'price': 55,
+                'price': 500,
                 'paid': paid,
                 'state': paid ? 'purchased' : 'offered',
               },
@@ -217,7 +217,7 @@ void main() {
       'run': 'run-test',
       'epoch': '',
       'seconds': 300,
-      'startingScrap': 120,
+      'startingScrap': 1000,
     };
     await controller.soloRecoveryRequest({...request, 'action': 'offer'});
     await expectLater(
@@ -232,7 +232,7 @@ void main() {
     expect(statusCalls, before); // No stale pre-receipt cloud comparison.
     expect(buys, 1);
     expect(controller.conflict, isFalse);
-    expect(preferences.profile.scrap, 65);
+    expect(preferences.profile.scrap, 500);
     expect((await store.read(owner))!['revision'], '2');
   });
 
