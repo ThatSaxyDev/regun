@@ -1,0 +1,32 @@
+{
+  "beltRepeater": {
+    "title": "Belt-fed Repeater",
+    "bosses": 5,
+    "price": 10000
+  },
+  "longwatchSniper": {
+    "title": "Longwatch Sniper",
+    "bosses": 30,
+    "price": 8500
+  },
+  "flakRegent": {
+    "title": "Flak Regent",
+    "bosses": 36,
+    "price": 8000
+  },
+  "anchorEngine": {
+    "title": "Anchor Engine",
+    "bosses": 40,
+    "price": 11000
+  },
+  "cycloneBreacher": {
+    "title": "Cyclone Breacher",
+    "bosses": 48,
+    "price": 12500
+  },
+  "mourningBell": {
+    "title": "Mourning Bell",
+    "bosses": 52,
+    "price": 15000
+  }
+}

@@ -1,3 +1,4 @@
+import 'package:regun/systems/upgrade_offer_policy.dart';
 import 'package:regun/services/balance_repository.dart';
 import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/systems/survivor_runtime.dart';
@@ -19,6 +20,8 @@ class GameNotifier extends Notifier<GameState> {
   SurvivorRuntime survivor = SurvivorRuntime();
   WeaponPowerBalance weaponPower = WeaponPowerBalance.current;
   int buildBalance = 2;
+  int _offerPolicy = UpgradeOfferPolicy.version;
+  List<String> _recentOffers = [];
   double _reloadElapsedMs = 0;
   double _reloadDurationMs = 0;
   int _reloadSoundsLeft = 0;
@@ -55,6 +58,8 @@ class GameNotifier extends Notifier<GameState> {
     weapon = loadout.weapon;
     character = loadout.character;
     buildBalance = 2;
+    _offerPolicy = UpgradeOfferPolicy.version;
+    _recentOffers = [];
     weaponPower = WeaponPowerBalance.live(BalanceRepository.shared.current);
     _offerRandom.state = seed;
     state = GameState(
@@ -130,6 +135,8 @@ class GameNotifier extends Notifier<GameState> {
   Map<String, dynamic> checkpoint() => {
     'xpCurve': 3,
     'buildBalance': buildBalance,
+    'offerPolicy': _offerPolicy,
+    'recentOffers': List<String>.of(_recentOffers),
     'weaponPowerBalance': weaponPower.revision,
     if (weaponPower.snapshot != null)
       'balanceSnapshot': weaponPower.snapshot!.toJson(),
@@ -310,6 +317,20 @@ class GameNotifier extends Notifier<GameState> {
         weapon.supportsTacticalReload &&
         (snapshot['reloadTactical'] == true &&
             (oldPlan == null || weapon == WeaponType.carbine));
+    final policy = snapshot['offerPolicy'] ?? 0;
+    final history = snapshot['recentOffers'] ?? <String>[];
+    if (policy is! int ||
+        ![0, UpgradeOfferPolicy.version].contains(policy) ||
+        history is! List ||
+        history.length > 3 ||
+        history.toSet().length != history.length ||
+        history.any(
+          (id) => id is! String || !PowerUp.values.any((p) => p.name == id),
+        )) {
+      throw const FormatException('Invalid upgrade offer policy');
+    }
+    _offerPolicy = policy;
+    _recentOffers = List<String>.from(history);
     buildBalance = snapshot['buildBalance'] as int? ?? 1;
     weaponPower = restoredPower;
     if (snapshot['survivorRuntime'] case final Map raw) {
@@ -570,6 +591,21 @@ class GameNotifier extends Notifier<GameState> {
 
   List<PowerUp> _rollOffers() {
     final pool = eligiblePowerUps(state, weapon: weapon, character: character);
+    if (_offerPolicy == UpgradeOfferPolicy.version) {
+      final selected = UpgradeOfferPolicy.choose(
+        eligible: pool.map((p) => p.name).toList(),
+        ranks: {for (final p in pool) p.name: state.rank(p)},
+        special: pool
+            .where((p) => p.group == UpgradeGroup.special)
+            .map((p) => p.name)
+            .toSet(),
+        luck: state.effectRank(PowerUp.luckyFind),
+        recent: _recentOffers,
+        random: _offerRandom.nextDouble,
+      );
+      _recentOffers = selected;
+      return selected.map(PowerUp.values.byName).toList();
+    }
     final choices = <PowerUp>[];
     while (choices.length < 3 && pool.isNotEmpty) {
       double weight(PowerUp p) =>

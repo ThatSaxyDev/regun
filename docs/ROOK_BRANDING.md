@@ -30,7 +30,9 @@ Verified: source/derived dimensions, opaque iOS store icon, unmasked square sour
 The creator explicitly requested the original Flame engine intro followed by the
 original `assets/images/splash_image.png` godKiishi artwork, then Menu. Rook remains
 the native launch/launcher identity. Flutter uses the original Flame package's logo
-layers and pulsing composite; each logo retains its original3.2-second beat
+layers and pulsing composite. The Flame layout centres its visible artwork
+(y186–665 in the500×667 package layers), compensating for transparent top padding.
+Each logo retains its original3.2-second beat
 (750ms fade in,2s hold,450ms fade out). Reduced Motion shows still logos without
 fades or the pulsing Flame, preserving the same sequence.
 
@@ -47,3 +49,25 @@ Startup tests check ordering, completed route replacement, Reduced Motion,
 background/resume and disposal alongside existing menu/update regressions.
 Rendered evidence: `build/test-previews/startup-flame.png` and
 `startup-godkiishi.png`. No native launch asset or release version change is made.
+
+
+## Pixel studio wordmark —24 October 2026
+
+The creator then requested a full godKiishi redesign in Regun's art style and
+explicitly rejected a GK monogram. The current intro uses the wordmark-only
+`assets/art/branding/godkiishi_wordmark_v1.png`: warm ivory lettering, restrained
+brass edges and worn iron details on transparent alpha. The old creator logo is
+retained as source history and is no longer displayed by the intro. No GK emblem
+or badge from the rejected concepts is bundled.
+
+Both logo screens now share Regun's #161B18 charcoal-green surface; the official
+Flame artwork/pulse and its measured centring are preserved. The creator wordmark
+is capped at360 logical pixels, at most72% of available width on narrow screens.
+Its decoded image is bounded to1040px wide. Empty letter counters/outer space
+retain true transparency. Startup timing, local preparation, lifecycle handling,
+route replacement and menu/update flows are unchanged. Startup/menu/update tests
+and rendered ordinary/compact landscape evidence verify this presentation pass.
+
+Built-in image_gen provenance, exact final prompt and source reference are in
+`art/source/branding/GODKIISHI_WORDMARK.md`. No release build, installation or
+native launch asset regeneration is performed.

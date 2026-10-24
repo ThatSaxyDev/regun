@@ -577,3 +577,16 @@ The player remains safe even inside the blast. Check pressure-only enemies beyon
 the damage area, bosses/planted roles, pause and Continue during breakdown: no
 second damage pulse or replayed reward. Reset/Rush cleanup should not detonate a
 pod. The matching server source must be deployed for this behavior online.
+
+## Upgrade offer rarity review — 24 October 2026
+
+Start a fresh run for the new offer policy; Continue on an older save intentionally
+retains its original odds. Double Dash and Grenade Reserve should appear less often
+than regular upgrades, with their second ranks rarer again. Existing ordinary
+build upgrades should remain practical to improve. Look for less repetition across
+XP choices, supply drops and rerolls, without expecting a recent card to be banned.
+
+Record several runs: weapon, survivor, level, visible choices and selected rank.
+A single run cannot establish drop rates. Save/Continue during a picker should
+preserve the existing hand; reroll limits, bans, fusion recipes, XP costs and
+capacity limits should behave as before. Training practice remains unrestricted.

@@ -1,3 +1,4 @@
+import 'package:regun/models/economy/armory_catalog.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/models/player_profile.dart';
 
@@ -7,9 +8,11 @@ class CareerGoal {
   final double progress;
 }
 
-/// Projects existing earned unlock rules. No currency, stat boosts or paid skips.
+/// Projects earned milestones and permanent weapon saving goals.
 class CareerProgress {
-  CareerProgress(this.profile);
+  CareerProgress(this.profile, {ArmoryCatalog? armory})
+    : armory = armory ?? ArmoryCatalog.bundled;
+  final ArmoryCatalog armory;
   final PlayerProfile profile;
   List<CareerGoal> get goals => [
     if (!profile.tutorialComplete)
@@ -24,12 +27,24 @@ class CareerProgress {
         CareerGoal(
           weapon.name,
           weapon.title,
-          weapon.victoryRequirement > 0
+          armoryWeapons.containsKey(weapon.name)
+              ? '${profile.totalBossVictories} / ${weapon.victoryRequirement} bosses · ${profile.scrap} / ${armory.prices[weapon.name]!} Scrap'
+              : weapon.victoryRequirement > 0
               ? '${profile.totalBossVictories} / ${weapon.victoryRequirement} boss victories'
               : weapon == WeaponType.revolver
               ? 'Defeat Shadow'
               : 'Defeat Demon',
-          weapon.victoryRequirement > 0
+          armoryWeapons.containsKey(weapon.name)
+              ? ((profile.totalBossVictories / weapon.victoryRequirement).clamp(
+                          0,
+                          1,
+                        ) +
+                        (profile.scrap / armory.prices[weapon.name]!).clamp(
+                          0,
+                          1,
+                        )) /
+                    2
+              : weapon.victoryRequirement > 0
               ? (profile.totalBossVictories / weapon.victoryRequirement).clamp(
                   0,
                   1,

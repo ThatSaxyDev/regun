@@ -1,3 +1,4 @@
+import 'package:regun/models/player_profile.dart';
 import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/widgets/survivor_portrait.dart';
 import 'package:regun/data/loadout.dart';
@@ -116,6 +117,41 @@ void main() {
           .writeAsBytes(bytes!.buffer.asUint8List());
       image.dispose();
     });
+  }
+
+  for (final size in [const Size(844, 390), const Size(568, 320)]) {
+    testWidgets(
+      'Armory previews a locked permanent weapon and pins unlock at $size',
+      (tester) async {
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        LocalPreferences.shared.profile = PlayerProfile(
+          totalBossVictories: 52,
+          scrap: 15000,
+        );
+        await show(tester, training: false, size: size, scale: 1.3);
+        await tester.tap(find.text('WEAPON'));
+        await tester.pumpAndSettle();
+        await select(tester, 'weapon-beltRepeater');
+        expect(find.text('UNLOCK / 10,000').hitTestable(), findsOneWidget);
+        expect(find.text('START'), findsNothing);
+        expect(
+          LocalPreferences.shared.profile.weaponUnlocked(
+            WeaponType.beltRepeater,
+          ),
+          isFalse,
+        );
+        await tester.runAsync(() async {
+          await RegunArt.shared.acquire(WeaponType.beltRepeater.atlasName);
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+        });
+        await tester.pumpAndSettle();
+        await capture(tester, 'armory-${size.width.toInt()}');
+        RegunArt.shared.release(WeaponType.beltRepeater.atlasName);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
   }
 
   testWidgets(

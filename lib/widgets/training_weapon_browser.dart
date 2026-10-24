@@ -1,3 +1,4 @@
+import 'package:regun/services/economy/armory_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/models/economy/career_progress.dart';
@@ -124,9 +125,10 @@ class _TrainingWeaponBrowserState extends State<TrainingWeaponBrowser> {
       final goalId = widget.selected == WeaponType.carbine
           ? 'training'
           : widget.selected.name;
-      final goal = CareerProgress(profile).goals
-          .where((g) => g.id == goalId)
-          .firstOrNull;
+      final goal = CareerProgress(
+        profile,
+        armory: ArmoryRepository.shared.catalog,
+      ).goals.where((g) => g.id == goalId).firstOrNull;
       final locked = !profile.weaponUnlocked(widget.selected);
       final Widget? details = locked && goal != null
           ? _goalDetails(profile, goal)

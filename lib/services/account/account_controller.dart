@@ -1,9 +1,10 @@
+import 'package:regun/models/economy/armory_catalog.dart';
 import 'package:regun/services/run_store.dart';
 
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/models/account/account_session.dart';
 import 'package:regun/models/player_profile.dart';
@@ -16,25 +17,37 @@ final accountProvider = Provider<AccountController>(
   (ref) => AccountController.shared,
 );
 
-class AccountController extends ChangeNotifier {
+class AccountController extends ChangeNotifier with WidgetsBindingObserver {
   AccountController({
     AccountApi? api,
     AccountSecrets? secrets,
     AccountLocalStore? store,
     LocalPreferences? preferences,
+    this.retryDelays = const [
+      Duration(seconds: 2),
+      Duration(seconds: 5),
+      Duration(seconds: 15),
+      Duration(seconds: 30),
+      Duration(seconds: 60),
+    ],
   }) : api = api ?? AccountApi(),
        _secrets = secrets ?? const SecureAccountSecrets(),
        _store = store ?? AccountLocalStore(),
        preferences = preferences ?? LocalPreferences.shared;
   static final shared = AccountController();
   final AccountApi api;
+  final List<Duration> retryDelays;
+  Timer? _retryTimer;
+  int _retryAttempt = 0;
+  bool _foreground = true, _observing = false, needsSignIn = false;
+  String? _refreshOperation;
   final AccountSecrets _secrets;
   final AccountLocalStore _store;
   final LocalPreferences preferences;
   AccountSession? session;
   Map<String, dynamic>? account, _local;
   Future<void>? _initializing, _syncing, _refreshing;
-  bool _applying = false, _disposed = false;
+  bool _applying = false, _disposed = false, _checkoutBusy = false;
   int _generation = 0;
   final List<String> _revocations = [];
   void Function(String accountId)? onGuestAttached;
@@ -50,14 +63,15 @@ class AccountController extends ChangeNotifier {
   String get saveLabel {
     if (_local?['purchase'] != null) {
       if (_local?['purchaseStatus'] == 'blocked') {
-        return 'Purchase blocked · retry in Collection';
+        return 'Purchase blocked · retry in ${_local?['purchase']?['kind'] == 'weapon' ? 'Loadout' : 'Collection'}';
       }
       if (_local?['purchaseStatus'] == 'not_found') {
-        return 'Purchase not completed · retry in Collection';
+        return 'Purchase not completed · retry in ${_local?['purchase']?['kind'] == 'weapon' ? 'Loadout' : 'Collection'}';
       }
       return 'Purchase awaiting confirmation';
     }
     if (conflict) return 'Choose which progress to keep';
+    if (needsSignIn) return 'Sign in again to sync · progress saved on device';
     if (issue.isNotEmpty) return 'Saved on device · cloud backup pending';
     if (pending) return 'Saved on device · waiting to sync';
     return account?['cloud'] != null
@@ -106,6 +120,12 @@ class AccountController extends ChangeNotifier {
   /// Local IO only. There is deliberately no account verification/network here.
   Future<void> initialize() => _initializing ??= _initialize();
   Future<void> _initialize() async {
+    if (!_observing) {
+      WidgetsBinding.instance.addObserver(this);
+      _observing = true;
+      final lifecycle = WidgetsBinding.instance.lifecycleState;
+      _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
+    }
     try {
       final saved = await _secrets.read();
       if (saved != null) {
@@ -117,6 +137,7 @@ class AccountController extends ChangeNotifier {
           session = AccountSession.fromJson(data);
         }
         account = data['account'] as Map<String, dynamic>?;
+        _refreshOperation = data['refreshOperation'] as String?;
       }
     } catch (_) {
       /* Keychain failure must not prevent local play. */
@@ -137,7 +158,8 @@ class AccountController extends ChangeNotifier {
       }
     }
     preferences.persistAccountProfile = _persist;
-    preferences.spendingAuthorized = () => verified && attached && !conflict;
+    preferences.spendingAuthorized = () =>
+        verified && attached && !conflict && !needsSignIn;
     preferences.purchaseOnline = purchaseCosmetic;
     preferences.purchaseQuotedOnline = (id, price, catalog) =>
         purchaseCosmetic(id, displayedPrice: price, displayedCatalog: catalog);
@@ -177,20 +199,40 @@ class AccountController extends ChangeNotifier {
 
   Future<void> _refresh() async {
     final original = session!, generation = _generation;
-    final data = await api.request(
-      '/refresh',
-      body: {'refreshToken': original.refreshToken},
-    );
-    if (generation != _generation) {
+    // Save the retry identity BEFORE consuming a rotating refresh token.
+    // A lost response or process exit must retry exactly the same rotation.
+    _refreshOperation ??= const Uuid().v4();
+    await _saveSession();
+    final operation = _refreshOperation;
+    Map<String, dynamic> data;
+    try {
+      data = await api.request(
+        '/refresh',
+        body: {'refreshToken': original.refreshToken, 'operation': operation},
+      );
+    } on AccountError catch (e) {
+      if (generation == _generation && e.status == 401) needsSignIn = true;
+      rethrow;
+    }
+    if (generation != _generation || _disposed) {
       throw const AccountError('Account changed. Try again.');
     }
-    session = AccountSession.fromJson(data);
+    final next = AccountSession.fromJson(data);
+    if (next.accountId != original.accountId) {
+      throw const AccountError('Account changed. Try again.');
+    }
+    session = next;
+    _refreshOperation = null;
     try {
       await _saveSession();
+      needsSignIn = false;
     } catch (_) {
-      session = null;
+      // Retain the old token + durable operation for safe replay, rather than
+      // throwing away a perfectly recoverable account session.
+      session = original;
+      _refreshOperation = operation;
       throw const AccountError(
-        'Could not save your sign-in securely. Try again.',
+        'Could not save renewed sign-in. Retrying safely.',
       );
     }
   }
@@ -217,6 +259,8 @@ class AccountController extends ChangeNotifier {
     if (generation != _generation) return;
     await _secrets.write(jsonEncode(next.toJson()));
     session = next;
+    _refreshOperation = null;
+    needsSignIn = false;
     account = null;
     issue = '';
     await status();
@@ -234,6 +278,7 @@ class AccountController extends ChangeNotifier {
     await _secrets.write(
       jsonEncode({
         ...s.toJson(),
+        if (_refreshOperation != null) 'refreshOperation': _refreshOperation,
         'revocations': _revocations,
         if (account != null)
           'account': {
@@ -257,7 +302,15 @@ class AccountController extends ChangeNotifier {
 
   Future<void> status() async {
     final generation = _generation;
-    final data = await api.request('/account', token: await accessToken());
+    Map<String, dynamic> data;
+    try {
+      data = await api.request('/account', token: await accessToken());
+    } on AccountError catch (e) {
+      if (e.status != 401 || needsSignIn || generation != _generation) rethrow;
+      // Handle server rejection/clock skew without asking the player to sign out.
+      await (_refreshing ??= _refresh().whenComplete(() => _refreshing = null));
+      data = await api.request('/account', token: await accessToken());
+    }
     if (generation != _generation) return;
     if (data['accountId'] != session?.accountId) {
       throw const AccountError('Account changed. Try again.');
@@ -302,6 +355,15 @@ class AccountController extends ChangeNotifier {
   String _encoded(Map data) => jsonEncode(
     PlayerProfile.fromJson(Map<String, dynamic>.from(data)).toJson(),
   );
+
+  bool _sameGameplay(Map a, Map b) {
+    Map normalized(Map raw) =>
+        PlayerProfile.fromJson(Map<String, dynamic>.from(raw)).toJson()
+          ..remove('weaponAccessVersion')
+          ..remove('ownedWeapons')
+          ..remove('legacyWeaponClaims');
+    return jsonEncode(normalized(a)) == jsonEncode(normalized(b));
+  }
 
   Future<void> attach({bool useCloud = false, bool useDevice = false}) async {
     if (!ready) throw const AccountError('Choose your username first.');
@@ -388,18 +450,61 @@ class AccountController extends ChangeNotifier {
     await sync();
   }
 
-  Future<void> sync() => _syncing ??= _sync().whenComplete(() {
-    _syncing = null;
-    if (api.configured &&
-        ready &&
-        pending &&
-        !conflict &&
-        issue.isEmpty &&
-        attached &&
-        _local?['purchase'] == null) {
-      scheduleMicrotask(() => unawaited(sync()));
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (!_foreground) {
+      _retryTimer?.cancel();
+      _retryTimer = null;
+    } else if (verified && attached && !needsSignIn && !conflict) {
+      unawaited(sync());
     }
-  });
+  }
+
+  void _scheduleRetry() {
+    if (_disposed ||
+        !_foreground ||
+        !api.configured ||
+        !verified ||
+        !attached ||
+        conflict ||
+        needsSignIn ||
+        retryDelays.isEmpty ||
+        issue.isEmpty ||
+        _local?['purchaseStatus'] == 'not_found') {
+      return;
+    }
+    _retryTimer?.cancel();
+    final delay = retryDelays[_retryAttempt.clamp(0, retryDelays.length - 1)];
+    _retryAttempt++;
+    _retryTimer = Timer(delay, () {
+      _retryTimer = null;
+      if (!_disposed) unawaited(sync());
+    });
+  }
+
+  Future<void> sync() {
+    if (_disposed) return Future.value();
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    return _syncing ??= _sync().whenComplete(() {
+      _syncing = null;
+      if (issue.isEmpty) _retryAttempt = 0;
+      _scheduleRetry();
+      if (!_disposed &&
+          api.configured &&
+          ready &&
+          pending &&
+          !conflict &&
+          !needsSignIn &&
+          issue.isEmpty &&
+          attached &&
+          _local?['purchase'] == null) {
+        scheduleMicrotask(() => unawaited(sync()));
+      }
+    });
+  }
+
   Future<void> _sync() async {
     if (!api.configured) return;
     if (_revocations.isNotEmpty) {
@@ -413,14 +518,16 @@ class AccountController extends ChangeNotifier {
         }
       }
     }
-    if (session == null || conflict) return;
+    if (session == null || conflict || needsSignIn || _disposed) return;
     if (_local?['purchase'] != null) {
       await _reconcilePurchase();
       if (_local?['purchase'] != null || conflict) return;
     }
     final generation = _generation, id = session!.accountId;
     try {
-      await status();
+      // An interrupted upload owns its original idempotency key even if newer
+      // local play has already replaced the pending profile.
+      if (_local?['upload'] == null) await status();
       if (generation != _generation || !ready) return;
       if (!attached) {
         return;
@@ -428,29 +535,29 @@ class AccountController extends ChangeNotifier {
       _local ??= await _store.read(id);
       if (_local == null || _local!['pending'] != true) {
         final remote = account?['cloud'] as Map?;
-        if (_local != null &&
-            remote != null &&
-            (remote['revision'].toString() != _local!['revision'] ||
-                remote['epoch'].toString() != _local!['epoch'])) {
-          if (_encoded(_local!['profile'] as Map) !=
-              _encoded(remote['payload'] as Map)) {
+        if (_local != null && remote != null) {
+          if (remote['epoch'].toString() == _local!['epoch'] &&
+              _sameGameplay(
+                _local!['profile'] as Map,
+                remote['payload'] as Map,
+              )) {
+            // Access-policy changes and receipt-backed ownership refresh without
+            // a false progress conflict, even if the save revision is unchanged.
+            await _confirmWallet(account!);
+          } else if (remote['revision'].toString() != _local!['revision'] ||
+              remote['epoch'].toString() != _local!['epoch']) {
             conflict = true;
-          } else {
-            _local = {
-              ..._local!,
-              'revision': remote['revision'].toString(),
-              'epoch': remote['epoch'].toString(),
-            };
-            await _store.write(id, _local!);
           }
           _notify();
         }
         return;
       }
-      final outgoing = Map<String, dynamic>.from(_local!);
+      final inFlight = _local!['upload'] as Map?;
+      final outgoing = Map<String, dynamic>.from(inFlight ?? _local!);
       final remote = account?['cloud'] as Map?;
-      if ((remote?['revision']?.toString() ?? '0') != outgoing['revision'] ||
-          (remote?['epoch']?.toString() ?? '0') != outgoing['epoch']) {
+      if (inFlight == null &&
+          ((remote?['revision']?.toString() ?? '0') != outgoing['revision'] ||
+              (remote?['epoch']?.toString() ?? '0') != outgoing['epoch'])) {
         if (remote != null &&
             remote['epoch'].toString() == outgoing['epoch'] &&
             _encoded(remote['payload'] as Map) ==
@@ -469,6 +576,18 @@ class AccountController extends ChangeNotifier {
         _notify();
         return;
       }
+      if (inFlight == null) {
+        _local = {
+          ..._local!,
+          'upload': {
+            'profile': outgoing['profile'],
+            'operation': outgoing['operation'],
+            'revision': outgoing['revision'],
+            'epoch': outgoing['epoch'],
+          },
+        };
+        await _store.write(id, _local!);
+      }
       final data = await api.request(
         '/save',
         token: await accessToken(),
@@ -479,13 +598,24 @@ class AccountController extends ChangeNotifier {
           'operation': outgoing['operation'],
         },
       );
-      if (generation != _generation) return;
+      if (generation != _generation || _disposed) return;
+      final remoteCloud = data['cloud'] as Map;
+      if (remoteCloud['epoch'].toString() != outgoing['epoch'] ||
+          remoteCloud['revision'].toString() !=
+              (BigInt.parse(outgoing['revision'] as String) + BigInt.one)
+                  .toString()) {
+        conflict = true;
+        issue =
+            'Cloud progress changed on another device. Choose which to keep.';
+        _notify();
+        return;
+      }
       account = data;
       _local = {
         ..._local!,
-        'revision': (data['cloud'] as Map)['revision'].toString(),
+        'revision': remoteCloud['revision'].toString(),
         'pending': _local!['operation'] != outgoing['operation'],
-      };
+      }..remove('upload');
       await _confirmWallet(data);
       issue = '';
       _notify();
@@ -493,6 +623,7 @@ class AccountController extends ChangeNotifier {
       if (generation == _generation) {
         issue = e.message;
         if (e.status == 409) conflict = true;
+        if (e.status == 401) needsSignIn = true;
         _notify();
       }
     } catch (_) {
@@ -512,6 +643,12 @@ class AccountController extends ChangeNotifier {
       0,
       1000000000,
     );
+    profile.ownedWeapons
+      ..clear()
+      ..addAll(confirmed.ownedWeapons);
+    profile.legacyWeaponClaims
+      ..clear()
+      ..addAll(confirmed.legacyWeaponClaims);
     profile.scrap = confirmed.scrap + extra;
     profile.earnedScrapTotal = confirmed.earnedScrapTotal + extra;
     profile.owned.removeAll(shopCosmetics.keys);
@@ -529,23 +666,26 @@ class AccountController extends ChangeNotifier {
     final owner = session!.accountId, generation = _generation;
     final cloud = data['cloud'] as Map;
     final remote = cloud['payload'] as Map;
-    final localProfile = _withWallet(_local!['profile'] as Map, remote);
-    final confirmedLocal = {
-      ..._local!,
-      'profile': localProfile.toJson(),
-      'revision': cloud['revision'].toString(),
-      'epoch': cloud['epoch'].toString(),
-    };
-    if (clearPurchase) {
-      confirmedLocal.remove('purchase');
-      confirmedLocal.remove('purchaseStatus');
-    }
-    await _store.write(owner, confirmedLocal);
-    if (generation != _generation || session?.accountId != owner) return;
-    // A purchase runs under the local transition lock; ordinary uploads retain
-    // any newer pending gameplay snapshot queued while the write was in flight.
-    if (clearPurchase || _local!['operation'] == confirmedLocal['operation']) {
-      _local = confirmedLocal;
+    // A Loadout checkout holds the owner lease, but profile saves may still
+    // arrive while disk I/O runs. Merge the receipt into the newest snapshot.
+    while (true) {
+      final current = _local!;
+      final confirmedLocal = {
+        ...current,
+        'profile': _withWallet(current['profile'] as Map, remote).toJson(),
+        'revision': cloud['revision'].toString(),
+        'epoch': cloud['epoch'].toString(),
+      };
+      if (clearPurchase) {
+        confirmedLocal.remove('purchase');
+        confirmedLocal.remove('purchaseStatus');
+      }
+      await _store.write(owner, confirmedLocal);
+      if (generation != _generation || session?.accountId != owner) return;
+      if (_local!['operation'] == current['operation']) {
+        _local = confirmedLocal;
+        break;
+      }
     }
     if (!attached) return;
     preferences.profile = _withWallet(preferences.profile.toJson(), remote);
@@ -560,7 +700,9 @@ class AccountController extends ChangeNotifier {
     final generation = _generation, owner = session!.accountId;
     try {
       final data = await api.request(
-        '/purchase-status',
+        operation['kind'] == 'weapon'
+            ? '/weapon-purchase-status'
+            : '/purchase-status',
         token: await accessToken(),
         body: {'operation': operation['operation']},
       );
@@ -604,9 +746,12 @@ class AccountController extends ChangeNotifier {
         issue = 'Progress changed. Choose which progress to keep.';
         return;
       }
-      if (!(data['cloud']?['payload']?['owned'] as List? ?? []).contains(
-        operation['item'],
-      )) {
+      if (!(data['cloud']?['payload']?[operation['kind'] == 'weapon'
+                      ? 'ownedWeapons'
+                      : 'owned']
+                  as List? ??
+              [])
+          .contains(operation['item'])) {
         throw const AccountError(
           'Could not restore this purchase. Retry in Collection.',
         );
@@ -635,12 +780,14 @@ class AccountController extends ChangeNotifier {
   /// Atomically cancel an uncommitted intent, or recover its committed receipt.
   Future<void> cancelPendingPurchase() async {
     final generation = _generation;
-    await _switchLocal(() async {
+    Future<void> apply() async {
       final operation = _local?['purchase'] as Map?;
       if (!verified || !attached || operation == null) return;
       try {
         final data = await api.request(
-          '/purchase-cancel',
+          operation['kind'] == 'weapon'
+              ? '/weapon-purchase-cancel'
+              : '/purchase-cancel',
           token: await accessToken(),
           body: {'operation': operation['operation']},
         );
@@ -668,7 +815,13 @@ class AccountController extends ChangeNotifier {
           issue = 'Could not save the purchase status. Retry when connected.';
         }
       }
-    });
+    }
+
+    if (_local?['purchase']?['kind'] == 'weapon') {
+      await apply();
+    } else {
+      await _switchLocal(apply);
+    }
     _notify();
   }
 
@@ -686,7 +839,15 @@ class AccountController extends ChangeNotifier {
     if (_local == null ||
         !attached ||
         (body['action'] == 'offer' && (pending || conflict))) {
-      throw const AccountError('Sync your account before reviving.');
+      throw AccountError(
+        needsSignIn
+            ? 'Sign in again from Settings to revive.'
+            : conflict
+            ? 'Choose which progress to keep in Settings.'
+            : issue.isNotEmpty
+            ? issue
+            : 'Cloud backup is still finishing. Retry shortly.',
+      );
     }
     final epoch = body['epoch'] == '' ? _local!['epoch'] : body['epoch'];
     final data = await api.request(
@@ -713,103 +874,214 @@ class AccountController extends ChangeNotifier {
   }) async {
     if (!verified || !attached) return CosmeticPurchase.signInRequired;
     if (!api.configured) return CosmeticPurchase.onlineRequired;
-    final generation = _generation, owner = session!.accountId;
-    var result = CosmeticPurchase.unavailable;
-    await _switchLocal(() async {
-      try {
-        // A saved receipt key is retried before sync: its lost response may
-        // already have advanced the server revision. Never auto-retry a spend.
-        var previous = _local?['purchase'] as Map?;
-        if (previous != null && previous['item'] != item) {
-          issue = 'Retry the pending purchase first.';
-          result = CosmeticPurchase.pendingConfirmation;
-          return;
-        }
-        Map<String, dynamic> operation;
-        if (previous != null) {
-          operation = Map<String, dynamic>.from(previous);
-        } else {
-          await sync();
+    if (_checkoutBusy) return CosmeticPurchase.pendingConfirmation;
+    _checkoutBusy = true;
+    try {
+      final generation = _generation, owner = session!.accountId;
+      var result = CosmeticPurchase.unavailable;
+      await _switchLocal(() async {
+        try {
+          // A saved receipt key is retried before sync: its lost response may
+          // already have advanced the server revision. Never auto-retry a spend.
+          var previous = _local?['purchase'] as Map?;
+          if (previous != null &&
+              (previous['item'] != item || previous['kind'] == 'weapon')) {
+            issue = 'Retry the pending purchase first.';
+            result = CosmeticPurchase.pendingConfirmation;
+            return;
+          }
+          Map<String, dynamic> operation;
+          if (previous != null) {
+            operation = Map<String, dynamic>.from(previous);
+          } else {
+            await sync();
+            if (generation != _generation ||
+                !attached ||
+                conflict ||
+                pending ||
+                issue.isNotEmpty) {
+              result = CosmeticPurchase.onlineRequired;
+              return;
+            }
+            final cloud = account?['cloud'] as Map?;
+            final catalog = account?['catalog'] as Map?;
+            if (cloud == null || catalog == null || _local == null) {
+              result = CosmeticPurchase.onlineRequired;
+              return;
+            }
+            if ((catalog['prices'] as Map?)?[item] !=
+                    (displayedPrice ?? shopCosmetics[item]) ||
+                (displayedCatalog != null &&
+                    catalog['version'] != displayedCatalog) ||
+                ((catalog['available'] as Map?)?[item] == false)) {
+              issue = 'Shop changed. Refresh before purchasing.';
+              return;
+            }
+            operation = {
+              'item': item,
+              'catalog': catalog['version'],
+              'revision': cloud['revision'].toString(),
+              'epoch': cloud['epoch'].toString(),
+              'operation': const Uuid().v4(),
+            };
+          }
+          _local = {..._local!, 'purchase': operation}
+            ..remove('purchaseStatus');
+          await _store.write(
+            owner,
+            _local!,
+          ); // Retain key across lost responses/restarts.
+          final data = await api.request(
+            '/purchase',
+            token: await accessToken(),
+            body: operation,
+          );
           if (generation != _generation ||
               !attached ||
-              conflict ||
-              pending ||
-              issue.isNotEmpty) {
-            result = CosmeticPurchase.onlineRequired;
+              data['accountId'] != owner) {
             return;
           }
-          final cloud = account?['cloud'] as Map?;
-          final catalog = account?['catalog'] as Map?;
-          if (cloud == null || catalog == null || _local == null) {
-            result = CosmeticPurchase.onlineRequired;
+          final remote = data['cloud']?['payload'] as Map?;
+          if (remote == null || !(remote['owned'] as List).contains(item)) {
+            result = CosmeticPurchase.unavailable;
             return;
           }
-          if ((catalog['prices'] as Map?)?[item] !=
-                  (displayedPrice ?? shopCosmetics[item]) ||
-              (displayedCatalog != null &&
-                  catalog['version'] != displayedCatalog) ||
-              ((catalog['available'] as Map?)?[item] == false)) {
-            issue = 'Shop changed. Refresh before purchasing.';
-            return;
-          }
-          operation = {
-            'item': item,
-            'catalog': catalog['version'],
-            'revision': cloud['revision'].toString(),
-            'epoch': cloud['epoch'].toString(),
-            'operation': const Uuid().v4(),
-          };
-        }
-        _local = {..._local!, 'purchase': operation}..remove('purchaseStatus');
-        await _store.write(
-          owner,
-          _local!,
-        ); // Retain key across lost responses/restarts.
-        final data = await api.request(
-          '/purchase',
-          token: await accessToken(),
-          body: operation,
-        );
-        if (generation != _generation ||
-            !attached ||
-            data['accountId'] != owner) {
-          return;
-        }
-        final remote = data['cloud']?['payload'] as Map?;
-        if (remote == null || !(remote['owned'] as List).contains(item)) {
-          result = CosmeticPurchase.unavailable;
-          return;
-        }
-        account = data;
-        await _confirmWallet(data, clearPurchase: true);
-        if (generation != _generation || !attached) return;
-        preferences.profile.cosmetic = item;
-        // Equip is local and remains available without a network request.
-        await preferences.saveProfile(notifyAccount: false);
-        _local = {..._local!, 'profile': preferences.profile.toJson()};
-        await _store.write(owner, _local!);
-        issue = '';
-        result = CosmeticPurchase.saved;
-      } on AccountError catch (e) {
-        if (generation != _generation || !attached) return;
-        issue = e.message;
-        // Even a rejected retry may follow an earlier committed request whose
-        // response was lost. Retain its key until the receipt is reconciled.
-        if (e.status == 403 && _local != null) {
-          _local = {..._local!, 'purchaseStatus': 'blocked'};
+          account = data;
+          await _confirmWallet(data, clearPurchase: true);
+          if (generation != _generation || !attached) return;
+          preferences.profile.cosmetic = item;
+          // Equip is local and remains available without a network request.
+          await preferences.saveProfile(notifyAccount: false);
+          _local = {..._local!, 'profile': preferences.profile.toJson()};
           await _store.write(owner, _local!);
+          issue = '';
+          result = CosmeticPurchase.saved;
+        } on AccountError catch (e) {
+          if (generation != _generation || !attached) return;
+          issue = e.message;
+          // Even a rejected retry may follow an earlier committed request whose
+          // response was lost. Retain its key until the receipt is reconciled.
+          if (e.status == 403 && _local != null) {
+            _local = {..._local!, 'purchaseStatus': 'blocked'};
+            await _store.write(owner, _local!);
+          }
+          result = e.message == 'Not enough Scrap'
+              ? CosmeticPurchase.insufficientFunds
+              : CosmeticPurchase.onlineRequired;
+        } catch (_) {
+          if (generation != _generation || !attached) return;
+          issue =
+              'Connect to complete your purchase. Retry to check its status.';
+          result = CosmeticPurchase.onlineRequired;
         }
-        result = e.message == 'Not enough Scrap'
-            ? CosmeticPurchase.insufficientFunds
-            : CosmeticPurchase.onlineRequired;
-      } catch (_) {
-        if (generation != _generation || !attached) return;
-        issue = 'Connect to complete your purchase. Retry to check its status.';
-        result = CosmeticPurchase.onlineRequired;
+      });
+      _notify();
+      return result;
+    } finally {
+      _checkoutBusy = false;
+    }
+  }
+
+  Future<CosmeticPurchase> purchaseWeapon(
+    String item, {
+    required int displayedPrice,
+    required String displayedCatalog,
+  }) async {
+    if (!verified || !attached || needsSignIn) {
+      return CosmeticPurchase.signInRequired;
+    }
+    if (!armoryWeapons.containsKey(item) || !api.configured) {
+      return CosmeticPurchase.unavailable;
+    }
+    if (_checkoutBusy) return CosmeticPurchase.pendingConfirmation;
+    _checkoutBusy = true;
+    final owner = session!.accountId, generation = _generation;
+    try {
+      final previous = _local?['purchase'] as Map?;
+      if (previous != null &&
+          (previous['item'] != item || previous['kind'] != 'weapon')) {
+        return CosmeticPurchase.pendingConfirmation;
       }
-    });
-    _notify();
-    return result;
+      if (previous == null) {
+        await sync();
+        if (generation != _generation ||
+            pending ||
+            conflict ||
+            issue.isNotEmpty ||
+            _local == null) {
+          return CosmeticPurchase.onlineRequired;
+        }
+        final raw = account?['armory'];
+        if (raw is! Map) return CosmeticPurchase.unavailable;
+        final catalog = ArmoryCatalog.fromJson(Map<String, dynamic>.from(raw));
+        if (!catalog.enabled ||
+            !catalog.available.contains(item) ||
+            catalog.version != displayedCatalog ||
+            catalog.prices[item] != displayedPrice) {
+          issue = 'Armory changed. Refresh before unlocking.';
+          _notify();
+          return CosmeticPurchase.unavailable;
+        }
+        _local = {
+          ..._local!,
+          'purchase': {
+            'kind': 'weapon',
+            'accessVersion': 2,
+            'item': item,
+            'price': displayedPrice,
+            'catalog': displayedCatalog,
+            'operation': const Uuid().v4(),
+            'epoch': _local!['epoch'],
+            'revision': _local!['revision'],
+          },
+        }..remove('purchaseStatus');
+        await _store.write(owner, _local!);
+      }
+      await _store.write(
+        owner,
+        _local!,
+      ); // Also persist a previously failed intent write before retrying.
+      final operation = Map<String, dynamic>.from(_local!['purchase'] as Map);
+      final data = await api.request(
+        '/weapon-purchase',
+        token: await accessToken(),
+        body: operation,
+      );
+      if (generation != _generation ||
+          !attached ||
+          data['accountId'] != owner) {
+        return CosmeticPurchase.pendingConfirmation;
+      }
+      if (!(data['cloud']?['payload']?['ownedWeapons'] as List? ?? []).contains(
+        item,
+      )) {
+        return CosmeticPurchase.pendingConfirmation;
+      }
+      account = data;
+      await _confirmWallet(data, clearPurchase: true);
+      issue = '';
+      _notify();
+      return CosmeticPurchase.saved;
+    } on AccountError catch (e) {
+      if (generation != _generation || !attached) {
+        return CosmeticPurchase.pendingConfirmation;
+      }
+      issue = e.message;
+      _notify();
+      return e.message == 'Not enough Scrap'
+          ? CosmeticPurchase.insufficientFunds
+          : CosmeticPurchase.pendingConfirmation;
+    } catch (_) {
+      if (generation != _generation || !attached) {
+        return CosmeticPurchase.pendingConfirmation;
+      }
+      issue =
+          'Connect to confirm your weapon unlock. Your purchase is retained.';
+      _notify();
+      return CosmeticPurchase.pendingConfirmation;
+    } finally {
+      _checkoutBusy = false;
+    }
   }
 
   Future<void> claimGuest(String guestToken) async {
@@ -908,6 +1180,9 @@ class AccountController extends ChangeNotifier {
 
   Future<void> _clearSession() async {
     ++_generation;
+    _retryTimer?.cancel();
+    _refreshOperation = null;
+    needsSignIn = false;
     session = null;
     await _saveSession();
     account = null;
@@ -928,6 +1203,8 @@ class AccountController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _retryTimer?.cancel();
+    if (_observing) WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }

@@ -31,3 +31,9 @@ Boss cores now bank for an explicit **Fuse core** action in the HUD/pause menu w
 ## Acceptance
 
 Tests cover the cost sequence, exact first threshold, one offer/payment, preserved overflow, stale taps, pause, no automatic boss upgrades, explicit fusion and once-only old-save migration. The rank-VIII soaks check lifecycle/population bounds; their artificially prepared builds cannot establish how quickly a normal player reaches VIII. Physical review must measure first/second upgrade times, level at each boss and run-end level on both arenas. Migration marker 3 also converts saves from the previous 25-XP curve once, preserving their bar fraction. Later progression is deliberately much steeper; final difficulty and progression feel remain creator approval items.
+
+## Offer policy follow-up — 24 October 2026
+
+XP costs and funded-offer timing remain unchanged. Fresh runs now use versioned
+rarity/recent-hand weighting; see [UPGRADE_OFFER_RANDOMIZATION.md](UPGRADE_OFFER_RANDOMIZATION.md).
+Older continued runs retain their original selector and pinned balance snapshot.

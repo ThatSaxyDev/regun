@@ -1,3 +1,4 @@
+import 'package:regun/services/economy/armory_repository.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
 
 import 'dart:async';
@@ -171,12 +172,20 @@ class _CollectionViewState extends State<CollectionView> {
                 '10 kills = 1 Scrap / Boss = 15 Scrap / Minute survived = 1 Scrap\nSalvage adds to your run total. Training grants no rewards.',
                 width,
               ),
-              for (final goal in CareerProgress(profile).goals)
+              for (final goal in CareerProgress(
+                profile,
+                armory: ArmoryRepository.shared.catalog,
+              ).goals)
                 _card(
                   goal.title,
                   goal.detail,
                   width,
-                  badge: CareerProgress(profile).next?.id == goal.id
+                  badge:
+                      CareerProgress(
+                            profile,
+                            armory: ArmoryRepository.shared.catalog,
+                          ).next?.id ==
+                          goal.id
                       ? 'NEXT GOAL'
                       : 'EARNED UNLOCK',
                   action: ClickButton(

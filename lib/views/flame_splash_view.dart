@@ -16,7 +16,10 @@ class FlameSplashView extends StatefulWidget {
 
 class _FlameSplashViewState extends State<FlameSplashView>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  static const _creator = AssetImage('assets/images/splash_image.png');
+  static const _creator = ResizeImage(
+    AssetImage('assets/art/branding/godkiishi_wordmark_v1.png'),
+    width: 1040,
+  );
   static const _layers = [
     AssetImage('assets/layer1.png', package: 'flame_splash_screen'),
     AssetImage('assets/layer2.png', package: 'flame_splash_screen'),
@@ -91,13 +94,14 @@ class _FlameSplashViewState extends State<FlameSplashView>
         LocalPreferences.shared.reducedMotion ||
         MediaQuery.disableAnimationsOf(context);
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: GameScreenTransition.surface,
       body: SafeArea(
         minimum: const EdgeInsets.all(24),
         child: LayoutBuilder(
           builder: (_, constraints) => Center(
-            child: SizedBox.square(
-              dimension: min(300, constraints.biggest.shortestSide),
+            child: SizedBox(
+              width: min(360, constraints.maxWidth * .72),
+              height: min(300, constraints.maxHeight),
               child: !_ready
                   ? const SizedBox.shrink()
                   : AnimatedBuilder(
@@ -124,18 +128,31 @@ class _FlameSplashViewState extends State<FlameSplashView>
                                     fit: BoxFit.contain,
                                     excludeFromSemantics: true,
                                   )
-                                : TickerMode(
-                                    enabled: _foreground && !reduced,
-                                    child: reduced
-                                        ? const AnimatedLogo(
-                                            key: Key('startup-flame'),
-                                            animation: AlwaysStoppedAnimation(
-                                              1,
-                                            ),
-                                          )
-                                        : const LogoComposite(
-                                            key: Key('startup-flame'),
-                                          ),
+                                : Center(
+                                    child: SizedBox.square(
+                                      dimension: min(
+                                        300,
+                                        constraints.biggest.shortestSide,
+                                      ),
+                                      child: FractionalTranslation(
+                                        // Package layers are500×667; visible art
+                                        // spans y186–665. Centre that footprint,
+                                        // rather than its uneven transparent canvas.
+                                        translation: const Offset(0, -92 / 667),
+                                        child: TickerMode(
+                                          enabled: _foreground && !reduced,
+                                          child: reduced
+                                              ? const AnimatedLogo(
+                                                  key: Key('startup-flame'),
+                                                  animation:
+                                                      AlwaysStoppedAnimation(1),
+                                                )
+                                              : const LogoComposite(
+                                                  key: Key('startup-flame'),
+                                                ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                           ),
                         );

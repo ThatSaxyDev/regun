@@ -19,15 +19,22 @@ are built/deployed. Existing unrelated trailer work is untouched.
 |9 · Reporting|Authenticated7/30/90-day earned/imported/spent flows, current balances, purchases by finish, request/failure counts. Newly observed unlock milestones include cumulative run count and active minutes; aggregated median/sample counts are explicitly device-reported.|
 |10 · Revives|[Revive implementation](REVIVE_POLICY.md):55 pre-run banked Scrap, five active minutes, one normal Solo revive; online authenticated debit/receipt recovery, durable death decision, separate revived personal bests without death-prompt record copy, admin enable/disable. Defaults disabled.|
 
+## Armory addition — 24 October 2026
+
+The approved earned-Scrap weapon unlocks now have app/API/admin source implementation.
+See [ARMORY_IMPLEMENTATION.md](ARMORY_IMPLEMENTATION.md) for the six 8,000–15,000
+prices, permanent ownership, legacy migration and disabled-by-default rollout.
+The cosmetic contract below remains separate and retains its original limits.
+
 ## Progression and earning
 
 Scrap = collected salvage + floor(kills/10) +15 per boss +floor(seconds/60).
 Training grants zero; settlement IDs prevent replay. A synthetic300-kill,
 one-boss, ten-minute run yields55 plus salvage. At55 per run, the baseline
 finishes represent roughly2,2,3,4,4,5 completed example runs. This is arithmetic,
-not a real player average. The shop adds no necessary progression sink or stat
-purchase. Current permanent unlocks remain accessible through play and Training
-retains its existing access. No active/continued run changes its balance snapshot.
+not a real player average. The cosmetic shop adds no required progression purchase. Six weapon blueprints
+now require a permanent earned-Scrap unlock; all remain freely testable in
+Training. Other permanent unlocks keep their existing earned rules. No active/continued run changes its balance snapshot.
 
 Career instrumentation starts with this app version: `careerSeconds` and
 `unlockMilestones` are additive schema3 profile fields. Old unlocked achievements

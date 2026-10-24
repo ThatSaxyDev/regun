@@ -1,3 +1,6 @@
+import 'package:regun/services/local_preferences.dart';
+import 'package:regun/models/player_profile.dart';
+
 import 'dart:io';
 import 'dart:convert';
 import 'dart:ui' as ui;
@@ -63,11 +66,22 @@ class _MemoryStore extends RunStore {
 }
 
 void main() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+
+    await LocalPreferences.shared.load();
+    // Combat presentation fixtures explicitly own their admitted loadouts.
+    LocalPreferences.shared.profile = PlayerProfile(
+      challenges: {'training', 'revolver', 'arcCaster', 'burstRifle'},
+      totalBossVictories: 100,
+      ownedWeapons: WeaponType.values.map((w) => w.name).toSet(),
+    );
+    await LocalPreferences.shared.saveProfile();
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
     'all weapons/characters mount, bosses work, and a live run restores safely',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
       tester.view.physicalSize = const Size(844, 390);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);

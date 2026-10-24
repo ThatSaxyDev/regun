@@ -172,14 +172,20 @@ class _MenuViewState extends ConsumerState<MenuView>
     final account = ref.read(accountProvider);
     final localPlay = view is BaseView || view is LoadoutView;
     if (localPlay) await account.beginLocalPlay();
+    var needsSignIn = false;
     try {
       if (!mounted) return;
       final completion = await Navigator.of(context)
           .push<dynamic>(GamePageRoute<dynamic>(builder: (_) => view));
       // Loadout replacement passes the actual game's completion, not just catalog disposal.
       if (completion is Future<void>) await completion;
+      needsSignIn = completion == 'sign-in';
     } finally {
       if (localPlay) account.endLocalPlay();
+    }
+    if (mounted && needsSignIn) {
+      await showAccountFlow(context, account, reverify: account.needsSignIn);
+      await account.sync();
     }
     if (mounted) await _refresh();
   }

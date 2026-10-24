@@ -1500,3 +1500,40 @@ with a cancellable owned timeline, paused background playback, still Reduced
 Motion presentation and one-shot menu route replacement. Existing local startup
 preparation remains before the intro; menu/update/account/music behavior is not
 moved into it. See ROOK_BRANDING.md and startup/menu/update regression tests.
+
+## Earned weapon Armory and account recovery — 24 October 2026
+
+See [ARMORY_IMPLEMENTATION.md](ARMORY_IMPLEMENTATION.md) and
+[ACCOUNT_SYNC_RECOVERY.md](ACCOUNT_SYNC_RECOVERY.md). Six permanent weapon unlocks
+use earned Scrap at approved 8,000–15,000 defaults, with server debits/entitlements
+and a reviewed admin release. Existing owners/Training/offline equipping are
+preserved. Sales default off; this source pass does not deploy or install.
+Refresh/upload journals and foreground retries address recoverable account-sync
+failures without requiring a permanent Sync now button.
+
+### Purchase-only policy correction
+
+The creator withdrew grandfathering: previously gameplay-earned access to the six
+shop weapons now requires Scrap purchase. Repeater is10,000. Version2 ownership
+retains actual paid receipts, removes old free grants, blocks legacy checkpoint
+bypasses and aligns API/admin support. The previous preservation statement applies
+only to genuine purchases now. See ARMORY_IMPLEMENTATION.md for migration details.
+
+## Upgrade offer rarity and repeat suppression — 24 October 2026
+
+Fresh runs pin upgrade offer policy1: Double Dash and Grenade Reserve draw at
+0.35 base weight initially and0.20 for the second rank, without the ordinary
+owned-upgrade boost or guaranteed build-follow-up slot. Last hand's cards receive
+an additional0.35 weight multiplier; they are discouraged rather than banned.
+Normal owned build upgrades retain their first-slot support. Lucky Find, existing
+eligibility, rank/charge caps, XP/fusions and free practice remain unchanged.
+
+App and server share deterministic selector fixtures. Checkpointed policy/history
+and RNG preserve Continue; old saves and existing server progress retain their
+original selector. See [UPGRADE_OFFER_RANDOMIZATION.md](UPGRADE_OFFER_RANDOMIZATION.md).
+No installation/deployment or physical balance acceptance is implied.
+
+Verification: analyzer clean; full app suite644 passed /5 opt-in skipped. Final
+policy/restore validation checks4 passed. Server TypeScript checks,137 tests and
+SpacetimeDB build passed. The deterministic40,000-draw statistical check and shared
+Dart/TypeScript offer fixtures passed. Source only; not deployed or installed.

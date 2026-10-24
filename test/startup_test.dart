@@ -62,6 +62,10 @@ void main() {
       await capture(tester, 'flame');
       await tester.pump(const Duration(milliseconds: 2400));
       expect(find.byKey(const Key('startup-godkiishi')), findsOneWidget);
+      expect(
+        tester.getSize(find.byKey(const Key('startup-godkiishi'))).width,
+        lessThanOrEqualTo(360),
+      );
       await tester.pump(const Duration(milliseconds: 800));
       await capture(tester, 'godkiishi');
       await tester.pump(const Duration(seconds: 3));
@@ -77,6 +81,24 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
+
+  testWidgets('compact wordmark fits smaller landscape screens', (
+    tester,
+  ) async {
+    await start(tester);
+    await tester.pump(const Duration(milliseconds: 3300));
+    for (final size in [const Size(667, 375), const Size(568, 320)]) {
+      tester.view.physicalSize = size;
+      await tester.pump();
+      final logo = find.byKey(const Key('startup-godkiishi'));
+      expect(logo, findsOneWidget);
+      expect(tester.getSize(logo).width, lessThanOrEqualTo(360));
+      expect(tester.getSize(logo).width, lessThan(size.width * .72));
+      expect(tester.takeException(), isNull);
+    }
+    await capture(tester, 'godkiishi-compact');
+    await tester.pumpWidget(const SizedBox());
+  });
 
   testWidgets('Reduced Motion shows both still logos and reaches Menu', (
     tester,
@@ -99,6 +121,10 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 3300));
     expect(find.byKey(const Key('startup-godkiishi')), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('startup-godkiishi'))).width,
+      lessThanOrEqualTo(360),
+    );
     await tester.pump(const Duration(milliseconds: 3300));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
@@ -120,6 +146,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 2400));
       expect(find.byKey(const Key('startup-godkiishi')), findsOneWidget);
+      expect(
+        tester.getSize(find.byKey(const Key('startup-godkiishi'))).width,
+        lessThanOrEqualTo(360),
+      );
       await tester.pump(const Duration(seconds: 4));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));

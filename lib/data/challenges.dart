@@ -1,3 +1,4 @@
+import 'package:regun/models/economy/armory_catalog.dart';
 import 'package:regun/data/loadout.dart';
 
 class ChallengeDefinition {
@@ -55,7 +56,9 @@ final challenges = [
       weapon.name,
       weapon.title,
       'Defeat ${weapon.victoryRequirement} bosses across normal runs',
-      weapon.title,
+      armoryWeapons.containsKey(weapon.name)
+          ? '${weapon.title} blueprint'
+          : weapon.title,
     ),
   const ChallengeDefinition(
     'burstRifle',

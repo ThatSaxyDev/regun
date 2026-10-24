@@ -20,6 +20,26 @@ class RunCheckpoint {
           (map['id'] as String).isEmpty) {
         return false;
       }
+      if (map.containsKey('weaponAccessVersion') &&
+          ![1, 2].contains(map['weaponAccessVersion'])) {
+        return false;
+      }
+      if (map.containsKey('offerPolicy') &&
+          (map['offerPolicy'] is! int ||
+              ![0, 1].contains(map['offerPolicy']))) {
+        return false;
+      }
+      if (map.containsKey('recentOffers')) {
+        final history = map['recentOffers'];
+        if (history is! List ||
+            history.length > 3 ||
+            history.toSet().length != history.length ||
+            history.any(
+              (id) => id is! String || !PowerUp.values.any((p) => p.name == id),
+            )) {
+          return false;
+        }
+      }
       final loadout = Loadout.fromJson(
         Map<String, dynamic>.from(map['loadout'] as Map),
       );

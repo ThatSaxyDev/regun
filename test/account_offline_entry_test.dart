@@ -68,6 +68,7 @@ void main() {
         ),
         secrets: _Secrets(),
       );
+      addTearDown(controller.dispose);
       await tester.pump();
       controller.session = session(owner);
       controller.account = {'username': 'rook_12'};

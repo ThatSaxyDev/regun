@@ -1167,6 +1167,7 @@ class RegunGame extends FlameGame
     return {
       'schema': 2,
       'recovery': recovery.toJson(),
+      'weaponAccessVersion': 2,
       'id': runId,
       'loadout': loadout.toJson(),
       ...gameNotifier.checkpoint(),

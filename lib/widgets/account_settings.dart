@@ -76,6 +76,8 @@ class _AccountSettingsState extends State<AccountSettings> {
             ),
           if (account.email.isNotEmpty) Text(account.email, style: style),
           if (account.verified) Text(account.saveLabel, style: style),
+          if (account.verified && account.issue.isNotEmpty)
+            Text(account.issue, style: style),
           if (!widget.manage)
             const Text(
               'Manage your account from the main menu Settings.',
@@ -93,21 +95,39 @@ class _AccountSettingsState extends State<AccountSettings> {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  ClickButton(
-                    text: account.ready ? 'Sync now' : 'Finish setup',
-                    width: 180,
-                    onTap: busy
-                        ? null
-                        : () => run(() async {
-                            if (!account.ready ||
-                                account.conflict ||
-                                !account.attached) {
-                              await showAccountFlow(context, account);
-                            } else {
-                              await account.sync();
-                            }
-                          }),
-                  ),
+                  if (account.needsSignIn ||
+                      !account.ready ||
+                      account.conflict ||
+                      !account.attached ||
+                      account.issue.isNotEmpty)
+                    ClickButton(
+                      text: account.needsSignIn
+                          ? 'Sign in again'
+                          : account.conflict
+                          ? 'Resolve progress'
+                          : account.ready
+                          ? 'Retry backup'
+                          : 'Finish setup',
+                      width: 180,
+                      onTap: busy
+                          ? null
+                          : () => run(() async {
+                              if (account.needsSignIn) {
+                                final verified = await showAccountFlow(
+                                  context,
+                                  account,
+                                  reverify: true,
+                                );
+                                if (verified == true) await account.sync();
+                              } else if (!account.ready ||
+                                  account.conflict ||
+                                  !account.attached) {
+                                await showAccountFlow(context, account);
+                              } else {
+                                await account.sync();
+                              }
+                            }),
+                    ),
                   ClickButton(
                     text: 'Change username',
                     width: 200,

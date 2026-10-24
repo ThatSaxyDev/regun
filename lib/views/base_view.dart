@@ -1,3 +1,4 @@
+import 'package:regun/services/economy/armory_repository.dart';
 import 'package:regun/widgets/solo_revive_panel.dart';
 import 'package:regun/systems/training_pressure.dart';
 import 'package:regun/widgets/training_weapon_browser.dart';
@@ -69,6 +70,7 @@ class BaseView extends StatefulWidget {
 }
 
 class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
+  bool _admissionDenied = false;
   late final RegunGame _myGame;
   final gameWidgetKey = GlobalKey<RiverpodAwareGameWidgetState>();
   bool _leaving = false;
@@ -87,6 +89,10 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
         widget.showTrainingIntro &&
         !LocalPreferences.shared.profile.tutorialComplete;
     _trainingIntro = _guidedTraining;
+    _admissionDenied =
+        !widget.loadout.training &&
+        !LocalPreferences.shared.profile.weaponUnlocked(widget.loadout.weapon);
+    if (_admissionDenied) return;
     _myGame = RegunGame(
       context,
       startPaused: _trainingIntro,
@@ -99,6 +105,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_admissionDenied) return;
     _myGame.applicationActive = state == AppLifecycleState.resumed;
     if (state != AppLifecycleState.resumed && _myGame.isMounted) {
       _myGame.pauseGame();
@@ -194,105 +201,126 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: false,
-    onPopInvokedWithResult: (didPop, _) {
-      if (!didPop) unawaited(_requestRunAction());
-    },
-    child: ProviderScope(
-      overrides: [gameNotifierProvider.overrideWith(GameNotifier.new)],
-      child: Scaffold(
-        body: DefaultTextStyle.merge(
-          style: const TextStyle(fontFamily: FontFam.orbitron),
-          child: Stack(
-            children: [
-              RiverpodAwareGameWidget(key: gameWidgetKey, game: _myGame),
-              Consumer(
-                builder: (context, ref, _) {
-                  final state = ref.watch(gameNotifierProvider);
-                  // Results use Positioned.fill after the HUD is removed.
-                  // Keep the overlay full-screen even when no save warning exists.
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      ValueListenableBuilder<int>(
-                        valueListenable: _myGame.revision,
-                        builder: (context, _, child) =>
-                            _myGame.saveIssue == null ||
-                                state.gameplayState == GameplayState.paused
-                            ? const SizedBox.shrink()
-                            : Positioned(
-                                top: 64,
+  Widget build(BuildContext context) => _admissionDenied
+      ? Scaffold(
+          backgroundColor: const Color(0xff141117),
+          body: Center(
+            child: GameNotice(
+              eyebrow: 'RE-GUN / ARMORY',
+              title: 'WEAPON LOCKED',
+              message: 'Unlock this weapon before starting a normal run. Try it freely in Training.',
+              actions: ClickButton(
+                text: 'Back',
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ),
+        )
+      : PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) unawaited(_requestRunAction());
+          },
+          child: ProviderScope(
+            overrides: [gameNotifierProvider.overrideWith(GameNotifier.new)],
+            child: Scaffold(
+              body: DefaultTextStyle.merge(
+                style: const TextStyle(fontFamily: FontFam.orbitron),
+                child: Stack(
+                  children: [
+                    RiverpodAwareGameWidget(key: gameWidgetKey, game: _myGame),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final state = ref.watch(gameNotifierProvider);
+                        // Results use Positioned.fill after the HUD is removed.
+                        // Keep the overlay full-screen even when no save warning exists.
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ValueListenableBuilder<int>(
+                              valueListenable: _myGame.revision,
+                              builder: (context, _, child) =>
+                                  _myGame.saveIssue == null ||
+                                      state.gameplayState ==
+                                          GameplayState.paused
+                                  ? const SizedBox.shrink()
+                                  : Positioned(
+                                      top: 64,
+                                      left: 24,
+                                      right: 24,
+                                      child: IgnorePointer(
+                                        child: GameNoticeStrip(
+                                          message: _myGame.saveIssue!,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                            if (!_trainingIntro &&
+                                state.gameplayState != GameplayState.gameOver &&
+                                state.gameplayState != GameplayState.paused)
+                              _hud(
+                                state,
+                                ref.read(gameNotifierProvider.notifier),
+                              ),
+                            if (!_trainingIntro &&
+                                state.gameplayState == GameplayState.playing)
+                              Positioned(
+                                top: 88,
                                 left: 24,
                                 right: 24,
-                                child: IgnorePointer(
-                                  child: GameNoticeStrip(
-                                    message: _myGame.saveIssue!,
+                                child: ValueListenableBuilder<BossKind?>(
+                                  valueListenable: _myGame.bossVictory.current,
+                                  builder: (context, kind, _) => kind == null
+                                      ? const SizedBox.shrink()
+                                      : BossVictoryBanner(kind: kind),
+                                ),
+                              ),
+                            if (state.gameplayState == GameplayState.powerup)
+                              _upgradePicker(state),
+                            if (!_trainingIntro &&
+                                state.gameplayState == GameplayState.paused)
+                              _pauseMenu(),
+                            if (state.gameplayState == GameplayState.gameOver)
+                              _results(state),
+                            ValueListenableBuilder<int>(
+                              valueListenable: _myGame.revision,
+                              builder: (context, _, child) =>
+                                  _myGame.recovery.pending
+                                  ? _recoveryPanel()
+                                  : const SizedBox.shrink(),
+                            ),
+                            if (_trainingIntro) ...[
+                              const ModalBarrier(
+                                dismissible: false,
+                                color: Color(0xD9100D14),
+                              ),
+                              SafeArea(
+                                minimum: const EdgeInsets.all(16),
+                                child: Center(
+                                  child: TrainingNotice(
+                                    ready:
+                                        state.gameplayState ==
+                                            GameplayState.paused &&
+                                        !_skippingTraining,
+                                    onStart: () {
+                                      setState(() => _trainingIntro = false);
+                                      _myGame.gameNotifier.playGame();
+                                    },
+                                    onSkip: _skipTrainingIntro,
                                   ),
                                 ),
                               ),
-                      ),
-                      if (!_trainingIntro &&
-                          state.gameplayState != GameplayState.gameOver &&
-                          state.gameplayState != GameplayState.paused)
-                        _hud(state, ref.read(gameNotifierProvider.notifier)),
-                      if (!_trainingIntro &&
-                          state.gameplayState == GameplayState.playing)
-                        Positioned(
-                          top: 88,
-                          left: 24,
-                          right: 24,
-                          child: ValueListenableBuilder<BossKind?>(
-                            valueListenable: _myGame.bossVictory.current,
-                            builder: (context, kind, _) => kind == null
-                                ? const SizedBox.shrink()
-                                : BossVictoryBanner(kind: kind),
-                          ),
-                        ),
-                      if (state.gameplayState == GameplayState.powerup)
-                        _upgradePicker(state),
-                      if (!_trainingIntro &&
-                          state.gameplayState == GameplayState.paused)
-                        _pauseMenu(),
-                      if (state.gameplayState == GameplayState.gameOver)
-                        _results(state),
-                      ValueListenableBuilder<int>(
-                        valueListenable: _myGame.revision,
-                        builder: (context, _, child) => _myGame.recovery.pending
-                            ? _recoveryPanel()
-                            : const SizedBox.shrink(),
-                      ),
-                      if (_trainingIntro) ...[
-                        const ModalBarrier(
-                          dismissible: false,
-                          color: Color(0xD9100D14),
-                        ),
-                        SafeArea(
-                          minimum: const EdgeInsets.all(16),
-                          child: Center(
-                            child: TrainingNotice(
-                              ready:
-                                  state.gameplayState == GameplayState.paused &&
-                                  !_skippingTraining,
-                              onStart: () {
-                                setState(() => _trainingIntro = false);
-                                _myGame.gameNotifier.playGame();
-                              },
-                              onSkip: _skipTrainingIntro,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  );
-                },
+                            ],
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    ),
-  );
+        );
 
   double get _hudScale => GameLayout.uiScale(MediaQuery.sizeOf(context));
 
@@ -1247,7 +1275,10 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     child: ValueListenableBuilder<int>(
       valueListenable: _myGame.revision,
       builder: (context, _, child) {
-        final goal = CareerProgress(_myGame.preferences.profile).next;
+        final goal = CareerProgress(
+          _myGame.preferences.profile,
+          armory: ArmoryRepository.shared.catalog,
+        ).next;
         return RunResultsPanel(
           state: state,
           earnedScrap: _myGame.earnedScrap,

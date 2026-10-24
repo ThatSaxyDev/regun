@@ -77,6 +77,7 @@ void main() {
       store: AccountLocalStore(directory: dir),
       preferences: prefs,
     );
+    addTearDown(account.dispose);
     await account.initialize();
     expect(requests, 0);
     await prefs.activateProfile(
@@ -101,6 +102,7 @@ void main() {
       store: AccountLocalStore(directory: dir),
       preferences: restored,
     );
+    addTearDown(second.dispose);
     final before = requests;
     await second.initialize();
     expect(requests, before);
@@ -118,6 +120,7 @@ void main() {
       store: AccountLocalStore(directory: dir),
       preferences: prefs,
     );
+    addTearDown(account.dispose);
     await account.initialize();
     account.session = session(owner);
     account.account = {
@@ -155,6 +158,7 @@ void main() {
       store: AccountLocalStore(directory: dir),
       preferences: prefs,
     );
+    addTearDown(account.dispose);
     await account.initialize();
     const other = '22222222-2222-4222-8222-222222222222';
     account.session = session(other);
@@ -188,6 +192,7 @@ void main() {
       store: AccountLocalStore(directory: dir),
       preferences: prefs,
     );
+    addTearDown(account.dispose);
     await account.initialize();
     account.session = session(owner);
     account.account = {'username': 'rook_12'};
@@ -221,6 +226,7 @@ void main() {
         ),
         secrets: _Secrets(),
       );
+      addTearDown(account.dispose);
       for (final layout in [
         (const Size(844, 390), 1.0),
         (const Size(568, 320), 1.5),
@@ -289,6 +295,7 @@ void main() {
       ),
       secrets: _Secrets(),
     );
+    addTearDown(account.dispose);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
@@ -338,6 +345,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       final account = AccountController(secrets: _Secrets());
+      addTearDown(account.dispose);
       account.session = session(owner);
       account.account = {
         'username': 'rook_12',
@@ -439,6 +447,7 @@ void main() {
       ),
       secrets: _Secrets(),
     );
+    addTearDown(account.dispose);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],

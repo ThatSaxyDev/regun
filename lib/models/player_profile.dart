@@ -1,8 +1,11 @@
+import 'package:regun/models/economy/armory_catalog.dart';
 import 'package:regun/data/loadout.dart';
 
 class PlayerProfile {
   PlayerProfile({
     this.scrap = 0,
+    Set<String>? ownedWeapons,
+    Set<String>? legacyWeaponClaims,
     this.earnedScrapTotal = 0,
     this.careerSeconds = 0,
     Map<String, Map<String, int>>? unlockMilestones,
@@ -29,7 +32,9 @@ class PlayerProfile {
     this.preferredWeapon = WeaponType.shotgun,
     this.preferredCharacter = CharacterType.rook,
     this.preferredArena = ArenaType.breach,
-  }) : unlockMilestones = unlockMilestones ?? {},
+  }) : ownedWeapons = ownedWeapons ?? {},
+       legacyWeaponClaims = legacyWeaponClaims ?? {},
+       unlockMilestones = unlockMilestones ?? {},
        survivorCounters = survivorCounters ?? {},
        challenges = challenges ?? {},
        discoveredEnemies = discoveredEnemies ?? {},
@@ -38,6 +43,7 @@ class PlayerProfile {
        cycleCharacters = cycleCharacters ?? {},
        settledRuns = settledRuns ?? {},
        owned = owned ?? {'standard'};
+  final Set<String> ownedWeapons, legacyWeaponClaims;
   final Map<String, int> survivorCounters;
   int earnedScrapTotal, careerSeconds;
   final Map<String, Map<String, int>> unlockMilestones;
@@ -58,7 +64,11 @@ class PlayerProfile {
   CharacterType preferredCharacter;
   ArenaType preferredArena;
   bool get tutorialComplete => challenges.contains('training');
-  bool weaponUnlocked(WeaponType weapon) => switch (weapon) {
+  bool weaponUnlocked(WeaponType weapon) =>
+      armoryWeapons.containsKey(weapon.name)
+      ? ownedWeapons.contains(weapon.name)
+      : legacyWeaponUnlocked(weapon);
+  bool legacyWeaponUnlocked(WeaponType weapon) => switch (weapon) {
     WeaponType.shotgun => true,
     WeaponType.carbine => challenges.contains('training'),
     WeaponType.revolver => challenges.contains('revolver'),
@@ -213,6 +223,9 @@ class PlayerProfile {
 
   Map<String, dynamic> toJson() => {
     'schema': 3,
+    'weaponAccessVersion': 2,
+    'ownedWeapons': ownedWeapons.toList(),
+    'legacyWeaponClaims': legacyWeaponClaims.toList(),
     'careerSeconds': careerSeconds,
     'unlockMilestones': unlockMilestones,
     'survivorCounters': survivorCounters,
@@ -246,7 +259,7 @@ class PlayerProfile {
         ((json[key] as num?)?.toInt() ?? 0).clamp(0, 1000000000);
     Set<String> strings(String key) =>
         (json[key] as List? ?? []).whereType<String>().toSet();
-    return PlayerProfile(
+    final profile = PlayerProfile(
       preferredWeapon:
           WeaponType.values
               .where((v) => v.name == json['preferredWeapon'])
@@ -285,6 +298,10 @@ class PlayerProfile {
       },
       totalKills: number('totalKills'),
       totalBossVictories: number('totalBossVictories'),
+      ownedWeapons: json['weaponAccessVersion'] == 2
+          ? strings('ownedWeapons').where(armoryWeapons.containsKey).toSet()
+          : <String>{},
+      legacyWeaponClaims: <String>{},
       scorpionKills: number('scorpionKills'),
       eliteKills: number('eliteKills'),
       bestSeconds: number('bestSeconds'),
@@ -305,6 +322,7 @@ class PlayerProfile {
           ? json['pinnedGoal'] as String
           : null,
     );
+    return profile;
   }
 }
 

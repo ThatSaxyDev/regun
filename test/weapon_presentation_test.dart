@@ -1,3 +1,6 @@
+import 'package:regun/services/local_preferences.dart';
+import 'package:regun/models/player_profile.dart';
+
 import 'dart:math' as math;
 
 import 'package:regun/presentation/weapon_art_spec.dart';
@@ -44,10 +47,21 @@ class _Audio extends SoloudPlay {
 }
 
 void main() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+
+    await LocalPreferences.shared.load();
+    // Combat presentation fixtures explicitly own their admitted loadouts.
+    LocalPreferences.shared.profile = PlayerProfile(
+      challenges: {'training', 'revolver', 'arcCaster', 'burstRifle'},
+      totalBossVictories: 100,
+      ownedWeapons: WeaponType.values.map((w) => w.name).toSet(),
+    );
+    await LocalPreferences.shared.saveProfile();
+  });
   testWidgets(
     'bullet impacts shove within occupancy, resist mass and cannot stack-lock',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
       late RegunGame game;
       await tester.runAsync(() async {
         await tester.pumpWidget(
@@ -158,7 +172,6 @@ void main() {
       for (final type in WeaponType.values.where(
         (w) => !w.usesArsenalRuntime,
       )) {
-        SharedPreferences.setMockInitialValues({});
         final audio = _Audio();
         late RegunGame game;
         await tester.runAsync(() async {
@@ -322,7 +335,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    SharedPreferences.setMockInitialValues({});
+
     final haptics = <Object?>[];
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       SystemChannels.platform,
@@ -421,7 +434,6 @@ void main() {
   testWidgets(
     'distance damage is frame independent and secondary shots stay unchanged',
     (tester) async {
-      SharedPreferences.setMockInitialValues({});
       for (final weapon in WeaponType.values) {
         await tester.runAsync(() async {
           await tester.pumpWidget(
@@ -572,7 +584,6 @@ void main() {
   testWidgets('held aim waits for full reloads and hostile dart pauses', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
     for (final weapon in WeaponType.values.where(
       (w) => w != WeaponType.carbine && !w.usesArsenalRuntime,
     )) {

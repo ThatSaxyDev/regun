@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "name": "fresh",
+      "eligible": [
+        "heavyLoad",
+        "dashCapacity",
+        "grenadeCapacity",
+        "fastReload",
+        "hotShot"
+      ],
+      "ranks": {},
+      "special": [
+        "hotShot"
+      ],
+      "luck": 0,
+      "recent": [],
+      "random": [
+        0.19,
+        0.78,
+        0.53
+      ],
+      "expected": [
+        "heavyLoad",
+        "hotShot",
+        "fastReload"
+      ]
+    },
+    {
+      "name": "build and repeat",
+      "eligible": [
+        "heavyLoad",
+        "dashCapacity",
+        "grenadeCapacity",
+        "fastReload",
+        "hotShot"
+      ],
+      "ranks": {
+        "heavyLoad": 2,
+        "dashCapacity": 1,
+        "fastReload": 1
+      },
+      "special": [
+        "hotShot"
+      ],
+      "luck": 2,
+      "recent": [
+        "heavyLoad",
+        "hotShot",
+        "grenadeCapacity"
+      ],
+      "random": [
+        0.78,
+        0.43,
+        0.91
+      ],
+      "expected": [
+        "fastReload",
+        "dashCapacity",
+        "hotShot"
+      ]
+    },
+    {
+      "name": "capacity does not force followup",
+      "eligible": [
+        "heavyLoad",
+        "dashCapacity",
+        "grenadeCapacity"
+      ],
+      "ranks": {
+        "dashCapacity": 1
+      },
+      "special": [],
+      "luck": 0,
+      "recent": [],
+      "random": [
+        0.1,
+        0.7,
+        0.3
+      ],
+      "expected": [
+        "heavyLoad",
+        "grenadeCapacity",
+        "dashCapacity"
+      ]
+    },
+    {
+      "name": "limited pool remains available",
+      "eligible": [
+        "dashCapacity",
+        "salvage"
+      ],
+      "ranks": {
+        "dashCapacity": 1
+      },
+      "special": [],
+      "luck": 0,
+      "recent": [
+        "dashCapacity",
+        "salvage"
+      ],
+      "random": [
+        0.99,
+        0.01,
+        0.5
+      ],
+      "expected": [
+        "salvage",
+        "dashCapacity"
+      ]
+    }
+  ]
+}

@@ -157,6 +157,7 @@ void main() {
             .map((w) => w == WeaponType.carbine ? 'training' : w.name)
             .toSet(),
         totalBossVictories: 100,
+        ownedWeapons: WeaponType.values.map((w) => w.name).toSet(),
       );
       await tester.pumpAndSettle();
       expect(

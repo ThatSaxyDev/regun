@@ -1,3 +1,8 @@
+import 'package:regun/widgets/wallet_bar.dart' show walletAmount;
+import 'package:regun/models/economy/armory_catalog.dart';
+import 'package:regun/services/economy/armory_repository.dart';
+import 'package:regun/services/account/account_controller.dart';
+import 'package:regun/widgets/confirm_run_action.dart';
 import 'package:regun/widgets/training_weapon_browser.dart';
 import 'package:regun/navigation/game_page_route.dart';
 
@@ -37,13 +42,29 @@ class _LoadoutViewState extends State<LoadoutView> {
   ArenaType arena = ArenaType.breach;
   _Catalog _catalog = _Catalog.survivor;
   final _selectedOption = GlobalKey();
-  bool _starting = false, _tryingLockedWeapons = false;
+  bool _starting = false, _tryingLockedWeapons = false, _unlocking = false;
+  String? _unlockIssue;
+  final _armory = ArmoryRepository.shared;
+  void _armoryChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _armory.removeListener(_armoryChanged);
+    LocalPreferences.shared.removeListener(_armoryChanged);
+    super.dispose();
+  }
+
   PlayerProfile get profile => LocalPreferences.shared.profile;
 
   @override
   void initState() {
     super.initState();
+    _armory.addListener(_armoryChanged);
+    LocalPreferences.shared.addListener(_armoryChanged);
     if (!widget.training) {
+      unawaited(_armory.refresh());
       if (profile.weaponUnlocked(profile.preferredWeapon)) {
         weapon = profile.preferredWeapon;
       }
@@ -233,15 +254,18 @@ class _LoadoutViewState extends State<LoadoutView> {
                   '${w.description}${WeaponMobility.label(w).isEmpty ? '' : '\n${WeaponMobility.label(w)}'}',
               selected: weapon == w,
               unlocked: widget.training || profile.weaponUnlocked(w),
-              lock: switch (w) {
-                WeaponType.burstRifle =>
-                  'Boss victories ${profile.totalBossVictories} / 3',
-                WeaponType.carbine => 'Complete training',
-                WeaponType.revolver => 'Defeat Shadow',
-                WeaponType.arcCaster => 'Defeat Demon',
-                _ =>
-                  'Boss victories ${profile.totalBossVictories} / ${w.victoryRequirement}',
-              },
+              previewLocked: armoryWeapons.containsKey(w.name),
+              lock: armoryWeapons.containsKey(w.name)
+                  ? '${profile.totalBossVictories.clamp(0, w.victoryRequirement)} / ${w.victoryRequirement} bosses / ${walletAmount(_armory.catalog.prices[w.name]!)} Scrap'
+                  : switch (w) {
+                      WeaponType.burstRifle =>
+                        'Boss victories ${profile.totalBossVictories} / 3',
+                      WeaponType.carbine => 'Complete training',
+                      WeaponType.revolver => 'Defeat Shadow',
+                      WeaponType.arcCaster => 'Defeat Demon',
+                      _ =>
+                        'Boss victories ${profile.totalBossVictories} / ${w.victoryRequirement}',
+                    },
               art: WeaponThumbnail(w, key: ValueKey('loadout-art-${w.name}')),
               onTap: () => setState(() => weapon = w),
             ),
@@ -260,6 +284,7 @@ class _LoadoutViewState extends State<LoadoutView> {
     required String lock,
     required Widget art,
     required VoidCallback onTap,
+    bool previewLocked = false,
   }) {
     final option = Padding(
       key: ValueKey('loadout-$id'),
@@ -267,9 +292,9 @@ class _LoadoutViewState extends State<LoadoutView> {
       child: Semantics(
         button: true,
         selected: selected,
-        enabled: unlocked,
+        enabled: unlocked || previewLocked,
         child: _SoundTap(
-          onTap: unlocked ? onTap : null,
+          onTap: unlocked || previewLocked ? onTap : null,
           child: CustomPaint(
             painter: _SlotPlate(selected: selected),
             child: Padding(
@@ -331,6 +356,109 @@ class _LoadoutViewState extends State<LoadoutView> {
         : option;
   }
 
+  Future<void> _unlockWeapon() async {
+    final account = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(accountProvider);
+    if (!account.verified || !account.attached || account.needsSignIn) {
+      Navigator.pop(
+        context,
+        'sign-in',
+      ); // Menu releases the loadout owner lease first.
+      return;
+    }
+    if (profile.totalBossVictories < weapon.victoryRequirement) {
+      setState(
+        () => _unlockIssue =
+            'Earn ${weapon.victoryRequirement} boss victories first.',
+      );
+      return;
+    }
+    setState(() {
+      _unlocking = true;
+      _unlockIssue = null;
+    });
+    final selected = weapon.name, owner = LocalPreferences.shared.profileOwner;
+    try {
+      if (account.pendingPurchaseItem != null) {
+        await account.sync();
+        if (!mounted) return;
+        if (account.pendingPurchaseItem != null) {
+          final cancel = await confirmRunAction(
+            context,
+            eyebrow: 'RE-GUN / ARMORY',
+            title: 'UNLOCK NOT CONFIRMED',
+            message: account.issue.isEmpty
+                ? 'Keep this request to check again later, or cancel it safely before choosing another unlock.'
+                : account.issue,
+            action: 'Cancel request',
+            cancel: 'Keep request',
+          );
+          if (cancel) await account.cancelPendingPurchase();
+          if (mounted) setState(() => _unlockIssue = account.issue);
+        }
+        return;
+      }
+      final displayed = _armory.catalog;
+      await _armory.refresh();
+      if (!mounted || owner != LocalPreferences.shared.profileOwner) return;
+      final catalog = _armory.catalog, price = catalog.prices[selected]!;
+      if (!_armory.live ||
+          !catalog.enabled ||
+          !catalog.available.contains(selected)) {
+        setState(
+          () => _unlockIssue =
+              _armory.issue ?? 'This weapon is not available to unlock yet.',
+        );
+        return;
+      }
+      if (displayed.version != catalog.version ||
+          displayed.prices[selected] != price) {
+        setState(
+          () => _unlockIssue =
+              'Armory updated. Review the price and choose again.',
+        );
+        return;
+      }
+      if (profile.scrap < price) {
+        setState(
+          () => _unlockIssue = '${price - profile.scrap} more Scrap needed.',
+        );
+        return;
+      }
+      final accepted = await confirmRunAction(
+        context,
+        eyebrow: 'RE-GUN / ARMORY',
+        title: 'UNLOCK ${armoryWeapons[selected]!.title.toUpperCase()}?',
+        message:
+            'Permanent weapon unlock for $price Scrap. ${profile.scrap - price} Scrap remaining.',
+        action: 'Unlock / ${walletAmount(price)}',
+      );
+      if (!accepted ||
+          !mounted ||
+          owner != LocalPreferences.shared.profileOwner) {
+        return;
+      }
+      final result = await account.purchaseWeapon(
+        selected,
+        displayedPrice: price,
+        displayedCatalog: catalog.version,
+      );
+      if (mounted) {
+        setState(
+          () => _unlockIssue = result == CosmeticPurchase.saved
+              ? 'Weapon unlocked.'
+              : account.issue.isEmpty
+              ? 'Connect to confirm this unlock.'
+              : account.issue,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _unlocking = false);
+    }
+  }
+
   Widget _footer() => Container(
     padding: const EdgeInsets.only(top: 8),
     decoration: const BoxDecoration(
@@ -339,55 +467,88 @@ class _LoadoutViewState extends State<LoadoutView> {
     child: Row(
       children: [
         Expanded(
-          child: Text(
-            '${character.title} / ${weapon.title} / ${arena.title}${WeaponMobility.label(weapon).isEmpty ? '' : ' / ${WeaponMobility.label(weapon)}'}',
-            key: const Key('loadout-summary'),
-            style: const TextStyle(
-              fontFamily: FontFam.orbitron,
-              fontSize: 11,
-              height: 1.5,
-              color: Color(0xffc7b9a6),
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${character.title} / ${weapon.title} / ${arena.title}${WeaponMobility.label(weapon).isEmpty ? '' : ' / ${WeaponMobility.label(weapon)}'}',
+                key: const Key('loadout-summary'),
+                style: const TextStyle(
+                  fontFamily: FontFam.orbitron,
+                  fontSize: 11,
+                  height: 1.5,
+                  color: Color(0xffc7b9a6),
+                ),
+              ),
+              if (_unlockIssue != null)
+                Text(
+                  _unlockIssue!,
+                  maxLines: 2,
+                  style: const TextStyle(
+                    fontFamily: FontFam.orbitron,
+                    fontSize: 9,
+                    color: Color(0xffE1BA78),
+                  ),
+                ),
+            ],
           ),
         ),
         const SizedBox(width: 12),
-        ClickButton(
-          text: _starting ? 'Loading' : 'Start',
-          width: 120,
-          height: 48,
-          onTap: _starting
-              ? null
-              : () async {
-                  setState(() => _starting = true);
-                  if (!widget.training) {
-                    profile.preferredWeapon = weapon;
-                    profile.preferredCharacter = character;
-                    profile.preferredArena = arena;
-                    await LocalPreferences.shared.saveProfile();
-                    await RunStore.shared.clear();
-                  }
-                  if (!mounted) return;
-                  final completion = Completer<void>();
-                  try {
-                    await Navigator.of(context)
-                        .pushReplacement<void, Future<void>>(
-                          GamePageRoute<void>(
-                            builder: (_) => BaseView(
-                              loadout: Loadout(
-                                weapon: weapon,
-                                character: character,
-                                arena: arena,
-                                training: widget.training,
+        if (!widget.training &&
+            !profile.weaponUnlocked(weapon) &&
+            armoryWeapons.containsKey(weapon.name))
+          ClickButton(
+            key: const Key('loadout-unlock-weapon'),
+            text: _unlocking
+                ? 'Checking'
+                : 'Unlock / ${walletAmount(_armory.catalog.prices[weapon.name]!)}',
+            width: 200,
+            height: 48,
+            fontSize: 8,
+            onTap: _unlocking ? null : _unlockWeapon,
+          )
+        else
+          ClickButton(
+            text: _starting ? 'Loading' : 'Start',
+            width: 120,
+            height: 48,
+            onTap: _starting
+                ? null
+                : () async {
+                    if (!widget.training && !profile.weaponUnlocked(weapon)) {
+                      return;
+                    }
+                    setState(() => _starting = true);
+                    if (!widget.training) {
+                      profile.preferredWeapon = weapon;
+                      profile.preferredCharacter = character;
+                      profile.preferredArena = arena;
+                      await LocalPreferences.shared.saveProfile();
+                      await RunStore.shared.clear();
+                    }
+                    if (!mounted) return;
+                    final completion = Completer<void>();
+                    try {
+                      await Navigator.of(context)
+                          .pushReplacement<void, Future<void>>(
+                            GamePageRoute<void>(
+                              builder: (_) => BaseView(
+                                loadout: Loadout(
+                                  weapon: weapon,
+                                  character: character,
+                                  arena: arena,
+                                  training: widget.training,
+                                ),
                               ),
                             ),
-                          ),
-                          result: completion.future,
-                        );
-                  } finally {
-                    completion.complete();
-                  }
-                },
-        ),
+                            result: completion.future,
+                          );
+                    } finally {
+                      completion.complete();
+                    }
+                  },
+          ),
       ],
     ),
   );
