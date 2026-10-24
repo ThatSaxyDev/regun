@@ -53,10 +53,10 @@ enum WeaponType {
   ),
   railLance(
     'Rail Lance',
-    'Charge a piercing stake.',
+    'Pierce crowds. Full charge deals 25% more damage.',
     3,
     1.1,
-    9,
+    11.25,
     1000,
     1600,
     2600,

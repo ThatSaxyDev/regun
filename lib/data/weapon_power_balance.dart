@@ -1,24 +1,30 @@
 import 'package:regun/models/live_balance.dart';
 import 'package:regun/data/loadout.dart';
+import 'package:regun/systems/rail_lance_timing.dart';
+import 'package:regun/systems/weapon_reaction.dart';
 
 /// A run keeps its numerical revision. Saved payload damage is never multiplied
-/// during Continue; revision 1 retains the former values and field geometry.
+/// during Continue; revisions 1/2 retain their former values and field geometry.
 class WeaponPowerBalance {
   const WeaponPowerBalance._(this.revision, [this.snapshot]);
   final LiveBalance? snapshot;
   factory WeaponPowerBalance.live(LiveBalance snapshot) =>
-      WeaponPowerBalance._(2, snapshot);
+      WeaponPowerBalance._(3, snapshot);
   static const legacy = WeaponPowerBalance._(1);
-  static const current = WeaponPowerBalance._(2);
+  static const current = WeaponPowerBalance._(3);
   final int revision;
   static WeaponPowerBalance read(dynamic value, [dynamic rawSnapshot]) =>
       rawSnapshot != null
-      ? (value == 2
-            ? WeaponPowerBalance.live(LiveBalance.fromJson(rawSnapshot))
+      ? (value == 2 || value == 3
+            ? WeaponPowerBalance._(
+                value == 2 ? 2 : 3,
+                LiveBalance.fromJson(rawSnapshot),
+              )
             : throw const FormatException('Invalid live balance'))
       : switch (value) {
           null || 1 => legacy,
-          2 => current,
+          2 => const WeaponPowerBalance._(2),
+          3 => current,
           _ => throw const FormatException('Invalid weapon power balance'),
         };
   Map<String, num> get upgradeStrengths => Map.unmodifiable({
@@ -29,9 +35,18 @@ class WeaponPowerBalance {
     for (final e in snapshot?.values.entries ?? <MapEntry<String, num>>[])
       if (e.key.startsWith('ranks.')) e.key: e.value,
   });
-  bool get upgraded => revision == 2;
+  bool get upgraded => revision >= 2;
+  double get railChargeMultiplier =>
+      revision >= 3 ? RailLanceTiming.fullChargeMultiplier : 1;
+  double get railBulletRadius => revision >= 3 ? 7 : 5;
+  WeaponReaction get railReaction => revision >= 3
+      ? const WeaponReaction(90, .24, stagger: .23)
+      : WeaponReaction.of(WeaponType.railLance);
   double damage(WeaponType weapon) => upgraded
-      ? n('weapons.${weapon.name}.damage', weapon.damage)
+      ? n(
+          'weapons.${weapon.name}.damage',
+          weapon == WeaponType.railLance && revision == 2 ? 9 : weapon.damage,
+        )
       : switch (weapon) {
           WeaponType.shotgun => 1.2,
           WeaponType.carbine => 0.762,

@@ -13,6 +13,7 @@ class RankEffects {
     String weapon = 'shotgun',
     String survivor = 'rook',
     Set<String> fusions = const {},
+    double railChargeMultiplier = RailLanceTiming.fullChargeMultiplier,
   }) {
     final strength = (v['powerups.$id.strength'] ?? 1).toDouble();
     double total(double early, double late) =>
@@ -26,7 +27,15 @@ class RankEffects {
         reload = base('reloadMs', 3200);
     switch (id) {
       case 'heavyLoad':
-        return {'Damage multiplier': 1 + total(.35, .1)};
+        final multiplier = 1 + total(.35, .1);
+        return {
+          'Damage multiplier': multiplier,
+          if (weapon == 'railLance') ...{
+            'Quick shot damage': base('damage', 11.25) * multiplier,
+            'Full charge damage':
+                base('damage', 11.25) * multiplier * railChargeMultiplier,
+          },
+        };
       case 'quickTrigger':
         var interval = cadence * m.pow(.85, e);
         if (weapon == 'railLance') {

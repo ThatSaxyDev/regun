@@ -112,6 +112,7 @@ class ArsenalSystem {
   final flame = FlameFlow();
   final sniperSway = SniperSway();
   double cooldown = 0, charge = 0, spool = 0, clock = 0;
+  double _railReleaseCooldown = 0;
   double sustainedFire = 0;
   final muzzleJitter = Vector2.zero();
   double get beltCadence =>
@@ -196,6 +197,7 @@ class ArsenalSystem {
   }
 
   void cancelAim() {
+    if (weapon == WeaponType.railLance) charge = 0;
     aiming = false;
     _lastAim.setZero();
     sniperSway.release();
@@ -204,24 +206,40 @@ class ArsenalSystem {
   bool releaseAim(Vector2 released) {
     final releaseDirection = aimedDirection(released);
     cancelAim();
-    if (!weapon.firesOnRelease ||
+    final rail = weapon == WeaponType.railLance;
+    if ((!weapon.firesOnRelease && !rail) ||
         !ready ||
         cooldown > 1e-8 ||
+        (rail && _railReleaseCooldown > 1e-8) ||
         released.isZero()) {
       return false;
     }
-    final fired = weapon == WeaponType.longwatchSniper
+    final fired = rail || weapon == WeaponType.longwatchSniper
         ? _rounds(directionOverride: releaseDirection)
         : weapon == WeaponType.faultlineDriver
         ? endgame.fireLane(releaseDirection)
         : _launch(released: released);
     if (fired) {
-      cooldown = math.max(
-        weapon == WeaponType.longwatchSniper ? .65 : .4,
-        balance.cadence(weapon) * _trigger,
-      );
+      if (rail) {
+        _railFired();
+      } else {
+        cooldown = math.max(
+          weapon == WeaponType.longwatchSniper ? .65 : .4,
+          balance.cadence(weapon) * _trigger,
+        );
+      }
     }
     return fired;
+  }
+
+  void _railFired() {
+    charge = 0;
+    cooldown = RailLanceTiming.recovery(balance.cadence(weapon), _trigger);
+    // A release skips aiming time, never the interval between two shots.
+    _railReleaseCooldown = RailLanceTiming.cycle(
+      balance.cadence(weapon),
+      _trigger,
+    );
   }
 
   Vector2 get rawAim => weapon.firesOnRelease
@@ -336,6 +354,7 @@ class ArsenalSystem {
   void _step(double dt) {
     clock += dt;
     cooldown = math.max(0, cooldown - dt);
+    _railReleaseCooldown = math.max(0, _railReleaseCooldown - dt);
     _beamAge += dt;
     _idle += dt;
     if (state.reloading && !_wasReloading) {
@@ -401,9 +420,9 @@ class ArsenalSystem {
     if (weapon == WeaponType.railLance) {
       if (cooldown > 0) return;
       charge = math.min(RailLanceTiming.chargeSeconds, charge + dt);
-      if (charge >= RailLanceTiming.chargeSeconds - 1e-8 && _rounds()) {
-        charge = 0;
-        cooldown = RailLanceTiming.recovery(balance.cadence(weapon), _trigger);
+      if (charge >= RailLanceTiming.chargeSeconds - 1e-8 &&
+          _rounds(fullyCharged: true)) {
+        _railFired();
       }
     } else if (weapon == WeaponType.beltRepeater) {
       if (spool == 0) audio.play('spin_beltRepeater.wav');
@@ -438,7 +457,7 @@ class ArsenalSystem {
     }
   }
 
-  bool _rounds({Vector2? directionOverride}) {
+  bool _rounds({Vector2? directionOverride, bool fullyCharged = false}) {
     final direction = directionOverride ?? aim;
     if (!ready ||
         direction.isZero() ||
@@ -463,7 +482,11 @@ class ArsenalSystem {
         Vector2(-direction.y, direction.x) * muzzleJitter.y;
     final origin = muzzle(direction) + offset;
     if (game.segmentBlocked(game.myPlayer.position, origin)) return false;
-    final amount = _releaseDamage();
+    final amount =
+        _releaseDamage() *
+        (weapon == WeaponType.railLance && fullyCharged
+            ? balance.railChargeMultiplier
+            : 1);
     if (weapon == WeaponType.twinVerdict) {
       endgame.beginShot(nextAttack, pelletCount);
     }
@@ -489,6 +512,12 @@ class ArsenalSystem {
           direction: d,
           initialDelay: _frameOffset,
           weapon: weapon,
+          bulletRadius: weapon == WeaponType.railLance
+              ? balance.railBulletRadius
+              : 5,
+          reaction: weapon == WeaponType.railLance
+              ? balance.railReaction
+              : null,
           shotSequence: nextAttack,
           releaseId: _releaseContexts[nextAttack]?.$1 ?? 0,
           releaseBonus: _releaseContexts[nextAttack]?.$2 ?? 0,
@@ -1087,6 +1116,8 @@ class ArsenalSystem {
     'powerBalance': balance.revision,
     'weapon': weapon.name,
     'cooldown': cooldown,
+    if (weapon == WeaponType.railLance)
+      'railReleaseCooldown': _railReleaseCooldown,
     'clock': clock,
     'idle': _idle,
     'cooling': _cooling,
@@ -1179,6 +1210,9 @@ class ArsenalSystem {
             ? savedBalance.sporeTick
             : 1e9,
       );
+    }
+    if (map.containsKey('railReleaseCooldown')) {
+      n(map['railReleaseCooldown'], 10);
     }
     if (map['nextAttack'] is! int ||
         map['nextAttack'] < 1 ||
@@ -1281,6 +1315,10 @@ class ArsenalSystem {
     Vector2 point(dynamic raw) =>
         Vector2((raw[0] as num).toDouble(), (raw[1] as num).toDouble());
     cooldown = n('cooldown');
+    _railReleaseCooldown = weapon == WeaponType.railLance
+        ? (map['railReleaseCooldown'] as num?)?.toDouble() ??
+              (cooldown > 0 ? cooldown + RailLanceTiming.chargeSeconds : 0)
+        : 0;
     clock = n('clock');
     _idle = n('idle');
     _cooling = n('cooling');

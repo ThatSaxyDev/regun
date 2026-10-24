@@ -96,6 +96,39 @@ void main() {
     },
   );
   test(
+    'Rail mechanics and live damage remain pinned in old and new snapshots',
+    () {
+      final oldRaw = jsonDecode(
+        File('test/fixtures/balance-legacy-v1.json').readAsStringSync(),
+      );
+      final old = WeaponPowerBalance.read(2, oldRaw);
+      expect(old.damage(WeaponType.railLance), 9);
+      expect(old.railChargeMultiplier, 1);
+      expect(old.railBulletRadius, 5);
+      expect(old.railReaction.stagger, .13);
+      final fresh = WeaponPowerBalance.live(LiveBalance.bundled);
+      expect(fresh.damage(WeaponType.railLance), 11.25);
+      expect(fresh.railChargeMultiplier, 1.25);
+      expect(fresh.railBulletRadius, 7);
+      expect(fresh.railReaction.stagger, .23);
+      final restored = WeaponPowerBalance.read(3, fresh.snapshot!.toJson());
+      expect(restored.damage(WeaponType.railLance), 11.25);
+      expect(restored.railChargeMultiplier, 1.25);
+      // Operators may still adjust base damage; charge multiplies it once.
+      final custom = WeaponPowerBalance.live(
+        LiveBalance.create(2, {
+          ...LiveBalance.bundled.values,
+          'weapons.railLance.damage': 12,
+        }),
+      );
+      expect(
+        custom.damage(WeaponType.railLance) * custom.railChargeMultiplier,
+        15,
+      );
+    },
+  );
+
+  test(
     'legacy snapshots keep their original hash and default power-up strength',
     () {
       final raw = jsonDecode(

@@ -1,5 +1,5 @@
 {
-  "catalogId": "e4e59b5c82ec0e5fa4896346506e081450f24365c781f27d03e07fefc2a7463f",
+  "catalogId": "c600f6745ea6fe3f960c89d37911b9520b3f5ddd8ff37703d2a7b48628a7f0eb",
   "note": "Per-family component audit across all21 weapons and10 survivors at default/minimum/maximum strength and curves. Includes unsupported contexts, not a DPS simulation or offer count. Zero transitions are expected at caps; offer tests verify supported exclusions.",
   "families": [
     {

@@ -42,8 +42,12 @@ class WeaponFeel {
           : type == WeaponType.frostShotgun
           ? 24
           : 16,
-      thickness: type == WeaponType.frostShotgun ? 15 : 6,
-      trailWidth: 4,
+      thickness: type == WeaponType.frostShotgun
+          ? 15
+          : type == WeaponType.railLance
+          ? 10
+          : 6,
+      trailWidth: type == WeaponType.railLance ? 6 : 4,
     ),
     WeaponType.arcCaster => (length: 13, thickness: 6, trailWidth: 3),
     _ => (length: 16, thickness: 6, trailWidth: 4),

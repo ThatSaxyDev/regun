@@ -1576,3 +1576,22 @@ unchanged. Charge sight and API/admin component previews agree; charge remains
 non-editable in admin, with no new configuration mechanism. See
 [WEAPON_DEVICE_REVIEW.md](WEAPON_DEVICE_REVIEW.md). Source validation passed;
 physical feel/deployment remain pending.
+
+## Rail Lance quick release — 24 October 2026
+
+Aim-stick release now fires early while held aiming retains automatic0.65s
+discharge. Normal damage/ammo and the existing firing cycle remain; a persisted
+release cooldown prevents flick spam/double discharge and freezes during pause.
+Actual pointer release/cancel, early fire, repeated fire, reload and save recovery
+are covered by weapon tests. No API/admin configuration change is needed for this
+native input behavior. Source only; device feel remains for review.
+
+## Rail Lance power and lane control — 24 October 2026
+
+Implemented all four approved buffs:25% more base damage, another25% at full
+charge,14-unit collision diameter with matching thicker art, and stronger bounded
+ordinary-enemy shove/stagger. Revision3 pins the new mechanics; revision1/2 saves
+retain their previous balance. The shared catalogue now defaults to11.25 damage;
+mobile/API/admin Heavy Load previews distinguish quick and charged shots. No new
+admin controls or hosted weapons were added. See WEAPON_DEVICE_REVIEW.md for
+rollout and physical review. Catalogue generation is not production publication.

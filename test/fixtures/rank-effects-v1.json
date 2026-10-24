@@ -1,5 +1,5 @@
 {
-  "catalogId": "e4e59b5c82ec0e5fa4896346506e081450f24365c781f27d03e07fefc2a7463f",
+  "catalogId": "c600f6745ea6fe3f960c89d37911b9520b3f5ddd8ff37703d2a7b48628a7f0eb",
   "values": {
     "weapons.shotgun.damage": 1.7,
     "weapons.shotgun.capacity": 5,
@@ -31,7 +31,7 @@
     "weapons.burstRifle.reloadMs": 2000,
     "weapons.burstRifle.range": 700,
     "weapons.burstRifle.speed": 1100,
-    "weapons.railLance.damage": 9,
+    "weapons.railLance.damage": 11.25,
     "weapons.railLance.capacity": 3,
     "weapons.railLance.cadence": 1.1,
     "weapons.railLance.reloadMs": 2600,

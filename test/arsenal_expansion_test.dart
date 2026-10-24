@@ -436,7 +436,7 @@ void main() {
         invalid['weaponPowerBalance'] = 3;
         expect(RunCheckpoint.valid(invalid), false);
         game.gameNotifier.resetRun(loadout: game.loadout);
-        expect(game.gameNotifier.weaponPower.revision, 2);
+        expect(game.gameNotifier.weaponPower.revision, 3);
       });
       await tester.pumpWidget(const SizedBox.shrink());
     },
@@ -837,6 +837,44 @@ void main() {
       game.update(.02);
       expect(game.shotsFired, 1);
       expect(game.gameState.noOfBullets, 4);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'primary stick quick fires Rail Lance and cancelled touches spend nothing',
+    (tester) async {
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final game = await mount(tester, WeaponType.railLance, _Audio());
+      game.update(1 / 60);
+      await tester.pump();
+      final factor = game.canvasSize.y / game.camera.viewport.virtualSize.y;
+      final inset =
+          (game.canvasSize - game.camera.viewport.virtualSize * factor) / 2;
+      final at = (game.weaponJoystick.position * factor + inset).toOffset();
+      final aim = await tester.startGesture(at, pointer: 81);
+      await aim.moveBy(const Offset(32, 0));
+      await aim.moveBy(const Offset(10, 0));
+      game.update(.02);
+      expect(game.shotsFired, 0);
+      await aim.up();
+      game.update(.02);
+      expect(game.shotsFired, 1);
+      await tester.runAsync(() async {
+        await advance(game, 1.2, held: false);
+      });
+      final cancelled = await tester.startGesture(at, pointer: 82);
+      await cancelled.moveBy(const Offset(32, 0));
+      await cancelled.moveBy(const Offset(10, 0));
+      game.update(.02);
+      await cancelled.cancel();
+      game.update(.02);
+      expect(game.shotsFired, 1);
+      expect(game.gameState.noOfBullets, 2);
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpWidget(const SizedBox.shrink());
     },
@@ -1610,7 +1648,13 @@ void main() {
           expect(
             targets
                 .expand((t) => t.reactions)
-                .any((r) => r.distance == WeaponReaction.of(weapon).distance),
+                .any(
+                  (r) =>
+                      r.distance ==
+                      (weapon == WeaponType.railLance
+                          ? game.arsenal!.balance.railReaction.distance
+                          : WeaponReaction.of(weapon).distance),
+                ),
             isTrue,
             reason:
                 '${weapon.name} must deliver its primary force through real firing',
@@ -1729,6 +1773,134 @@ void main() {
         expect(game.shotsFired, 1);
         await advance(game, .21);
         expect(game.shotsFired, 2);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'Rail Lance full charge widens the lane, rewards aiming and staggers survivors',
+    (tester) async {
+      final game = await mount(tester, WeaponType.railLance, _Audio());
+      await tester.runAsync(() async {
+        final arsenal = game.arsenal!;
+        final origin = arsenal.muzzle(Vector2(1, 0));
+        final first = _PullTarget(origin + Vector2(160, 0));
+        final edge = _PullTarget(origin + Vector2(300, 0));
+        final outside = _PullTarget(origin + Vector2(440, 0));
+        final planted = _PlantedTarget(origin + Vector2(580, 0));
+        await game.world.addAll([first, edge, outside, planted]);
+        await game.ready();
+        edge.position.y += game.enemyRadius(edge) + 6;
+        outside.position.y += game.enemyRadius(outside) + 9;
+        await advance(game, .66);
+        expect(game.shotsFired, 1);
+        final bullet = game.world.children.whereType<BulletComponent>().single;
+        expect(bullet.damage, closeTo(14.0625, 1e-8));
+        expect(bullet.bulletRadius, 7);
+        expect(bullet.reaction!.stagger, .23);
+        await advance(game, .45, held: false);
+        expect(1000 - first.combatHealth.current, closeTo(14.0625, .001));
+        expect(1000 - edge.combatHealth.current, closeTo(14.0625 * .65, .001));
+        expect(outside.combatHealth.current, 1000);
+        expect(planted.combatHealth.current, lessThan(1000));
+        expect(first.impactHeld, true);
+        expect(edge.reactions.single.stagger, .23);
+        expect(planted.impactHeld, false);
+        expect(planted.position.distanceTo(origin + Vector2(580, 0)), 0);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'Rail Lance quick release and older snapshots retain distinct shot power',
+    (tester) async {
+      for (final revision in [2, 3]) {
+        final game = await mount(tester, WeaponType.railLance, _Audio());
+        await tester.runAsync(() async {
+          game.gameNotifier.weaponPower = WeaponPowerBalance.read(revision);
+          final arsenal = game.arsenal!;
+          expect(arsenal.releaseAim(Vector2(1, 0)), true);
+          await game.ready();
+          final quick = game.world.children.whereType<BulletComponent>().single;
+          expect(quick.damage, revision == 3 ? 11.25 : 9);
+          expect(quick.bulletRadius, revision == 3 ? 7 : 5);
+          expect(quick.reaction!.stagger, revision == 3 ? .23 : .13);
+          await advance(game, 1.11, held: false);
+          await advance(game, .66);
+          final charged = game.world.children
+              .whereType<BulletComponent>()
+              .single;
+          expect(charged.damage, revision == 3 ? 14.0625 : 9);
+          final saved = game.checkpoint();
+          expect(RunCheckpoint.valid(saved), true);
+          game.gameNotifier.restoreCheckpoint(saved);
+          arsenal.restore(Map<String, dynamic>.from(saved['arsenal']));
+          expect(arsenal.balance.revision, revision);
+          expect(
+            arsenal.balance.railChargeMultiplier,
+            revision == 3 ? 1.25 : 1,
+          );
+        });
+        await tester.pumpWidget(const SizedBox.shrink());
+      }
+    },
+  );
+
+  testWidgets(
+    'Rail Lance quick release fires once and preserves its firing interval',
+    (tester) async {
+      final game = await mount(tester, WeaponType.railLance, _Audio());
+      await tester.runAsync(() async {
+        final rail = game.arsenal!;
+        await advance(game, .12);
+        expect(game.shotsFired, 0);
+        expect(rail.releaseAim(Vector2(1, 0)), true);
+        game.weaponJoystick.delta.setZero();
+        expect(game.shotsFired, 1);
+        expect(game.gameState.noOfBullets, 2);
+        expect(rail.charge, 0);
+        expect(rail.releaseAim(Vector2(1, 0)), false);
+        // Recovery alone must not allow flicks to bypass the full cycle.
+        await advance(game, .5, held: false);
+        expect(rail.releaseAim(Vector2(1, 0)), false);
+        final saved = rail.checkpoint();
+        rail.restore(saved);
+        expect(rail.releaseAim(Vector2(1, 0)), false);
+        game.pauseGame();
+        await advance(game, 2, held: false);
+        expect(rail.releaseAim(Vector2(1, 0)), false);
+        game.resumeGame();
+        await advance(game, .61, held: false);
+        // Even a flick between simulation frames can release a shot.
+        expect(rail.releaseAim(Vector2(0, 1)), true);
+        expect(game.shotsFired, 2);
+        expect(game.gameState.noOfBullets, 1);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'Rail Lance automatic discharge cannot double fire on release or cancellation',
+    (tester) async {
+      final game = await mount(tester, WeaponType.railLance, _Audio());
+      await tester.runAsync(() async {
+        final rail = game.arsenal!;
+        await advance(game, .66);
+        expect(game.shotsFired, 1);
+        expect(rail.releaseAim(Vector2(1, 0)), false);
+        await advance(game, 1.11, held: false);
+        await advance(game, .2);
+        rail.cancelAim();
+        game.weaponJoystick.delta.setZero();
+        await advance(game, .5, held: false);
+        expect(rail.charge, 0);
+        expect(game.shotsFired, 1);
+        expect(rail.releaseAim(Vector2.zero()), false);
+        game.requestReload();
+        expect(rail.releaseAim(Vector2(1, 0)), false);
       });
       await tester.pumpWidget(const SizedBox.shrink());
     },

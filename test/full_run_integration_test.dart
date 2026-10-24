@@ -161,7 +161,7 @@ void main() {
           expect(game.gameState.noOfBullets, weapon.capacity);
           game.weaponJoystick.delta.setValues(70, 0);
           if (weapon.usesArsenalRuntime) {
-            game.update(.51);
+            game.update(weapon == WeaponType.railLance ? .66 : .51);
             if (weapon.firesOnRelease) {
               game.arsenal!.releaseAim(Vector2(1, 0));
             }

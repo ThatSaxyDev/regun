@@ -78,8 +78,8 @@ entries above document their own delivery stage.
 Initial aiming charge is now0.65s, previously0.45s. Recovery is shortened by0.20s
 so the existing held-fire cycle remains1.10s at baseline and retains the existing
 Quick Trigger curve/floor. Damage, penetration, range, ammo and reload are unchanged.
-The sight's charge fill uses the same0.65s threshold. Release cancellation and
-pause/resume intent clearing retain their existing behavior.
+The sight's charge fill uses the same0.65s threshold. Pause/resume clears aim
+intent. The release behavior below supersedes the original charge cancellation.
 
 Charge is a fixed runtime value, not an editable admin catalogue field. Admin's
 Weapons → Rail Lance → Firing interval adjusts the overall cycle, not the initial
@@ -92,3 +92,40 @@ publication. Check the heavier aiming commitment on a phone before acceptance.
 Local checks:71 targeted weapon/rank tests passed;148 module tests/build passed;
 20 gateway tests/build plus compiled smoke passed;41 admin tests and analyzers
 passed. No deployment or phone installation was performed by this pass.
+
+## Rail Lance quick release — 24 October 2026
+
+Releasing the aiming joystick before full charge now fires one normal piercing
+round in the released aim direction. Holding still automatically fires at0.65s.
+Both use the same ammunition, damage and shot effects. The full existing cycle
+(1.10s at baseline, with Quick Trigger applied) gates repeat release shots, so
+flicking cannot bypass recovery or add a second shot after an automatic discharge.
+Returning to centre, cancelling a touch, pausing, deployment and reloading do not
+fire. The release cooldown freezes with gameplay and survives checkpoints; older
+checkpoints remain readable. This is native input behavior and adds no API/admin
+field or hosted weapon support. Check flick comfort and charge feedback on-device.
+
+## Rail Lance power and lane control — 24 October 2026
+
+New runs use power revision3: base damage9 →11.25 (+25%), with a further25%
+only on a fully charged automatic discharge (14.0625 before upgrades/survivor
+bonuses). Quick release retains base damage. The charge bonus is applied once at
+release; existing65% penetration retention and ricochet ceilings remain. The
+collision diameter increases10 →14 world units, with a thicker pixel projectile
+and trail. Ordinary impact changes76 →90 units over0.24s, stagger0.13 →0.23s;
+mass, shared impact/recovery gates, cover, occupancy and boss/planted resistance
+still apply. Magazine,0.65s charge, firing cycle, range and reload are unchanged.
+
+Saved revision1/2 runs retain their damage, radius, reaction and lack of charge
+bonus, including live snapshots and repeated Continue. Published base damage is
+still authoritative; admin's Weapons → Rail Lance → Base damage sets the quick
+shot value. Heavy Load previews in mobile/API/admin distinguish quick and full
+charge damage. Fixed charge reward/width/stagger add no new editable fields.
+The regenerated278-field catalogue has a new identity and retains old catalogue
+contracts for migration. Deploy updated server and mobile/admin builds; review
+and rebase existing live releases/drafts to adopt11.25 where applicable. Generation
+does not publish a live release. Hosted combat still excludes Rail Lance.
+
+Device review: compare a quick flick with a held shot against tough targets;
+line up three bodies and test near misses, cover and stagger in a crowd. Verify
+that repeated flicks do not skip the firing cycle. Physical balance remains open.

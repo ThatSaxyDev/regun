@@ -1053,6 +1053,7 @@ class GameState {
           ? 2 + rankLimit(p)
           : strength(p),
     'weapons.${w.name}.capacity': power.capacity(w),
+    'weapons.${w.name}.damage': power.damage(w),
     'weapons.${w.name}.cadence': power.cadence(w),
     'weapons.${w.name}.reloadMs': power.reloadMs(w),
     'weapons.${w.name}.range': power.range(w),
@@ -1073,6 +1074,7 @@ class GameState {
     weapon: w.name,
     survivor: c.name,
     fusions: evolutions,
+    railChargeMultiplier: power.railChargeMultiplier,
   );
   double strength(PowerUp value) =>
       (value == PowerUp.dashCapacity || value == PowerUp.grenadeCapacity)
