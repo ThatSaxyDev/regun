@@ -666,3 +666,38 @@ Compact transparent boss strips replace opaque plates; accepted HP loss has a
 in Reduced Motion. Guard/protection do not emit health-loss cues. Creator-edited
 shotgun/live balance is untouched; no catalogue/publication change is needed.
 Phone review and matching hosted deployment remain separate from local builds.
+
+## Airdrop support feedback and VIII ranks (2026-10-25)
+
+Read `docs/AIRDROP_SUPPORT_IMPLEMENTATION.md` for current support contracts and
+reproduced failures. Sentry Gun/Aura Farm reach VIII, then redeploy VIII; do not put
+them into permanent upgrade/fusion slots. Ordinary-only supply hands compete at
+weight 2 against eligible family weights (default 1 each), so defaults give 50%
+support-bearing hands. Training Call airdrop shares this draw; explicit family
+Practice controls deliberately force their reward. Keep the 365-field catalogue,
+all eight projections/admin rows and capability 7 / `support_ranks_viii` in agreement.
+Old pinned co-op rooms lacking IV controls retain III; historical native snapshots
+have bounded monotone late-tier fallbacks.
+
+Keep sentry physical rounds clear of their own base and shorten barrel clearance
+before intersecting close bodies; swept flight still owns hits/cover. Never gate
+combat simulation on atlas readiness. Ordinary cover pursuit watches actual
+progress and reroutes away from an occupied corner after .65s; retain the 2s route
+preference, body/wall occupancy, normal speed and committed attack directions.
+Real scorpion/mummy blocked-corner tests hold sentry fire/expiry still so its blast
+cannot hide a navigation failure. Aura's inner currents are muted sage at 5Hz with
+slower sector changes; counter-rotation remains, Reduced Motion is steady. Base
+Aura defaults are .375 damage/.25s and 155 radius, rising through VIII; it grants no
+protection. Preserve creator live weapon tuning when rebasing support values.
+
+
+### Sentry unlimited ammunition correction (2026-10-25)
+
+Sentry mounts have unlimited ammo and no reload. Preserve normal Carbine cadence
+and three-round burst rhythm, physical flight, cover and projectile budgets.
+Legacy saved ammo/reload values cannot stall fire; shotsFired drives online shot
+cues independently. Prepared batteries I–VIII are36/42/48/51/54/57/60/63 seconds.
+This supersedes source-linked magazine/reload and earlier shorter sentry lifetime
+contracts. It does not change player weapon reloads. Admin/API previews must show
+unlimited ammunition and zero reload. Verify sustained fire beyond old magazine
+boundaries, pause/Continue, saturation and single expiry blast.

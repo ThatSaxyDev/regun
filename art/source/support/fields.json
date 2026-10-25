@@ -13,7 +13,7 @@
     "sentry",
     "Sentry Gun",
     "weight",
-    "Offer weight (ordinary-only hand: 1)",
+    "Offer weight (ordinary-only hand: 2)",
     1,
     0,
     5,
@@ -74,9 +74,9 @@
     "Sentry Gun",
     "life1",
     "I battery seconds",
-    24,
+    36,
     10,
-    60,
+    75,
     false
   ],
   [
@@ -84,9 +84,9 @@
     "Sentry Gun",
     "life2",
     "II battery seconds",
-    30,
+    42,
     10,
-    60,
+    75,
     false
   ],
   [
@@ -94,9 +94,9 @@
     "Sentry Gun",
     "life3",
     "III battery seconds",
-    36,
+    48,
     10,
-    60,
+    75,
     false
   ],
   [
@@ -106,7 +106,7 @@
     "I source damage multiplier",
     3,
     0.5,
-    5,
+    6,
     false
   ],
   [
@@ -116,7 +116,7 @@
     "II source damage multiplier",
     3.5,
     0.5,
-    5,
+    6,
     false
   ],
   [
@@ -126,7 +126,7 @@
     "III source damage multiplier",
     4,
     0.5,
-    5,
+    6,
     false
   ],
   [
@@ -143,7 +143,7 @@
     "aura",
     "Aura Farm",
     "weight",
-    "Offer weight (ordinary-only hand: 1)",
+    "Offer weight (ordinary-only hand: 2)",
     1,
     0,
     5,
@@ -204,7 +204,7 @@
     "Aura Farm",
     "radius1",
     "I radius",
-    135,
+    155,
     60,
     220,
     false
@@ -214,7 +214,7 @@
     "Aura Farm",
     "radius2",
     "II radius",
-    145,
+    165,
     60,
     220,
     false
@@ -224,7 +224,7 @@
     "Aura Farm",
     "radius3",
     "III radius",
-    155,
+    175,
     60,
     220,
     false
@@ -234,7 +234,7 @@
     "Aura Farm",
     "damage1",
     "I damage per tick",
-    0.3,
+    0.375,
     0.05,
     1,
     false
@@ -244,7 +244,7 @@
     "Aura Farm",
     "damage2",
     "II damage per tick",
-    0.375,
+    0.46875,
     0.05,
     1,
     false
@@ -254,7 +254,257 @@
     "Aura Farm",
     "damage3",
     "III damage per tick",
-    0.45,
+    0.5625,
+    0.05,
+    1,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "life4",
+    "IV battery seconds",
+    51,
+    10,
+    75,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "life5",
+    "V battery seconds",
+    54,
+    10,
+    75,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "life6",
+    "VI battery seconds",
+    57,
+    10,
+    75,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "life7",
+    "VII battery seconds",
+    60,
+    10,
+    75,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "life8",
+    "VIII battery seconds",
+    63,
+    10,
+    75,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "damage4",
+    "IV source damage multiplier",
+    4.25,
+    0.5,
+    6,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "damage5",
+    "V source damage multiplier",
+    4.5,
+    0.5,
+    6,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "damage6",
+    "VI source damage multiplier",
+    4.75,
+    0.5,
+    6,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "damage7",
+    "VII source damage multiplier",
+    5,
+    0.5,
+    6,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "damage8",
+    "VIII source damage multiplier",
+    5.25,
+    0.5,
+    6,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "life4",
+    "IV lifetime seconds",
+    28,
+    5,
+    45,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "life5",
+    "V lifetime seconds",
+    30,
+    5,
+    45,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "life6",
+    "VI lifetime seconds",
+    32,
+    5,
+    45,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "life7",
+    "VII lifetime seconds",
+    34,
+    5,
+    45,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "life8",
+    "VIII lifetime seconds",
+    36,
+    5,
+    45,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "radius4",
+    "IV radius",
+    180,
+    60,
+    220,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "radius5",
+    "V radius",
+    185,
+    60,
+    220,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "radius6",
+    "VI radius",
+    190,
+    60,
+    220,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "radius7",
+    "VII radius",
+    195,
+    60,
+    220,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "radius8",
+    "VIII radius",
+    200,
+    60,
+    220,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "damage4",
+    "IV damage per tick",
+    0.609375,
+    0.05,
+    1,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "damage5",
+    "V damage per tick",
+    0.65625,
+    0.05,
+    1,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "damage6",
+    "VI damage per tick",
+    0.703125,
+    0.05,
+    1,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "damage7",
+    "VII damage per tick",
+    0.75,
+    0.05,
+    1,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "damage8",
+    "VIII damage per tick",
+    0.796875,
     0.05,
     1,
     false

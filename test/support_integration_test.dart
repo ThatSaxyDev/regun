@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/enemy_component.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/game.dart';
@@ -80,6 +81,21 @@ void main() {
         await tester.pump();
         await game.ready();
         game.update(2);
+        // Active combat must not freeze when lazy presentation art is absent.
+        expect(SupportArt.ready, false);
+        final uncached =
+            SupportUnit(
+                const SupportCard(SupportFamily.sentry, 1),
+                1,
+                game.myPlayer.position.toOffset() + const Offset(200, 0),
+              )
+              ..phase = 'active'
+              ..ammo = 24;
+        game.supportCombat.runtime.units.add(uncached);
+        game.gameNotifier.support.busy.add('sentry');
+        game.update(.05);
+        expect(uncached.life, greaterThan(0));
+        game.supportCombat.clear();
         for (final name in SupportArt.atlases) {
           await RegunArt.shared.acquire(name);
         }
@@ -133,16 +149,21 @@ void main() {
                 ..landed = true
                 ..ammo = 24;
           runtime.units[0] = unit;
-          for (var angle = 0; angle < 16; angle++) {
+          for (var angle = 0; angle < 32; angle++) {
             final heading = angle * math.pi / 8,
                 direction = Vector2(math.cos(heading), math.sin(heading));
             final dummy = SentryTarget(
-              Vector2(unit.position.dx, unit.position.dy - 42) + direction * 95,
+              Vector2(unit.position.dx, unit.position.dy - 42) +
+                  direction * (angle < 16 ? 95 : 32),
             );
             await game.world.add(dummy);
             await game.ready();
+            game.geometry.constrain(dummy.position, 30);
+            final actual =
+                dummy.position -
+                Vector2(unit.position.dx, unit.position.dy - 42);
             unit
-              ..heading = heading
+              ..heading = math.atan2(actual.y, actual.x)
               ..target = null
               ..query = 0
               ..blocked = 0
@@ -164,6 +185,77 @@ void main() {
             dummy.removeFromParent();
             await game.ready();
           }
+        }
+        // Exercise the real scorpion/mummy updates, not just ideal steering.
+        // Keep the sentry planted throughout: no shooting or expiry can free them.
+        for (final mummy in [false, true]) {
+          for (var side = 0; side < 16; side++) {
+            final angle = side * math.pi / 8;
+            final axis = Vector2(math.cos(angle), math.sin(angle));
+            final center = Vector2(
+              runtime.units.single.position.dx,
+              runtime.units.single.position.dy - 22,
+            );
+            final at = center + axis * 45;
+            final PositionComponent enemy = mummy
+                ? Enemy2Component(position: at)
+                : EnemyComponent(position: at);
+            await game.world.add(enemy);
+            await game.ready();
+            final target = center - axis * 240;
+            game.myPlayer.position.setFrom(target);
+            for (var frame = 0; frame < 720; frame++) {
+              game.enemyTactics.rebuild([enemy]);
+              game.crowdOccupancy.rebuild([enemy], game.crowdRadius);
+              enemy.update(1 / 60);
+            }
+            expect(
+              enemy.position.distanceTo(target),
+              lessThan(100),
+              reason:
+                  '${mummy ? 'mummy' : 'scorpion'} contact heading $side at ${enemy.position}',
+            );
+            enemy.removeFromParent();
+            await game.ready();
+          }
+        }
+        for (final mummy in [false, true]) {
+          final origin = runtime.units.single.position;
+          final blockers = <SentryTarget>[];
+          for (final x in [-150.0, -40.0, 70.0]) {
+            final blocker = SentryTarget(
+              Vector2(origin.dx + x, origin.dy - 120),
+            )..size = Vector2.all(116);
+            blockers.add(blocker);
+            await game.world.add(blocker);
+          }
+          final PositionComponent enemy = mummy
+              ? Enemy2Component(
+                  position: Vector2(origin.dx - 200, origin.dy - 22),
+                )
+              : EnemyComponent(
+                  position: Vector2(origin.dx - 200, origin.dy - 22),
+                );
+          await game.world.add(enemy);
+          await game.ready();
+          final target = Vector2(origin.dx + 320, origin.dy - 22);
+          game.myPlayer.position.setFrom(target);
+          for (var frame = 0; frame < 1200; frame++) {
+            game.enemyTactics.rebuild([...blockers, enemy]);
+            game.crowdOccupancy.rebuild([...blockers, enemy], game.crowdRadius);
+            enemy.update(1 / 60);
+          }
+          expect(
+            enemy.position.distanceTo(target),
+            lessThan(100),
+            reason:
+                '${mummy ? 'mummy' : 'scorpion'} blocked corner at ${enemy.position}',
+          );
+          enemy.removeFromParent();
+          for (final blocker in blockers) {
+            blocker.removeFromParent();
+          }
+          await game.ready();
         }
         final savedUnit = runtime.units.single;
 

@@ -61,7 +61,55 @@ class Harness {
 }
 
 void main() {
-  test('support competes with ordinary-only hands at weight one', () {
+  test('both supply families progress to VIII, repeat VIII and restore old III saves', () {
+    for (final family in SupportFamily.values) {
+      var p = SupportProgress();
+      final config = SupportConfig({
+        ...values,
+        'support.${family == SupportFamily.sentry ? 'aura' : 'sentry'}.enabled':
+            0,
+      });
+      for (var selection = 1; selection <= 10; selection++) {
+        final card = p.roll(config, () => 0)!;
+        expect(card.tier, min(selection, 8));
+        expect(p.confirm(card.id), true);
+        p = SupportProgress.restore(jsonDecode(jsonEncode(p.toJson())));
+        expect(p.tiers[family.name], min(selection, 8));
+        p.pending.clear();
+        p.busy.clear();
+      }
+      expect(SupportCard(family, 8).rankLabel, 'VIII');
+      expect(
+        SupportCard.read(
+          'support:${family.name}:9:${family == SupportFamily.sentry ? 'carbine' : 'field'}',
+        ),
+        isNull,
+      );
+      final old = SupportProgress()
+        ..serial = 3
+        ..tiers[family.name] = 3;
+      final restored = SupportProgress.restore(old.toJson());
+      expect(restored.roll(config, () => 0)!.tier, 4);
+    }
+  });
+  test(
+    'old tuned III snapshots get monotone bounded higher-tier fallbacks',
+    () {
+      const c = SupportConfig({
+        'support.sentry.life3': 60,
+        'support.sentry.damage3': 6,
+        'support.aura.life3': 60,
+        'support.aura.radius3': 220,
+        'support.aura.damage3': 1,
+      });
+      expect(c.sentryLife(8), 75);
+      expect(c.multiplier(8), 6);
+      expect(c.auraLife(8), 60);
+      expect(c.auraRadius(8), 220);
+      expect(c.auraDamage(8), 1);
+    },
+  );
+  test('support competes with ordinary-only hands at weight two', () {
     final random = Random(7025), counts = <String, int>{};
     for (var i = 0; i < 12000; i++) {
       final card = SupportProgress().roll(
@@ -71,15 +119,16 @@ void main() {
       final key = card?.family.name ?? 'ordinary';
       counts[key] = (counts[key] ?? 0) + 1;
     }
-    for (final key in ['ordinary', 'sentry', 'aura']) {
-      expect(counts[key], inInclusiveRange(3700, 4300));
+    expect(counts['ordinary'], inInclusiveRange(5700, 6300));
+    for (final key in ['sentry', 'aura']) {
+      expect(counts[key], inInclusiveRange(2700, 3300));
     }
     final one = SupportConfig({...values, 'support.aura.enabled': 0});
     var ordinary = 0;
     for (var i = 0; i < 10000; i++) {
       if (SupportProgress().roll(one, random.nextDouble) == null) ordinary++;
     }
-    expect(ordinary, inInclusiveRange(4700, 5300));
+    expect(ordinary, inInclusiveRange(6400, 7000));
     expect(SupportProgress().roll(SupportConfig(values), () => .99), isNull);
   });
   test('called supply hands retain three choices with or without support', () {
@@ -182,7 +231,7 @@ void main() {
       h.advance(.55);
       expect(u.phase, 'active');
       expect(u.life, closeTo(0, .03));
-      h.advance(24);
+      h.advance(36);
       expect(u.phase, 'breaking');
       expect(u.solid, false);
       h.advance(1.3);
@@ -217,6 +266,28 @@ void main() {
     h.advance(.2);
     expect(u.target, isNull);
   });
+  for (final mount in ['carbine', 'burstRifle']) {
+    test('$mount fires through old magazine boundaries with no reload', () {
+      final h = Harness()
+        ..grant(SupportCard(SupportFamily.sentry, 1, mount: mount));
+      h.advance(6.55);
+      final u = h.runtime.units.single;
+      u.ammo = 0;
+      u.reload = 10; // Simulate a legacy saved empty magazine.
+      h.targets = [const SupportTarget('a', Offset(300, -42), 20)];
+      h.advance(12);
+      expect(h.shots.length, greaterThan(mount == 'carbine' ? 100 : 50));
+      expect(u.ammo, -1);
+      expect(u.reload, 0);
+      expect(h.events, isNot(contains('reload')));
+      for (var i = 1; i < h.shots.length; i++) {
+        expect(
+          h.shots[i] - h.shots[i - 1],
+          lessThan(mount == 'carbine' ? .13 : .65),
+        );
+      }
+    });
+  }
   test('burst rounds are separate; saturation spends no ammo; restart never detonates', () {
     final h = Harness()
       ..grant(const SupportCard(SupportFamily.sentry, 1, mount: 'burstRifle'));
@@ -225,7 +296,7 @@ void main() {
     h.capacity = false;
     h.advance(.6);
     final u = h.runtime.units.single;
-    expect(u.ammo, 18);
+    expect(u.ammo, -1);
     expect(h.shots, isEmpty);
     h.capacity = true;
     h.advance(.025);
@@ -246,10 +317,10 @@ void main() {
       h.advance(.35, hz: hz);
       expect(h.damage, 0);
       h.advance(2, hz: hz);
-      expect(h.damage, closeTo(2.4, 1e-7));
+      expect(h.damage, closeTo(3.0, 1e-7));
       h.occluded = true;
       h.advance(1, hz: hz);
-      expect(h.damage, closeTo(2.4, 1e-7));
+      expect(h.damage, closeTo(3.0, 1e-7));
       h.occluded = false;
       h.advance(20, hz: hz);
       expect(h.runtime.units, isEmpty);

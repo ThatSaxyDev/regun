@@ -1,6 +1,5 @@
 import 'package:regun/systems/friendly_impact.dart';
 import 'package:regun/systems/support_rewards.dart';
-import 'package:regun/presentation/support_art.dart';
 import 'package:regun/systems/support_native.dart';
 import 'package:regun/components/map/support_view.dart';
 import 'package:regun/systems/boss_attack_shape.dart';
@@ -531,6 +530,7 @@ class RegunGame extends FlameGame
           geometry,
           radius: max(radius, crowdRadius(actor)),
           side: enemyTactics.side(actor),
+          dt: dt,
         );
       }
       // Separation must act on the detour, not be discarded when a route
@@ -2272,7 +2272,7 @@ class RegunGame extends FlameGame
       syncGrenadeCapacity();
       grenades.advance(dt, grenadeRecharge);
       combat.update(dt);
-      if (!bossRush && SupportArt.ready) supportCombat.advance(dt);
+      if (!bossRush) supportCombat.advance(dt);
     }
     enemyTactics.rebuild(liveEnemies);
     crowdOccupancy.rebuild([..._enemies, ...bosses], crowdRadius);

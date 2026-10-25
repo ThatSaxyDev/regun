@@ -1678,3 +1678,46 @@ Aura adds active-clock inner sigils/crackling and steady Reduced Motion art;
 players remain vulnerable. Verify close/all-direction shots, cover, reload,
 normal/Reduced Motion energy, pause and co-op readability on device. See
 `AIRDROP_SUPPORT_IMPLEMENTATION.md` for automated evidence and rollout limits.
+
+
+### 25 October: device support correction, second pass
+
+Creator-confirmed installed/server code still showed missing sentry shots and
+pinned scorpion/mummy enemies. Regressions now cover a muzzle spawning beyond a
+close body and static-clear corners blocked by living enemies. Body-safe release
+origins and .65s progress-triggered alternate routes address these independently,
+with matching server behavior. Support simulation no longer depends on atlas
+readiness. Real scorpion/mummy tests hold sentry cover indefinitely with no fire
+or expiry, including occupied corners. Verify close/lateral fire and crowd escape
+while the base remains active; do not count the expiry blast as navigation proof.
+Aura currents are muted/half-rate, with slower sector changes. Prepared shared
+Aura defaults are 25% more damage and radii155/165/175; preserve explicit live
+weapon edits when applying its six-field delta. Weighted airdrop availability
+remains implemented; no guaranteed support slot is restored. See support report.
+
+
+### 25 October: VIII support ranks and less frequent support hands
+
+Training Call airdrop uses normal weighted supply offers; only explicit family
+Practice buttons force a reward. Ordinary-only weight is now2 against combined
+eligible family weights (defaults1 each): 50% ordinary-only /50% support-bearing
+hands with both families available. Three support menus in a row were roughly30%
+under the earlier weights; randomness still permits short streaks. Both support
+families now advance throughVIII and redeployVIII. New co-op capability7 guards
+late-rank cards; old pinned III rooms stay compatible. Review all8 admin rows,
+rankVII→VIII→VIII, Continue atIII/VIII, mixed ordinary/support hands, rerolls/bans
+and disabled/busy families. Shared365-field catalogues/fixtures include later
+tiers; preserve creator live weapon edits when rebasing support tuning. Latest
+support implementation report owns the full tier table and test evidence.
+
+
+### Sentry unlimited ammunition correction (2026-10-25)
+
+Sentry mounts have unlimited ammo and no reload. Preserve normal Carbine cadence
+and three-round burst rhythm, physical flight, cover and projectile budgets.
+Legacy saved ammo/reload values cannot stall fire; shotsFired drives online shot
+cues independently. Prepared batteries I–VIII are36/42/48/51/54/57/60/63 seconds.
+This supersedes source-linked magazine/reload and earlier shorter sentry lifetime
+contracts. It does not change player weapon reloads. Admin/API previews must show
+unlimited ammunition and zero reload. Verify sustained fire beyond old magazine
+boundaries, pause/Continue, saturation and single expiry blast.

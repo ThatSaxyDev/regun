@@ -74,9 +74,9 @@ Older airdrop documents contain superseded capture/impact/cover values.
 Recommended first version:
 
 1. Each supply menu draws a weighted chance of one eligible temporary reward.
-   An ordinary-only hand competes at weight 1 against the total eligible support
-   weight. With both family weights 1, support appears in about two thirds of
-   hands; one third offer three ordinary upgrades. A support hand retains two
+   An ordinary-only hand competes at weight 2 against the total eligible support
+   weight. With both family weights 1, support appears in about half of
+   hands; half offer three ordinary upgrades. A support hand retains two
    ordinary upgrades. XP/fusion menus never draw these rewards. Enablement does
    not guarantee a support card.
 2. Roll Sentry Gun or Aura Farm with equal initial family weight. Use recent-offer
@@ -84,9 +84,9 @@ Recommended first version:
    the mount inside the selected family, so two mounts do not double its odds.
    The actual card states the mount, tier, lifetime and damage BEFORE selection.
    Selecting it immediately confirms that exact variant; no second modal.
-3. Keep three explicit versions, I–III, per family for the current run. The first
-   selection deploys I; later selections deploy II, then III. At III a later
-   pickup deploys III again, clearly labelled **Deploy again**, without increasing
+3. Keep eight explicit versions, I–VIII, per family for the current run. The first
+   selection deploys I; later selections advance through VIII. At VIII a later
+   pickup deploys VIII again, clearly labelled **Deploy again**, without increasing
    rank. There is never a permanent damage field left running after expiry.
 4. One incoming/live sentry and one active Aura Farm per owner. The same family
    is ineligible while incoming, deploying, active or breaking. No stacking,
@@ -152,7 +152,7 @@ minimum. Exact timeline after the picker closes:
 | 5.35–6s | .65s accelerating descent. Shadow and descending chassis agree with the locked point. |
 | 6s | One landing impact using the current supply-impact profile. Feet plant; solid base becomes active. A player caught underneath is safely displaced, never damaged. |
 | 6–6.55s | .55s braces/head deployment. The gun rises, turns and settles before firing. |
-| Next 24/30/36s | Live targeting, magazine cycles and firing. Lifetime advances even when idle, blocked or offscreen. |
+| Next 36–63s | Live targeting and unlimited-ammo firing. Lifetime advances even when idle, blocked or offscreen. |
 | Expiry | Stop firing, remove solid cover, one supply-profile breakup blast, then 1.3s collapsing panels/dust and removal. No blast when restart/disposal merely clears the unit. |
 
 The countdown displays true remaining time until impact, including descent, not
@@ -222,26 +222,25 @@ base and applies breakup once. Routing caches must observe both geometry changes
 |---|---|---|
 | Tier-I base damage per round | 0.9 | 1.25 |
 | Trigger pattern | One round each .10s | Three real rounds, .10s apart; bursts start each .60s |
-| Magazine / reload | 24 / 1.8s | 18 / 2s |
+| Ammunition / reload | Unlimited / none | Unlimited / none |
 | Acquisition radius | 550 | 650 |
 | Projectile speed | 950 | 1100 |
-| Damage multipliers I / II / III | 1 / 1.15 / 1.30 | 1 / 1.15 / 1.30 |
-| Working lifetime I / II / III | 24 / 30 / 36s | 24 / 30 / 36s |
+| Damage multipliers I / II / III | 3 / 3.5 / 4 | 3 / 3.5 / 4 |
+| Working lifetime I / II / III | 36 / 42 / 48s | 36 / 42 / 48s |
 
-Mounted weapon damage/timing/magazine/speed are read from that weapon's pinned
+Mounted weapon damage/cadence/speed are read from that weapon's pinned
 base configuration, even if the player holds a shotgun or another gun. It does
 not copy the player's current upgraded shot, survivor damage multiplier, pellets,
-ricochets, final-shell/reload bonuses or procs. At I the base round therefore
-matches the corresponding player weapon before those bonuses. Later versions
+ricochets, final-shell/reload bonuses or procs. At I the source round uses the configured sentry multiplier before distance damage. Later versions
 scale only the documented sentry multiplier. Preserve the source weapon's
 ballistic distance curve, sampled from the sentry muzzle; Burst is currently flat.
 Acquisition range is capped by the configured source weapon range.
 
-Fire-only upper bounds at I are 9 HP/s for Carbine and 6.25 HP/s for Burst before
-distance factors. These exclude reload, travel, rotation, missing, cover and
+Fire-only upper bounds at I are 27 HP/s for Carbine and 18.75 HP/s for Burst before
+distance factors. These exclude travel, rotation, missing, cover and
 idle time; they are not promised sustained DPS. The Burst's longer acquisition
 range distinguishes it from the higher-volume Carbine. Exact active-time damage
-must be measured using the implemented release/reload clocks before balancing.
+must be measured using the implemented release clocks before balancing.
 
 When unassigned, acquire the nearest living enemy with clear cover sight and in
 range, querying at 10Hz rather than rebuilding/sorting every render frame. Lock
@@ -378,7 +377,7 @@ survivor weapon sprite. Source weapon balance remains linked; art and muzzle
 geometry belong to the sentry. Give each a deliberate mount/pivot and establish front/back depth
 relative to mast, contact shadows and recoil direction for every heading. Root
 geometry stays planted while only the head turns. Show braces unfolding, mast
-lift, small settling weight, bounded barrel recoil and magazine/feed motion.
+lift, small settling weight, bounded barrel recoil and feed motion.
 Near expiry use three steady battery segments and a brief motor wind-down, then
 material blast and chassis breakup; never a generic glowing circle substitute.
 
@@ -514,7 +513,7 @@ Required integrated test matrix:
 - Run both mounts and all three tiers with two and three clients. Include one
   owner calling support while allies keep moving/firing, then all owners calling
   together at the same pod, source pod breakdown during incoming, and adjacent
-  live bases. Exercise full/empty magazines, burst cancellation and expiry while
+  live bases. Exercise unlimited sustained fire, burst cancellation and expiry while
   a projectile is in flight. All peers must see the same mount, locked footprint
   and lifecycle without friendly damage or blocking primary fire.
 - Repeat at simulated 50/150/300ms round-trip latency, up to 50ms jitter and 1%/5%
@@ -664,3 +663,11 @@ sightline role. They do not establish Regun's damage, lifetime, sky-drop countdo
 or tier values; all such numbers above are explicit design proposals derived
 from Regun's source. COD's scorestreak acquisition is not copied into XP or kills.
 No claim is made that its sentry has the proposed Regun arrival/explosion rules.
+
+25 October correction: the eight-rank implementation and weight2 ordinary-only
+policy are recorded in AIRDROP_SUPPORT_IMPLEMENTATION.md. Its latest tables and
+capability7 compatibility rules supersede earlier three-tier recommendations.
+
+Creator correction: sentry ammo is unlimited with no reload. The latest support
+implementation report supersedes all earlier magazine/reload recommendations;
+source cadence remains, and battery lifetime defaults span36–63s acrossI–VIII.

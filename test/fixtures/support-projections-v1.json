@@ -7,36 +7,91 @@
       "rows": [
         {
           "tier": 1,
-          "lifetime": 24,
+          "lifetime": 36,
           "incoming": 6,
           "damage": 2.7,
-          "capacity": 24,
+          "unlimitedAmmo": 1,
+          "reload": 0,
           "cadence": 0.1,
-          "reload": 1.8,
           "range": 550,
           "fireOnlyDps": 27
         },
         {
           "tier": 2,
-          "lifetime": 30,
+          "lifetime": 42,
           "incoming": 6,
           "damage": 3.15,
-          "capacity": 24,
+          "unlimitedAmmo": 1,
+          "reload": 0,
           "cadence": 0.1,
-          "reload": 1.8,
           "range": 550,
           "fireOnlyDps": 31.499999999999996
         },
         {
           "tier": 3,
-          "lifetime": 36,
+          "lifetime": 48,
           "incoming": 6,
           "damage": 3.6,
-          "capacity": 24,
+          "unlimitedAmmo": 1,
+          "reload": 0,
           "cadence": 0.1,
-          "reload": 1.8,
           "range": 550,
           "fireOnlyDps": 36
+        },
+        {
+          "tier": 4,
+          "lifetime": 51,
+          "incoming": 6,
+          "damage": 3.825,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.1,
+          "range": 550,
+          "fireOnlyDps": 38.25
+        },
+        {
+          "tier": 5,
+          "lifetime": 54,
+          "incoming": 6,
+          "damage": 4.05,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.1,
+          "range": 550,
+          "fireOnlyDps": 40.49999999999999
+        },
+        {
+          "tier": 6,
+          "lifetime": 57,
+          "incoming": 6,
+          "damage": 4.275,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.1,
+          "range": 550,
+          "fireOnlyDps": 42.75
+        },
+        {
+          "tier": 7,
+          "lifetime": 60,
+          "incoming": 6,
+          "damage": 4.5,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.1,
+          "range": 550,
+          "fireOnlyDps": 45
+        },
+        {
+          "tier": 8,
+          "lifetime": 63,
+          "incoming": 6,
+          "damage": 4.7250000000000005,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.1,
+          "range": 550,
+          "fireOnlyDps": 47.25
         }
       ]
     },
@@ -46,36 +101,91 @@
       "rows": [
         {
           "tier": 1,
-          "lifetime": 24,
+          "lifetime": 36,
           "incoming": 6,
           "damage": 3.75,
-          "capacity": 18,
+          "unlimitedAmmo": 1,
+          "reload": 0,
           "cadence": 0.6,
-          "reload": 2,
           "range": 650,
           "fireOnlyDps": 18.75
         },
         {
           "tier": 2,
-          "lifetime": 30,
+          "lifetime": 42,
           "incoming": 6,
           "damage": 4.375,
-          "capacity": 18,
+          "unlimitedAmmo": 1,
+          "reload": 0,
           "cadence": 0.6,
-          "reload": 2,
           "range": 650,
           "fireOnlyDps": 21.875
         },
         {
           "tier": 3,
-          "lifetime": 36,
+          "lifetime": 48,
           "incoming": 6,
           "damage": 5,
-          "capacity": 18,
+          "unlimitedAmmo": 1,
+          "reload": 0,
           "cadence": 0.6,
-          "reload": 2,
           "range": 650,
           "fireOnlyDps": 25
+        },
+        {
+          "tier": 4,
+          "lifetime": 51,
+          "incoming": 6,
+          "damage": 5.3125,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.6,
+          "range": 650,
+          "fireOnlyDps": 26.5625
+        },
+        {
+          "tier": 5,
+          "lifetime": 54,
+          "incoming": 6,
+          "damage": 5.625,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.6,
+          "range": 650,
+          "fireOnlyDps": 28.125
+        },
+        {
+          "tier": 6,
+          "lifetime": 57,
+          "incoming": 6,
+          "damage": 5.9375,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.6,
+          "range": 650,
+          "fireOnlyDps": 29.6875
+        },
+        {
+          "tier": 7,
+          "lifetime": 60,
+          "incoming": 6,
+          "damage": 6.25,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.6,
+          "range": 650,
+          "fireOnlyDps": 31.25
+        },
+        {
+          "tier": 8,
+          "lifetime": 63,
+          "incoming": 6,
+          "damage": 6.5625,
+          "unlimitedAmmo": 1,
+          "reload": 0,
+          "cadence": 0.6,
+          "range": 650,
+          "fireOnlyDps": 32.8125
         }
       ]
     },
@@ -86,28 +196,73 @@
         {
           "tier": 1,
           "lifetime": 18,
-          "radius": 135,
-          "tick": 0.25,
-          "damage": 0.3,
-          "exposureDps": 1.2,
-          "targets": 12
-        },
-        {
-          "tier": 2,
-          "lifetime": 22,
-          "radius": 145,
+          "radius": 155,
           "tick": 0.25,
           "damage": 0.375,
           "exposureDps": 1.5,
           "targets": 12
         },
         {
+          "tier": 2,
+          "lifetime": 22,
+          "radius": 165,
+          "tick": 0.25,
+          "damage": 0.46875,
+          "exposureDps": 1.875,
+          "targets": 12
+        },
+        {
           "tier": 3,
           "lifetime": 26,
-          "radius": 155,
+          "radius": 175,
           "tick": 0.25,
-          "damage": 0.45,
-          "exposureDps": 1.8,
+          "damage": 0.5625,
+          "exposureDps": 2.25,
+          "targets": 12
+        },
+        {
+          "tier": 4,
+          "lifetime": 28,
+          "radius": 180,
+          "tick": 0.25,
+          "damage": 0.609375,
+          "exposureDps": 2.4375,
+          "targets": 12
+        },
+        {
+          "tier": 5,
+          "lifetime": 30,
+          "radius": 185,
+          "tick": 0.25,
+          "damage": 0.65625,
+          "exposureDps": 2.625,
+          "targets": 12
+        },
+        {
+          "tier": 6,
+          "lifetime": 32,
+          "radius": 190,
+          "tick": 0.25,
+          "damage": 0.703125,
+          "exposureDps": 2.8125,
+          "targets": 12
+        },
+        {
+          "tier": 7,
+          "lifetime": 34,
+          "radius": 195,
+          "tick": 0.25,
+          "damage": 0.75,
+          "exposureDps": 3,
+          "targets": 12
+        },
+        {
+          "tier": 8,
+          "lifetime": 36,
+          "radius": 200,
+          "tick": 0.25,
+          "damage": 0.796875,
+          "exposureDps": 3.1875,
           "targets": 12
         }
       ]

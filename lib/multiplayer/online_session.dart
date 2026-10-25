@@ -52,6 +52,7 @@ class OnlineSession {
   bool chargeUpgradesAvailable = false, groundOrdnanceAvailable = false;
   bool rankCurvesAvailable = false;
   bool supportOpsAvailable = false;
+  bool supportRanksAvailable = false;
   bool grenadesAvailable = false, grenadeAimingAvailable = false;
   bool predictionAvailable = false;
   bool predictionReducedMotion = false;
@@ -403,6 +404,9 @@ class OnlineSession {
       grenadeAimingAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'aim_grenade',
       );
+      supportRanksAvailable = (schemaJson['reducers'] as List? ?? []).any(
+        (v) => v is Map && v['name'] == 'support_ranks_viii',
+      );
       supportOpsAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'support_ops',
       );
@@ -708,7 +712,9 @@ class OnlineSession {
       unawaited(
         _quiet(
           () => client.reducers.attachCombat(
-            version: supportOpsAvailable
+            version: supportRanksAvailable
+                ? 7
+                : supportOpsAvailable
                 ? 6
                 : rankCurvesAvailable
                 ? 5

@@ -3,6 +3,19 @@ import 'dart:math';
 /// Supply-only identities; deliberately outside permanent PowerUp ranks/slots.
 enum SupportFamily { sentry, aura }
 
+const supportMaxTier = 8;
+const supportTierLabels = [
+  '',
+  'I',
+  'II',
+  'III',
+  'IV',
+  'V',
+  'VI',
+  'VII',
+  'VIII',
+];
+
 class SupportCard {
   const SupportCard(this.family, this.tier, {this.mount = 'carbine'});
   final SupportFamily family;
@@ -11,7 +24,7 @@ class SupportCard {
   String get id =>
       'support:${family.name}:$tier:${family == SupportFamily.sentry ? mount : 'field'}';
   String get title => family == SupportFamily.aura ? 'Aura Farm' : 'Sentry Gun';
-  String get rankLabel => ['', 'I', 'II', 'III'][tier];
+  String get rankLabel => supportTierLabels[tier];
   String description(Map<String, num> values) {
     final c = SupportConfig(values);
     String number(double v) =>
@@ -19,7 +32,7 @@ class SupportCard {
     if (family == SupportFamily.aura) {
       return '${c.auraLife(tier).round()}s moving field. ${number(c.auraDamage(tier) / c.tick)} damage/s per enemy · ${c.auraRadius(tier).round()} radius.';
     }
-    return '${mount == 'carbine' ? 'Carbine' : 'Three-round burst'} mount. ${number(c.weapon(mount, 'damage', mount == 'carbine' ? .9 : 1.25) * c.multiplier(tier))} damage/round · ${c.sentryLife(tier).round()}s battery · ${c.incoming}s incoming.';
+    return '${mount == 'carbine' ? 'Carbine' : 'Three-round burst'} mount. ${number(c.weapon(mount, 'damage', mount == 'carbine' ? .9 : 1.25) * c.multiplier(tier))} damage/round · ${c.sentryLife(tier).round()}s battery · unlimited ammo · ${c.incoming}s incoming.';
   }
 
   static SupportCard? read(String id) {
@@ -30,7 +43,7 @@ class SupportCard {
     if (f == null ||
         t == null ||
         t < 1 ||
-        t > 3 ||
+        t > supportMaxTier ||
         (f == SupportFamily.sentry
             ? !['carbine', 'burstRifle'].contains(p[3])
             : p[3] != 'field')) {
@@ -49,10 +62,33 @@ class SupportConfig {
   double get incoming => n('sentry', 'incoming', 6);
   double get turn => n('sentry', 'turn', 300) * pi / 180;
   double get fallback => n('sentry', 'fallback', 1);
+  double _rank(
+    String family,
+    String key,
+    int tier,
+    List<num> defaults,
+    double tail,
+    double cap,
+  ) {
+    final fallback = tier <= 3
+        ? defaults[tier].toDouble()
+        : max(
+            defaults[tier].toDouble(),
+            n(family, '${key}3', defaults[3].toDouble()) + tail * (tier - 3),
+          ).clamp(0.0, cap).toDouble();
+    return n(family, '$key$tier', fallback);
+  }
+
   double sentryLife(int t) =>
-      n('sentry', 'life$t', [0, 24, 30, 36][t].toDouble());
-  double multiplier(int t) =>
-      n('sentry', 'damage$t', [0, 3, 3.5, 4][t].toDouble());
+      _rank('sentry', 'life', t, [0, 36, 42, 48, 51, 54, 57, 60, 63], 3, 75);
+  double multiplier(int t) => _rank(
+    'sentry',
+    'damage',
+    t,
+    [0, 3, 3.5, 4, 4.25, 4.5, 4.75, 5, 5.25],
+    .25,
+    6,
+  );
   double acquisition(String mount) => min(
     n(
       'sentry',
@@ -63,11 +99,24 @@ class SupportConfig {
   );
   double weapon(String mount, String key, double fallback) =>
       (values['weapons.$mount.$key'] ?? fallback).toDouble();
-  double auraLife(int t) => n('aura', 'life$t', [0, 18, 22, 26][t].toDouble());
-  double auraRadius(int t) =>
-      n('aura', 'radius$t', [0, 135, 145, 155][t].toDouble());
-  double auraDamage(int t) =>
-      n('aura', 'damage$t', [0, .30, .375, .45][t].toDouble());
+  double auraLife(int t) =>
+      _rank('aura', 'life', t, [0, 18, 22, 26, 28, 30, 32, 34, 36], 2, 60);
+  double auraRadius(int t) => _rank(
+    'aura',
+    'radius',
+    t,
+    [0, 155, 165, 175, 180, 185, 190, 195, 200],
+    5,
+    220,
+  );
+  double auraDamage(int t) => _rank(
+    'aura',
+    'damage',
+    t,
+    [0, .375, .46875, .5625, .609375, .65625, .703125, .75, .796875],
+    .046875,
+    1,
+  );
   double get tick => n('aura', 'tick', .25);
   int get targets => n('aura', 'targets', 12).toInt();
   double weight(SupportFamily f) => n(f.name, 'weight', 1);
@@ -79,7 +128,7 @@ class SupportConfig {
         c.acquisition('burstRifle') != c.n('sentry', 'burstRange', 650)) {
       throw const FormatException('Invalid support arrival/range');
     }
-    for (var t = 2; t <= 3; t++) {
+    for (var t = 2; t <= supportMaxTier; t++) {
       if (c.sentryLife(t) < c.sentryLife(t - 1) ||
           c.multiplier(t) < c.multiplier(t - 1) ||
           c.auraLife(t) < c.auraLife(t - 1) ||
@@ -110,9 +159,9 @@ class SupportProgress {
         )
         .toList();
     if (pool.isEmpty) return offer = null;
-    // An ordinary-only hand competes at weight 1; enablement is not a guarantee.
+    // An ordinary-only hand competes at weight 2; enablement is not a guarantee.
     final total = pool.fold<double>(0, (s, f) => s + config.weight(f));
-    if (random() >= total / (total + 1)) return offer = null;
+    if (random() >= total / (total + 2)) return offer = null;
     var pick =
         random() *
         pool.fold<double>(
@@ -130,7 +179,7 @@ class SupportProgress {
     recent = [chosen.name];
     return offer = SupportCard(
       chosen,
-      min(3, (tiers[chosen.name] ?? 0) + 1),
+      min(supportMaxTier, (tiers[chosen.name] ?? 0) + 1),
       mount: chosen == SupportFamily.sentry && random() >= .5
           ? 'burstRifle'
           : 'carbine',
@@ -178,7 +227,7 @@ class SupportProgress {
       if (!['sentry', 'aura'].contains(e.key) ||
           e.value is! int ||
           e.value < 1 ||
-          e.value > 3) {
+          e.value > supportMaxTier) {
         throw const FormatException('Invalid support tier');
       }
       p.tiers[e.key] = e.value;
@@ -224,7 +273,7 @@ List<Map<String, num>> supportProjection(
 }) {
   final c = SupportConfig(values);
   return [
-    for (var t = 1; t <= 3; t++)
+    for (var t = 1; t <= supportMaxTier; t++)
       if (family == SupportFamily.aura)
         {
           'tier': t,
@@ -243,11 +292,9 @@ List<Map<String, num>> supportProjection(
           'damage':
               c.weapon(mount, 'damage', mount == 'carbine' ? .9 : 1.25) *
               c.multiplier(t),
-          'capacity': c.weapon(mount, 'capacity', mount == 'carbine' ? 24 : 18),
+          'unlimitedAmmo': 1,
+          'reload': 0,
           'cadence': c.weapon(mount, 'cadence', mount == 'carbine' ? .1 : .6),
-          'reload':
-              c.weapon(mount, 'reloadMs', mount == 'carbine' ? 1800 : 2000) /
-              1000,
           'range': c.acquisition(mount),
           'fireOnlyDps':
               c.weapon(mount, 'damage', mount == 'carbine' ? .9 : 1.25) *

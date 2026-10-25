@@ -140,7 +140,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       final cue = entity.kind == 'supply'
           ? '${d['phase']}:${(entity.number('capture') / 1).floor()}'
           : entity.kind == 'support'
-          ? '${d['phase']}:${entity.number('ammo').toInt()}:${entity.number('reload') > 0}'
+          ? '${d['phase']}:${(d['shotsFired'] != null ? entity.number('shotsFired') : -entity.number('ammo')).toInt()}:${entity.number('reload') > 0}'
           : entity.kind == 'enemy'
           ? '${d['bossPhase'] ?? d['phase']}:${d['attackName']}:${entity.number('health') <= 0}'
           : '';
@@ -181,7 +181,10 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           if (sound != null) unawaited(audio.play(sound));
         }
         if (!aura && phase == 'active' && previous.length >= 3) {
-          if (entity.number('ammo') < (int.tryParse(previous[1]) ?? 0)) {
+          if ((d['shotsFired'] != null
+                  ? entity.number('shotsFired')
+                  : -entity.number('ammo')) >
+              (int.tryParse(previous[1]) ?? 0)) {
             unawaited(
               audio.play(
                 (d['id'] as String).endsWith('burstRifle')
@@ -189,9 +192,6 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     : 'sentry_fire.wav',
               ),
             );
-          }
-          if (entity.number('reload') > 0 && previous[2] == 'false') {
-            unawaited(audio.play('sentry_reload.wav'));
           }
         }
       } else if (entity.kind == 'supply') {

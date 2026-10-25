@@ -1,0 +1,11 @@
+{
+  "purpose": "Only these six Aura values change; preserve all other current published/draft values. This is not a full admin import candidate.",
+  "values": {
+    "support.aura.damage1": 0.375,
+    "support.aura.damage2": 0.46875,
+    "support.aura.damage3": 0.5625,
+    "support.aura.radius1": 155,
+    "support.aura.radius2": 165,
+    "support.aura.radius3": 175
+  }
+}

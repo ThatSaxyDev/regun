@@ -256,17 +256,8 @@ class SupportArt {
             ..color = const Color(0xffE3C08A),
         );
       }
-      if (u.reload > 0 && !reducedMotion) {
-        canvas.drawRect(
-          Rect.fromLTWH(-12, h / 2 + 2, 8, 4),
-          Paint()..color = const Color(0xff9F8C65),
-        );
-      }
     }
     canvas.restore();
-    if (u.phase == 'active' && u.reload > 0) {
-      label(canvas, const Offset(0, -112), 'RELOAD');
-    }
     if (u.phase == 'active') {
       for (var i = 0; i < 3; i++) {
         canvas.drawRect(

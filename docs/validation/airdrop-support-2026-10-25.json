@@ -198,5 +198,99 @@
       "installed": false,
       "deployed": false
     }
+  },
+  "secondDeviceFeedback": {
+    "creatorConfirmsPriorPhoneInstallAndServerPush": true,
+    "sentryCloseBody": "reproduced fixed muzzle spawning past body; fixed with body-safe swept release on both runtimes",
+    "sentryCrowd": "reproduced living bodies blocking static-clear corner; fixed bounded progress-based alternate route on both runtimes",
+    "nativeRealActors": "scorpion and mummy, 16 contact headings and blocked corners, no sentry fire/expiry",
+    "artReadiness": "combat advances without lazy atlas availability",
+    "auraCurrents": "muted sage highlights, 5Hz poses, sector changes four times slower; counter-rotation retained",
+    "weightedSelection": {
+      "ordinaryOnlyWeight": 2,
+      "bothDefaultFamiliesSupportChance": 0.5,
+      "singleDefaultFamilySupportChance": 0.3333333333333333,
+      "trainingCallAirdropUsesNormalDraw": true,
+      "familyPracticeIsDeliberate": true
+    },
+    "tiers": {
+      "maximum": 8,
+      "repeatAt": 8,
+      "catalogueFields": 365,
+      "coopCapability": 7,
+      "oldPinnedCoopRooms": "III cap retained without IV controls",
+      "legacyNativeSaves": "readable with monotone bounded late-tier fallbacks"
+    },
+    "serverVerify": {
+      "passed": 174,
+      "moduleBuild": "passed"
+    },
+    "adminVerify": {
+      "passed": 60,
+      "releaseWebBuild": "passed"
+    },
+    "apiVerify": {
+      "passed": 23,
+      "compiledSmoke": "passed"
+    },
+    "finalGameVerify": {
+      "analyzer": "clean",
+      "passed": 742,
+      "skippedOptionalSoak": 5
+    },
+    "finalClientBuilds": {
+      "androidReleaseAPK": "passed",
+      "webRelease": "passed",
+      "iosUnsignedRelease": "passed"
+    },
+    "physicalDeviceAcceptance": false,
+    "preview": "build/test-previews/aura-energy-muted-viii.gif"
+  },
+  "unlimitedSentryCorrection": {
+    "ammo": "unlimited; legacy ammo/reload normalized without delay",
+    "cadence": "source unchanged; physical three-round bursts retained",
+    "lifeByTier": [
+      36,
+      42,
+      48,
+      51,
+      54,
+      57,
+      60,
+      63
+    ],
+    "damageChanged": false,
+    "onlineShotAudio": "shotsFired with old-server ammo fallback",
+    "server": {
+      "testsPassed": 175,
+      "moduleBuild": "passed"
+    },
+    "admin": {
+      "testsPassed": 60
+    },
+    "identity": {
+      "testsPassed": 23,
+      "compiledSmoke": "passed"
+    },
+    "gameVerification": {
+      "analyzer": "clean",
+      "fullRunPassed": 743,
+      "fullRunFailed": 1,
+      "optionalSoakSkipped": 5,
+      "fullRunFailure": "online_availability_menu_test: PLAY hit-test; no source changes to menu",
+      "focusedRerunPassed": 32,
+      "focusedRerunIncludes": [
+        "failed menu policy test",
+        "support runtime",
+        "native support integration",
+        "online presentation"
+      ]
+    },
+    "builds": {
+      "androidReleaseAPK": "passed",
+      "gameWebRelease": "passed",
+      "adminWebRelease": "passed",
+      "iosUnsignedRelease": "passed"
+    }
   }
 }

@@ -23,7 +23,7 @@ class AuraEnergy {
     required bool reducedMotion,
   }) {
     final seal = Path(), currents = Path(), tips = <Offset>[];
-    final phase = reducedMotion ? 0 : (time * 10).floor();
+    final phase = reducedMotion ? 0 : (time * 5).floor();
     // Interlaced, chipped triangles leave the survivor's central footprint clear.
     for (var i = 0; i < 6; i++) {
       final a = point(i * math.pi / 3 - math.pi / 2, radius * .60);
@@ -39,9 +39,9 @@ class AuraEnergy {
       segment(seal, center - tangent * 5 - radial * 3, center + radial * 3);
       segment(seal, center + radial * 3, center + tangent * 5 + radial * 6);
     }
-    // Three restrained crackles advance through the seal at ten stepped poses/s.
+    // Three restrained crackles advance through the seal at five stepped poses/s.
     for (var ray = 0; ray < 3; ray++) {
-      final sector = (phase ~/ 3 + ray * 2) % 6;
+      final sector = (phase ~/ 6 + ray * 2) % 6;
       final heading = sector * math.pi / 3 + .22;
       final progress = reducedMotion ? .6 : ((phase + ray * 3) % 9) / 9;
       final start = radius * (.29 + progress * .16);
@@ -70,8 +70,8 @@ class AuraEnergy {
     stroke(seal, const Color(0xff111F19), 6, .60);
     stroke(seal, const Color(0xff7B9D81), 2, .36);
     stroke(currents, const Color(0xff172B21), 7, .72);
-    stroke(currents, const Color(0xff719B75), 4, reducedMotion ? .32 : .62);
-    stroke(currents, const Color(0xffD1DAB0), 2, reducedMotion ? .26 : .76);
+    stroke(currents, const Color(0xff67866C), 4, reducedMotion ? .24 : .38);
+    stroke(currents, const Color(0xff9BAE93), 2, reducedMotion ? .22 : .42);
     for (var i = 0; i < tips.length; i++) {
       final p = tips[i];
       canvas.drawRect(
@@ -81,15 +81,15 @@ class AuraEnergy {
       canvas.drawRect(
         Rect.fromCenter(center: p, width: 3, height: 3),
         Paint()
-          ..color = const Color(0xffE0DDB3)
-              .withValues(alpha: alpha * (reducedMotion ? .35 : .8)),
+          ..color = const Color(0xffABB99B)
+              .withValues(alpha: alpha * (reducedMotion ? .28 : .42)),
       );
       if (!reducedMotion) {
         final chip = p + point(i * 2.1 + phase * .31, 5 + (phase % 4) * 2.0);
         canvas.drawRect(
           Rect.fromCenter(center: pixel(chip), width: 2, height: 2),
           Paint()
-            ..color = const Color(0xffB2C499).withValues(alpha: alpha * .58),
+            ..color = const Color(0xffB2C499).withValues(alpha: alpha * .30),
         );
       }
     }

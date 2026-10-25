@@ -40,3 +40,24 @@ class SupportTrace {
   double age = 0;
   static const duration = .09;
 }
+
+/// Keep the visible barrel from skipping a body touching/overlapping its tip.
+/// Shortening the release origin grants no hit: ordinary swept flight owns it.
+Offset supportMuzzle(
+  Offset pivot,
+  Offset direction,
+  Iterable<({Offset position, double radius})> bodies,
+) {
+  var reach = 56.0;
+  for (final body in bodies) {
+    final delta = body.position - pivot;
+    final along = delta.dx * direction.dx + delta.dy * direction.dy;
+    final perpendicular2 = delta.distanceSquared - along * along;
+    final radius = body.radius + 5;
+    if (perpendicular2 > radius * radius) continue;
+    final half = math.sqrt(math.max(0, radius * radius - perpendicular2));
+    if (along + half < 0) continue;
+    reach = math.min(reach, math.max(0, along - half - 1));
+  }
+  return pivot + direction * reach;
+}

@@ -7,12 +7,12 @@ The current application identity remains the creator's `1.0.0+22`.
 ## Delivered behavior
 
 - Supply hands draw support availability against an ordinary-only outcome of
-  weight 1. Both default family weights 1 mean about two-thirds support hands
-  (one support plus two ordinary cards), one-third three ordinary cards. One
-  eligible default-weight family means a 50% support chance. Enablement never
+  weight 2. Both default family weights 1 mean about half support hands
+  (one support plus two ordinary cards), half three ordinary cards. One
+  eligible default-weight family means a one-third support chance. Enablement never
   guarantees a card. Ordinary XP/fusion offers remain separate. Both families have temporary
-  I–III tiers, per-family bans, bounded recent history and a single live/pending
-  instance per owner. Tier III can be deployed again after expiry.
+  I–VIII tiers, per-family bans, bounded recent history and a single live/pending
+  instance per owner. Tier VIII can be deployed again after expiry.
 - Sentry calls follow the survivor until a legal location is committed, warn,
   descend, unfold and become stationary cover. Carbine and three-round burst use
   distinct original mounted gun sprites. The head turns toward one enemy and
@@ -177,3 +177,134 @@ Android remains private-test debug signed. No installation, deployment or live
 admin publication was performed. The full suite ran before the final counter-
 rotation and additional called-hand assertion; the final analyzer/focused suite
 and all three client builds include those changes.
+
+## Second device-feedback correction: close fire and occupied corners
+
+Creator confirms the previous code was installed on the phone and pushed to the
+server. Their observed missing shots/pinning are treated as current-build defects,
+not dismissed as rollout lag.
+
+Reproduced two independent problems. The native close-contact regression failed at
+heading 27 with a living target legally against cover: the fixed 56-unit muzzle
+could spawn beyond that target. Native/server now shorten barrel clearance to
+before the first intersecting living body. This calculation grants no hit; normal
+swept projectile flight and cover still own damage. The final small aim alignment
+is settled at release so a tolerated six-degree head error cannot send the round
+outside a small enemy. Both auto Carbine and three-round burst are covered.
+
+A second regression placed three stationary living bodies along the upper sentry
+corners. A pursuer remained over 415 units from the survivor after 20 seconds at
+roughly (-95,-35), despite an open lower route. The static visibility graph kept
+choosing the occupied corner. Native ObstacleRouter and authoritative navigation
+now watch actual pursuit progress: less than 12 units over .65 active seconds
+penalizes that first corner for two seconds and searches another legal route.
+There is no teleport, speed increase, body phasing or attack bending. Committed
+leaps/charges and planted roles retain their existing movement rules.
+
+Native integration runs the actual scorpion and mummy updates from 16 contact
+headings each and against the blocking living bodies. The sentry remains solid
+and planted; neither shooting nor expiry advances during those checks, so the
+breakdown blast cannot conceal a failure. Server tests exercise both actual roles
+and retain per-step movement and body separation assertions.
+
+Combat no longer freezes behind SupportArt.ready. A native regression advances an
+active sentry while lazy artwork is absent, proving that texture availability
+cannot freeze its lifetime, reload or physical rounds.
+
+Aura's three currents use five stepped poses/second (was ten), advance sectors
+four times more slowly and use muted sage highlights instead of pale bright
+cores. Counter-rotation and steady Reduced Motion remain. Shared default damage
+per .25s tick is now .375/.46875/.5625 (25% higher), and radius 155/165/175 (base
+was135, about32% more covered area). No protection was added. Catalogue/default
+fixtures and native/server/admin projections agree. Existing published tuning
+and pinned runs retain their explicit values; the six-field tuning delta below
+is provided separately so unrelated creator weapon edits need not be reset.
+
+`validation/aura-tuning-values-2026-10-25.json` is a field-value delta for review,
+not a complete import candidate. A public balance read returned HTTP503 during
+this correction; no claim is made about the current published Aura values.
+
+## Eight-rank and Training selection follow-up
+
+Verified code path: Training Call airdrop resets only the pod timeline and earns
+the same source-aware offerSupplyUpgrade as normal play. Sentry practice / Aura
+practice are deliberately direct. Training is not a cause of guaranteed support.
+With the previous total-support2 / ordinary1 defaults, three support-bearing menus
+were expected roughly29.6% of the time. The fixed ordinary-only weight is now2:
+with both family weights1, each hand has a50% support chance; one family has1/3.
+Family weighting and recent-family suppression remain separate. Short random
+streaks remain possible; no card is guaranteed. Native/server seeded distributions
+and actual issued-hand tests cover both ordinary-only and support outcomes.
+
+Both families now advance I–VIII and redeploy VIII afterward. Sentry auto/burst
+share a tier; Aura remains separate. Later gains are smaller. Shared defaults:
+
+| Tier | Sentry seconds | Sentry multiplier | Aura seconds | Aura radius | Aura tick damage |
+| --- | --- | --- | --- | --- | --- |
+| I |24|3|18|155|.375|
+| II |30|3.5|22|165|.46875|
+| III |36|4|26|175|.5625|
+| IV |39|4.25|28|180|.609375|
+| V |42|4.5|30|185|.65625|
+| VI |45|4.75|32|190|.703125|
+| VII |48|5|34|195|.75|
+| VIII |51|5.25|36|200|.796875|
+
+The .25s Aura tick, target/overlap/cover rules, projectile capacities and one
+pending/live family per owner remain unchanged. No defensive benefit is added.
+Mobile labels, Practice advancement, strict card/checkpoint parsing, run progress,
+shared projections, API preview and all eight admin rows/fields agree (365-field
+catalogue). Old I–III saves remain valid and can advance. Missing late-tier tuning
+in historical native snapshots uses monotone bounded fallbacks above tuned III;
+all prior committed catalogue identities remain readable.
+
+Co-op capability7 / support_ranks_viii prevents older clients from receiving cards
+above their presentation contract. New clients detect the marker and still attach
+as6 to older support servers. Old pinned rooms lacking IV controls stay cappedIII;
+new eight-rank support rooms require7. A source-aware issued-hand regression checks
+both limits. The local websocket smoke harness now attaches7; the earlier network
+matrix remains historical capability6 evidence, not a new capability7 playtest.
+
+The final40-field I–VIII tuning delta is
+`validation/support-tuning-viii-2026-10-25.json`; the earlier six-field Aura delta
+remains the base-rank-only subset. Rebase through the365-field catalogue to author
+later co-op tiers, preserving unrelated published settings and family flags.
+
+Final VIII/crowd correction verification: analyzer clean;742 game tests passed,
+five optional soak tests skipped;174 authoritative server tests and module build
+passed;60 admin tests and release web passed;23 API tests plus compiled smoke
+passed. Fresh Android release APK, game web release and unsigned iOS release all
+built successfully. These checks verify source/build behavior, not physical
+phone performance or a new capability7 network latency matrix.
+
+## Unlimited sentry ammunition and longer battery (creator correction)
+
+The creator explicitly removed sentry magazines/reloads. Both mounts now retain
+source damage/cadence/range/speed but have unlimited ammunition for their battery
+lifetime. Carbine fires continuously at cadence; Burst retains three physical
+releases and its normal between-burst spacing. No magazine refill pause exists.
+Legacy ammo/reload fields remain readable, but active simulation normalizes them
+to ammo-1/reload0 immediately, including a restored empty/reloading unit. An
+independent bounded shotsFired receipt drives co-op firing sounds, so removing
+ammo consumption does not silence accepted shots. Reload art/labels are removed.
+Admin projections explicitly report unlimitedAmmo1/reload0 and no capacity.
+
+Prepared battery lifetimes I–VIII are36/42/48/51/54/57/60/63 active seconds,
+previously24/30/36/39/42/45/48/51. Source fire rate, damage, tier multipliers,
+cover/targeting rules, projectile budgets and one-sentry-per-owner stay unchanged.
+No primary weapon's real magazine or reload is modified. Shared catalogue,
+API/admin projections and fixtures match. New normal runs use explicit published
+values; the updated support delta preserves unrelated creator weapon tuning.
+Native/server regressions start from an empty magazine with10s legacy reload,
+then require uninterrupted accepted shots past multiple old magazine boundaries
+for both mounts. Saturation still blocks releases without false fire receipts.
+
+Unlimited-ammo verification: clean analyzer;175 server tests plus module build,
+60 admin tests and release web,23 API tests plus compiled smoke passed. The full
+game run had743 passes/five optional skips and one menu-policy PLAY hit-test
+failure. That test passed in the32-test focused rerun alongside support runtime,
+real native integration and online presentation, with no menu source edits. The
+full run is not reported as clean. Final client build status is in validation.
+
+Final unlimited-ammo client builds passed: Android release APK, game/admin web
+release and unsigned iOS release. Player magazine/reload behavior is unchanged.

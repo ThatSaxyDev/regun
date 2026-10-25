@@ -780,7 +780,7 @@ class GameNotifier extends Notifier<GameState> {
     }
     support.offer = SupportCard(
       family,
-      min(3, (support.tiers[family.name] ?? 0) + 1),
+      min(supportMaxTier, (support.tiers[family.name] ?? 0) + 1),
       mount: weapon == WeaponType.burstRifle ? 'burstRifle' : 'carbine',
     );
     supplyOffer = true;

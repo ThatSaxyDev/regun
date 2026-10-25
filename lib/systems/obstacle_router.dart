@@ -7,6 +7,7 @@ import 'package:regun/systems/arena_geometry.dart';
 /// pursuit uses this before occupancy movement; committed attacks never do.
 class ObstacleRouter {
   final _routes = Expando<_CornerRoute>();
+  final _progress = Expando<_RouteProgress>();
 
   Vector2 steer(
     PositionComponent actor,
@@ -15,6 +16,7 @@ class ObstacleRouter {
     ArenaGeometry geometry, {
     required double radius,
     required double side,
+    double dt = 1 / 60,
   }) {
     if (desired.isZero() || desired.dot(target - actor.position) <= 0) {
       return desired;
@@ -30,9 +32,27 @@ class ObstacleRouter {
     final ahead = actor.position + desired.normalized() * (radius * 2 + 14);
     if (clear(actor.position, destination) && clear(actor.position, ahead)) {
       _routes[actor] = null;
+      _progress[actor] = null;
       return desired;
     }
     var route = _routes[actor];
+    final progress = _progress[actor] ??= _RouteProgress(
+      actor.position.clone(),
+    );
+    progress.hold = (progress.hold - dt).clamp(0.0, 2.0);
+    progress.elapsed += dt.clamp(0.0, .1);
+    if (actor.position.distanceTo(progress.anchor) >= 12) {
+      progress.anchor.setFrom(actor.position);
+      progress.elapsed = 0;
+    } else if (progress.elapsed >= .65 && route != null) {
+      // A static-clear corner can be occupied by living bodies. Prefer another
+      // first corner for two seconds; movement still uses swept occupancy.
+      progress.avoid = route.points[route.index].clone();
+      progress.hold = 2;
+      progress.anchor.setFrom(actor.position);
+      progress.elapsed = 0;
+      route = null;
+    }
     if (route == null ||
         !_sameObstacles(route.obstacles, obstacles) ||
         route.points.last.distanceTo(destination) > radius ||
@@ -45,6 +65,7 @@ class ObstacleRouter {
         radius,
         side,
         clear,
+        progress.hold > 0 ? progress.avoid : null,
       );
       _routes[actor] = route;
     }
@@ -68,6 +89,7 @@ class ObstacleRouter {
     double radius,
     double side,
     bool Function(Vector2, Vector2) clear,
+    Vector2? avoid,
   ) {
     // Clearance beyond the collision expansion lets an actor round a corner
     // without repeatedly rubbing the same face. Include other registered
@@ -119,7 +141,16 @@ class ObstacleRouter {
             !clear(nodes[current], nodes[next])) {
           continue;
         }
-        final cost = distance[current] + nodes[current].distanceTo(nodes[next]);
+        final penalty =
+            current == 0 &&
+                avoid != null &&
+                nodes[next].distanceTo(avoid) < radius + 20
+            ? start.distanceTo(target) + 2 * (radius + 14) + 200
+            : 0.0;
+        final cost =
+            distance[current] +
+            nodes[current].distanceTo(nodes[next]) +
+            penalty;
         if (cost < distance[next]) {
           distance[next] = cost;
           previous[next] = current;
@@ -139,4 +170,11 @@ class _CornerRoute {
   final List<Rect> obstacles;
   final List<Vector2> points;
   int index = 0;
+}
+
+class _RouteProgress {
+  _RouteProgress(this.anchor);
+  final Vector2 anchor;
+  double elapsed = 0, hold = 0;
+  Vector2? avoid;
 }

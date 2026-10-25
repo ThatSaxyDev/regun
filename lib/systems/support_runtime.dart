@@ -21,7 +21,7 @@ class SupportUnit {
       query = 0,
       blocked = 0,
       recoil = 0;
-  int ammo = -1, burst = 0;
+  int ammo = -1, burst = 0, shotsFired = 0;
   String? target;
   bool landed = false, broken = false;
   bool get solid =>
@@ -48,6 +48,7 @@ class SupportUnit {
     'blocked': blocked,
     'recoil': recoil,
     'ammo': ammo,
+    'shotsFired': shotsFired,
     'burst': burst,
     'target': target,
     'landed': landed,
@@ -112,6 +113,11 @@ class SupportUnit {
       throw const FormatException('Negative support clock');
     }
     u.ammo = raw['ammo'] as int;
+    final fired = raw['shotsFired'] ?? 0;
+    if (fired is! int || fired < 0 || fired > 1000000) {
+      throw const FormatException('Invalid support shots');
+    }
+    u.shotsFired = fired;
     u.burst = raw['burst'] as int;
     u.target = raw['target'] as String?;
     u.landed = raw['landed'] == true;
@@ -196,7 +202,7 @@ class SupportRound {
       r['mount'],
       Offset(n('x', 10000), n('y', 10000)),
       d,
-      n('damage', 500),
+      n('damage', 600),
       n('speed', 2000),
       n('range', 2000),
     )..travel = n('travel', 2000);
@@ -442,13 +448,8 @@ class SupportRuntime {
             if (u.elapsed + 1e-8 >= .55) {
               u.phase = 'active';
               u.elapsed = 0;
-              u.ammo = config
-                  .weapon(
-                    u.card.mount,
-                    'capacity',
-                    u.card.mount == 'carbine' ? 24 : 18,
-                  )
-                  .toInt();
+              u.ammo = -1;
+              u.reload = 0;
             }
           case 'active':
             u.life += step;
@@ -518,18 +519,9 @@ class SupportRuntime {
       u.target = target?.id;
       u.blocked = 0;
     }
-    if (u.reload > 0) {
-      u.reload = max(0, u.reload - dt);
-      if (u.reload <= 1e-8) {
-        u.ammo = c
-            .weapon(
-              u.card.mount,
-              'capacity',
-              u.card.mount == 'carbine' ? 24 : 18,
-            )
-            .toInt();
-      }
-    }
+    // Legacy saved magazine/reload values no longer affect this unlimited mount.
+    u.ammo = -1;
+    u.reload = 0;
     if (target == null) return;
     final pivot = u.position + const Offset(0, -42);
     var aim = supportAim(
@@ -545,15 +537,20 @@ class SupportRuntime {
     u.heading += error.clamp(-c.turn * dt, c.turn * dt);
     u.heading = atan2(sin(u.heading), cos(u.heading));
     if (!legal(target) ||
-        u.reload > 0 ||
         u.shot > 1e-8 ||
         (u.card.mount == 'burstRifle' && u.burst == 0 && u.burstWait > 1e-8) ||
         atan2(sin(desired - u.heading), cos(desired - u.heading)).abs() >
             pi / 30) {
       return;
     }
+    // Finish the small firing alignment before releasing a straight round.
+    u.heading = desired;
     final dir = Offset(cos(u.heading), sin(u.heading));
-    final muzzle = u.position + const Offset(0, -42) + dir * 56;
+    final muzzle = supportMuzzle(
+      pivot,
+      dir,
+      all.map((t) => (position: t.position, radius: t.radius)),
+    );
     if (blocked(pivot, muzzle, u) || blocked(muzzle, aim, u)) return;
     final damage =
         c.weapon(
@@ -566,7 +563,7 @@ class SupportRuntime {
       u.shot = .05;
       return;
     }
-    u.ammo--;
+    u.shotsFired++;
     u.recoil = .10;
     cue(u, 'fire');
     if (u.card.mount == 'burstRifle') {
@@ -579,17 +576,6 @@ class SupportRuntime {
       u.shot = .1;
     } else {
       u.shot = c.weapon(u.card.mount, 'cadence', .1);
-    }
-    if (u.ammo <= 0) {
-      u.burst = 0;
-      u.reload =
-          c.weapon(
-            u.card.mount,
-            'reloadMs',
-            u.card.mount == 'carbine' ? 1800 : 2000,
-          ) /
-          1000;
-      cue(u, 'reload');
     }
   }
 }
