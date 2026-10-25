@@ -777,3 +777,8 @@ This supersedes source-linked magazine/reload and earlier shorter sentry lifetim
 contracts. It does not change player weapon reloads. Admin/API previews must show
 unlimited ammunition and zero reload. Verify sustained fire beyond old magazine
 boundaries, pause/Continue, saturation and single expiry blast.
+
+
+### Mummy alert/facing and Aura Salad (25 October)
+
+In damage-off Training, let a crowd surround a stationary survivor. Blocked mummies should settle into a planted alert stance, with subtle torso motion unless Reduced Motion is enabled. Move across their left/right side: living mummies should face you even without foot travel, without rapid mirror jitter near a vertical alignment. When actually within melee range, verify repeated wind-up/release poses; no through-crowd reach was added. Repeat in co-op with the matching server. Confirm Aura Salad labels in rewards, Training and admin; load an existing draft and verify its enabled switch and custom weight survive. Historical revision records may retain the former label.

@@ -22,7 +22,7 @@ The current application identity remains the creator's `1.0.0+22`.
 - Landing and expiry each use one base friendly crush/blast/pressure receipt.
   Other cover applies, players take no damage, and cancellation never detonates.
   Support rounds respect directional ballistic defences without primary perks.
-- Aura Farm follows its owner for a finite lifetime and damages body intersections
+- Aura Salad follows its owner for a finite lifetime and damages body intersections
   on the shared tick. Cover applies, target count is bounded, and overlapping
   allied fields apply the strongest field once with deterministic ownership.
 - Native pause/picker/entrance freeze support clocks. Continue restores phase,
@@ -108,9 +108,9 @@ No impact, refund or allied cancellation occurs.
 
 | Additional scenario | Result |
 | --- | --- |
-| Three clients, Aura Farm, 300ms nominal RTT, ±30ms per direction | Passed natural supply receipt, shared active fields/owner following, wrong room/generation and duplicate rejection, disconnect/reconnect, expiry, retained tiers |
+| Three clients, Aura Salad, 300ms nominal RTT, ±30ms per direction | Passed natural supply receipt, shared active fields/owner following, wrong room/generation and duplicate rejection, disconnect/reconnect, expiry, retained tiers |
 | Three clients, Sentry, 300ms nominal RTT, ±30ms per direction | Passed simultaneous reservations/deployments, replicated physical rounds, scoped rejection, disconnect/reconnect, expiry, retained tiers |
-| Two clients, Aura Farm, 50ms nominal RTT, ±5ms per direction | Passed the same natural-receipt, field ownership and lifecycle checks |
+| Two clients, Aura Salad, 50ms nominal RTT, ±5ms per direction | Passed the same natural-receipt, field ownership and lifecycle checks |
 
 ## Remaining release gates
 

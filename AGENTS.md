@@ -670,7 +670,7 @@ Phone review and matching hosted deployment remain separate from local builds.
 ## Airdrop support feedback and VIII ranks (2026-10-25)
 
 Read `docs/AIRDROP_SUPPORT_IMPLEMENTATION.md` for current support contracts and
-reproduced failures. Sentry Gun/Aura Farm reach VIII, then redeploy VIII; do not put
+reproduced failures. Sentry Gun/Aura Salad reach VIII, then redeploy VIII; do not put
 them into permanent upgrade/fusion slots. Ordinary-only supply hands compete at
 weight 2 against eligible family weights (default 1 each), so defaults give 50%
 support-bearing hands. Training Call airdrop shares this draw; explicit family
@@ -701,3 +701,8 @@ This supersedes source-linked magazine/reload and earlier shorter sentry lifetim
 contracts. It does not change player weapon reloads. Admin/API previews must show
 unlimited ammunition and zero reload. Verify sustained fire beyond old magazine
 boundaries, pause/Continue, saturation and single expiry blast.
+
+
+## Mummy presentation and Aura Salad (2026-10-25)
+
+`MummyWalk` separates distance-driven feet from a blocked alert stance, confirmed player-facing and active-time torso motion. Keep the12-unit facing dead band,150ms confirmation and planted Reduced Motion stance. Native and online strikes use the existing damage clock/optional server strike-age receipt; never manufacture damage or bypass body occupancy to animate a crowd. Aura Salad is the current display name across game/admin/API. Preserve stable `aura`, `support:aura:*`, `support.aura.*` identifiers and exact historical catalogue hashes/labels for saved-run/draft compatibility. Read `docs/MUMMY_PRESENTATION_FIX.md`.

@@ -1,7 +1,7 @@
 # Airdrop crowd routing correction
 
 24 October 2026. This implements the creator's existing-pod bug report; Sentry
-Gun and Aura Farm remain proposals in AIRDROP_EXCLUSIVE_POWERUPS_PLAN.md.
+Gun and Aura Salad remain proposals in AIRDROP_EXCLUSIVE_POWERUPS_PLAN.md.
 
 A reproducible 16-body approach left a flanking pursuer behind the pod. The old
 router tested only the straight line to the player. A clear straight line could

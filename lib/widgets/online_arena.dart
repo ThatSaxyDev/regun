@@ -92,10 +92,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       liveMummies.add(entity.key);
       mummyWalks
           .putIfAbsent(entity.key, MummyWalk.new)
-          .follow(
+          .followSnapshot(
             Offset(entity.x, entity.y),
+            age: entity.number('age'),
             walking: entity.number('phase') == 0,
-            facingX: entity.number('dx', 1),
+            facingX: entity.data['mummyFacingX'] is num
+                ? entity.number('mummyFacingX')
+                : null,
           );
     }
     mummyWalks.removeWhere((key, _) => !liveMummies.contains(key));

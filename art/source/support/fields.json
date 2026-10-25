@@ -131,7 +131,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "enabled",
     "Enabled",
     0,
@@ -141,7 +141,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "weight",
     "Offer weight (ordinary-only hand: 2)",
     1,
@@ -151,7 +151,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "tick",
     "Tick seconds",
     0.25,
@@ -161,7 +161,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "targets",
     "Targets per tick",
     12,
@@ -171,7 +171,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "life1",
     "I lifetime seconds",
     18,
@@ -181,7 +181,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "life2",
     "II lifetime seconds",
     22,
@@ -191,7 +191,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "life3",
     "III lifetime seconds",
     26,
@@ -201,7 +201,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "radius1",
     "I radius",
     155,
@@ -211,7 +211,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "radius2",
     "II radius",
     165,
@@ -221,7 +221,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "radius3",
     "III radius",
     175,
@@ -231,7 +231,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "damage1",
     "I damage per tick",
     0.375,
@@ -241,7 +241,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "damage2",
     "II damage per tick",
     0.46875,
@@ -251,7 +251,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "damage3",
     "III damage per tick",
     0.5625,
@@ -361,7 +361,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "life4",
     "IV lifetime seconds",
     28,
@@ -371,7 +371,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "life5",
     "V lifetime seconds",
     30,
@@ -381,7 +381,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "life6",
     "VI lifetime seconds",
     32,
@@ -391,7 +391,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "life7",
     "VII lifetime seconds",
     34,
@@ -401,7 +401,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "life8",
     "VIII lifetime seconds",
     36,
@@ -411,7 +411,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "radius4",
     "IV radius",
     180,
@@ -421,7 +421,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "radius5",
     "V radius",
     185,
@@ -431,7 +431,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "radius6",
     "VI radius",
     190,
@@ -441,7 +441,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "radius7",
     "VII radius",
     195,
@@ -451,7 +451,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "radius8",
     "VIII radius",
     200,
@@ -461,7 +461,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "damage4",
     "IV damage per tick",
     0.609375,
@@ -471,7 +471,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "damage5",
     "V damage per tick",
     0.65625,
@@ -481,7 +481,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "damage6",
     "VI damage per tick",
     0.703125,
@@ -491,7 +491,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "damage7",
     "VII damage per tick",
     0.75,
@@ -501,7 +501,7 @@
   ],
   [
     "aura",
-    "Aura Farm",
+    "Aura Salad",
     "damage8",
     "VIII damage per tick",
     0.796875,

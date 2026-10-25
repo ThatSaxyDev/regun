@@ -23,7 +23,7 @@ class SupportCard {
   final String mount;
   String get id =>
       'support:${family.name}:$tier:${family == SupportFamily.sentry ? mount : 'field'}';
-  String get title => family == SupportFamily.aura ? 'Aura Farm' : 'Sentry Gun';
+  String get title => family == SupportFamily.aura ? 'Aura Salad' : 'Sentry Gun';
   String get rankLabel => supportTierLabels[tier];
   String description(Map<String, num> values) {
     final c = SupportConfig(values);

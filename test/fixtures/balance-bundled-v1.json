@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "catalogId": "2c9da80e837eb8504bbe76f0b237d5fdb8022c69582e24047523bb19f42fd478",
+  "catalogId": "f0fa922dbe6a1aab915e5316349004e3926363d4fcf8778d7df9bd6be8e1d678",
   "revision": 0,
-  "hash": "53a4782d81396020cd8c82192d237b7589d7689a753b3de2b5c691fd6f72745a",
+  "hash": "e0a3aae5ef4a323b16ae47c53c6eafd109b751fa1fc8957335cc0d5e7fe9a499",
   "values": {
     "weapons.shotgun.damage": 1.7,
     "weapons.shotgun.capacity": 5,

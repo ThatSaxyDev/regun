@@ -948,7 +948,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 ClickButton(
                   text: family == SupportFamily.sentry
                       ? 'Sentry practice'
-                      : 'Aura practice',
+                      : 'Aura Salad practice',
                   width: 200,
                   height: 48,
                   onTap:

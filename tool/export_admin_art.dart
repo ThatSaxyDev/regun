@@ -228,7 +228,7 @@ void main() {
         await export(
           'support',
           family.name,
-          family == SupportFamily.sentry ? 'Sentry Gun' : 'Aura Farm',
+          family == SupportFamily.sentry ? 'Sentry Gun' : 'Aura Salad',
           const ui.Size(200, 200),
           (canvas) {
             final unit = SupportUnit(

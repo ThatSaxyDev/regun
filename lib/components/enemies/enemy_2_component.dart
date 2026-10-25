@@ -3,6 +3,8 @@ import 'package:regun/data/enemies.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
+import 'dart:ui';
+
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:regun/presentation/regun_art.dart';
@@ -28,6 +30,8 @@ class Enemy2Component extends SpriteAnimationComponent
   bool isDying = false;
   double _deathElapsed = 0;
   final walk = MummyWalk();
+  late SpriteAnimation blockedAnimation;
+  bool _hasStruck = false;
 
   double attackInterval = 0.6; // Time between health reductions in seconds
   double timeSinceLastAttack = 0.0; // Timer to track the interval
@@ -63,6 +67,9 @@ class Enemy2Component extends SpriteAnimationComponent
       row: 1,
       count: 1,
     );
+    blockedAnimation = SpriteAnimation.spriteList([
+      RegunArt.shared.sprite('enemies/mummy', 4),
+    ], stepTime: 1);
     animation = moveRightAnimation;
     add(
       CircleHitbox(
@@ -91,64 +98,68 @@ class Enemy2Component extends SpriteAnimationComponent
     }
 
     if (freezeHeld || impactHeld) return;
-    //! PLAYER POSITION
     final playerPosition = game.myPlayer.position;
-
-    //! DIRECTION VECTOR FROM THE ENEMY TO THE PLAYER
     final direction = game.enemyIntent(this, EnemyKind.mummy);
-
-    //! CALCULATE DISTANCE BETWEEN ENEMY AND PLAYER
     final distanceToPlayer = (playerPosition - position).length;
-
-    //! DEFINE A MINIMUM DISTANCE TO STOP BEFORE TOUCHING THE PLAYER
-    final minimumDistance = PlayerHurtGeometry.reach(
-      40,
-    ); // Adjust this value as needed
-
-    //! MOVE ENEMY TOWARDS PLAYER IF IT'S FARTHER THAN THE MINIMUM DISTANCE
+    final minimumDistance = PlayerHurtGeometry.reach(40);
     if (distanceToPlayer > minimumDistance) {
       isAttacking = false;
-      timeSinceLastAttack = 0.0; // Reset the attack timer
-      const speed = 90;
-      walk.follow(position.toOffset(), walking: false);
-      game.moveActor(this, direction, speed.toDouble(), dt);
-      walk.follow(position.toOffset(), walking: true);
-      if (isFlippedHorizontally != walk.left) flipHorizontallyAroundCenter();
-
-      // Set move animation if not attacking
-      if (playerPosition.x > position.x) {
-        animation = moveRightAnimation;
-      } else {
-        animation = moveLeftAnimation;
-      }
+      _hasStruck = false;
+      timeSinceLastAttack = 0;
+      walk.follow(position.toOffset(), walking: false, dt: 0);
+      game.moveActor(this, direction, 90, dt);
+      walk.follow(
+        position.toOffset(),
+        walking: true,
+        facingX: playerPosition.x - position.x,
+        dt: dt,
+      );
+      animation = walk.blocked ? blockedAnimation : moveRightAnimation;
       playing = false;
-      animationTicker!.currentIndex = walk.frame;
+      animationTicker!.currentIndex = walk.blocked ? 0 : walk.frame;
     } else {
       isAttacking = true;
-      playing = true;
-      final facingLeft = playerPosition.x < position.x;
-      if (isFlippedHorizontally != facingLeft) flipHorizontallyAroundCenter();
-
-      // Reduce health at regular intervals
+      walk.follow(
+        position.toOffset(),
+        walking: false,
+        facingX: playerPosition.x - position.x,
+        dt: dt,
+      );
       timeSinceLastAttack += dt;
       if (timeSinceLastAttack >= attackInterval &&
           !game.segmentBlocked(position, playerPosition)) {
-        timeSinceLastAttack = 0.0;
+        timeSinceLastAttack = 0;
+        _hasStruck = true;
         game.damagePlayer(cause: 'Mummy strike');
       }
-
-      // Set attack animation
-      if (playerPosition.x > position.x) {
-        animation = attackRightAnimation;
-      } else {
-        animation = attackLeftAnimation;
-      }
+      animation = attackRightAnimation;
+      playing = false;
+      animationTicker!.currentIndex =
+          MummyWalk.attackFrame(timeSinceLastAttack, hasStruck: _hasStruck) - 5;
     }
+    if (isFlippedHorizontally != walk.left) flipHorizontallyAroundCenter();
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final stance = !isDying && walk.blocked && !freezeHeld && !impactHeld;
+    if (stance) {
+      canvas.save();
+      canvas.translate(size.x * .5, size.y * .88);
+      canvas.scale(
+        1,
+        walk.stanceScale(reducedMotion: game.preferences.reducedMotion),
+      );
+      canvas.translate(-size.x * .5, -size.y * .88);
+    }
+    super.render(canvas);
+    if (stance) canvas.restore();
   }
 
   @override
   void onFreezeStarted() {
     isAttacking = false;
+    _hasStruck = false;
     timeSinceLastAttack = 0;
     animation = moveRightAnimation;
     playing = false;

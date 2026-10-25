@@ -412,6 +412,14 @@ class OnlineWorldArt {
           ? 0
           : (4 + (clock * 7).floor() % 4);
       if (kind == 'marshal' && bphase == 'active') frame = 10;
+    } else if (kind == 'mummy' && phase == 1) {
+      final strikeAt = d['mummyStrikeAt'];
+      frame = strikeAt is num
+          ? MummyWalk.attackFrame(
+              clock - strikeAt.toDouble(),
+              hasStruck: clock >= strikeAt,
+            )
+          : (entity.number('phaseTime') < .46 ? 5 : 6);
     } else {
       frame = phase == 1
           ? 5
@@ -434,13 +442,14 @@ class OnlineWorldArt {
     }
     canvas.save();
     canvas.translate(p.dx, p.dy);
-    final facingLeft =
-        !dead && kind == 'mummy' && phase == 0 && mummyWalk != null
+    final facingLeft = !dead && kind == 'mummy' && mummyWalk != null
         ? mummyWalk.left
         : entity.number('dx', 1) < 0;
     if (kind != 'burster' && facingLeft) canvas.scale(-1, 1);
     final sprite = !dead && kind == 'mummy' && phase == 0
-        ? art.sprite('enemies/mummy_walk', mummyWalk?.frame ?? 0)
+        ? (mummyWalk?.blocked == true
+              ? art.sprite('enemies/mummy', 4)
+              : art.sprite('enemies/mummy_walk', mummyWalk?.frame ?? 0))
         : !dead && kind == 'burster' && phase == 0
         ? art.sprite(
             'enemies/burster_walk',
@@ -452,6 +461,14 @@ class OnlineWorldArt {
         : dead && kind == 'ranged'
         ? art.rawSprite('enemies/ranged_remains', 0)
         : art.sprite(name, frame);
+    final mummyStance =
+        !dead && kind == 'mummy' && phase == 0 && mummyWalk?.blocked == true;
+    if (mummyStance) {
+      canvas.save();
+      canvas.translate(0, size * .38);
+      canvas.scale(1, mummyWalk!.stanceScale(reducedMotion: reducedMotion));
+      canvas.translate(0, -size * .38);
+    }
     if (!aimedMarshal) {
       sprite.render(
         canvas,
@@ -471,6 +488,7 @@ class OnlineWorldArt {
           ),
       );
     }
+    if (mummyStance) canvas.restore();
     canvas.restore();
     if (!dead &&
         (boss || entity.number('health') < entity.number('maximumHealth', 1))) {

@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-25",
+  "release": "1.0.0+22",
+  "scope": [
+    "mummy stationary alert pose and target facing",
+    "mummy native/online strike presentation",
+    "Aura Salad display-name migration"
+  ],
+  "checks": {
+    "gameAnalyzer": "pass",
+    "gameFullSuite": {
+      "passed": 748,
+      "optionalSkipped": 5,
+      "note": "Run after mummy changes; final naming/migration changes additionally covered by focused checks."
+    },
+    "gameFinalFocused": {
+      "passed": 27,
+      "failed": 0
+    },
+    "server": {
+      "passed": 176,
+      "moduleBuild": "pass"
+    },
+    "identity": {
+      "passed": 23,
+      "compiledSmoke": "pass"
+    },
+    "admin": {
+      "passed": 61,
+      "analyzer": "pass",
+      "webRelease": "pass"
+    },
+    "gameBuilds": {
+      "androidRelease": "pass",
+      "webRelease": "pass",
+      "iosUnsignedRelease": "pass"
+    }
+  },
+  "rename": {
+    "catalogId": "f0fa922dbe6a1aab915e5316349004e3926363d4fcf8778d7df9bd6be8e1d678",
+    "fields": 365,
+    "numericChanges": 0,
+    "stableFamily": "aura",
+    "stableRewardId": "support:aura:8:field",
+    "stableEnableKey": "support.aura.enabled",
+    "oldPinnedSnapshotRestored": true,
+    "oldDraftToggleWeightAndHistoryRetained": true,
+    "publishedConfigurationModified": false
+  },
+  "crowdRegression": {
+    "actors": 36,
+    "mummies": 24,
+    "scorpions": 12,
+    "durationSeconds": 40,
+    "measurementSeconds": 10,
+    "zeroTravelMummies": 17,
+    "maximumMirrorChangesBefore": 310,
+    "maximumMirrorChangesAfter": 0,
+    "movementUnchanged": true
+  },
+  "handsOnAcceptance": "Visual comfort and live multiplayer presentation remain for player review."
+}

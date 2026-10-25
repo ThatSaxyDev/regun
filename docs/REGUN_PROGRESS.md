@@ -1619,7 +1619,7 @@ publication, installation or physical acceptance is implied.
 
 ## Airdrop-only reward proposal and existing cover correction — 24 October 2026
 
-Sentry Gun and Aura Farm are planned only in
+Sentry Gun and Aura Salad are planned only in
 [AIRDROP_EXCLUSIVE_POWERUPS_PLAN.md](AIRDROP_EXCLUSIVE_POWERUPS_PLAN.md). The
 sentry proposal includes an incoming countdown with movement-based placement,
 followed by a committed landing warning; both families use finite I–III versions
@@ -1654,7 +1654,7 @@ is implied. Phone visibility/comfort and difficulty remain for review.
 
 ## 25 October 2026 — airdrop support implementation candidate
 
-Sentry Gun and Aura Farm now have temporary supply-only I–III contracts, distinct
+Sentry Gun and Aura Salad now have temporary supply-only I–III contracts, distinct
 authored mounted-gun/chassis/field art, bounded audio, native/checkpoint lifecycle,
 authoritative co-op simulation and admin/API projections. Sentry commits to one
 legal target and falls back after a continuous one-second reachability failure.
@@ -1721,3 +1721,8 @@ This supersedes source-linked magazine/reload and earlier shorter sentry lifetim
 contracts. It does not change player weapon reloads. Admin/API previews must show
 unlimited ammunition and zero reload. Verify sustained fire beyond old magazine
 boundaries, pause/Continue, saturation and single expiry blast.
+
+
+## 25 October: mummy alert/facing and Aura Salad naming
+
+Blocked mummies now select a planted living alert pose and face the player through a stable target-facing rule. Native/co-op melee release poses follow the existing strike clock. The 36-actor reproduction reduced the worst mirror jitter from310 flips to0 without changing travel, occupancy or combat balance. Aura Salad is the current game/admin/API name; stable aura keys and retained catalogue history preserve toggles, drafts and saves. See [MUMMY_PRESENTATION_FIX.md](MUMMY_PRESENTATION_FIX.md) for evidence and compatibility details.

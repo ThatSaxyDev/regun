@@ -1,3 +1,5 @@
+import 'package:regun/systems/support_rewards.dart';
+
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
@@ -14,6 +16,42 @@ import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/services/balance_repository.dart';
 
 void main() {
+  test(
+    'Aura Salad display rename retains old pinned snapshots and identifiers',
+    () {
+      final old = (LiveBalance.catalog['previousCatalogs'] as List)
+          .cast<Map>()
+          .firstWhere(
+            (c) =>
+                (c['fields'] as List).length ==
+                    LiveBalance.bundled.values.length &&
+                (c['fields'] as List).any((f) => f['item'] == 'Aura Farm'),
+          );
+      final id = old['catalogId'] as String;
+      final values = LiveBalance.validate(<String, num>{
+        for (final f in old['fields'] as List)
+          f['id'] as String: f['value'] as num,
+      }, documentCatalogId: id);
+      values['support.aura.enabled'] = 1;
+      values['support.aura.weight'] = 1.7;
+      final saved = {
+        'schema': 1,
+        'catalogId': id,
+        'revision': 12,
+        'values': values,
+        'hash': LiveBalance.digest(values, documentCatalogId: id),
+      };
+      final restored = LiveBalance.fromJson(saved);
+      expect(restored.toJson(), saved);
+      expect(restored.values['support.aura.enabled'], 1);
+      expect(restored.values['support.aura.weight'], 1.7);
+      expect(const SupportCard(SupportFamily.aura, 8).title, 'Aura Salad');
+      expect(
+        SupportCard.read('support:aura:8:field')!.id,
+        'support:aura:8:field',
+      );
+    },
+  );
   setUp(() => SharedPreferences.setMockInitialValues({}));
   LiveBalance changed(int revision, num damage) =>
       LiveBalance.create(revision, {

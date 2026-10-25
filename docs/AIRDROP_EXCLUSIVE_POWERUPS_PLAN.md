@@ -1,4 +1,4 @@
-# Airdrop-only rewards: Sentry Gun and Aura Farm
+# Airdrop-only rewards: Sentry Gun and Aura Salad
 
 24 October 2026 design; implementation authorized by the creator on 25 October.
 The local native/web, server/API and admin implementation is now present. Normal
@@ -12,7 +12,7 @@ status is reported separately so proposed checks are not mistaken for evidence.
 ## Intended experience
 
 An airdrop can grant a short-lived battlefield advantage that ordinary XP cannot
-buy. Sentry Gun anchors a position with automatic ballistic fire. Aura Farm moves
+buy. Sentry Gun anchors a position with automatic ballistic fire. Aura Salad moves
 with the survivor and damages enemies that approach. Both create a meaningful
 window of power and then expire; neither replaces the player's primary weapon.
 They coexist with permanent upgrades, including Orbit Drone.
@@ -79,7 +79,7 @@ Recommended first version:
    hands; half offer three ordinary upgrades. A support hand retains two
    ordinary upgrades. XP/fusion menus never draw these rewards. Enablement does
    not guarantee a support card.
-2. Roll Sentry Gun or Aura Farm with equal initial family weight. Use recent-offer
+2. Roll Sentry Gun or Aura Salad with equal initial family weight. Use recent-offer
    suppression to reduce repetition. Sentry has Carbine and Burst variants; roll
    the mount inside the selected family, so two mounts do not double its odds.
    The actual card states the mount, tier, lifetime and damage BEFORE selection.
@@ -88,7 +88,7 @@ Recommended first version:
    selection deploys I; later selections advance through VIII. At VIII a later
    pickup deploys VIII again, clearly labelled **Deploy again**, without increasing
    rank. There is never a permanent damage field left running after expiry.
-4. One incoming/live sentry and one active Aura Farm per owner. The same family
+4. One incoming/live sentry and one active Aura Salad per owner. The same family
    is ineligible while incoming, deploying, active or breaking. No stacking,
    replacement explosion or duration refresh through repeated selection. Both
    families may coexist. Repeated tier-III deployment remains useful after expiry.
@@ -310,7 +310,7 @@ modifier behavior. Explicit profile arguments must make this distinction testabl
 do not change pod balance as a side effect of extracting the helper. Attribute
 these hits to sentry landing/breakup rather than the generic grenade source.
 
-## Aura Farm
+## Aura Salad
 
 Selecting it starts a short .35s readable activation around the survivor, then a
 finite moving damage field. No falling pod, second capture or explosion is added
