@@ -1,0 +1,469 @@
+{
+  "date": "2026-10-25",
+  "version": "1.0.0+23",
+  "fixes": [
+    "Native round removal uses actual cover contact, never Float32 step-length differences",
+    "Unobstructed range accounting uses double planned travel",
+    "Native/co-op sentry target sight includes the same five-unit clearance as round flight"
+  ],
+  "before": {
+    "carbine": {
+      "premature": [
+        {
+          "from": [
+            514.3334350585938,
+            258.0
+          ],
+          "to": [
+            530.166748046875,
+            258.0
+          ],
+          "travel": 174.166748046875,
+          "range": 650.0,
+          "plannedStep": 15.833333015441895,
+          "actualStep": 15.83331298828125,
+          "difference": 2.002716064453125e-05
+        },
+        {
+          "from": [
+            514.3334350585938,
+            258.0
+          ],
+          "to": [
+            530.166748046875,
+            258.0
+          ],
+          "travel": 174.166748046875,
+          "range": 650.0,
+          "plannedStep": 15.833333015441895,
+          "actualStep": 15.83331298828125,
+          "difference": 2.002716064453125e-05
+        },
+        {
+          "from": [
+            514.3334350585938,
+            258.0
+          ],
+          "to": [
+            530.166748046875,
+            258.0
+          ],
+          "travel": 174.166748046875,
+          "range": 650.0,
+          "plannedStep": 15.833333015441895,
+          "actualStep": 15.83331298828125,
+          "difference": 2.002716064453125e-05
+        }
+      ],
+      "metrics": {},
+      "heading": 0.0,
+      "solids": [
+        "Rect.fromLTRB(265.0, 256.0, 335.0, 300.0)"
+      ],
+      "live": [
+        {
+          "id": 1,
+          "at": [
+            630.0,
+            258.0
+          ],
+          "hp": 1000.0
+        }
+      ],
+      "sentryAt": [
+        300.0,
+        300.0
+      ],
+      "targetAt": [
+        630.0,
+        258.0
+      ],
+      "shots": 15,
+      "damage": 0.0,
+      "firstDamageSeconds": null,
+      "firstShotSeconds": 6.566666666666666,
+      "activeSeconds": 6.55,
+      "targetLineBlocked": false,
+      "contactX": [
+        530.166748046875,
+        530.166748046875,
+        530.166748046875,
+        530.166748046875,
+        530.166748046875,
+        530.166748046875,
+        530.166748046875,
+        530.166748046875
+      ],
+      "retainedTarget": "1",
+      "blockedTimer": 0.0
+    },
+    "burstRifle": {
+      "premature": [
+        {
+          "from": [
+            502.666748046875,
+            258.0
+          ],
+          "to": [
+            521.0000610351562,
+            258.0
+          ],
+          "travel": 165.00006103515625,
+          "range": 700.0,
+          "plannedStep": 18.33333396911621,
+          "actualStep": 18.33331298828125,
+          "difference": 2.09808349609375e-05
+        },
+        {
+          "from": [
+            502.666748046875,
+            258.0
+          ],
+          "to": [
+            521.0000610351562,
+            258.0
+          ],
+          "travel": 165.00006103515625,
+          "range": 700.0,
+          "plannedStep": 18.33333396911621,
+          "actualStep": 18.33331298828125,
+          "difference": 2.09808349609375e-05
+        },
+        {
+          "from": [
+            502.666748046875,
+            258.0
+          ],
+          "to": [
+            521.0000610351562,
+            258.0
+          ],
+          "travel": 165.00006103515625,
+          "range": 700.0,
+          "plannedStep": 18.33333396911621,
+          "actualStep": 18.33331298828125,
+          "difference": 2.09808349609375e-05
+        }
+      ],
+      "metrics": {},
+      "heading": 0.0,
+      "solids": [
+        "Rect.fromLTRB(265.0, 256.0, 335.0, 300.0)"
+      ],
+      "live": [
+        {
+          "id": 1,
+          "at": [
+            630.0,
+            258.0
+          ],
+          "hp": 1000.0
+        }
+      ],
+      "sentryAt": [
+        300.0,
+        300.0
+      ],
+      "targetAt": [
+        630.0,
+        258.0
+      ],
+      "shots": 9,
+      "damage": 0.0,
+      "firstDamageSeconds": null,
+      "firstShotSeconds": 6.566666666666666,
+      "activeSeconds": 6.55,
+      "targetLineBlocked": false,
+      "contactX": [
+        521.0000610351562,
+        521.0000610351562,
+        521.0000610351562,
+        521.0000610351562,
+        521.0000610351562,
+        521.0000610351562,
+        521.0000610351562
+      ],
+      "retainedTarget": "1",
+      "blockedTimer": 0.0
+    }
+  },
+  "after": {
+    "freshDropScenarios": [
+      {
+        "mount": "carbine",
+        "hz": 30,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.0,
+        "shots": 15,
+        "damage": 34.50339371084374,
+        "firstHitAfterActivation": 0.3000000000000007
+      },
+      {
+        "mount": "carbine",
+        "hz": 30,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.6,
+        "shots": 14,
+        "damage": 31.62810917086523,
+        "firstHitAfterActivation": 0.36666666666666714
+      },
+      {
+        "mount": "carbine",
+        "hz": 30,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.0,
+        "shots": 15,
+        "damage": 34.50339371084374,
+        "firstHitAfterActivation": 0.3000000000000007
+      },
+      {
+        "mount": "carbine",
+        "hz": 30,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.6,
+        "shots": 14,
+        "damage": 31.628111231573726,
+        "firstHitAfterActivation": 0.36666666666666714
+      },
+      {
+        "mount": "carbine",
+        "hz": 60,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.0,
+        "shots": 15,
+        "damage": 34.503392944098096,
+        "firstHitAfterActivation": 0.2999999999999998
+      },
+      {
+        "mount": "carbine",
+        "hz": 60,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.6,
+        "shots": 14,
+        "damage": 31.62811092935752,
+        "firstHitAfterActivation": 0.38333333333333375
+      },
+      {
+        "mount": "carbine",
+        "hz": 60,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.0,
+        "shots": 15,
+        "damage": 34.50339217735228,
+        "firstHitAfterActivation": 0.2999999999999998
+      },
+      {
+        "mount": "carbine",
+        "hz": 60,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.6,
+        "shots": 14,
+        "damage": 31.628111417829544,
+        "firstHitAfterActivation": 0.38333333333333375
+      },
+      {
+        "mount": "carbine",
+        "hz": 120,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.0,
+        "shots": 15,
+        "damage": 34.50339371084374,
+        "firstHitAfterActivation": 0.2833333333333332
+      },
+      {
+        "mount": "carbine",
+        "hz": 120,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.6,
+        "shots": 14,
+        "damage": 31.628112666616005,
+        "firstHitAfterActivation": 0.375
+      },
+      {
+        "mount": "carbine",
+        "hz": 120,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.0,
+        "shots": 15,
+        "damage": 34.50339524433451,
+        "firstHitAfterActivation": 0.2833333333333332
+      },
+      {
+        "mount": "carbine",
+        "hz": 120,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.6,
+        "shots": 14,
+        "damage": 31.628117508743443,
+        "firstHitAfterActivation": 0.375
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 30,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.0,
+        "shots": 9,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.2666666666666666
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 30,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.6,
+        "shots": 8,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.3333333333333339
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 30,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.0,
+        "shots": 9,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.2666666666666666
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 30,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.6,
+        "shots": 8,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.3333333333333339
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 60,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.0,
+        "shots": 9,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.2666666666666666
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 60,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.6,
+        "shots": 8,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.35000000000000053
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 60,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.0,
+        "shots": 9,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.2666666666666666
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 60,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.6,
+        "shots": 8,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.35000000000000053
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 120,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.0,
+        "shots": 9,
+        "damage": 26.25,
+        "firstHitAfterActivation": 0.25
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 120,
+        "x": 300.0,
+        "y": 300.0,
+        "heading": 0.6,
+        "shots": 8,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.3416666666666668
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 120,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.0,
+        "shots": 9,
+        "damage": 26.25,
+        "firstHitAfterActivation": 0.25
+      },
+      {
+        "mount": "burstRifle",
+        "hz": 120,
+        "x": -700.0,
+        "y": -600.0,
+        "heading": 0.6,
+        "shots": 8,
+        "damage": 22.5,
+        "firstHitAfterActivation": 0.3416666666666668
+      }
+    ],
+    "actualWalkingEnemyScenarios": 12,
+    "frameRates": [
+      30,
+      60,
+      120
+    ],
+    "coverAndRangeRegression": "passed for both mounts"
+  },
+  "validation": {
+    "focusedNativeTests": 27,
+    "serverTests": 177,
+    "serverModuleBuild": "passed",
+    "fullGameSuite": {
+      "passed": 752,
+      "optionalSkipped": 5
+    },
+    "releaseBuilds": {
+      "androidAPK": "passed",
+      "web": "passed",
+      "iosUnsigned": "passed"
+    },
+    "gameAnalyzer": "passed"
+  },
+  "preserved": [
+    "damage",
+    "cadence",
+    "range",
+    "speed",
+    "unlimited ammunition",
+    "target commitment until death or sustained illegal shot",
+    "body occupancy",
+    "wall cover",
+    "rank and save contracts",
+    "admin/published tuning"
+  ],
+  "acceptance": "Automated gameplay tests do not prove physical-device comfort or live co-op acceptance."
+}

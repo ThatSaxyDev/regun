@@ -1726,3 +1726,8 @@ boundaries, pause/Continue, saturation and single expiry blast.
 ## 25 October: mummy alert/facing and Aura Salad naming
 
 Blocked mummies now select a planted living alert pose and face the player through a stable target-facing rule. Native/co-op melee release poses follow the existing strike clock. The 36-actor reproduction reduced the worst mirror jitter from310 flips to0 without changing travel, occupancy or combat balance. Aura Salad is the current game/admin/API name; stable aura keys and retained catalogue history preserve toggles, drafts and saves. See [MUMMY_PRESENTATION_FIX.md](MUMMY_PRESENTATION_FIX.md) for evidence and compatibility details.
+
+
+## 25 October: sentry premature-round removal
+
+Native sentry flight now records actual cover contact instead of treating Float32 movement rounding as a wall. Open-flight range remains double precision. Native/co-op target sight uses the same five-unit clearance as its rounds, avoiding endless pod-edge fire. Fresh-drop, actual walking-enemy, cover, retargeting and range regressions preserve damage/cadence/ammunition and occupancy. See [SENTRY_FLIGHT_CORRECTION.md](SENTRY_FLIGHT_CORRECTION.md).

@@ -71,12 +71,16 @@ class SupportNative {
   PositionComponent? actor(String id) => game.liveEnemies
       .where((e) => '${(e as CombatEnemy).combatId}' == id)
       .firstOrNull;
-  bool blocked(Offset a, Offset b, SupportUnit? self) => game.geometry.solids
-      .where((r) => self == null || r != self.footprint)
-      .any(
-        (r) =>
-            ArenaGeometry.crosses(Vector2(a.dx, a.dy), Vector2(b.dx, b.dy), r),
-      );
+  bool blocked(Offset a, Offset b, SupportUnit? self, {double clearance = 0}) =>
+      game.geometry.solids
+          .where((r) => self == null || r != self.footprint)
+          .any(
+            (r) => ArenaGeometry.crosses(
+              Vector2(a.dx, a.dy),
+              Vector2(b.dx, b.dy),
+              r.inflate(clearance),
+            ),
+          );
   Offset? place(Offset p, SupportUnit unit) {
     for (var i = 0; i < 32; i++) {
       final ring = i == 0 ? 0 : 1 + (i - 1) ~/ 8;
@@ -215,7 +219,9 @@ class SupportNative {
       config: config,
       targets: () => sampled,
       place: place,
-      blocked: blocked,
+      // A gun's legal shot uses its round width. Aura/blast sight stays unchanged.
+      blocked: (a, b, self) =>
+          blocked(a, b, self, clearance: self == null ? 0 : 5),
       impact: impact,
       release: (u, p, d, damage) {
         if (runtime.rounds.length >= 8 ||
@@ -264,10 +270,12 @@ class SupportNative {
     );
     // Physical rounds own no primary procs, homing, ricochets or knockback.
     for (final r in runtime.rounds.toList()) {
+      final flight = min(
+        r.speed * max(0, min(dt, .5) - r.delay),
+        r.range - r.travel,
+      );
       final before = Vector2(r.position.dx, r.position.dy),
-          delta =
-              Vector2(r.direction.dx, r.direction.dy) *
-              min(r.speed * max(0, min(dt, .5) - r.delay), r.range - r.travel);
+          delta = Vector2(r.direction.dx, r.direction.dy) * flight;
       r.delay = 0;
       var end = before + delta;
       final own = runtime.units.where((u) => u.serial == r.serial).firstOrNull;
@@ -277,7 +285,8 @@ class SupportNative {
           .toList();
       bool blockedFlight(Vector2 a, Vector2 b) =>
           cover.any((rect) => ArenaGeometry.crosses(a, b, rect));
-      if (blockedFlight(before, end)) {
+      final hitCover = blockedFlight(before, end);
+      if (hitCover) {
         var low = 0.0, high = 1.0;
         for (var i = 0; i < 16; i++) {
           final middle = (low + high) / 2;
@@ -347,9 +356,11 @@ class SupportNative {
         continue;
       }
       r.position = end.toOffset();
-      r.travel += (end - before).length;
+      // Vector2 stores Float32 coordinates. Rounding can shorten an unobstructed
+      // step; it is never evidence of a wall. Keep open-flight range in doubles.
+      r.travel += hitCover ? (end - before).length : flight;
       if (r.travel + 1e-6 >= r.range ||
-          (end - before).length + 1e-5 < delta.length ||
+          hitCover ||
           !game.map.bounds.floor.contains(r.position)) {
         _trace(before.toOffset(), end.toOffset(), r.direction);
         runtime.rounds.remove(r);

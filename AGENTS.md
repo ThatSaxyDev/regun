@@ -706,3 +706,8 @@ boundaries, pause/Continue, saturation and single expiry blast.
 ## Mummy presentation and Aura Salad (2026-10-25)
 
 `MummyWalk` separates distance-driven feet from a blocked alert stance, confirmed player-facing and active-time torso motion. Keep the12-unit facing dead band,150ms confirmation and planted Reduced Motion stance. Native and online strikes use the existing damage clock/optional server strike-age receipt; never manufacture damage or bypass body occupancy to animate a crowd. Aura Salad is the current display name across game/admin/API. Preserve stable `aura`, `support:aura:*`, `support.aura.*` identifiers and exact historical catalogue hashes/labels for saved-run/draft compatibility. Read `docs/MUMMY_PRESENTATION_FIX.md`.
+
+
+## Sentry flight reliability (2026-10-25)
+
+Never infer native sentry wall contact from requested-versus-measured Vector2 travel: Float32 coordinate rounding caused premature round deletion. Preserve explicit swept cover contact and double open-flight range accounting. Native/co-op sentry target/muzzle/lead sight must use the same five-unit cover clearance as flight; aura/blast sight stays unchanged. Keep straight released rounds, normal cadence, unlimited ammo and target commitment. `test/sentry_flight_test.dart` covers complete fresh drops, actual walking enemies, retargeting and real wall/range stops. Read docs/SENTRY_FLIGHT_CORRECTION.md.

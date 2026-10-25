@@ -782,3 +782,8 @@ boundaries, pause/Continue, saturation and single expiry blast.
 ### Mummy alert/facing and Aura Salad (25 October)
 
 In damage-off Training, let a crowd surround a stationary survivor. Blocked mummies should settle into a planted alert stance, with subtle torso motion unless Reduced Motion is enabled. Move across their left/right side: living mummies should face you even without foot travel, without rapid mirror jitter near a vertical alignment. When actually within melee range, verify repeated wind-up/release poses; no through-crowd reach was added. Repeat in co-op with the matching server. Confirm Aura Salad labels in rewards, Training and admin; load an existing draft and verify its enabled switch and custom weight survive. Historical revision records may retain the former label.
+
+
+### Sentry first-shot reliability (25 October)
+
+Test both Carbine and three-round mounts from a fresh Training drop. Stand at different arena positions and let scorpions/mummies walk across and away from the gun. Rounds should reach bodies and reduce health without an extra warm-up after firing starts. Repeat beside a supply pod/Foundry cover edge: blocked lanes must not consume endless rounds against an unreachable locked target; clear targets remain eligible. Cover still stops actual projectiles. Repeat in co-op with the matching server. Keep existing unlimited-ammo, pause/Continue and expiry checks. Automated evidence is in SENTRY_FLIGHT_CORRECTION.md.

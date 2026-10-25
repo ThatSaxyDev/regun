@@ -231,14 +231,20 @@ void main() {
           family == SupportFamily.sentry ? 'Sentry Gun' : 'Aura Salad',
           const ui.Size(200, 200),
           (canvas) {
-            final unit = SupportUnit(
-              SupportCard(family, 1),
-              1,
-              const ui.Offset(75, 155),
-            )..phase = 'active';
+            final unit =
+                SupportUnit(
+                    SupportCard(family, 1),
+                    1,
+                    family == SupportFamily.aura
+                        ? ui.Offset.zero
+                        : const ui.Offset(75, 155),
+                  )
+                  ..phase = 'active'
+                  ..life = family == SupportFamily.aura ? 2.4 : 0;
             if (family == SupportFamily.aura) {
-              canvas.translate(50, 50);
-              canvas.scale(.6);
+              // Fit the complete live field and its counter-rotating seal.
+              canvas.translate(100, 100);
+              canvas.scale(.56);
               SupportArt.floor(canvas, unit, const SupportConfig({}));
             }
             SupportArt.body(canvas, unit, const SupportConfig({}));
