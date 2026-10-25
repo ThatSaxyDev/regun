@@ -68,6 +68,7 @@ class CombatSystem {
     double amount, {
     bool primary = true,
     bool weaponHit = false,
+    bool supportBallistic = false,
     bool allowChain = true,
     bool armorPiercing = false,
     int releaseId = 0,
@@ -93,7 +94,14 @@ class CombatSystem {
             (1 + releaseBonus);
       }
     }
-    if (enemy is BossWeakPoint) return enemy.takeDamage(amount);
+    if (enemy is BossWeakPoint) {
+      if (supportBallistic && owner is CombatEnemy) {
+        owner.lastHitWasSecondary = true;
+        owner.lastDamageSource = source;
+        owner.incomingDirection = null;
+      }
+      return enemy.takeDamage(amount);
+    }
     if (enemy is! CombatEnemy ||
         enemy.isRemoving ||
         !enemy.isLoaded ||
@@ -121,7 +129,14 @@ class CombatSystem {
         amount *= 1 + effect(PowerUp.executioner) * 0.3;
       }
     }
-    if (!enemy.takeDamage(amount)) return false;
+    enemy.incomingSupportBallistic = supportBallistic;
+    bool accepted;
+    try {
+      accepted = enemy.takeDamage(amount);
+    } finally {
+      enemy.incomingSupportBallistic = false;
+    }
+    if (!accepted) return false;
     if (direction != null && (primary || reaction != null)) {
       enemy.receiveWeaponImpact(
         direction,

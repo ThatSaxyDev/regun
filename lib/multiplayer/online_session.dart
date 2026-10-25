@@ -51,6 +51,7 @@ class OnlineSession {
   bool get usesAccountIdentity => tokens is AccountOnlineTokens;
   bool chargeUpgradesAvailable = false, groundOrdnanceAvailable = false;
   bool rankCurvesAvailable = false;
+  bool supportOpsAvailable = false;
   bool grenadesAvailable = false, grenadeAimingAvailable = false;
   bool predictionAvailable = false;
   bool predictionReducedMotion = false;
@@ -213,6 +214,14 @@ class OnlineSession {
       ...base,
       'obstacles': [
         ...base['obstacles'] as List,
+        if (supportOpsAvailable)
+          for (final unit in scene.where(
+            (e) =>
+                e.kind == 'support' &&
+                e.data['id'].toString().startsWith('support:sentry:') &&
+                ['deploying', 'active'].contains(e.data['phase']),
+          ))
+            [unit.x - 35, unit.y - 44, unit.x + 35, unit.y],
         if (groundOrdnanceAvailable)
           for (final drop in scene.where(
             (e) =>
@@ -393,6 +402,9 @@ class OnlineSession {
       );
       grenadeAimingAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'aim_grenade',
+      );
+      supportOpsAvailable = (schemaJson['reducers'] as List? ?? []).any(
+        (v) => v is Map && v['name'] == 'support_ops',
       );
       rankCurvesAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'rank_curve_support',
@@ -696,7 +708,9 @@ class OnlineSession {
       unawaited(
         _quiet(
           () => client.reducers.attachCombat(
-            version: rankCurvesAvailable
+            version: supportOpsAvailable
+                ? 6
+                : rankCurvesAvailable
                 ? 5
                 : chargeUpgradesAvailable
                 ? 4
@@ -780,12 +794,33 @@ class OnlineSession {
     (c) => c.reducers.chooseLoadout(weapon: weapon, survivor: survivor),
   );
   Future<void> chooseUpgrade(String choice) => command(
-    (c) => c.reducers.chooseUpgrade(offerid: gun!.offerId, choice: choice),
+    (c) => supportOpsAvailable
+        ? c.reducers.chooseReward(
+            roomid: room!.id,
+            generation: me!.generation,
+            offerid: gun!.offerId,
+            choice: choice,
+          )
+        : c.reducers.chooseUpgrade(offerid: gun!.offerId, choice: choice),
   );
-  Future<void> rerollUpgrade() =>
-      command((c) => c.reducers.rerollUpgrade(offerid: gun!.offerId));
+  Future<void> rerollUpgrade() => command(
+    (c) => supportOpsAvailable
+        ? c.reducers.rerollReward(
+            roomid: room!.id,
+            generation: me!.generation,
+            offerid: gun!.offerId,
+          )
+        : c.reducers.rerollUpgrade(offerid: gun!.offerId),
+  );
   Future<void> banUpgrade(String choice) => command(
-    (c) => c.reducers.banUpgrade(offerid: gun!.offerId, choice: choice),
+    (c) => supportOpsAvailable
+        ? c.reducers.banReward(
+            roomid: room!.id,
+            generation: me!.generation,
+            offerid: gun!.offerId,
+            choice: choice,
+          )
+        : c.reducers.banUpgrade(offerid: gun!.offerId, choice: choice),
   );
   Future<void> openFusion() => command((c) => c.reducers.openFusion());
   Future<void> rematch() => command((c) => c.reducers.rematch());

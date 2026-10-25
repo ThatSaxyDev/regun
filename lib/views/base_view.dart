@@ -1,3 +1,5 @@
+import 'package:regun/widgets/support_thumbnail.dart';
+import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/widgets/boss_health_strip.dart';
 import 'package:regun/widgets/rank_path_preview.dart';
 import 'package:regun/services/economy/armory_repository.dart';
@@ -929,14 +931,35 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       PracticeSection(
         key: const Key('practice-supply'),
         title: 'SUPPLY PRACTICE',
-        summary: 'Call an airdrop',
+        summary: 'Airdrop and support',
         builder: (_) => Align(
           alignment: Alignment.centerLeft,
-          child: ClickButton(
-            text: 'Call airdrop',
-            width: 200,
-            height: 48,
-            onTap: _myGame.practiceSupplyDrop,
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              ClickButton(
+                text: 'Call airdrop',
+                width: 200,
+                height: 48,
+                onTap: _myGame.practiceSupplyDrop,
+              ),
+              for (final family in SupportFamily.values)
+                ClickButton(
+                  text: family == SupportFamily.sentry
+                      ? 'Sentry practice'
+                      : 'Aura practice',
+                  width: 200,
+                  height: 48,
+                  onTap:
+                      _myGame.bossRush ||
+                          _myGame.gameNotifier.support.busy.contains(
+                            family.name,
+                          )
+                      ? null
+                      : () => _myGame.practiceSupport(family),
+                ),
+            ],
           ),
         ),
       ),
@@ -1076,7 +1099,14 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                       constraints: BoxConstraints(
                         maxWidth:
                             ((state.evolutionChoices.length +
-                                            state.powerUpChoices.length) *
+                                            state.powerUpChoices.length +
+                                            (_myGame
+                                                        .gameNotifier
+                                                        .support
+                                                        .offer ==
+                                                    null
+                                                ? 0
+                                                : 1)) *
                                         282 -
                                     12)
                                 .clamp(210, 900)
@@ -1097,6 +1127,38 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                 offerId: state.offerId,
                               ),
                               glyph: fusionGlyph(id),
+                            ),
+                          if (_myGame.gameNotifier.support.offer
+                              case final card?)
+                            _upgradeCard(
+                              '${card.title} ${card.rankLabel}',
+                              card.description(
+                                _myGame
+                                        .gameNotifier
+                                        .weaponPower
+                                        .snapshot
+                                        ?.values ??
+                                    {},
+                              ),
+                              'AIRDROP ONLY / ${(_myGame.gameNotifier.support.tiers[card.family.name] ?? 0) == 3 ? 'DEPLOY AGAIN' : 'TEMPORARY'}',
+                              () => _myGame.gameNotifier.chooseSupport(
+                                card.id,
+                                offerId: state.offerId,
+                              ),
+                              artwork: SupportThumbnail(
+                                card: card,
+                                width: 48,
+                                height: 40,
+                              ),
+                              onBan:
+                                  state.bans > 0 &&
+                                      _myGame.gameNotifier.offerSource !=
+                                          'practice'
+                                  ? () => _myGame.gameNotifier.banSupport(
+                                      card.id,
+                                      offerId: state.offerId,
+                                    )
+                                  : null,
                             ),
                           for (final choice in state.powerUpChoices)
                             _upgradeCard(
@@ -1156,7 +1218,9 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-              if (state.evolutionChoices.isEmpty && state.rerolls > 0)
+              if (state.evolutionChoices.isEmpty &&
+                  state.rerolls > 0 &&
+                  _myGame.gameNotifier.offerSource != 'practice')
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: ClickButtonM(
@@ -1186,6 +1250,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     VoidCallback onTap, {
     VoidCallback? onBan,
     Widget? copy,
+    Widget? artwork,
     PixelGlyph glyph = PixelGlyph.star,
   }) => SizedBox(
     key: ValueKey('upgrade-card-$title'),
@@ -1209,11 +1274,12 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PixelIcon(
-                    glyph,
-                    size: 32,
-                    key: ValueKey('upgrade-glyph-$title'),
-                  ),
+                  artwork ??
+                      PixelIcon(
+                        glyph,
+                        size: 32,
+                        key: ValueKey('upgrade-glyph-$title'),
+                      ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(

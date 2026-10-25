@@ -320,7 +320,7 @@ abstract class ExpansionBoss extends PositionComponent
         currentMove?.brace == true &&
         [ExpansionPhase.warning, ExpansionPhase.active].contains(phase) &&
         incomingDirection != null &&
-        !lastHitWasSecondary &&
+        (!lastHitWasSecondary || incomingSupportBallistic) &&
         incomingDirection!.dot(facing) < -.55;
     if (bracing) {
       amount *= .25;

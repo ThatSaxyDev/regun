@@ -108,6 +108,38 @@ class Reducers {
     );
   }
 
+  /// Call the ban_reward reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> banReward({
+    required Int64 roomid,
+    required Int64 generation,
+    required int offerid,
+    required String choice,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+    encoder.writeU32(offerid);
+    encoder.writeString(choice);
+
+    return await _reducerCaller.call(
+      'ban_reward',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
   /// Call the ban_upgrade reducer
   ///
   /// Returns [TransactionResult] with execution metadata:
@@ -183,6 +215,38 @@ class Reducers {
 
     return await _reducerCaller.call(
       'choose_loadout',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
+  /// Call the choose_reward reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> chooseReward({
+    required Int64 roomid,
+    required Int64 generation,
+    required int offerid,
+    required String choice,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+    encoder.writeU32(offerid);
+    encoder.writeString(choice);
+
+    return await _reducerCaller.call(
+      'choose_reward',
       encoder.toBytes(),
       optimisticChanges: optimisticChanges,
     );
@@ -538,6 +602,36 @@ class Reducers {
     );
   }
 
+  /// Call the reroll_reward reducer
+  ///
+  /// Returns [TransactionResult] with execution metadata:
+  /// - `result.isSuccess` - Check if reducer committed
+  /// - `result.energyConsumed` - Energy used (null for lightweight responses)
+  /// - `result.executionDuration` - How long it took (null for lightweight responses)
+  ///
+  /// Pass [optimisticChanges] to immediately update the local cache for offline-first UX.
+  /// Changes are rolled back if the server rejects them.
+  ///
+  /// Throws [ReducerException] if the reducer fails or runs out of energy.
+  /// Throws [TimeoutException] if the reducer doesn't complete within the timeout.
+  Future<TransactionResult> rerollReward({
+    required Int64 roomid,
+    required Int64 generation,
+    required int offerid,
+    List<OptimisticChange>? optimisticChanges,
+  }) async {
+    final encoder = BsatnEncoder();
+    encoder.writeU64(roomid);
+    encoder.writeU64(generation);
+    encoder.writeU32(offerid);
+
+    return await _reducerCaller.call(
+      'reroll_reward',
+      encoder.toBytes(),
+      optimisticChanges: optimisticChanges,
+    );
+  }
+
   /// Call the reroll_upgrade reducer
   ///
   /// Returns [TransactionResult] with execution metadata:
@@ -812,6 +906,30 @@ class Reducers {
     });
   }
 
+  StreamSubscription<void> onBanReward(
+    void Function(
+      EventContext ctx,
+      Int64 roomid,
+      Int64 generation,
+      int offerid,
+      String choice,
+    )
+    callback,
+  ) {
+    return _reducerEmitter.on('ban_reward').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! BanRewardArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.roomid, args.generation, args.offerid, args.choice);
+    });
+  }
+
   StreamSubscription<void> onBanUpgrade(
     void Function(EventContext ctx, int offerid, String choice) callback,
   ) {
@@ -860,6 +978,30 @@ class Reducers {
 
       // Extract fields from strongly-typed object - NO CASTING
       callback(ctx, args.weapon, args.survivor);
+    });
+  }
+
+  StreamSubscription<void> onChooseReward(
+    void Function(
+      EventContext ctx,
+      Int64 roomid,
+      Int64 generation,
+      int offerid,
+      String choice,
+    )
+    callback,
+  ) {
+    return _reducerEmitter.on('choose_reward').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! ChooseRewardArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.roomid, args.generation, args.offerid, args.choice);
     });
   }
 
@@ -1131,6 +1273,24 @@ class Reducers {
 
       // Extract fields from strongly-typed object - NO CASTING
       callback(ctx);
+    });
+  }
+
+  StreamSubscription<void> onRerollReward(
+    void Function(EventContext ctx, Int64 roomid, Int64 generation, int offerid)
+    callback,
+  ) {
+    return _reducerEmitter.on('reroll_reward').listen((EventContext ctx) {
+      // Pattern match to extract ReducerEvent
+      final event = ctx.event;
+      if (event is! ReducerEvent) return;
+
+      // Type guard - ensures args is correct type
+      final args = event.reducerArgs;
+      if (args is! RerollRewardArgs) return;
+
+      // Extract fields from strongly-typed object - NO CASTING
+      callback(ctx, args.roomid, args.generation, args.offerid);
     });
   }
 

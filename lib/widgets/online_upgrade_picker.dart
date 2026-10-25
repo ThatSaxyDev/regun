@@ -1,3 +1,5 @@
+import 'package:regun/widgets/support_thumbnail.dart';
+import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/systems/rank_effect_values.dart';
 import 'package:regun/systems/upgrade_details.dart';
 
@@ -123,6 +125,10 @@ class OnlineUpgradePicker extends StatelessWidget {
   }
 
   Widget _card(String id, bool fusion) {
+    final support = SupportCard.read(id);
+    final supportValues = Map<String, num>.from(
+      session.gun!.data['supportValues'] as Map? ?? {},
+    );
     final power = PowerUp.values.where((p) => p.name == id).firstOrNull;
     final recipe = fusionRecipes.where((p) => p.id == id).firstOrNull;
     final rank = session.gun!.rank(id) + 1;
@@ -150,7 +156,9 @@ class OnlineUpgradePicker extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${power == PowerUp.dashCapacity && rank == 2 ? 'Triple Dash' : power?.title ?? recipe?.title ?? id}${fusion || id == 'salvage' ? '' : ' $rankName'}',
+                  support != null
+                      ? '${support.title} ${support.rankLabel}'
+                      : '${power == PowerUp.dashCapacity && rank == 2 ? 'Triple Dash' : power?.title ?? recipe?.title ?? id}${fusion || id == 'salvage' ? '' : ' $rankName'}',
                   style: const TextStyle(
                     fontFamily: FontFam.orbitron,
                     color: Color(0xffE5DDD1),
@@ -159,7 +167,9 @@ class OnlineUpgradePicker extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  power != null
+                  support != null
+                      ? support.description(supportValues)
+                      : power != null
                       ? upgradeDescription(power, rank: session.gun!.rank(id))
                       : recipe?.description ?? '',
                   style: const TextStyle(
@@ -167,7 +177,8 @@ class OnlineUpgradePicker extends StatelessWidget {
                     fontSize: 12,
                   ),
                 ),
-                if (!fusion && _delta(id).isNotEmpty)
+                if (support != null) SupportThumbnail(card: support),
+                if (!fusion && support == null && _delta(id).isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(

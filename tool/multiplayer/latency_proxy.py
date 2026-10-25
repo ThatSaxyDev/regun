@@ -3,10 +3,10 @@ TCP retransmission is not simulated packet loss; close a client to test reconnec
 """
 import argparse,asyncio,random
 async def main():
- p=argparse.ArgumentParser();p.add_argument('--port',type=int,default=3101);p.add_argument('--one-way-ms',type=float,default=50);p.add_argument('--jitter-ms',type=float,default=10);args=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--port',type=int,default=3101);p.add_argument('--one-way-ms',type=float,default=50);p.add_argument('--jitter-ms',type=float,default=10);p.add_argument('--upstream-port',type=int,default=3100);args=p.parse_args()
  rng=random.Random(42)
  async def handle(reader,writer):
-  upstream_r,upstream_w=await asyncio.open_connection('127.0.0.1',3100)
+  upstream_r,upstream_w=await asyncio.open_connection('127.0.0.1',args.upstream_port)
   async def pipe(source,destination):
    queue=asyncio.Queue(maxsize=4096);loop=asyncio.get_running_loop()
    async def receive():

@@ -1,3 +1,7 @@
+import 'package:regun/presentation/support_art.dart';
+import 'package:regun/systems/support_rewards.dart';
+import 'package:regun/systems/support_runtime.dart';
+
 // Run from regun: flutter test tool/export_admin_art.dart
 // Reuses the actual game painters/poses. Does not change gameplay or balance.
 import 'dart:convert';
@@ -216,6 +220,34 @@ void main() {
           );
           records['effects.$id'] = records['weapons.${weapon.name}']!;
         }
+      }
+      for (final name in SupportArt.atlases) {
+        await art.acquire(name);
+      }
+      for (final family in SupportFamily.values) {
+        await export(
+          'support',
+          family.name,
+          family == SupportFamily.sentry ? 'Sentry Gun' : 'Aura Farm',
+          const ui.Size(200, 200),
+          (canvas) {
+            final unit = SupportUnit(
+              SupportCard(family, 1),
+              1,
+              const ui.Offset(75, 155),
+            )..phase = 'active';
+            if (family == SupportFamily.aura) {
+              canvas.translate(50, 50);
+              canvas.scale(.6);
+              SupportArt.floor(canvas, unit, const SupportConfig({}));
+            }
+            SupportArt.body(canvas, unit, const SupportConfig({}));
+          },
+          'SupportArt: authored base/head/emitter and material field',
+        );
+      }
+      for (final name in SupportArt.atlases) {
+        art.release(name);
       }
       await art.acquire('effects/cutter_ring');
       final cutter = art.image('effects/cutter_ring');

@@ -114,6 +114,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   double? _restoredHealth, _restoredMaximum;
   Vector2? incomingDirection;
   bool incomingArmorPiercing = false;
+  bool incomingSupportBallistic = false;
   double burnRemaining = 0, _burnTick = 0, burnDamage = 0;
   double cinderRemaining = 0, cinderTick = 0;
   void igniteCinder() {

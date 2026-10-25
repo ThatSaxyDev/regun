@@ -1,3 +1,8 @@
+import 'package:regun/systems/friendly_impact.dart';
+import 'package:regun/systems/support_rewards.dart';
+import 'package:regun/presentation/support_art.dart';
+import 'package:regun/systems/support_native.dart';
+import 'package:regun/components/map/support_view.dart';
 import 'package:regun/systems/boss_attack_shape.dart';
 import 'package:regun/models/boss_history.dart';
 import 'package:regun/services/account/account_api.dart';
@@ -132,6 +137,7 @@ class RegunGame extends FlameGame
   bool get ringArtReady => _ringArtHeld;
   int _trainingWeaponEpoch = 0;
   static const maxProjectiles = 256;
+  late final supportCombat = SupportNative(this);
   static const maxHostileProjectiles = 128;
   final _projectiles = <BulletComponent>{};
   final _hostileProjectiles = <PositionComponent>{};
@@ -333,7 +339,9 @@ class RegunGame extends FlameGame
           ? 1 + .10 * gameState.effectRank(PowerUp.scouringHeat)
           : 1);
   int get projectileCount =>
-      _projectiles.length + (arsenal?.projectileReservations ?? 0);
+      _projectiles.length +
+      (arsenal?.projectileReservations ?? 0) +
+      supportCombat.runtime.rounds.length;
   ({int arena, int visible, int pending}) get enemyPopulation {
     var arena = 0, visible = 0, pending = 0;
     final view = camera.visibleWorldRect.inflate(60);
@@ -1035,6 +1043,7 @@ class RegunGame extends FlameGame
       dynamicObstacles: () sync* {
         final drop = supplyDrops.drop;
         if (!_landingSupply && drop != null && drop.solid) yield drop.footprint;
+        yield* supportCombat.solids;
       },
     );
     world.add(map);
@@ -1053,6 +1062,7 @@ class RegunGame extends FlameGame
       damageFeedback,
       bossVictory,
       EntranceVeil(),
+      SupportStatusHud(),
       if (loadout.arena == ArenaType.breach) SupplyDropLocator(),
     ]);
   }
@@ -1069,6 +1079,7 @@ class RegunGame extends FlameGame
       gameNotifierProvider.select((state) => state.gameplayState),
       (previous, phase) {
         if (phase == GameplayState.gameOver) {
+          supportCombat.clear();
           _settlement = handleSoloDeath();
         }
         if (_started && phase != GameplayState.gameOver) {
@@ -1159,6 +1170,7 @@ class RegunGame extends FlameGame
     _bursts.clear();
     resetInput();
     gameNotifier.resetRun(loadout: loadout, seed: random.state);
+    supportCombat.clear();
     combat = CombatSystem(this);
     arsenal?.dispose();
     arsenal = ArsenalSystem(this);
@@ -1181,6 +1193,9 @@ class RegunGame extends FlameGame
       ArsenalOverlay(),
       GrenadeAimPreview(),
       DroneVisual(),
+      SupportFieldView(),
+      SupportBodyView(),
+      SupportRoundsView(),
       ArenaScenery(),
       if (loadout.arena == ArenaType.breach) ...[
         SupplyDropField(),
@@ -1237,6 +1252,7 @@ class RegunGame extends FlameGame
       'droneClock': combat.droneClock,
       'ventClock': _ventClock,
       'supplyDrops': supplyDrops.toJson(),
+      'supportRuntime': supportCombat.runtime.toJson(),
       'upgradePulsePending': _upgradePulsePending,
       'dashCount': dashCount,
       'grenadeInventory': grenades.toJson(),
@@ -1594,6 +1610,7 @@ class RegunGame extends FlameGame
         snapshot,
         allowDead: recovery.stage != 'alive',
       );
+      supportCombat.restore(snapshot['supportRuntime']);
       _updateCamera();
       revision.value++;
       // Restored attacks restart at anticipation; old flying shots/hazards are
@@ -1883,6 +1900,7 @@ class RegunGame extends FlameGame
     arsenal?.clearField();
     _upgradePulsePending = false;
     _trainingPressureClock.reset();
+    supportCombat.clear();
     bossRush = true;
     supplyDrops.reset(random.state ^ 0x51a7);
     _syncSupplyArt(false);
@@ -2254,6 +2272,7 @@ class RegunGame extends FlameGame
       syncGrenadeCapacity();
       grenades.advance(dt, grenadeRecharge);
       combat.update(dt);
+      if (!bossRush && SupportArt.ready) supportCombat.advance(dt);
     }
     enemyTactics.rebuild(liveEnemies);
     crowdOccupancy.rebuild([..._enemies, ...bosses], crowdRadius);
@@ -2341,6 +2360,13 @@ class RegunGame extends FlameGame
     layoutControls();
   }
 
+  void practiceSupport(SupportFamily family) {
+    if (!loadout.training || loadout.arena != ArenaType.breach || bossRush) {
+      return;
+    }
+    gameNotifier.offerSupportPractice(family);
+  }
+
   void practiceSupplyDrop() {
     if (!loadout.training || loadout.arena != ArenaType.breach) return;
     _retirePracticeBosses();
@@ -2365,9 +2391,10 @@ class RegunGame extends FlameGame
       if ((spot - myPlayer.position.toOffset()).distance < 260 ||
           (supplyDrops.previous != null &&
               (spot - supplyDrops.previous!).distance < 350) ||
-          geometry.solids.any(
-            (r) => r.inflate(SupplyDrop.radius + 20).contains(spot),
-          )) {
+          [
+            ...geometry.solids,
+            ...supportCombat.reservations,
+          ].any((r) => r.inflate(SupplyDrop.radius + 20).contains(spot))) {
         continue;
       }
       return spot;
@@ -2395,16 +2422,18 @@ class RegunGame extends FlameGame
         }
         hitEnemy(
           target,
-          enemy.isBoss
-              ? enemy.combatHealth.maximum * .03
-              : enemy.combatHealth.current,
+          FriendlyImpact.crushDamage(
+            boss: enemy.isBoss,
+            maximum: enemy.combatHealth.maximum,
+            current: enemy.combatHealth.current,
+          ),
           primary: false,
         );
       }
       combat.explode(
         center,
-        radius: 205,
-        damage: 8,
+        radius: FriendlyImpact.blastRadius,
+        damage: FriendlyImpact.blastDamage,
         grenade: true,
         allowFragments: false,
       );
@@ -2618,6 +2647,7 @@ class RegunGame extends FlameGame
   @override
   void onRemove() {
     disposed = true;
+    if (_started) supportCombat.clear();
     if (_survivorArtHeld) {
       _survivorArtHeld = false;
       RegunArt.shared.releaseSurvivor(loadout.character.name);

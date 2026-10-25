@@ -1650,3 +1650,31 @@ agree; legacy center-authored online areas no longer gain an extra player margin
 Read COMBAT_VISIBILITY_AND_HURTBOX.md. The creator's admin-edited shotgun values
 are untouched; no catalogue generation/publication, installation or deployment
 is implied. Phone visibility/comfort and difficulty remain for review.
+
+
+## 25 October 2026 — airdrop support implementation candidate
+
+Sentry Gun and Aura Farm now have temporary supply-only I–III contracts, distinct
+authored mounted-gun/chassis/field art, bounded audio, native/checkpoint lifecycle,
+authoritative co-op simulation and admin/API projections. Sentry commits to one
+legal target and falls back after a continuous one-second reachability failure.
+Both family flags remain Off in the prepared catalogue. Training Pause exposes
+Sentry/Aura practice without normal enablement. This is local source work, not a
+live deployment. See [AIRDROP_SUPPORT_IMPLEMENTATION.md](AIRDROP_SUPPORT_IMPLEMENTATION.md)
+for exact passing checks, observed network failures and remaining hands-on gates.
+Release identity preserves the creator's existing 1.0.0+22.
+
+
+### 25 October: support feedback correction
+
+Airdrop support availability is weighted, never a reserved card: default two
+families give 2/3 support hands, 1/3 ordinary-only; one family gives 1/2. Training
+called drops and co-op use the same rule, including rerolls/bans. Check a series
+of fresh drops, not a requirement that every short sequence contains both kinds.
+Sentry now excludes its own base from projectile wall contact, predicts bounded
+target motion and preserves short actual-flight traces. Prepared multipliers
+3/3.5/4 require admin publication (observed live revision 5 remains 1/1.15/1.3).
+Aura adds active-clock inner sigils/crackling and steady Reduced Motion art;
+players remain vulnerable. Verify close/all-direction shots, cover, reload,
+normal/Reduced Motion energy, pause and co-op readability on device. See
+`AIRDROP_SUPPORT_IMPLEMENTATION.md` for automated evidence and rollout limits.

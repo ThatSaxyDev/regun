@@ -1,3 +1,5 @@
+import 'package:regun/systems/support_rewards.dart';
+
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -63,6 +65,7 @@ class LiveBalance {
             result['effects.stormorb.orbTick']!) {
       throw const FormatException('Orb lifetime must include an arc tick');
     }
+    SupportConfig.validate(result);
     return result;
   }
 

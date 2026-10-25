@@ -1,0 +1,262 @@
+[
+  [
+    "sentry",
+    "Sentry Gun",
+    "enabled",
+    "Enabled",
+    0,
+    0,
+    1,
+    true
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "weight",
+    "Offer weight (ordinary-only hand: 1)",
+    1,
+    0,
+    5,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "incoming",
+    "Incoming seconds",
+    6,
+    3.45,
+    12,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "turn",
+    "Head turn degrees/s",
+    300,
+    90,
+    540,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "fallback",
+    "Unreachable target seconds",
+    1,
+    0.5,
+    3,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "carbineRange",
+    "Carbine acquisition radius",
+    550,
+    100,
+    650,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "burstRange",
+    "Burst acquisition radius",
+    650,
+    100,
+    700,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "life1",
+    "I battery seconds",
+    24,
+    10,
+    60,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "life2",
+    "II battery seconds",
+    30,
+    10,
+    60,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "life3",
+    "III battery seconds",
+    36,
+    10,
+    60,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "damage1",
+    "I source damage multiplier",
+    3,
+    0.5,
+    5,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "damage2",
+    "II source damage multiplier",
+    3.5,
+    0.5,
+    5,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "damage3",
+    "III source damage multiplier",
+    4,
+    0.5,
+    5,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "enabled",
+    "Enabled",
+    0,
+    0,
+    1,
+    true
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "weight",
+    "Offer weight (ordinary-only hand: 1)",
+    1,
+    0,
+    5,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "tick",
+    "Tick seconds",
+    0.25,
+    0.25,
+    1,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "targets",
+    "Targets per tick",
+    12,
+    1,
+    12,
+    true
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "life1",
+    "I lifetime seconds",
+    18,
+    5,
+    45,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "life2",
+    "II lifetime seconds",
+    22,
+    5,
+    45,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "life3",
+    "III lifetime seconds",
+    26,
+    5,
+    45,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "radius1",
+    "I radius",
+    135,
+    60,
+    220,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "radius2",
+    "II radius",
+    145,
+    60,
+    220,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "radius3",
+    "III radius",
+    155,
+    60,
+    220,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "damage1",
+    "I damage per tick",
+    0.3,
+    0.05,
+    1,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "damage2",
+    "II damage per tick",
+    0.375,
+    0.05,
+    1,
+    false
+  ],
+  [
+    "aura",
+    "Aura Farm",
+    "damage3",
+    "III damage per tick",
+    0.45,
+    0.05,
+    1,
+    false
+  ]
+]

@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "family": "sentry",
+      "mount": "carbine",
+      "rows": [
+        {
+          "tier": 1,
+          "lifetime": 24,
+          "incoming": 6,
+          "damage": 2.7,
+          "capacity": 24,
+          "cadence": 0.1,
+          "reload": 1.8,
+          "range": 550,
+          "fireOnlyDps": 27
+        },
+        {
+          "tier": 2,
+          "lifetime": 30,
+          "incoming": 6,
+          "damage": 3.15,
+          "capacity": 24,
+          "cadence": 0.1,
+          "reload": 1.8,
+          "range": 550,
+          "fireOnlyDps": 31.499999999999996
+        },
+        {
+          "tier": 3,
+          "lifetime": 36,
+          "incoming": 6,
+          "damage": 3.6,
+          "capacity": 24,
+          "cadence": 0.1,
+          "reload": 1.8,
+          "range": 550,
+          "fireOnlyDps": 36
+        }
+      ]
+    },
+    {
+      "family": "sentry",
+      "mount": "burstRifle",
+      "rows": [
+        {
+          "tier": 1,
+          "lifetime": 24,
+          "incoming": 6,
+          "damage": 3.75,
+          "capacity": 18,
+          "cadence": 0.6,
+          "reload": 2,
+          "range": 650,
+          "fireOnlyDps": 18.75
+        },
+        {
+          "tier": 2,
+          "lifetime": 30,
+          "incoming": 6,
+          "damage": 4.375,
+          "capacity": 18,
+          "cadence": 0.6,
+          "reload": 2,
+          "range": 650,
+          "fireOnlyDps": 21.875
+        },
+        {
+          "tier": 3,
+          "lifetime": 36,
+          "incoming": 6,
+          "damage": 5,
+          "capacity": 18,
+          "cadence": 0.6,
+          "reload": 2,
+          "range": 650,
+          "fireOnlyDps": 25
+        }
+      ]
+    },
+    {
+      "family": "aura",
+      "mount": "carbine",
+      "rows": [
+        {
+          "tier": 1,
+          "lifetime": 18,
+          "radius": 135,
+          "tick": 0.25,
+          "damage": 0.3,
+          "exposureDps": 1.2,
+          "targets": 12
+        },
+        {
+          "tier": 2,
+          "lifetime": 22,
+          "radius": 145,
+          "tick": 0.25,
+          "damage": 0.375,
+          "exposureDps": 1.5,
+          "targets": 12
+        },
+        {
+          "tier": 3,
+          "lifetime": 26,
+          "radius": 155,
+          "tick": 0.25,
+          "damage": 0.45,
+          "exposureDps": 1.8,
+          "targets": 12
+        }
+      ]
+    }
+  ]
+}

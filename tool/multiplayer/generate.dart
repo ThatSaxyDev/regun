@@ -33,11 +33,40 @@ Future<void> main() async {
         ].contains(t['name']),
       )
       .toList();
+  // Keep the game client scoped to match actions; operator/account APIs use
+  // their existing authenticated transports and do not belong in these bindings.
+  const matchReducers = {
+    'acknowledge_probe',
+    'aim_grenade',
+    'attach_combat',
+    'ban_reward',
+    'ban_upgrade',
+    'begin_probe',
+    'choose_loadout',
+    'choose_reward',
+    'choose_team',
+    'choose_upgrade',
+    'combat_input',
+    'combat_input_v_2',
+    'configure_room',
+    'create_room',
+    'enable_combat',
+    'join_room',
+    'leave_room',
+    'open_fusion',
+    'queue_motion',
+    'rematch',
+    'reroll_reward',
+    'reroll_upgrade',
+    'revive_input',
+    'set_ready',
+    'start_match',
+    'stop_motion',
+    'submit_input',
+    'throw_grenade',
+  };
   raw['reducers'] = (raw['reducers'] as List)
-      .where(
-        (r) =>
-            (r['lifecycle'] as Map).containsKey('none') && r['name'] != 'tick',
-      )
+      .where((r) => matchReducers.contains(r['name']))
       .toList();
   final schema = DatabaseSchema.fromJson('regun', raw);
   await DartGenerator(schema).writeToDirectory('lib/multiplayer/generated');

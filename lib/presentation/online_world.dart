@@ -1,3 +1,6 @@
+import 'package:regun/presentation/support_art.dart';
+import 'package:regun/systems/support_runtime.dart';
+import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/presentation/supply_pod_art.dart';
 import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/data/enemies.dart';
@@ -181,7 +184,17 @@ class OnlineWorldArt {
         if ((d['material'] as String? ?? '').startsWith('bossVictory:')) return;
         final progress = (entity.number('age') / entity.number('duration', 1))
             .clamp(0.0, 1.0);
-        if (d['material'] == 'upgradePulse') {
+        if (d['material'] == 'sentryTrace' && d['end'] != null) {
+          final end = point(d['end']);
+          final delta = end - p;
+          SupportArt.roundAt(
+            canvas,
+            end,
+            delta.distance > .001 ? delta / delta.distance : const Offset(1, 0),
+            length: delta.distance.clamp(5.0, 30.0),
+            alpha: 1 - progress,
+          );
+        } else if (d['material'] == 'upgradePulse') {
           AttackVfx.upgradePulse(
             canvas,
             p,
@@ -236,6 +249,14 @@ class OnlineWorldArt {
               size: Vector2.all(entity.kind == 'pickup' ? 28 : 32),
               anchor: Anchor.center,
             );
+      case 'support':
+        SupportArt.floor(
+          canvas,
+          SupportUnit.restore(d),
+          SupportConfig(Map<String, num>.from(d['values'] as Map? ?? {})),
+          ambient: ambient(foundry),
+          reducedMotion: reducedMotion,
+        );
       case 'supply':
         final phase = d['phase'], capture = entity.number('capture');
         SupplyPodArt.ground(
@@ -273,6 +294,21 @@ class OnlineWorldArt {
           );
         }
     }
+  }
+
+  static void supportBody(
+    Canvas canvas,
+    OnlineEntity entity, {
+    required bool foundry,
+    required bool reducedMotion,
+  }) {
+    SupportArt.body(
+      canvas,
+      SupportUnit.restore(entity.data),
+      SupportConfig(Map<String, num>.from(entity.data['values'] as Map? ?? {})),
+      ambient: ambient(foundry),
+      reducedMotion: reducedMotion,
+    );
   }
 
   static void supplyBody(
@@ -485,6 +521,7 @@ class OnlineArtLeases {
               'marshal',
             ].contains(e.data['kind']))
           'bosses/${e.data['kind']}',
+      if (entities.any((e) => e.kind == 'support')) ...SupportArt.atlases,
       if (entities.any((e) => e.kind == 'supply')) ...[
         'arenas/supply_pod',
         'effects/landing_dust',

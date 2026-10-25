@@ -1,3 +1,4 @@
+import 'package:regun/presentation/support_art.dart';
 import 'package:regun/widgets/boss_victory_banner.dart';
 import 'package:regun/presentation/mummy_walk.dart';
 import 'package:regun/presentation/game_layout.dart';
@@ -138,6 +139,8 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       final d = entity.data;
       final cue = entity.kind == 'supply'
           ? '${d['phase']}:${(entity.number('capture') / 1).floor()}'
+          : entity.kind == 'support'
+          ? '${d['phase']}:${entity.number('ammo').toInt()}:${entity.number('reload') > 0}'
           : entity.kind == 'enemy'
           ? '${d['bossPhase'] ?? d['phase']}:${d['attackName']}:${entity.number('health') <= 0}'
           : '';
@@ -163,7 +166,35 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           Offset(entity.x - me.x, entity.y - me.y).distance > 900) {
         continue;
       }
-      if (entity.kind == 'supply') {
+      if (entity.kind == 'support') {
+        final previous = old.split(':'), phase = d['phase'];
+        final aura = (d['id'] as String? ?? '').startsWith('support:aura:');
+        if (previous.first != phase) {
+          final sound = switch (phase) {
+            'warning' => 'sentry_incoming.wav',
+            'deploying' => 'supply_land.wav',
+            'breaking' => 'supply_break.wav',
+            'active' when aura => 'aura_start.wav',
+            'fading' => 'aura_end.wav',
+            _ => null,
+          };
+          if (sound != null) unawaited(audio.play(sound));
+        }
+        if (!aura && phase == 'active' && previous.length >= 3) {
+          if (entity.number('ammo') < (int.tryParse(previous[1]) ?? 0)) {
+            unawaited(
+              audio.play(
+                (d['id'] as String).endsWith('burstRifle')
+                    ? 'sentry_burst.wav'
+                    : 'sentry_fire.wav',
+              ),
+            );
+          }
+          if (entity.number('reload') > 0 && previous[2] == 'false') {
+            unawaited(audio.play('sentry_reload.wav'));
+          }
+        }
+      } else if (entity.kind == 'supply') {
         if (d['phase'] == 'active') {
           unawaited(audio.play('supply_land.wav'));
         } else if (d['phase'] == 'opened') {
@@ -1166,13 +1197,23 @@ class _ArenaPainter extends CustomPainter {
             .where(
               (e) =>
                   e.kind == 'enemy' && e.number('health') > 0 ||
-                  e.kind == 'supply' && e.data['phase'] != 'warning',
+                  e.kind == 'supply' && e.data['phase'] != 'warning' ||
+                  e.kind == 'support',
             )
             .toList()
           ..sort((a, b) => a.y.compareTo(b.y));
     var enemyIndex = 0;
     void drawEnemy() {
       final enemy = enemies[enemyIndex++];
+      if (enemy.kind == 'support') {
+        OnlineWorldArt.supportBody(
+          canvas,
+          enemy,
+          foundry: session.room?.mapId == 'foundry',
+          reducedMotion: LocalPreferences.shared.reducedMotion,
+        );
+        return;
+      }
       if (enemy.kind == 'supply') {
         OnlineWorldArt.supplyBody(
           canvas,
@@ -1378,6 +1419,8 @@ class _ArenaPainter extends CustomPainter {
             Paint()..color = const Color(0xffFFF0CD),
           );
         }
+      } else if (round.data['supportBallistic'] == true) {
+        SupportArt.roundAt(canvas, Offset.zero, const Offset(1, 0));
       } else if (weapon == WeaponType.arcCaster) {
         AttackVfx.lightning(
           canvas,

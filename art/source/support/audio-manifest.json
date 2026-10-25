@@ -1,0 +1,50 @@
+[
+  {
+    "file": "sentry_fire.wav",
+    "source": "shot_carbine_0.wav",
+    "seconds": 0.14,
+    "peak": 0.38,
+    "rms": 0.05451387721294005,
+    "sha256": "1b2f511509894087e6d6b3acf453ba0d89693dc7879b1f9ecf2b1ba79f606e92"
+  },
+  {
+    "file": "sentry_burst.wav",
+    "source": "shot_burstRifle_0.wav",
+    "seconds": 0.16,
+    "peak": 0.4,
+    "rms": 0.05321141991074196,
+    "sha256": "1c5d9f75949cbb8e12889075e7f2627043c87893fb025c1791b36c5d01d12277"
+  },
+  {
+    "file": "sentry_reload.wav",
+    "source": "reload_carbine_0.wav",
+    "seconds": 0.28,
+    "peak": 0.24,
+    "rms": 0.01732592229711932,
+    "sha256": "7925cae1205e4c8f272d1b0e01fce829acbb4bc8e6b1cda8f61d631ce46a279a"
+  },
+  {
+    "file": "sentry_incoming.wav",
+    "source": "supply_incoming.wav",
+    "seconds": 0.22,
+    "peak": 0.25,
+    "rms": 0.08000769484142102,
+    "sha256": "4518e3116f54ab581d282a398ef22e6d183762c57b941dc6bd22c987f22fbaeb"
+  },
+  {
+    "file": "aura_start.wav",
+    "source": "Original NumPy pressure tone",
+    "seconds": 0.3,
+    "peak": 0.19,
+    "rms": 0.071711995381358,
+    "sha256": "ce4a635360cd1ff04906b30a3d001bfc474d5cf80280e2de8b302643b1bbaddf"
+  },
+  {
+    "file": "aura_end.wav",
+    "source": "Original NumPy pressure tone",
+    "seconds": 0.25,
+    "peak": 0.16000000000000003,
+    "rms": 0.06035745741702253,
+    "sha256": "3c6f85fea4ac1054df73ab0688c3e6459715fe561b31c0e19de3a4cd5290458e"
+  }
+]

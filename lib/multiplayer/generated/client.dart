@@ -282,6 +282,10 @@ class SpacetimeDbClient {
       AttachCombatArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
+      'ban_reward',
+      BanRewardArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
       'ban_upgrade',
       BanUpgradeArgsDecoder(),
     );
@@ -292,6 +296,10 @@ class SpacetimeDbClient {
     subscriptionManager.reducerRegistry.registerDecoder(
       'choose_loadout',
       ChooseLoadoutArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'choose_reward',
+      ChooseRewardArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
       'choose_team',
@@ -340,6 +348,10 @@ class SpacetimeDbClient {
     subscriptionManager.reducerRegistry.registerDecoder(
       'rematch',
       RematchArgsDecoder(),
+    );
+    subscriptionManager.reducerRegistry.registerDecoder(
+      'reroll_reward',
+      RerollRewardArgsDecoder(),
     );
     subscriptionManager.reducerRegistry.registerDecoder(
       'reroll_upgrade',

@@ -72,7 +72,7 @@ class ArenaEnemy extends PositionComponent
   bool takeDamage(double amount) {
     if (kind == EnemyKind.shield &&
         phase != 2 &&
-        !lastHitWasSecondary &&
+        (!lastHitWasSecondary || incomingSupportBallistic) &&
         incomingDirection != null &&
         incomingDirection!.dot(_shieldDirection) < -0.4) {
       amount *= incomingArmorPiercing ? .4 : .3;

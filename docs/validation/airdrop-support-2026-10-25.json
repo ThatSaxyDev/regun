@@ -1,0 +1,202 @@
+{
+  "date": "2026-10-25",
+  "scope": "Local support candidate; no live publication or physical acceptance",
+  "version": "1.0.0+22",
+  "checks": {
+    "gameFull": {
+      "passed": 729,
+      "skipped": 5
+    },
+    "gameFollowup": {
+      "passed": 25
+    },
+    "nativeIntegration": {
+      "passed": 3
+    },
+    "admin": {
+      "passed": 60
+    },
+    "server": {
+      "passed": 165
+    },
+    "identity": {
+      "passed": 23
+    },
+    "nativeFinalFocused": {
+      "passed": 16
+    },
+    "fractionalExpiryRestore": {
+      "passed": 2
+    }
+  },
+  "builds": [
+    "game release web",
+    "game Android release APK",
+    "game iOS release unsigned",
+    "admin release web"
+  ],
+  "art": [
+    {
+      "file": "assets/art/support/aura.png",
+      "width": 256,
+      "height": 242,
+      "decodedBytes": 247808,
+      "sha256": "f369831e733cce844b6508602f095ad5ea736681e14931f5009c006f69731d90"
+    },
+    {
+      "file": "assets/art/support/base.png",
+      "width": 192,
+      "height": 110,
+      "decodedBytes": 84480,
+      "sha256": "164720c11ca6dda029d82e025aaaae17762cd667b235d2624258fd3ef6714bee"
+    },
+    {
+      "file": "assets/art/support/burstRifle.png",
+      "width": 192,
+      "height": 89,
+      "decodedBytes": 68352,
+      "sha256": "dc7a94b9edcc30474f915d3b41a6d0fe591bb986e90d84db10b3b12fa0733178"
+    },
+    {
+      "file": "assets/art/support/carbine.png",
+      "width": 192,
+      "height": 61,
+      "decodedBytes": 46848,
+      "sha256": "e25b221bfa17b8d4470a348ec335de9fb716bed785bb7fb356752b82ddef1d4d"
+    },
+    {
+      "file": "assets/art/support/card_burstRifle.png",
+      "width": 212,
+      "height": 124,
+      "decodedBytes": 105152,
+      "sha256": "4893f154075dd3df7fa77dc476390dd3de6e2885840a45b69115915726339ae0"
+    },
+    {
+      "file": "assets/art/support/card_carbine.png",
+      "width": 212,
+      "height": 115,
+      "decodedBytes": 97520,
+      "sha256": "a5dda23f40da7fdda3c002d17d2161dfc8c1318aebe75d743161d78040e9446b"
+    },
+    {
+      "file": "assets/art/support/emitter.png",
+      "width": 96,
+      "height": 88,
+      "decodedBytes": 33792,
+      "sha256": "fea062ab0168df603f4e896746c615cbd7fdef5c2c61b2517f92ae54fcb2aa63"
+    }
+  ],
+  "audioValidated": [
+    "sentry_fire.wav",
+    "sentry_burst.wav",
+    "sentry_reload.wav",
+    "sentry_incoming.wav",
+    "aura_start.wav",
+    "aura_end.wav"
+  ],
+  "physicalAcceptance": "pending",
+  "normalFamilyFlags": "off",
+  "network": [
+    {
+      "clients": 3,
+      "family": "sentry",
+      "nominalRttMs": 0,
+      "result": "pass"
+    },
+    {
+      "clients": 2,
+      "family": "sentry",
+      "nominalRttMs": 150,
+      "jitterPerDirectionMs": 20,
+      "result": "pass"
+    },
+    {
+      "clients": 3,
+      "family": "aura",
+      "nominalRttMs": 300,
+      "jitterPerDirectionMs": 30,
+      "result": "pass"
+    },
+    {
+      "clients": 3,
+      "family": "sentry",
+      "nominalRttMs": 300,
+      "jitterPerDirectionMs": 30,
+      "result": "pass"
+    },
+    {
+      "clients": 2,
+      "family": "aura",
+      "nominalRttMs": 50,
+      "jitterPerDirectionMs": 5,
+      "result": "pass"
+    }
+  ],
+  "feedbackCorrection": {
+    "gameFull": {
+      "passed": 736,
+      "skipped": 5
+    },
+    "gameFinalFocused": {
+      "passed": 16
+    },
+    "gameAnalyzer": "passed",
+    "server": {
+      "passed": 169,
+      "moduleBuild": "passed"
+    },
+    "admin": {
+      "passed": 60,
+      "webBuild": "passed"
+    },
+    "identity": {
+      "passed": 23,
+      "compiledSmoke": "passed"
+    },
+    "weightedSelection": {
+      "ordinaryOnlyWeight": 1,
+      "defaultTwoFamiliesSupportProbability": 0.6666666666666666,
+      "singleFamilySupportProbability": 0.5,
+      "forcedSupportSlot": false,
+      "trainingAndCoop": true
+    },
+    "sentry": {
+      "ownBaseCollision": "fixed; 360 server and 16 native headings per mount",
+      "lead": "bounded physical intercept",
+      "shortContactTrace": "actual flight, bounded lifetime/capacity",
+      "preparedDamageMultipliers": [
+        3,
+        3.5,
+        4
+      ]
+    },
+    "aura": {
+      "outerClockwiseRadiansPerSecond": 0.08,
+      "innerCounterclockwiseRadiansPerSecond": 0.2,
+      "reducedMotion": "steady",
+      "damageProtection": false,
+      "preview": "build/test-previews/aura-energy.gif"
+    },
+    "liveObservation": {
+      "revision": 5,
+      "enabled": [
+        "sentry",
+        "aura"
+      ],
+      "sentryDamageMultipliers": [
+        1,
+        1.15,
+        1.3
+      ],
+      "mutated": false
+    },
+    "physicalAcceptance": false,
+    "freshClientBuilds": {
+      "androidReleaseAPK": "passed; private-test debug signing",
+      "webRelease": "passed",
+      "iosReleaseUnsigned": "passed",
+      "installed": false,
+      "deployed": false
+    }
+  }
+}

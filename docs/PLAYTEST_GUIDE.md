@@ -692,3 +692,45 @@ Skitter leaps, Shadow/Demon charges, ground edges and ring safe pockets; movemen
 clearance against fences/pods is unchanged. Repeat online only after matching
 server deployment. Confirm fresh runs still use your chosen admin shotgun values;
 this change does not publish or modify them. See COMBAT_VISIBILITY_AND_HURTBOX.md.
+
+
+## Airdrop support candidate (25 October 2026)
+
+Normal family flags are Off. In Breach Training, pause and choose Sentry practice
+or Aura practice, then confirm the displayed card. A sentry follows movement
+until its warning commits, lands at six active seconds, unfolds, fires and
+expires. Check both unique gun variants and rotation quadrants. It must keep its
+current reachable enemy even when a nearer one appears; after one continuously
+unreachable second it may reacquire. Burst rounds must leave separately.
+
+Walk around the base from every face, push crowds past it, and compare warning
+visibility with nearby hostile attacks. Pause during incoming, fall, unfold,
+reload and breakup; Continue must preserve phase and never replay impact damage.
+Restart/Rush cancels without detonating. Aura follows the survivor, obeys cover,
+stops after expiry and must remain distinguishable from hostile floor warnings.
+Repeat in Reduced Motion and with large text and mirrored controls.
+
+For co-op use the matching capability-6 server/client candidate. Test simultaneous
+2/3-player calls, adjacent reservations/source pod, down/revive, disconnect/rejoin
+and expiry. Overlapping Aura fields use strongest-only damage. Record actual
+phone frame pacing, audio/mute/foreground behavior, readability and balance;
+automated tests and local builds do not close these physical acceptance gates.
+
+
+### 25 October: support feedback correction
+
+Airdrop support availability is weighted, never a reserved card: default two
+families give 2/3 support hands, 1/3 ordinary-only; one family gives 1/2. Training
+called drops and co-op use the same rule, including rerolls/bans. Check a series
+of fresh drops, not a requirement that every short sequence contains both kinds.
+Sentry now excludes its own base from projectile wall contact, predicts bounded
+target motion and preserves short actual-flight traces. Prepared multipliers
+3/3.5/4 require admin publication (observed live revision 5 remains 1/1.15/1.3).
+Aura adds active-clock inner sigils/crackling and steady Reduced Motion art;
+players remain vulnerable. Verify close/all-direction shots, cover, reload,
+normal/Reduced Motion energy, pause and co-op readability on device. See
+`AIRDROP_SUPPORT_IMPLEMENTATION.md` for automated evidence and rollout limits.
+
+Aura motion follow-up: outer ring rotates clockwise at .08 rad/s; inner seal
+and its layered currents counterclockwise at .20 rad/s. Both use active life,
+freeze on pause and hold steady under Reduced Motion. Shared native/online art.

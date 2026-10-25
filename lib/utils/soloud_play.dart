@@ -60,6 +60,12 @@ class SoloudPlay {
         if (weapon == WeaponType.beltRepeater) 'spin_beltRepeater.wav',
         if (weapon.isContinuous || weapon == WeaponType.beltRepeater)
           'sustain_${weapon.name}.wav',
+        'sentry_fire.wav',
+        'sentry_burst.wav',
+        'sentry_reload.wav',
+        'sentry_incoming.wav',
+        'aura_start.wav',
+        'aura_end.wav',
         'hurt_player.wav',
         'blast.wav',
         'upgrade_pulse.wav',
@@ -137,6 +143,10 @@ class SoloudPlay {
           ? 120
           : assetPath == 'blast.wav'
           ? 120
+          : assetPath.startsWith('sentry_')
+          ? 85
+          : assetPath.startsWith('aura_')
+          ? 120
           : assetPath == 'enemy3projectile.wav'
           ? 100
           : assetPath.startsWith('impact_')
@@ -180,6 +190,10 @@ class SoloudPlay {
             ? .16
             : assetPath.startsWith('supply_')
             ? .4
+            : assetPath.startsWith('sentry_')
+            ? .28
+            : assetPath.startsWith('aura_')
+            ? .24
             : assetPath == 'enemy3projectile.wav'
             ? .30
             : assetPath.startsWith('shot_')

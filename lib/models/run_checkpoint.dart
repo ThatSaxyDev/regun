@@ -1,3 +1,5 @@
+import 'package:regun/systems/support_runtime.dart';
+import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/models/boss_history.dart';
 import 'package:regun/models/solo_recovery.dart';
 import 'package:regun/data/weapon_power_balance.dart';
@@ -84,6 +86,12 @@ class RunCheckpoint {
               map['dashCount'] > 1000000000)) {
         return false;
       }
+      final support = SupportProgress.restore(map['supportProgress']);
+      SupportRuntime().restore(
+        map['supportRuntime'],
+        support,
+        SupportConfig(power.snapshot?.values ?? {}),
+      );
       final ids = <int>{};
       for (final actor in map['enemies'] as List) {
         if (actor['cinder'] != null &&

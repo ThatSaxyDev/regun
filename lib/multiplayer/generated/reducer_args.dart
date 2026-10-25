@@ -88,6 +88,42 @@ class AttachCombatArgsDecoder implements ReducerArgDecoder<AttachCombatArgs> {
   }
 }
 
+/// Arguments for the ban_reward reducer
+class BanRewardArgs {
+  final Int64 roomid;
+  final Int64 generation;
+  final int offerid;
+  final String choice;
+  BanRewardArgs({
+    required this.roomid,
+    required this.generation,
+    required this.offerid,
+    required this.choice,
+  });
+}
+
+/// Decoder for ban_reward reducer arguments
+class BanRewardArgsDecoder implements ReducerArgDecoder<BanRewardArgs> {
+  @override
+  BanRewardArgs? decode(BsatnDecoder decoder) {
+    try {
+      final roomid = decoder.readU64();
+      final generation = decoder.readU64();
+      final offerid = decoder.readU32();
+      final choice = decoder.readString();
+
+      return BanRewardArgs(
+        roomid: roomid,
+        generation: generation,
+        offerid: offerid,
+        choice: choice,
+      );
+    } catch (e) {
+      return null; // Deserialization failed
+    }
+  }
+}
+
 /// Arguments for the ban_upgrade reducer
 class BanUpgradeArgs {
   final int offerid;
@@ -143,6 +179,42 @@ class ChooseLoadoutArgsDecoder implements ReducerArgDecoder<ChooseLoadoutArgs> {
       final survivor = decoder.readString();
 
       return ChooseLoadoutArgs(weapon: weapon, survivor: survivor);
+    } catch (e) {
+      return null; // Deserialization failed
+    }
+  }
+}
+
+/// Arguments for the choose_reward reducer
+class ChooseRewardArgs {
+  final Int64 roomid;
+  final Int64 generation;
+  final int offerid;
+  final String choice;
+  ChooseRewardArgs({
+    required this.roomid,
+    required this.generation,
+    required this.offerid,
+    required this.choice,
+  });
+}
+
+/// Decoder for choose_reward reducer arguments
+class ChooseRewardArgsDecoder implements ReducerArgDecoder<ChooseRewardArgs> {
+  @override
+  ChooseRewardArgs? decode(BsatnDecoder decoder) {
+    try {
+      final roomid = decoder.readU64();
+      final generation = decoder.readU64();
+      final offerid = decoder.readU32();
+      final choice = decoder.readString();
+
+      return ChooseRewardArgs(
+        roomid: roomid,
+        generation: generation,
+        offerid: offerid,
+        choice: choice,
+      );
     } catch (e) {
       return null; // Deserialization failed
     }
@@ -477,6 +549,38 @@ class RematchArgsDecoder implements ReducerArgDecoder<RematchArgs> {
   RematchArgs? decode(BsatnDecoder decoder) {
     try {
       return RematchArgs();
+    } catch (e) {
+      return null; // Deserialization failed
+    }
+  }
+}
+
+/// Arguments for the reroll_reward reducer
+class RerollRewardArgs {
+  final Int64 roomid;
+  final Int64 generation;
+  final int offerid;
+  RerollRewardArgs({
+    required this.roomid,
+    required this.generation,
+    required this.offerid,
+  });
+}
+
+/// Decoder for reroll_reward reducer arguments
+class RerollRewardArgsDecoder implements ReducerArgDecoder<RerollRewardArgs> {
+  @override
+  RerollRewardArgs? decode(BsatnDecoder decoder) {
+    try {
+      final roomid = decoder.readU64();
+      final generation = decoder.readU64();
+      final offerid = decoder.readU32();
+
+      return RerollRewardArgs(
+        roomid: roomid,
+        generation: generation,
+        offerid: offerid,
+      );
     } catch (e) {
       return null; // Deserialization failed
     }
