@@ -18,6 +18,7 @@ import 'package:flame/components.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/components/weapons/weapon_impact.dart';
+import 'package:regun/components/weapons/combat_effect.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -150,7 +151,10 @@ class ArsenalSystem {
       patches.length +
       (_loopOn || flame.tongues.isNotEmpty ? 1 : 0);
   bool get hasRivets => rivets.isNotEmpty;
-  double get visualCharge => weapon == WeaponType.ringCaster
+  double orbCharge = 0;
+  double get visualCharge => weapon == WeaponType.stormOrb
+      ? (balance.orbWindup <= 0 ? 0 : orbCharge / balance.orbWindup)
+      : weapon == WeaponType.ringCaster
       ? frontier.ringProgress
       : weapon == WeaponType.twinVerdict
       ? (endgame.brandReady ? 1 : 0)
@@ -185,6 +189,7 @@ class ArsenalSystem {
   }
 
   void cancelIntent() {
+    orbCharge = 0;
     charge = 0;
     spool = 0;
     sustainedFire = 0;
@@ -417,6 +422,7 @@ class ArsenalSystem {
       return;
     }
     if (!held || !ready) {
+      orbCharge = 0;
       charge = 0;
       sustainedFire = 0;
       spool = math.max(0, spool - dt * 1.6);
@@ -430,7 +436,19 @@ class ArsenalSystem {
       }
       return;
     }
-    if (weapon == WeaponType.railLance) {
+    if (weapon == WeaponType.stormOrb) {
+      // Wind up inside the existing release interval, not in addition to it.
+      // Charge is unpaid input intent and is cancelled on release/pause/reload.
+      final interval = math.max(.45, balance.cadence(weapon) * _trigger);
+      final delay = math.min(balance.orbWindup, interval);
+      if (cooldown <= delay + 1e-8) {
+        orbCharge = math.min(delay, orbCharge + dt);
+      }
+      if (cooldown <= 1e-8 && orbCharge >= delay - 1e-8 && frontier.fire()) {
+        orbCharge = 0;
+        cooldown = interval;
+      }
+    } else if (weapon == WeaponType.railLance) {
       if (cooldown > 0) return;
       charge = math.min(RailLanceTiming.chargeSeconds, charge + dt);
       if (charge >= RailLanceTiming.chargeSeconds - 1e-8 &&

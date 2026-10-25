@@ -95,22 +95,25 @@ class WeaponPowerBalance {
   double get rocketAcquireAngle =>
       n('effects.houndrack.rocketAcquireAngle', 45);
   double get rocketAcceleration =>
-      n('effects.houndrack.rocketAcceleration', .55);
+      n('effects.houndrack.rocketAcceleration', .25);
   double get rocketSplashDamage =>
-      n('effects.houndrack.rocketSplashDamage', .45);
+      n('effects.houndrack.rocketSplashDamage', .8);
   double get rocketSplashRadius =>
-      n('effects.houndrack.rocketSplashRadius', 48);
+      n('effects.houndrack.rocketSplashRadius', 65);
   int get rocketLimit => n('effects.houndrack.rocketLimit', 12).toInt();
   double get orbArcDamage => n('effects.stormorb.orbArcDamage', 1.2);
   double get orbArcRadius => n('effects.stormorb.orbArcRadius', 130);
   double get orbTick => n('effects.stormorb.orbTick', .2);
   int get orbTargets => n('effects.stormorb.orbTargets', 3).toInt();
   int get orbLimit => n('effects.stormorb.orbLimit', 3).toInt();
+  double get orbWindup => n('effects.stormorb.orbWindup', .18);
+  double get ringRadius => n('effects.ringcaster.ringRadius', 160);
+  double get ringStart => n('effects.ringcaster.ringStart', 28);
   double get orbLifetime => n('effects.stormorb.orbLifetime', 2.4);
-  double get ringExpand => n('effects.ringcaster.ringExpand', 1.1);
-  double get ringRetract => n('effects.ringcaster.ringRetract', .45);
-  double get ringHold => n('effects.ringcaster.ringHold', .8);
-  double get ringReturnScale => n('effects.ringcaster.ringReturnScale', 1.25);
+  double get ringExpand => n('effects.ringcaster.ringExpand', .7);
+  double get ringRetract => n('effects.ringcaster.ringRetract', .55);
+  double get ringHold => n('effects.ringcaster.ringHold', .2);
+  double get ringReturnScale => n('effects.ringcaster.ringReturnScale', 1.5);
   int get ringTargets => n('effects.ringcaster.ringTargets', 8).toInt();
   double get ringThickness => n('effects.ringcaster.ringThickness', 28);
   double n(String key, num fallback) =>

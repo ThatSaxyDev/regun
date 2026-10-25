@@ -787,3 +787,16 @@ In damage-off Training, let a crowd surround a stationary survivor. Blocked mumm
 ### Sentry first-shot reliability (25 October)
 
 Test both Carbine and three-round mounts from a fresh Training drop. Stand at different arena positions and let scorpions/mummies walk across and away from the gun. Rounds should reach bodies and reduce health without an extra warm-up after firing starts. Repeat beside a supply pod/Foundry cover edge: blocked lanes must not consume endless rounds against an unreachable locked target; clear targets remain eligible. Cover still stops actual projectiles. Repeat in co-op with the matching server. Keep existing unlimited-ammo, pause/Continue and expiry checks. Automated evidence is in SENTRY_FLIGHT_CORRECTION.md.
+
+## Capture ring and rocket impact — 25 October 2026
+
+This supersedes earlier hold/recall and outward/return ring instructions. Fire
+once: the ring must grow downrange, capture at full size, then close there after
+you release aim and move away. Check a pack larger than eight, ordinary movement,
+Skitter leaps, solid cover, planted enemies, pause/Continue, cleanup and the final
+charge reload. A normal mummy should die to three base Houndrack rockets; a
+frontally guarding Shield Warden should remain much tougher. Listen for short
+mini-explosions below the grenade blast. Storm Orb should visibly charge .18s,
+spend no ammo when cancelled early, and retain its 1.1s sustained release interval.
+Admin Pre-fire delay0 disables that charge. Review exact numeric controls and
+publication instructions in [FRONTIER_CAPTURE_AND_IMPACT.md](FRONTIER_CAPTURE_AND_IMPACT.md).

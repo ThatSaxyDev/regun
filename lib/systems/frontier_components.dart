@@ -33,6 +33,7 @@ Map<String, num> frontierComponents(String weapon, Map<String, num> values) {
     },
     'stormOrb' => {
       ...common,
+      'Pre-fire delay (s)': n('effects.stormorb.orbWindup'),
       'Extra damage per crossed body': base('damage'),
       'Arc damage per tick': n('effects.stormorb.orbArcDamage'),
       'Arc interval (s)': n('effects.stormorb.orbTick'),
@@ -43,16 +44,16 @@ Map<String, num> frontierComponents(String weapon, Map<String, num> values) {
     },
     'ringCaster' => {
       ...common,
-      'Maximum cutting radius': base('range') * .35,
+      'Capture radius': n('effects.ringcaster.ringRadius'),
+      'Starting radius': n('effects.ringcaster.ringStart'),
       'Forward travel': base('range') * .65,
-      'Outward damage per body': base('damage'),
-      'Return damage per body':
+      'Collapse damage per captured body':
           base('damage') * n('effects.ringcaster.ringReturnScale'),
       'Expansion (s)': n('effects.ringcaster.ringExpand'),
-      'Maximum outer hold (s)': n('effects.ringcaster.ringHold'),
-      'Retraction (s)': n('effects.ringcaster.ringRetract'),
+      'Capture hold (s)': n('effects.ringcaster.ringHold'),
+      'Contraction (s)': n('effects.ringcaster.ringRetract'),
       'Cutting thickness': n('effects.ringcaster.ringThickness'),
-      'Targets per phase': n('effects.ringcaster.ringTargets'),
+      'Capture body limit': 120,
     },
     _ => throw ArgumentError.value(weapon, 'weapon'),
   };

@@ -215,10 +215,10 @@ enum WeaponType {
     'Houndrack',
     'Accelerating micro-rockets seek a target.',
     40,
-    .11,
-    1.1,
+    .13,
+    2.2,
     650,
-    780,
+    900,
     2800,
   ),
   stormOrb(
@@ -233,7 +233,7 @@ enum WeaponType {
   ),
   ringCaster(
     'Ring Caster',
-    'Launch a cutting ring. Hold to expand; release to recall.',
+    'Launch a trap that expands, captures and collapses in place.',
     4,
     1.2,
     4.5,

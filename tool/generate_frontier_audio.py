@@ -35,6 +35,20 @@ def propulsion(variant):
   result.append(value)
  return result
 
+def rocket_impact():
+ # Recorded short cannon pressure and close debris, below the grenade blast.
+ duration=.28; debris=air(duration,809,.36,.025)
+ pressure=pcm('cannon_01.ogg',1.15,1900,.22)
+ crack=pcm('shot_01.ogg',1.08,2900,.075)
+ result=[]
+ for i,n in enumerate(debris):
+  t=i/RATE
+  value=.30*n*math.exp(-t*19)+.35*math.sin(2*math.pi*(95*t-65*t*t))*math.exp(-t*22)
+  if i<len(pressure): value += .65*pressure[i]*math.exp(-t*9)
+  if i<len(crack): value += .22*crack[i]*math.exp(-t*28)
+  result.append(value*min(1,t/.0015))
+ return result
+
 def electrical(seconds, seed, kind):
  noise=air(seconds,seed,.30,.055); result=[]
  contact=pcm('rifle_reload_springyspringo.wav',1.18,1700,min(seconds,.07))
@@ -55,6 +69,7 @@ def electrical(seconds, seed, kind):
 
 def generate():
  rows=[]
+ write('impact_houndrack.wav',rocket_impact(),.62,'recorded_micro_rocket_blast',rows,decay=.5)
  for i in range(3):
   write(f'shot_houndrack_{i}.wav', propulsion(i),.64,'recorded_ignition_original_propulsion',rows,decay=.4)
   write(f'shot_stormOrb_{i}.wav', electrical(.34,620+i,'launch'),.64,'recorded_mechanism_original_orb_launch',rows,decay=.4)

@@ -1,5 +1,5 @@
 {
-  "catalogId": "f0fa922dbe6a1aab915e5316349004e3926363d4fcf8778d7df9bd6be8e1d678",
+  "catalogId": "867a3394cff4daeb9803e11ef09b23886d25b1c1462b75c0a915d1509e20e5c9",
   "note": "Per-family component audit across all24 weapons and10 survivors at default/minimum/maximum strength and curves. Includes unsupported contexts, not a DPS simulation or offer count. Zero transitions are expected at caps; offer tests verify supported exclusions.",
   "families": [
     {
@@ -19,7 +19,7 @@
     {
       "id": "quickTrigger",
       "transitions": 5760,
-      "capped": 1060,
+      "capped": 1050,
       "III": {
         "Release interval (s)": 0.21494374999999996
       },

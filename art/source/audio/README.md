@@ -94,3 +94,12 @@ short shared flight/zap/pass cues are added; no external recording or voice.
 Full expansion generation invokes this correction last. See
 `docs/art/FRONTIER_AUDIO_REVIEW.md` for native gains, overlap limits, hashes and
 review commands. Other weapons/music/reload recordings are preserved.
+
+### 25 October: Houndrack micro-explosion
+
+`tool/generate_frontier_audio.py` now owns `impact_houndrack.wav`: existing CC0
+`cannon_01.ogg` pressure + `shot_01.ogg` transient, deterministic original debris
+and low pressure layers, .28s duration/.62 normalized peak. Runtime SFX gain .42.
+No additional provider recordings. The shared weapon manifest records the new
+hash; `tool/preview_frontier_audio.py` validates the cue and bounded rapid-fire
+mix at the updated launch/impact gains. Physical speaker listening remains open.

@@ -23,8 +23,7 @@ void main() {
           .cast<Map>()
           .firstWhere(
             (c) =>
-                (c['fields'] as List).length ==
-                    LiveBalance.bundled.values.length &&
+                (c['fields'] as List).length == 365 &&
                 (c['fields'] as List).any((f) => f['item'] == 'Aura Farm'),
           );
       final id = old['catalogId'] as String;
@@ -65,7 +64,7 @@ void main() {
   test(
     'snapshot enforces full schema, finite bounds, relationships and hash',
     () {
-      expect(LiveBalance.bundled.values.length, 365);
+      expect(LiveBalance.bundled.values.length, 368);
       expect(
         LiveBalance.fromJson(
           jsonDecode(

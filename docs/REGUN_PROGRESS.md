@@ -1731,3 +1731,30 @@ Blocked mummies now select a planted living alert pose and face the player throu
 ## 25 October: sentry premature-round removal
 
 Native sentry flight now records actual cover contact instead of treating Float32 movement rounding as a wall. Open-flight range remains double precision. Native/co-op target sight uses the same five-unit clearance as its rounds, avoiding endless pod-edge fire. Fresh-drop, actual walking-enemy, cover, retargeting and range regressions preserve damage/cadence/ammunition and occupancy. See [SENTRY_FLIGHT_CORRECTION.md](SENTRY_FLIGHT_CORRECTION.md).
+
+## 25 October: rocket impact, orb wind-up and capture ring
+
+Houndrack's bundled damage/acceleration/splash and compact recorded impact now
+support the micro-rocket role while preserving Shield Warden armor. Storm Orb
+adds a configurable .18s unpaid pre-fire charge inside its release cadence.
+New Ring Caster casts expand, capture every exposed body inside, and collapse at
+a fixed downrange spot for one finishing hit; movement containment shares wall
+and occupancy constraints. Schema3 traps and old ring saves remain readable.
+Game/admin/API catalogue and previews agree; prior releases/drafts retain their
+exact historical contract. No live settings were published. See
+[FRONTIER_CAPTURE_AND_IMPACT.md](FRONTIER_CAPTURE_AND_IMPACT.md) for exact admin
+fields, gameplay contracts and hands-on checks.
+
+Validation: game analyzer clean; full game suite754 passed/5 intentional skips;
+final frontier/save regressions24 passed. Admin analyzer clean and67 tests passed.
+Backend module178 tests/typecheck/build and identity API26 tests/typecheck/build
+plus its compiled-process smoke passed. Game/admin release web builds and admin
+unsigned iOS build passed. The updated 12-cue audio check measured a .4322 peak
+in its 18-rocket/orb stress mix. Frames and listening reel are in
+`docs/validation/frontier-capture-2026-10-25`. Physical balance, speaker listening
+and motion/comfort still need creator playtesting; no installation or live
+balance publication is claimed.
+Game unsigned iOS and Android release APK builds also passed. Android's first
+no-pub build encountered a stale generated test-plugin registration; the normal
+release build regenerated plugin metadata and succeeded without app-source or
+dependency changes. Final release artifacts preserve 1.0.0+23.

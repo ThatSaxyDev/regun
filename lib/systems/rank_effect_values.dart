@@ -49,12 +49,12 @@ class RankEffects {
                 (v['effects.stormorb.orbArcDamage'] ?? 1.2) * multiplier,
           if (weapon == 'houndrack')
             'Secondary splash damage':
-                (v['effects.houndrack.rocketSplashDamage'] ?? .45) * multiplier,
+                (v['effects.houndrack.rocketSplashDamage'] ?? .8) * multiplier,
           if (weapon == 'ringCaster')
-            'Return hit damage':
+            'Collapse hit damage':
                 base('damage', 4.5) *
                 multiplier *
-                (v['effects.ringcaster.ringReturnScale'] ?? 1.25),
+                (v['effects.ringcaster.ringReturnScale'] ?? 1.5),
           if (weapon == 'railLance') ...{
             'Quick shot damage': base('damage', 11.25) * multiplier,
             'Full charge damage':

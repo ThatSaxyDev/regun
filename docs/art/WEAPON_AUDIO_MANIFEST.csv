@@ -94,7 +94,6 @@ reload_mourningBell_2.wav,0.3,0.54,0.1092,recorded_mourningBell_2,0
 reload_longwatchSniper_0.wav,0.25,0.46,0.0338,recorded_longwatchSniper_0,0
 reload_longwatchSniper_1.wav,0.23,0.5,0.0487,recorded_longwatchSniper_1,0
 reload_longwatchSniper_2.wav,0.25,0.56,0.0649,recorded_longwatchSniper_2,0
-impact_houndrack.wav,0.2,0.5,0.0552,recorded_impact_houndrack,0
 shot_ringCaster_0.wav,0.28,0.72,0.1032,recorded_ringCaster,0
 shot_ringCaster_1.wav,0.28,0.72,0.1017,recorded_ringCaster,0
 shot_ringCaster_2.wav,0.28,0.72,0.1001,recorded_ringCaster,0
@@ -174,6 +173,7 @@ crush_anchorEngine.wav,0.42,0.78,0.1026,recorded_endgame_payoff,0
 section_faultlineDriver.wav,0.25,0.67,0.108,recorded_endgame_payoff,0
 echo_mourningBell.wav,0.3,0.62,0.0922,recorded_endgame_payoff,0
 spin_beltRepeater.wav,0.4,0.42,0.1073,original_motor_spinup,0
+impact_houndrack.wav,0.28,0.62,0.0826,recorded_micro_rocket_blast,0
 shot_houndrack_0.wav,0.28,0.64,0.1167,recorded_ignition_original_propulsion,0
 shot_stormOrb_0.wav,0.34,0.64,0.2107,recorded_mechanism_original_orb_launch,0
 shot_houndrack_1.wav,0.28,0.64,0.1083,recorded_ignition_original_propulsion,0

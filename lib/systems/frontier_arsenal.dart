@@ -45,11 +45,17 @@ class CuttingRing {
     Vector2? origin,
     Vector2? heading,
     this.gunLaunched = true,
+    this.trap = false,
+    this.captureRadius = 160,
+    this.startRadius = 28,
   }) : origin = (origin ?? center).clone(),
        heading = (heading ?? Vector2(1, 0)).clone();
   final int id;
   final Vector2 center, origin, heading;
-  final bool gunLaunched;
+  final bool gunLaunched, trap;
+  final double captureRadius, startRadius;
+  bool locked = false;
+  final captured = <int>{};
   final double damage, maximum;
   double radius = 8, age = 0, phaseTime = 0, returnFrom = 8;
   bool returning = false;
@@ -60,6 +66,11 @@ class CuttingRing {
     'origin': [origin.x, origin.y],
     'heading': [heading.x, heading.y],
     'gunLaunched': gunLaunched,
+    'trap': trap,
+    'captureRadius': captureRadius,
+    'startRadius': startRadius,
+    'locked': locked,
+    'captured': captured.toList(),
     'damage': damage,
     'maximum': maximum,
     'radius': radius,
@@ -91,7 +102,10 @@ class FrontierArsenal {
   int get effectCount => shots.length + (ring == null ? 0 : 1);
   double get ringProgress => ring == null
       ? 0
-      : ring!.radius / (ring!.maximum * (ring!.gunLaunched ? .35 : 1));
+      : ring!.radius /
+            (ring!.trap
+                ? ring!.captureRadius
+                : ring!.maximum * (ring!.gunLaunched ? .35 : 1));
 
   List<CombatEnemy>? _stepTargets;
   List<CombatEnemy> get targets => _stepTargets ?? collectTargets();
@@ -122,7 +136,11 @@ class FrontierArsenal {
         system._releaseDamage(),
         system.effectiveRange,
         heading: direction,
-      );
+        trap: true,
+        captureRadius:
+            balance.ringRadius * system.effectiveRange / balance.range(weapon),
+        startRadius: balance.ringStart,
+      )..radius = balance.ringStart;
       system._released();
       return true;
     }
@@ -322,11 +340,18 @@ class FrontierArsenal {
       }
       if (game.claimWeaponImpact()) {
         game.addCombatEffect(
-          WeaponImpact(
-            position: end.clone(),
-            weapon: weapon,
-            direction: f.direction,
-          ),
+          weapon == WeaponType.houndrack
+              ? CombatEffect(
+                  position: end.clone(),
+                  radius: balance.rocketSplashRadius,
+                  material: AttackMaterial.ember,
+                  duration: .28,
+                )
+              : WeaponImpact(
+                  position: end.clone(),
+                  weapon: weapon,
+                  direction: f.direction,
+                ),
         );
       }
       system.audio.play('impact_${weapon.name}.wav');
@@ -371,6 +396,10 @@ class FrontierArsenal {
   void _advanceRing(double dt, bool held) {
     final r = ring;
     if (r == null) return;
+    if (r.trap) {
+      _advanceTrap(r, dt);
+      return;
+    }
     final oldCenter = r.center.clone(), oldRadius = r.radius;
     r.age += dt;
     if (!r.returning &&
@@ -454,8 +483,115 @@ class FrontierArsenal {
     }
   }
 
+  /// Containment belongs to this paid ring, never to a persistent enemy flag.
+  /// Existing overlaps can move inward/tangentially, without teleporting bodies.
+  bool constrainCaptured(PositionComponent actor, Vector2 point) {
+    final r = ring;
+    if (r == null ||
+        !r.trap ||
+        !r.locked ||
+        actor is! CombatEnemy ||
+        actor.isBoss ||
+        actor.impactResponse == 0 ||
+        !r.captured.contains(actor.combatId)) {
+      return false;
+    }
+    final body = game.crowdRadius(actor);
+    final bound = math.max(
+      math.max(0.0, r.radius - body),
+      actor.position.distanceTo(r.center),
+    );
+    final delta = point - r.center;
+    if (delta.length > bound && !delta.isZero()) {
+      point.setFrom(r.center + delta.normalized() * bound);
+      return true;
+    }
+    return false;
+  }
+
+  void _advanceTrap(CuttingRing r, double dt) {
+    r.age += dt;
+    final expand = balance.ringExpand;
+    if (!r.locked) {
+      final progress = (r.age / expand).clamp(0.0, 1.0);
+      r.center.setFrom(
+        system.clip(
+          r.origin,
+          r.origin + r.heading * (r.maximum * .65 * progress),
+        ),
+      );
+      r.radius = r.startRadius + (r.captureRadius - r.startRadius) * progress;
+      if (r.age < expand - 1e-8) return;
+      r.locked = true;
+      // Capture every intersecting living body; the old edge-hit cap must not
+      // silently allow the ninth enemy to escape a visually closed trap.
+      for (final e in targets) {
+        if (!e.combatHealth.isDead &&
+            e.position.distanceTo(r.center) <=
+                r.captureRadius + game.crowdRadius(e) &&
+            !game.segmentBlocked(r.center, e.position)) {
+          r.captured.add(e.combatId);
+        }
+      }
+    }
+    if (r.age < expand + balance.ringHold - 1e-8) return;
+    if (!r.returning) {
+      r.returning = true;
+      system.audio.play('return_ringCaster.wav');
+    }
+    r.phaseTime = math.max(0, r.age - expand - balance.ringHold);
+    r.radius =
+        r.captureRadius *
+        (1 - r.phaseTime / balance.ringRetract).clamp(0.0, 1.0);
+    for (final e in targets) {
+      if (!r.captured.contains(e.combatId) || e.combatHealth.isDead) continue;
+      if (!e.isBoss && e.impactResponse > 0) {
+        final delta = r.center - e.position;
+        final distance = math.min(delta.length, 260 * dt * e.impactResponse);
+        if (distance > .001) {
+          game.moveTo(
+            e,
+            e.position + delta.normalized() * distance,
+            game.crowdRadius(e),
+          );
+        }
+      }
+      if (r.radius > .01 ||
+          !r.inward.add(e.combatId) ||
+          game.segmentBlocked(r.center, e.position)) {
+        continue;
+      }
+      final context = system._releaseContexts[r.id];
+      game.hitEnemy(
+        e,
+        r.damage * balance.ringReturnScale,
+        primary: false,
+        weaponHit: true,
+        releaseId: context?.$1 ?? 0,
+        releaseBonus: context?.$2 ?? 0,
+        direction: e.position - r.center,
+        reaction: WeaponReaction.of(weapon),
+      );
+      if (game.claimWeaponImpact()) {
+        game.addCombatEffect(
+          WeaponImpact(
+            position: e.position.clone(),
+            weapon: weapon,
+            direction: e.position - r.center,
+          ),
+        );
+      }
+    }
+    if (r.radius <= .01) {
+      ring = null;
+      if (system.state.noOfBullets == 0 && !system.state.reloading) {
+        game.gameNotifier.reloadBullets();
+      }
+    }
+  }
+
   Map<String, dynamic> checkpoint() => {
-    'schema': 2,
+    'schema': 3,
     'shots': [
       for (final f in shots)
         if (!f.spent) f.toJson(),
@@ -472,7 +608,7 @@ class FrontierArsenal {
     if (raw == null) return; // Old checkpoints have no frontier packet.
     if (!handles ||
         raw is! Map ||
-        ![1, 2].contains(raw['schema']) ||
+        ![1, 2, 3].contains(raw['schema']) ||
         raw['shots'] is! List ||
         raw['shots'].length > (weapon == WeaponType.stormOrb ? 3 : 12) ||
         nextAttack is! int) {
@@ -520,7 +656,7 @@ class FrontierArsenal {
       number(f['age'], 6);
       number(f['travelled'], f['range'].toDouble());
       number(f['tick'], 1);
-      if (raw['schema'] == 2 && f['crossed'] == null) {
+      if (raw['schema'] >= 2 && f['crossed'] == null) {
         throw const FormatException('Missing orb crossing ledger');
       }
       if (f['crossed'] != null) {
@@ -549,24 +685,48 @@ class FrontierArsenal {
       }
       id(r['id']);
       point(r['center']);
-      if (raw['schema'] == 2) {
+      if (raw['schema'] >= 2) {
         point(r['origin']);
         point(r['heading'], direction: true);
         if (r['gunLaunched'] is! bool) {
           throw const FormatException('Invalid ring launch');
         }
       }
+      if (raw['schema'] >= 3) {
+        if (r['trap'] is! bool || r['locked'] is! bool) {
+          throw const FormatException('Invalid ring phase');
+        }
+        number(r['captureRadius'], 2000);
+        number(r['startRadius'], 100);
+        if (r['captureRadius'] < 40 ||
+            r['startRadius'] < 1 ||
+            r['startRadius'] > r['captureRadius']) {
+          throw const FormatException('Invalid ring radii');
+        }
+        final captured = r['captured'];
+        if (captured is! List ||
+            captured.length > RegunGame.maxEnemies ||
+            captured.toSet().length != captured.length ||
+            captured.any((id) => id is! int || id < 1 || id > 1e9)) {
+          throw const FormatException('Invalid ring capture');
+        }
+      }
       number(r['damage'], 10000);
       number(r['maximum'], 2000);
       if (r['maximum'] < 60) throw const FormatException('Invalid ring reach');
-      number(r['radius'], r['maximum'].toDouble());
+      number(
+        r['radius'],
+        math
+            .max(r['maximum'] as num, (r['captureRadius'] as num?) ?? 0)
+            .toDouble(),
+      );
       number(r['returnFrom'], r['maximum'].toDouble());
       number(r['age'], 10);
       number(r['phaseTime'], 10);
       for (final key in ['outward', 'inward']) {
         final list = r[key];
         if (list is! List ||
-            list.length > 12 ||
+            list.length > (r['trap'] == true ? RegunGame.maxEnemies : 12) ||
             list.toSet().length != list.length ||
             list.any((id) => id is! int || id < 1 || id > 1e9)) {
           throw const FormatException('Invalid ring hit ledger');
@@ -608,6 +768,15 @@ class FrontierArsenal {
               origin: r['origin'] == null ? null : point(r['origin']),
               heading: r['heading'] == null ? null : point(r['heading']),
               gunLaunched: r['gunLaunched'] == true,
+              trap: raw['schema'] >= 3 && r['trap'] == true,
+              captureRadius: (r['captureRadius'] as num? ?? 160).toDouble(),
+              startRadius: (r['startRadius'] as num? ?? 28).toDouble(),
+            )
+            ..locked = raw['schema'] >= 3 && r['locked'] == true
+            ..captured.addAll(
+              raw['schema'] >= 3
+                  ? (r['captured'] as List).cast<int>()
+                  : const <int>[],
             )
             ..radius = (r['radius'] as num).toDouble()
             ..age = (r['age'] as num).toDouble()
@@ -616,12 +785,26 @@ class FrontierArsenal {
             ..returning = r['returning']
             ..outward.addAll((r['outward'] as List).cast<int>())
             ..inward.addAll((r['inward'] as List).cast<int>());
-      // No held input survives Continue: a paid ring returns on active resume.
+      // Legacy rings finish their old flight; paid traps resume without held input.
     }
   }
 
   void render(Canvas canvas, Rect view) {
     final reduced = game.preferences.reducedMotion;
+    if (weapon == WeaponType.stormOrb && system.orbCharge > 0) {
+      final p = system.muzzle(system.aim);
+      canvas.save();
+      canvas.translate(p.x, p.y);
+      final scale = .25 + .45 * system.visualCharge.clamp(0.0, 1.0);
+      canvas.scale(scale);
+      FrontierVfx.orb(
+        canvas,
+        Offset.zero,
+        reduced ? 0 : system.orbCharge,
+        reduced,
+      );
+      canvas.restore();
+    }
     for (final f in shots) {
       if (!view.contains(f.position.toOffset())) continue;
       if (weapon == WeaponType.houndrack) {

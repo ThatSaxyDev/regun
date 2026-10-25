@@ -11,7 +11,7 @@ def read(name):
  assert abs(a[0])<.002 and abs(a[-1])<.002,name
  return a
 
-names=[f'shot_{w}_{i}.wav' for w in ['houndrack','stormOrb'] for i in range(3)]+['impact_stormOrb.wav']+list(EXTRAS)
+names=[f'shot_{w}_{i}.wav' for w in ['houndrack','stormOrb'] for i in range(3)]+['impact_stormOrb.wav','impact_houndrack.wav']+list(EXTRAS)
 rows=[]
 for name in names:
  a=read(name)
@@ -23,8 +23,8 @@ def add(name,start,gain):
   if k<len(mix): mix[k]+=v*gain*.8
 # One flight texture per weapon, not per projectile; 18 rapid rockets.
 for i in range(18):
- add(f'shot_houndrack_{i%3}.wav',.4+i*.11,.62)
- add('impact_houndrack.wav',1.15+i*.11,.25)
+ add(f'shot_houndrack_{i%3}.wav',.4+i*.13,.72)
+ add('impact_houndrack.wav',1.15+i*.13,.42)
 for i in range(13): add('flight_houndrack.wav',.5+i*.22,.12)
 add('shot_stormOrb_0.wav',5.2,.6)
 for i in range(7): add('flight_stormOrb.wav',5.28+i*.32,.15)

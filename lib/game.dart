@@ -542,8 +542,9 @@ class RegunGame extends FlameGame
         actor,
         direction * (speed * dt),
         radius: crowdRadius(actor),
-        constrain: (point) =>
-            geometry.constrain(point, max(radius, crowdRadius(actor))),
+        constrain: (point) {
+          _constrainEnemyMove(actor, point, max(radius, crowdRadius(actor)));
+        },
         slide: avoidCrowd,
         side: enemyTactics.side(actor),
       );
@@ -564,6 +565,20 @@ class RegunGame extends FlameGame
       actor.position.addScaled(tangent, speed * dt);
       constrainActor(actor.position, radius);
     }
+  }
+
+  void _constrainEnemyMove(
+    PositionComponent actor,
+    Vector2 point,
+    double radius,
+  ) {
+    geometry.constrain(point, radius);
+    if (!(arsenal?.frontier.constrainCaptured(actor, point) ?? false)) return;
+    final valid = point.clone();
+    geometry.constrain(valid, radius);
+    // A shrinking ring must never push a body through solid cover. If the two
+    // constraints have no shared destination, occupancy keeps the current body.
+    if (valid.distanceToSquared(point) > .001) point.setFrom(actor.position);
   }
 
   void clearMinionsInBossShape(
@@ -610,8 +625,9 @@ class RegunGame extends FlameGame
     actor,
     target - actor.position,
     radius: crowdRadius(actor),
-    constrain: (point) =>
-        geometry.constrain(point, max(radius, crowdRadius(actor))),
+    constrain: (point) {
+      _constrainEnemyMove(actor, point, max(radius, crowdRadius(actor)));
+    },
     slide: false,
     beforeStep: crushMinions && actor is CombatEnemy && actor.isBoss
         ? (from, to) => clearMinionsInBossPath(from, to, crowdRadius(actor) + 4)

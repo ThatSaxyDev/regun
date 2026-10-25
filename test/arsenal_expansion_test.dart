@@ -502,6 +502,8 @@ void main() {
                     ? .425
                     : weapon == WeaponType.burstRifle
                     ? .225
+                    : weapon == WeaponType.stormOrb
+                    ? .2
                     : weapon == WeaponType.cinderHose
                     ? .225
                     : .025,
@@ -1645,7 +1647,7 @@ void main() {
           ];
           await game.world.addAll(targets);
           await game.ready();
-          await advance(game, 1.3);
+          await advance(game, weapon == WeaponType.ringCaster ? 1.6 : 1.3);
           expect(game.shotsFired, greaterThan(0));
           expect(
             targets

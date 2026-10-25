@@ -1,5 +1,5 @@
 {
-  "catalogId": "f0fa922dbe6a1aab915e5316349004e3926363d4fcf8778d7df9bd6be8e1d678",
+  "catalogId": "867a3394cff4daeb9803e11ef09b23886d25b1c1462b75c0a915d1509e20e5c9",
   "values": {
     "weapons.shotgun.damage": 1.7,
     "weapons.shotgun.capacity": 5,
@@ -128,12 +128,12 @@
     "weapons.mourningBell.reloadMs": 3000,
     "weapons.mourningBell.range": 400,
     "weapons.mourningBell.speed": 1000,
-    "weapons.houndrack.damage": 1.1,
+    "weapons.houndrack.damage": 2.2,
     "weapons.houndrack.capacity": 40,
-    "weapons.houndrack.cadence": 0.11,
+    "weapons.houndrack.cadence": 0.13,
     "weapons.houndrack.reloadMs": 2800,
     "weapons.houndrack.range": 650,
-    "weapons.houndrack.speed": 780,
+    "weapons.houndrack.speed": 900,
     "weapons.stormOrb.damage": 3.8,
     "weapons.stormOrb.capacity": 6,
     "weapons.stormOrb.cadence": 1.1,
@@ -189,20 +189,23 @@
     "effects.anchorengine.anchorRadius": 190,
     "effects.houndrack.rocketTurnRate": 4.5,
     "effects.houndrack.rocketAcquireAngle": 45,
-    "effects.houndrack.rocketAcceleration": 0.55,
-    "effects.houndrack.rocketSplashDamage": 0.45,
-    "effects.houndrack.rocketSplashRadius": 48,
+    "effects.houndrack.rocketAcceleration": 0.25,
+    "effects.houndrack.rocketSplashDamage": 0.8,
+    "effects.houndrack.rocketSplashRadius": 65,
     "effects.houndrack.rocketLimit": 12,
     "effects.stormorb.orbArcDamage": 1.2,
     "effects.stormorb.orbArcRadius": 130,
     "effects.stormorb.orbTick": 0.2,
     "effects.stormorb.orbTargets": 3,
     "effects.stormorb.orbLimit": 3,
+    "effects.stormorb.orbWindup": 0.18,
+    "effects.ringcaster.ringRadius": 160,
+    "effects.ringcaster.ringStart": 28,
     "effects.stormorb.orbLifetime": 2.4,
-    "effects.ringcaster.ringExpand": 1.1,
-    "effects.ringcaster.ringRetract": 0.45,
-    "effects.ringcaster.ringHold": 0.8,
-    "effects.ringcaster.ringReturnScale": 1.25,
+    "effects.ringcaster.ringExpand": 0.7,
+    "effects.ringcaster.ringRetract": 0.55,
+    "effects.ringcaster.ringHold": 0.2,
+    "effects.ringcaster.ringReturnScale": 1.5,
     "effects.ringcaster.ringTargets": 8,
     "effects.ringcaster.ringThickness": 28,
     "support.sentry.enabled": 0,
@@ -456,8 +459,8 @@
       "survivor": "rook",
       "effects": {
         "Damage multiplier": 1,
-        "Primary hit damage": 1.1,
-        "Secondary splash damage": 0.45
+        "Primary hit damage": 2.2,
+        "Secondary splash damage": 0.8
       }
     },
     {
@@ -467,8 +470,8 @@
       "survivor": "rook",
       "effects": {
         "Damage multiplier": 1.35,
-        "Primary hit damage": 1.4850000000000003,
-        "Secondary splash damage": 0.6075
+        "Primary hit damage": 2.9700000000000006,
+        "Secondary splash damage": 1.08
       }
     },
     {
@@ -478,8 +481,8 @@
       "survivor": "rook",
       "effects": {
         "Damage multiplier": 1.7,
-        "Primary hit damage": 1.87,
-        "Secondary splash damage": 0.765
+        "Primary hit damage": 3.74,
+        "Secondary splash damage": 1.36
       }
     },
     {
@@ -489,8 +492,8 @@
       "survivor": "rook",
       "effects": {
         "Damage multiplier": 2.05,
-        "Primary hit damage": 2.255,
-        "Secondary splash damage": 0.9225
+        "Primary hit damage": 4.51,
+        "Secondary splash damage": 1.64
       }
     },
     {
@@ -500,8 +503,8 @@
       "survivor": "rook",
       "effects": {
         "Damage multiplier": 2.1899999999999995,
-        "Primary hit damage": 2.409,
-        "Secondary splash damage": 0.9854999999999998
+        "Primary hit damage": 4.818,
+        "Secondary splash damage": 1.7519999999999998
       }
     },
     {
@@ -511,8 +514,8 @@
       "survivor": "rook",
       "effects": {
         "Damage multiplier": 2.2566666666666664,
-        "Primary hit damage": 2.482333333333333,
-        "Secondary splash damage": 1.0154999999999998
+        "Primary hit damage": 4.964666666666666,
+        "Secondary splash damage": 1.8053333333333332
       }
     },
     {
@@ -522,8 +525,8 @@
       "survivor": "rook",
       "effects": {
         "Damage multiplier": 2.3233333333333333,
-        "Primary hit damage": 2.5556666666666668,
-        "Secondary splash damage": 1.0455
+        "Primary hit damage": 5.1113333333333335,
+        "Secondary splash damage": 1.8586666666666667
       }
     },
     {
@@ -533,8 +536,8 @@
       "survivor": "rook",
       "effects": {
         "Damage multiplier": 2.3899999999999997,
-        "Primary hit damage": 2.629,
-        "Secondary splash damage": 1.0755
+        "Primary hit damage": 5.258,
+        "Secondary splash damage": 1.912
       }
     },
     {
@@ -544,8 +547,8 @@
       "survivor": "rook",
       "effects": {
         "Damage multiplier": 2.55,
-        "Primary hit damage": 2.805,
-        "Secondary splash damage": 1.1475
+        "Primary hit damage": 5.61,
+        "Secondary splash damage": 2.04
       }
     },
     {
@@ -655,7 +658,7 @@
       "effects": {
         "Damage multiplier": 1,
         "Primary hit damage": 4.5,
-        "Return hit damage": 5.625
+        "Collapse hit damage": 6.75
       }
     },
     {
@@ -666,7 +669,7 @@
       "effects": {
         "Damage multiplier": 1.35,
         "Primary hit damage": 6.075,
-        "Return hit damage": 7.59375
+        "Collapse hit damage": 9.1125
       }
     },
     {
@@ -677,7 +680,7 @@
       "effects": {
         "Damage multiplier": 1.7,
         "Primary hit damage": 7.6499999999999995,
-        "Return hit damage": 9.5625
+        "Collapse hit damage": 11.475
       }
     },
     {
@@ -688,7 +691,7 @@
       "effects": {
         "Damage multiplier": 2.05,
         "Primary hit damage": 9.225,
-        "Return hit damage": 11.53125
+        "Collapse hit damage": 13.837499999999999
       }
     },
     {
@@ -699,7 +702,7 @@
       "effects": {
         "Damage multiplier": 2.1899999999999995,
         "Primary hit damage": 9.854999999999997,
-        "Return hit damage": 12.318749999999996
+        "Collapse hit damage": 14.782499999999995
       }
     },
     {
@@ -710,7 +713,7 @@
       "effects": {
         "Damage multiplier": 2.2566666666666664,
         "Primary hit damage": 10.155,
-        "Return hit damage": 12.69375
+        "Collapse hit damage": 15.232499999999998
       }
     },
     {
@@ -721,7 +724,7 @@
       "effects": {
         "Damage multiplier": 2.3233333333333333,
         "Primary hit damage": 10.455,
-        "Return hit damage": 13.06875
+        "Collapse hit damage": 15.682500000000001
       }
     },
     {
@@ -732,7 +735,7 @@
       "effects": {
         "Damage multiplier": 2.3899999999999997,
         "Primary hit damage": 10.754999999999999,
-        "Return hit damage": 13.443749999999998
+        "Collapse hit damage": 16.1325
       }
     },
     {
@@ -743,7 +746,7 @@
       "effects": {
         "Damage multiplier": 2.55,
         "Primary hit damage": 11.475,
-        "Return hit damage": 14.34375
+        "Collapse hit damage": 17.2125
       }
     },
     {
@@ -2084,7 +2087,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Release interval (s)": 0.11
+        "Release interval (s)": 0.13
       }
     },
     {
@@ -2093,7 +2096,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Release interval (s)": 0.0935
+        "Release interval (s)": 0.1105
       }
     },
     {
@@ -2102,7 +2105,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Release interval (s)": 0.07947499999999999
+        "Release interval (s)": 0.093925
       }
     },
     {
@@ -2111,7 +2114,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Release interval (s)": 0.06755375
+        "Release interval (s)": 0.07983625
       }
     },
     {
@@ -2120,7 +2123,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Release interval (s)": 0.06309652059552902
+        "Release interval (s)": 0.07456861524926157
       }
     },
     {
@@ -2129,7 +2132,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Release interval (s)": 0.061078617204768045
+        "Release interval (s)": 0.0721838203329077
       }
     },
     {
@@ -2138,7 +2141,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Release interval (s)": 0.05912524881619121
+        "Release interval (s)": 0.06987529405549871
       }
     },
     {
@@ -2147,7 +2150,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Release interval (s)": 0.05723435152201882
+        "Release interval (s)": 0.06764059725329497
       }
     },
     {
@@ -2156,7 +2159,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Release interval (s)": 0.055
+        "Release interval (s)": 0.06256457777517668
       }
     },
     {
@@ -5144,7 +5147,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Projectile speed": 780
+        "Projectile speed": 900
       }
     },
     {
@@ -5153,7 +5156,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Projectile speed": 980
+        "Projectile speed": 1100
       }
     },
     {
@@ -5162,7 +5165,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Projectile speed": 1180
+        "Projectile speed": 1300
       }
     },
     {
@@ -5171,7 +5174,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Projectile speed": 1380
+        "Projectile speed": 1500
       }
     },
     {
@@ -5180,7 +5183,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Projectile speed": 1420
+        "Projectile speed": 1540
       }
     },
     {
@@ -5189,7 +5192,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Projectile speed": 1460
+        "Projectile speed": 1580
       }
     },
     {
@@ -5198,7 +5201,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Projectile speed": 1500
+        "Projectile speed": 1620
       }
     },
     {
@@ -5207,7 +5210,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Projectile speed": 1540
+        "Projectile speed": 1660
       }
     },
     {
@@ -5216,7 +5219,7 @@
       "weapon": "houndrack",
       "survivor": "rook",
       "effects": {
-        "Projectile speed": 1580
+        "Projectile speed": 1700
       }
     },
     {

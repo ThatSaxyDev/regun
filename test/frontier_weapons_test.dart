@@ -1,3 +1,6 @@
+import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/arena_enemy.dart';
+import 'package:regun/data/enemies.dart';
 import 'package:regun/components/weapons/bullet_component.dart';
 
 import 'dart:convert';
@@ -31,6 +34,12 @@ class _Quiet extends SoloudPlay {
   Future<void> play(String asset) async {
     cues.add(asset);
   }
+}
+
+class _MobileBody extends _Body {
+  _MobileBody(super.at);
+  @override
+  double get impactResponse => 1;
 }
 
 class _Body extends EnemyComponent {
@@ -302,8 +311,8 @@ void main() {
         final neighbor = await body(g, Vector2(200, 65));
         expect(fire(g), true);
         step(g, .4);
-        expect(1000 - direct.combatHealth.current, closeTo(1.1, .001));
-        expect(1000 - neighbor.combatHealth.current, closeTo(.45, .001));
+        expect(1000 - direct.combatHealth.current, closeTo(2.2, .001));
+        expect(1000 - neighbor.combatHealth.current, closeTo(.8, .001));
         g.arsenal!.frontier.clear();
         g.gameNotifier.weaponPower = WeaponPowerBalance.live(
           LiveBalance.create(5, {
@@ -315,6 +324,51 @@ void main() {
         final ammo = g.gameState.noOfBullets;
         expect(fire(g), false);
         expect(g.gameState.noOfBullets, ammo);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'three base rockets kill a mummy while the guarding Warden stays tough',
+    (tester) async {
+      final g = await mount(tester, WeaponType.houndrack);
+      await tester.runAsync(() async {
+        final mummy = Enemy2Component(
+          position: g.myPlayer.position + Vector2(220, 0),
+        );
+        g.world.add(mummy);
+        await g.ready();
+        mummy.position.setFrom(g.myPlayer.position + Vector2(220, 0));
+        expect(mummy.combatHealth.maximum, 6);
+        for (var i = 0; i < 2; i++) {
+          fire(g);
+          step(g, .6);
+          expect(mummy.combatHealth.isDead, false);
+        }
+        fire(g);
+        step(g, .6);
+        expect(mummy.combatHealth.isDead, true);
+        mummy.removeFromParent();
+        await g.ready();
+        final shield = ArenaEnemy(
+          EnemyKind.shield,
+          position: g.myPlayer.position + Vector2(220, 0),
+        );
+        g.world.add(shield);
+        await g.ready();
+        shield.position.setFrom(g.myPlayer.position + Vector2(220, 0));
+        shield.update(.001);
+        for (var i = 0; i < 3; i++) {
+          fire(g);
+          step(g, .6);
+        }
+        expect(shield.combatHealth.current, closeTo(8 - 3 * 2.2 * .3, .001));
+        expect(shield.combatHealth.isDead, false);
+        expect(
+          (g.arsenal!.audio as _Quiet).cues,
+          contains('impact_houndrack.wav'),
+        );
       });
       await tester.pumpWidget(const SizedBox.shrink());
     },
@@ -404,14 +458,14 @@ void main() {
         step(g, .01);
         expect(rocket.travelled - before, greaterThan(earlyStep * 1.6));
         step(g, 1.2);
-        expect(offAxis.combatHealth.current, closeTo(998.9, .001));
+        expect(offAxis.combatHealth.current, closeTo(997.8, .001));
         offAxis.removeFromParent();
         await g.ready();
         for (final distance in [180.0, 600.0]) {
           final target = await body(g, Vector2(distance, 0));
           fire(g);
           step(g, 1.5);
-          expect(1000 - target.combatHealth.current, closeTo(1.1, .001));
+          expect(1000 - target.combatHealth.current, closeTo(2.2, .001));
           target.removeFromParent();
           await g.ready();
         }
@@ -463,55 +517,114 @@ void main() {
     },
   );
 
+  testWidgets('ring locks downrange and collapses there without held input', (
+    tester,
+  ) async {
+    final g = await mount(tester, WeaponType.ringCaster);
+    await tester.runAsync(() async {
+      final victim = await body(g, Vector2(240, 0));
+      expect(fire(g), true);
+      final r = g.arsenal!.frontier.ring!;
+      final origin = r.center.clone();
+      expect(r.radius, 28);
+      step(g, .71);
+      expect(r.locked, true);
+      expect(r.captured, contains(victim.combatId));
+      expect(r.center.x, closeTo(origin.x + 340 * .65, .01));
+      expect(victim.combatHealth.current, 1000);
+      final center = r.center.clone();
+      g.myPlayer.position.add(Vector2(-180, 100));
+      step(g, .3);
+      expect(r.returning, true);
+      expect(r.center.distanceTo(center), lessThan(.001));
+      final paid = g.arsenal!.checkpoint();
+      g.arsenal!.restore(copy(paid));
+      expect(g.arsenal!.frontier.ring!.captured, contains(victim.combatId));
+      step(g, .6);
+      expect(g.arsenal!.frontier.ring, isNull);
+      expect(victim.combatHealth.current, closeTo(1000 - 6.75, .001));
+      step(g, .2);
+      expect(victim.combatHealth.current, closeTo(1000 - 6.75, .001));
+      expect(g.gameState.noOfBullets, 3);
+    });
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets(
-    'ring launches at the gun, travels on its committed heading and recalls',
+    'trap captures more than eight bodies and blocks walking and forced escape',
     (tester) async {
       final g = await mount(tester, WeaponType.ringCaster);
       await tester.runAsync(() async {
-        expect(g.ringArtReady, true);
+        final pack = <_MobileBody>[];
+        final center = g.arsenal!.muzzle(Vector2(1, 0)) + Vector2(221, 0);
+        for (var i = 0; i < 12; i++) {
+          final e = _MobileBody(
+            center + Vector2((i % 4 - 1.5) * 70, (i ~/ 4 - 1) * 70),
+          );
+          g.world.add(e);
+          await g.ready();
+          e.position.setFrom(
+            center + Vector2((i % 4 - 1.5) * 70, (i ~/ 4 - 1) * 70),
+          );
+          pack.add(e);
+        }
         fire(g);
+        step(g, .71);
         final r = g.arsenal!.frontier.ring!;
-        final origin = g.arsenal!.muzzle(Vector2(1, 0));
-        expect(r.center.distanceTo(origin), lessThan(.001));
-        expect(r.radius, 8);
-        step(g, .3, held: true);
-        expect(r.center.x, greaterThan(origin.x + 50));
-        final before = r.center.clone();
-        g.myPlayer.position.y += 100;
-        step(g, .01, held: true);
-        expect(r.center.y, closeTo(before.y, .001));
-        final gun = g.arsenal!.muzzle(g.myPlayer.aimDirection);
-        final distance = r.center.distanceTo(gun);
-        step(g, .05);
-        expect(r.returning, true);
-        expect(r.center.distanceTo(gun), lessThan(distance));
-        step(g, .5);
-        expect(g.arsenal!.frontier.ring, isNull);
+        expect(r.captured.length, 12);
+        final escaping = pack.last;
+        final before = escaping.position.distanceTo(r.center);
+        g.moveTo(escaping, escaping.position + Vector2(600, 0), 45);
+        expect(
+          escaping.position.distanceTo(r.center),
+          lessThanOrEqualTo(before + .01),
+        );
+        g.moveActor(escaping, Vector2(1, 0), 1000, .1, avoidCrowd: false);
+        expect(
+          escaping.position.distanceTo(r.center),
+          lessThanOrEqualTo(before + .01),
+        );
+        step(g, 1);
+        expect(
+          pack.every((e) => (e.combatHealth.current - 993.25).abs() < .001),
+          true,
+        );
+        final released = escaping.position.clone();
+        g.moveTo(escaping, released + Vector2(100, 0), 45);
+        expect(escaping.position.x, greaterThan(released.x));
       });
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
 
   testWidgets(
-    'ring has an empty pocket and hits once on each controlled crossing',
+    'orb wind-up delays payment, preserves cadence and cancels unpaid intent',
     (tester) async {
-      final g = await mount(tester, WeaponType.ringCaster);
+      final g = await mount(tester, WeaponType.stormOrb);
       await tester.runAsync(() async {
-        final outer = await body(g, Vector2(240, 0));
-        final pocket = await body(g, Vector2(100, 100));
-        expect(fire(g), true);
-        step(g, .8, held: true);
-        expect(1000 - outer.combatHealth.current, closeTo(4.5, .001));
-        final insideHealth = pocket.combatHealth.current;
-        step(g, .2, held: true);
-        expect(pocket.combatHealth.current, insideHealth);
-        expect(outer.combatHealth.current, closeTo(995.5, .001));
-        step(g, .6);
-        expect(g.arsenal!.frontier.ring, isNull);
-        expect(
-          1000 - outer.combatHealth.current,
-          closeTo(4.5 + 4.5 * 1.25, .001),
-        );
+        final a = g.arsenal!;
+        step(g, .16, held: true);
+        expect(g.gameState.noOfBullets, 6);
+        expect(a.frontier.shots, isEmpty);
+        expect(a.visualCharge, greaterThan(.5));
+        step(g, .03, held: true);
+        expect(g.gameState.noOfBullets, 5);
+        step(g, 1.05, held: true);
+        expect(g.gameState.noOfBullets, 5);
+        step(g, .06, held: true);
+        expect(g.gameState.noOfBullets, 4);
+        a.cooldown = 0;
+        step(g, .1, held: true);
+        a.cancelIntent();
+        expect(a.orbCharge, 0);
+        step(g, .5);
+        expect(g.gameState.noOfBullets, 4);
+        step(g, .1, held: true);
+        step(g, .01);
+        expect(a.orbCharge, 0);
+        step(g, .16, held: true);
+        expect(g.gameState.noOfBullets, 4);
+        step(g, .03, held: true);
         expect(g.gameState.noOfBullets, 3);
       });
       await tester.pumpWidget(const SizedBox.shrink());
@@ -519,16 +632,46 @@ void main() {
   );
 
   testWidgets(
-    'early ring release returns from current radius and never reaches distant enemies',
+    'trap respects cover, pause and cleanup and zero-delay orb is configurable',
     (tester) async {
       final g = await mount(tester, WeaponType.ringCaster);
       await tester.runAsync(() async {
-        final target = await body(g, Vector2(300, 0));
-        expect(fire(g), true);
-        step(g, .1, held: true);
+        final center = g.arsenal!.muzzle(Vector2(1, 0)) + Vector2(221, 0);
+        final hidden = await body(
+          g,
+          center - g.myPlayer.position + Vector2(0, 120),
+        );
+        g.geometry = ArenaGeometry(
+          g.map.bounds,
+          obstacles: [Rect.fromLTWH(center.x - 150, center.y + 45, 300, 20)],
+        );
+        fire(g);
+        step(g, .71);
+        final r = g.arsenal!.frontier.ring!;
+        expect(r.captured, isNot(contains(hidden.combatId)));
+        g.pauseGame();
         step(g, 1);
-        expect(target.combatHealth.current, 1000);
+        expect(r.radius, closeTo(160, .01));
+        g.gameNotifier.playGame();
+        step(g, 1);
         expect(g.arsenal!.frontier.ring, isNull);
+        expect(hidden.combatHealth.current, 1000);
+        fire(g);
+        step(g, .71);
+        g.arsenal!.clearField();
+        expect(g.arsenal!.frontier.ring, isNull);
+      });
+      await tester.pumpWidget(const SizedBox.shrink());
+      final orb = await mount(tester, WeaponType.stormOrb);
+      await tester.runAsync(() async {
+        orb.gameNotifier.weaponPower = WeaponPowerBalance.live(
+          LiveBalance.create(8, {
+            ...LiveBalance.bundled.values,
+            'effects.stormorb.orbWindup': 0,
+          }),
+        );
+        step(orb, .01, held: true);
+        expect(orb.gameState.noOfBullets, 5);
       });
       await tester.pumpWidget(const SizedBox.shrink());
     },
@@ -584,6 +727,22 @@ void main() {
         );
         g.arsenal!.restore(old);
         expect(g.arsenal!.frontier.ring!.gunLaunched, false);
+        expect(g.arsenal!.frontier.ring!.trap, false);
+        step(g, .6);
+        expect(g.arsenal!.frontier.ring, isNull);
+        f['schema'] = 2;
+        f['ring']['origin'] = f['ring']['center'];
+        f['ring']['heading'] = [1, 0];
+        f['ring']['gunLaunched'] = true;
+        ArsenalSystem.validate(
+          old,
+          WeaponType.ringCaster,
+          power: g.gameNotifier.weaponPower,
+        );
+        g.arsenal!.restore(old);
+        expect(g.arsenal!.frontier.ring!.trap, false);
+        step(g, .6);
+        expect(g.arsenal!.frontier.ring, isNull);
         g.gameNotifier.pauseGame();
         expect(await g.changeTrainingWeapon(WeaponType.carbine), true);
         expect(g.ringArtReady, false);
@@ -654,8 +813,8 @@ void main() {
     for (final phase in [
       ('launch', .03, true),
       ('opening', .27, true),
-      ('open', .8, true),
-      ('recall', .18, false),
+      ('open', .4, true),
+      ('collapse', .4, false),
     ]) {
       await tester.runAsync(() async {
         step(g, phase.$2, held: phase.$3);
@@ -663,7 +822,7 @@ void main() {
       final r = g.arsenal!.frontier.ring!;
       if (phase.$3) {
         final rear = r.center.x - r.radius;
-        expect(rear, greaterThan(previousRear));
+        expect(rear, greaterThanOrEqualTo(previousRear));
         previousRear = rear;
       }
       await tester.pump();
@@ -731,8 +890,11 @@ void main() {
       expect(frontierComponents('houndrack', v)['Guidance (rad/s)'], 4.5);
       expect(frontierComponents('stormOrb', v)['Arc damage per tick'], 1.2);
       expect(
-        frontierComponents('ringCaster', v)['Return damage per body'],
-        5.625,
+        frontierComponents(
+          'ringCaster',
+          v,
+        )['Collapse damage per captured body'],
+        6.75,
       );
       for (final w in [
         WeaponType.houndrack,

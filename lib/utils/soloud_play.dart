@@ -198,6 +198,8 @@ class SoloudPlay {
             ? .30
             : assetPath.startsWith('shot_')
             ? .72
+            : assetPath == 'impact_houndrack.wav'
+            ? .42
             : assetPath == 'impact_arcCaster.wav'
             ? .45
             : assetPath.startsWith('impact_boss')
