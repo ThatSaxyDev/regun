@@ -85,6 +85,9 @@ void main() {
             offerId: game.gameState.offerId,
           );
         }
+        game.update(
+          2,
+        ); // Finish accepted-upgrade presentation before active capacity sync.
         game.update(.05);
         expect(game.boostButtonComponent.reserve.capacity, 2);
         expect(game.grenades.capacity, 3);

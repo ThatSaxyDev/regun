@@ -42,6 +42,13 @@ class GameNotifier extends Notifier<GameState> {
   double _hurtCooldownMs = 0;
   double _activeSeconds = 0;
   double _guardElapsed = 0;
+  int guardAbsorptions = 0, guardRecharges = 0;
+  int get guardGeneration => _rewardGeneration;
+  double get guardRechargeProgress => state.guard
+      ? 1
+      : (_guardElapsed /
+                max(6.5, 20 - state.effectRank(PowerUp.scrapArmour) * 3))
+            .clamp(0, 1);
   double _choiceGrace = 0;
   final upgradeConfirmed = ValueNotifier<int>(0);
   final acceptedUpgrade = ValueNotifier<AcceptedUpgrade?>(null);
@@ -112,6 +119,7 @@ class GameNotifier extends Notifier<GameState> {
   void resetRun({Loadout loadout = const Loadout(), int seed = 1}) {
     cancelPendingActions();
     _rewardGeneration++;
+    guardAbsorptions = guardRecharges = 0;
     _rewardSerial = 0;
     acceptedUpgrade.value = null;
     weapon = loadout.weapon;
@@ -230,6 +238,7 @@ class GameNotifier extends Notifier<GameState> {
     bool allowDead = false,
   }) {
     _rewardGeneration++;
+    guardAbsorptions = guardRecharges = 0;
     _rewardSerial = 0;
     acceptedUpgrade.value = null;
     support = SupportProgress.restore(snapshot['supportProgress']);
@@ -523,6 +532,7 @@ class GameNotifier extends Notifier<GameState> {
       if (_guardElapsed >=
           max(6.5, 20 - state.effectRank(PowerUp.scrapArmour) * 3)) {
         _guardElapsed = 0;
+        guardRecharges++;
         state = state.copyWith(guard: true);
       }
     }
@@ -615,6 +625,7 @@ class GameNotifier extends Notifier<GameState> {
     }
     _hurtCooldownMs = 500;
     if (state.guard) {
+      guardAbsorptions++;
       _guardElapsed = 0;
       state = state.copyWith(guard: false);
       return true;

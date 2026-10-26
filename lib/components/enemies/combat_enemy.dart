@@ -1,3 +1,5 @@
+import 'package:regun/presentation/combat_status_art.dart';
+
 import 'dart:math' show max;
 
 import 'package:regun/systems/freeze_state.dart';
@@ -110,14 +112,56 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
             ? _softFlashPaint
             : _flashPaint
       : null;
+  final _burnPaint = Paint()..colorFilter = CombatStatusPainter.burnTint;
+  Paint? get combatBodyPaint =>
+      damagePaint ??
+      ((!combatHealth.isDead && (burning || cinderRemaining > 0))
+          ? _burnPaint
+          : null);
   bool _rewarded = false;
   double? _restoredHealth, _restoredMaximum;
   Vector2? incomingDirection;
   bool incomingArmorPiercing = false;
   bool incomingSupportBallistic = false;
+  double statusClock = 0;
+  Rect get statusBody {
+    if (!isBoss) {
+      return Rect.fromLTRB(
+        size.x * .20,
+        size.y * .10,
+        size.x * .80,
+        size.y * .86,
+      );
+    }
+    final bodies = children.whereType<SpriteAnimationComponent>();
+    if (bodies.isEmpty) return Rect.fromLTWH(0, 0, size.x, size.y);
+    final b = bodies.first;
+    final left = b.position.x - b.size.x * b.anchor.x;
+    final top = b.position.y - b.size.y * b.anchor.y;
+    return Rect.fromLTRB(
+      left + b.size.x * .24,
+      top + b.size.y * .1,
+      left + b.size.x * .76,
+      top + b.size.y * .88,
+    );
+  }
+
+  void paintStatusFire(Canvas canvas, bool front) {
+    if (combatHealth.isDead || (!burning && cinderRemaining <= 0)) return;
+    CombatStatusPainter.fire(
+      canvas,
+      statusBody,
+      statusClock,
+      reducedMotion: game.preferences.reducedMotion,
+      front: front,
+      seed: combatId,
+    );
+  }
+
   double burnRemaining = 0, _burnTick = 0, burnDamage = 0;
   double cinderRemaining = 0, cinderTick = 0;
   void igniteCinder() {
+    game.statusArt.prewarmFire();
     cinderRemaining = 1;
   }
 
@@ -138,6 +182,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   }
 
   void ignite(double damage, {bool maySpread = true}) {
+    game.statusArt.prewarmFire();
     burnRemaining = 3;
     burnDamage = max(burnDamage, damage.clamp(0, 8));
     burnCanSpread = maySpread;
@@ -153,6 +198,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   @override
   void onMount() {
     super.onMount();
+    add(_EnemyFireFront(this));
     if (game.isRetiredActor(this)) {
       combatHealth.damage(combatHealth.maximum);
       removeFromParent();
@@ -221,6 +267,8 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   void update(double dt) {
     final wasFrozen = freezeHeld || impactHeld;
     if (game.gameState.gameplayState == GameplayState.playing) {
+      statusClock += dt;
+      if (burning || cinderRemaining > 0) game.statusArt.prewarmFire();
       freezeState.advance(dt);
       _staggerRemaining = (_staggerRemaining - dt).clamp(0.0, .3);
       _staggerRecovery = (_staggerRecovery - dt).clamp(0.0, .65);
@@ -286,7 +334,13 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     for (final body in bodies) {
       body.paint.colorFilter =
           damagePaint?.colorFilter ??
-          (isBoss ? BossArt.ambient(game.loadout.arena) : null);
+          (isBoss
+              ? BossArt.ambient(
+                  game.loadout.arena,
+                  burning:
+                      !combatHealth.isDead && (burning || cinderRemaining > 0),
+                )
+              : combatBodyPaint?.colorFilter);
     }
     if (game.gameState.gameplayState == GameplayState.playing &&
         burning &&
@@ -316,12 +370,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
         );
       }
     }
-    if ((burning || cinderRemaining > 0) && !combatHealth.isDead) {
-      canvas.drawRect(
-        Rect.fromCenter(center: (size / 2).toOffset(), width: 12, height: 18),
-        Paint()..color = const Color(0xA6E99B64),
-      );
-    }
+    paintStatusFire(canvas, false);
     if (marked && !combatHealth.isDead) {
       final c = (size / 2).toOffset(), r = size.x * .3;
       for (final sign in [-1, 1]) {
@@ -353,4 +402,11 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
       );
     }
   }
+}
+
+class _EnemyFireFront extends Component {
+  _EnemyFireFront(this.actor) : super(priority: 100000);
+  final CombatEnemy actor;
+  @override
+  void render(Canvas canvas) => actor.paintStatusFire(canvas, true);
 }

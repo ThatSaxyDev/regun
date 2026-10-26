@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-10-26",
-  "status": "planning inventory; not an implementation or completed visual audit",
+  "status": "first burn/guard implementation candidate; remaining coverage planned; visual acceptance open",
   "scope": {
     "offered": 43,
     "fusions": 8,
@@ -178,7 +178,7 @@
         "lib/game.dart:2634",
         "lib/components/game_utils/player_component.dart:505"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "shared body-bound burn/guard candidate implemented; phone visual review open"
     },
     {
       "id": "quickstep",
@@ -277,7 +277,7 @@
         "lib/components/enemies/combat_enemy.dart:292",
         "lib/systems/combat_system.dart:120"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "shared body-bound burn/guard candidate implemented; phone visual review open"
     },
     {
       "id": "accelerant",
@@ -292,7 +292,7 @@
         "lib/components/enemies/combat_enemy.dart:292",
         "lib/systems/combat_system.dart:120"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "shared body-bound burn/guard candidate implemented; phone visual review open"
     },
     {
       "id": "staticCharge",

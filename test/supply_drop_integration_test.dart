@@ -138,6 +138,9 @@ void main() {
           game.gameState.powerUpChoices.first,
           offerId: game.gameState.offerId,
         );
+        game.update(
+          2,
+        ); // Confirmation holds the claimed linger/breakdown clocks.
         game.update(4.3);
         expect(game.supplyDrops.drop, isNull);
         expect(RegunArt.shared.contains('arenas/supply_pod'), isFalse);

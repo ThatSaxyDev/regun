@@ -1111,54 +1111,53 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
-  testWidgets(
-    'player Guard adds one quiet foot badge with no surrounding chain fragments',
-    (tester) async {
-      final game = await mount(tester, WeaponType.flakRegent, _Audio());
-      await tester.runAsync(() async {
-        Future<ui.Image> render() async {
-          final recorder = ui.PictureRecorder(), canvas = Canvas(recorder);
-          canvas.drawColor(const Color(0xff242B25), BlendMode.src);
-          game.myPlayer.render(canvas);
-          final picture = recorder.endRecording();
-          final image = await picture.toImage(100, 100);
-          picture.dispose();
-          return image;
-        }
+  testWidgets('player Guard surrounds the body with a bounded faceted ward', (
+    tester,
+  ) async {
+    final game = await mount(tester, WeaponType.flakRegent, _Audio());
+    await tester.runAsync(() async {
+      Future<ui.Image> render() async {
+        final recorder = ui.PictureRecorder(), canvas = Canvas(recorder);
+        canvas.drawColor(const Color(0xff242B25), BlendMode.src);
+        game.myPlayer.render(canvas);
+        final picture = recorder.endRecording();
+        final image = await picture.toImage(100, 100);
+        picture.dispose();
+        return image;
+      }
 
-        final plain = await render();
-        final saved = game.gameNotifier.checkpoint();
-        saved['state'] = game.gameState.copyWith(guard: true).toJson();
-        game.gameNotifier.restoreCheckpoint(saved);
-        final guarded = await render();
-        final a = (await plain.toByteData())!.buffer.asUint8List(),
-            b = (await guarded.toByteData())!.buffer.asUint8List();
-        var changed = 0;
-        for (var y = 0; y < 100; y++) {
-          for (var x = 0; x < 100; x++) {
-            final at = (y * 100 + x) * 4;
-            if (a[at] != b[at] ||
-                a[at + 1] != b[at + 1] ||
-                a[at + 2] != b[at + 2]) {
-              changed++;
-              expect(x, inInclusiveRange(75, 91));
-              expect(y, inInclusiveRange(71, 87));
-            }
+      final plain = await render();
+      final saved = game.gameNotifier.checkpoint();
+      saved['state'] = game.gameState.copyWith(guard: true).toJson();
+      game.gameNotifier.restoreCheckpoint(saved);
+      final guarded = await render();
+      final a = (await plain.toByteData())!.buffer.asUint8List(),
+          b = (await guarded.toByteData())!.buffer.asUint8List();
+      var changed = 0;
+      for (var y = 0; y < 100; y++) {
+        for (var x = 0; x < 100; x++) {
+          final at = (y * 100 + x) * 4;
+          if (a[at] != b[at] ||
+              a[at + 1] != b[at + 1] ||
+              a[at + 2] != b[at + 2]) {
+            changed++;
+            expect(x, inInclusiveRange(4, 96));
+            expect(y, inInclusiveRange(0, 99));
           }
         }
-        expect(changed, greaterThan(20));
-        await Directory('build/test-previews').create(recursive: true);
-        final png = await guarded.toByteData(format: ui.ImageByteFormat.png);
-        await File('build/test-previews/player-guard-clean.png')
-            .writeAsBytes(png!.buffer.asUint8List());
-        plain.dispose();
-        guarded.dispose();
-        expect(game.gameState.guard, true);
-      });
-      await tester.pumpWidget(const SizedBox());
-      expect(tester.takeException(), isNull);
-    },
-  );
+      }
+      expect(changed, greaterThan(150));
+      await Directory('build/test-previews').create(recursive: true);
+      final png = await guarded.toByteData(format: ui.ImageByteFormat.png);
+      await File('build/test-previews/player-guard-clean.png')
+          .writeAsBytes(png!.buffer.asUint8List());
+      plain.dispose();
+      guarded.dispose();
+      expect(game.gameState.guard, true);
+    });
+    await tester.pumpWidget(const SizedBox());
+    expect(tester.takeException(), isNull);
+  });
   testWidgets(
     'Bell exports initial and echo pressure fronts without changing committed hits',
     (tester) async {

@@ -352,7 +352,7 @@ class ArenaEnemy extends PositionComponent
             BursterWalk.frame(walkDirection.toOffset(), walkDistance),
           )
         : RegunArt.shared.sprite('enemies/${kind.name}', frame);
-    sprite.render(canvas, size: size, overridePaint: damagePaint);
+    sprite.render(canvas, size: size, overridePaint: combatBodyPaint);
     canvas.restore();
     if (elite) {
       for (var i = 0; i < 3; i++) {

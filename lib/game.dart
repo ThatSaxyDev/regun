@@ -1,3 +1,4 @@
+import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/models/accepted_upgrade.dart';
 import 'package:regun/presentation/upgrade_art.dart';
 import 'package:regun/presentation/upgrade_presentation.dart';
@@ -107,6 +108,7 @@ class RegunGame extends FlameGame
     mode: upgradeFeelMode,
   );
   final upgradeArt = UpgradeArtLease();
+  final statusArt = CombatStatusArt();
   final confirmationHolding = ValueNotifier<bool>(false);
   bool get presentationHeld => upgradePresentation.holding;
   bool get inputBlocked => playerEntrance.active || presentationHeld;
@@ -1178,6 +1180,7 @@ class RegunGame extends FlameGame
     upgradePresentation.cancel();
     confirmationHolding.value = false;
     upgradeArt.clear();
+    statusArt.clear();
     runId = DateTime.now().microsecondsSinceEpoch.toString();
     _settled = false;
     recovery = SoloRecovery(
@@ -2755,6 +2758,7 @@ class RegunGame extends FlameGame
   @override
   void onRemove() {
     disposed = true;
+    statusArt.clear();
     upgradePresentation.cancel();
     confirmationHolding.value = false;
     upgradeArt.clear();

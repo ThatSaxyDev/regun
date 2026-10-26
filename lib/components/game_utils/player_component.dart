@@ -1,8 +1,9 @@
+import 'package:regun/presentation/combat_status_art.dart';
+import 'package:regun/presentation/guard_feedback.dart';
 import 'package:regun/presentation/upgrade_art.dart';
 import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/data/loadout.dart';
-import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/systems/weapon_heading.dart';
 import 'package:regun/presentation/attack_vfx.dart';
@@ -46,6 +47,22 @@ class PlayerComponent extends SpriteAnimationComponent
   double _trailClock = 0, _dashDustClock = 0;
   bool _wasDashing = false;
 
+  final guardFeedback = GuardFeedback();
+  Rect get wardBody =>
+      Rect.fromLTRB(size.x * .23, size.y * .08, size.x * .77, size.y * .88);
+  void paintWard(Canvas canvas, bool front) {
+    if (game.gameState.health <= 0 || game.playerEntrance.active) return;
+    CombatStatusPainter.ward(
+      canvas,
+      wardBody,
+      ready: game.gameState.guard,
+      front: front,
+      reducedMotion: game.preferences.reducedMotion,
+      breakAge: guardFeedback.breakAge,
+      reformAge: guardFeedback.reformAge,
+    );
+  }
+
   GroundProjection? _ground;
   @override
   Future<void> onLoad() async {
@@ -73,6 +90,12 @@ class PlayerComponent extends SpriteAnimationComponent
   @override
   void update(double dt) {
     super.update(dt);
+    guardFeedback.sync(
+      game.gameNotifier.guardGeneration,
+      game.gameNotifier.guardAbsorptions,
+      game.gameNotifier.guardRecharges,
+      game.gameState.gameplayState == GameplayState.playing ? dt : 0,
+    );
     priority = 10000 + (position.y + size.y * .38).round();
     if (game.playerEntrance.active) {
       animation = game.playerEntrance.landing
@@ -334,6 +357,7 @@ class PlayerComponent extends SpriteAnimationComponent
       canvas.restore();
     }
 
+    paintWard(canvas, false);
     infusion(false);
     if (aimDirection.y < -.35) weapon();
     final upgrade = game.upgradePresentation;
@@ -502,22 +526,7 @@ class PlayerComponent extends SpriteAnimationComponent
       );
       label.paint(canvas, origin);
     }
-    if (game.gameState.guard) {
-      // A quiet status badge, never enemy chain sprites around the body.
-      final badge = Rect.fromLTWH(size.x * .5 + 27, size.y * .83 - 10, 12, 12);
-      paintPixelGlyph(
-        canvas,
-        badge.inflate(2),
-        PixelGlyph.shield,
-        const Color(0xff17201D),
-      );
-      paintPixelGlyph(
-        canvas,
-        badge,
-        PixelGlyph.shield,
-        const Color(0xffAEBCA7),
-      );
-    }
+    paintWard(canvas, true);
   }
 
   @override

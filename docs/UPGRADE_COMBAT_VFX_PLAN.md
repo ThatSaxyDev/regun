@@ -1,6 +1,8 @@
 # Make upgrade mechanics visible during combat
 
-26 October 2026 — implementation plan, not implemented or visually accepted.
+26 October 2026 — burn/guard candidate in implementation; visual acceptance open.
+
+Current evidence and limitations: [first-slice review](art/COMBAT_STATUS_REVIEW.md).
 
 ## 1. The result we are building
 
@@ -291,4 +293,4 @@ visual acceptance.
 Deliverables: completed coverage dispositions, shared status art/renderers,
 source/asset manifests, before/after normal-speed clips, a normal phone build and
 matching distribution artifact, authority/save notes, measured budgets and an honest
-remaining-work list. **This document does not change gameplay or assets.**
+remaining-work list. **Implementation status is recorded in the linked review; this plan does not grant visual acceptance.**

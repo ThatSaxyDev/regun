@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "tool": "built-in image_gen",
+  "status": "candidate; not visually accepted",
+  "prompt": "Use case: stylized-concept. Production VFX sprite sheet for Regun dark tactile pixel top-down shooter. Create STRICT 2 rows by 4 columns, eight equally sized cells on fully transparent background. Each cell contains ONE compact upright clump of living fire, no physical object or burner, no character. This is a seamless eight-frame sustained burning animation for attaching to an enemy body: successive frames vary tongues naturally as they rise and curl, coherent volume and same planted base. Dark rust/charcoal ember base, saturated burnt-orange/red lower flame, orange/gold tongues, small pale warm tips, very sparse dark smoke integrated in flame. Thick textured crisp pixels, chipped irregular silhouette, no smooth gradient glow or bright white center. Broad low base with 3-4 pointed rising tongues, height about 1.5 times width, ample fully transparent gutters between eight frames, no disconnected embers or external smoke, no text, symbols, ring, floor or shadows. Consistent scale and baseline in each cell; all heads of flame uncropped. Must read as sustained fire at 25px high, not explosion or muzzle flash. Return single transparent sprite sheet.",
+  "source": "status_flame_master.png",
+  "sha256": "5e76c5e0dd53a44329d0cd25fb7c762b8efee265299ff460ea8d15c05b726f04",
+  "frames": 8,
+  "decodeWidth": 512,
+  "importer": "tool/import_status_art.py"
+}

@@ -505,6 +505,11 @@ void main() {
           offerId: practice.gameState.offerId,
         );
         expect(practice.gameState.fused(recipe.id), isTrue);
+        // Confirmed fusions finish their normal presentation before combat.
+        practice.update(2);
+        practice.update(.01);
+        // Let the existing recovery-pulse visual retire before counting proc VFX.
+        practice.update(.5);
         final first = Enemy2Component(position: Vector2(200, 0));
         final second = Enemy2Component(position: Vector2(260, 20));
         await tester.runAsync(() async {

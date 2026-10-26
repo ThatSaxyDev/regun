@@ -1,3 +1,5 @@
+import 'package:regun/presentation/guard_feedback.dart';
+import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/upgrade_art.dart';
 import 'package:regun/presentation/upgrade_presentation.dart';
 import 'package:regun/presentation/support_art.dart';
@@ -240,6 +242,8 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   }
 
   final upgradeArt = UpgradeArtLease();
+  final statusArt = CombatStatusArt();
+  final guardFeedback = <String, GuardFeedback>{};
   double seconds = 0;
   Duration last = Duration.zero;
   OnlineSession get session => widget.session;
@@ -280,6 +284,23 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       _controlled = session.controlsEnabled;
       if (session.match?.phase == 'active') {
         session.upgradeReceipts.advanceActive(dt);
+      }
+      if (session.scene.any(
+        (e) =>
+            e.kind == 'enemy' && e.number('burn') > 0 && e.number('health') > 0,
+      )) {
+        statusArt.prewarmFire();
+      }
+      final generation =
+          '${session.room?.id}:${session.match?.data['matchId']}'.hashCode;
+      for (final entry in session.fighters.entries) {
+        final p = entry.value.progress;
+        (guardFeedback[entry.key] ??= GuardFeedback()).sync(
+          generation,
+          (p['guardAbsorptions'] as num?)?.toInt() ?? 0,
+          (p['guardRecharges'] as num?)?.toInt() ?? 0,
+          session.match?.phase == 'active' ? dt : 0,
+        );
       }
       _combatCues();
       if (session.controlsEnabled || session.match?.phase == 'active') {
@@ -497,6 +518,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   @override
   void dispose() {
     upgradeArt.clear();
+    statusArt.clear();
     if (artReady) {
       for (final c in CharacterType.values.where((c) => c.availableOnline)) {
         RegunArt.shared.releaseSurvivor(c.name);
@@ -673,6 +695,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         grenadeAim: grenadeAim,
                         restingAim: restingAim,
                         mummyWalks: mummyWalks,
+                        guardFeedback: guardFeedback,
                       ),
                     ),
                   ),
@@ -950,11 +973,13 @@ class _ArenaPainter extends CustomPainter {
     required this.grenadeAim,
     required this.restingAim,
     required this.mummyWalks,
+    required this.guardFeedback,
   });
   final OnlineSession session;
   final GrenadeAim grenadeAim;
   final Map<String, Offset> restingAim;
   final Map<String, MummyWalk> mummyWalks;
+  final Map<String, GuardFeedback> guardFeedback;
   final Map<String, Offset> positions;
   final double seconds;
   final bool artReady;
@@ -1336,6 +1361,22 @@ class _ArenaPainter extends CustomPainter {
         final facing = facingAim.dx.abs() > facingAim.dy.abs()
             ? (facingAim.dx < 0 ? 2 : 0)
             : (facingAim.dy > 0 ? 1 : 3);
+        final guard = gun?.progress['guard'] == true && !dead;
+        final wardBody = Rect.fromLTRB(
+          p.dx - 27,
+          p.dy - 42,
+          p.dx + 27,
+          p.dy + 38,
+        );
+        final absorbedAge = guardFeedback[key]?.breakAge ?? -1;
+        final rechargeAge = guardFeedback[key]?.reformAge ?? -1;
+        CombatStatusPainter.ward(
+          canvas,
+          wardBody,
+          ready: guard,
+          front: false,
+          reducedMotion: LocalPreferences.shared.reducedMotion,
+        );
         final releaseAge = session.upgradeReceipts.releaseAge(key);
         final released =
             session.match?.phase == 'active' &&
@@ -1455,6 +1496,15 @@ class _ArenaPainter extends CustomPainter {
           );
           canvas.restore();
         }
+        CombatStatusPainter.ward(
+          canvas,
+          wardBody,
+          ready: guard,
+          front: true,
+          reducedMotion: LocalPreferences.shared.reducedMotion,
+          breakAge: !dead ? absorbedAge : -1,
+          reformAge: !dead ? rechargeAge : -1,
+        );
         final useLabel = session.upgradeReceipts.useLabels[key];
         if (key == session.identity && useLabel != null && !dead) {
           final text = TextPainter(

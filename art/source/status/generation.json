@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "tool": "built-in image_gen",
+  "status": "candidate; not visually accepted",
+  "prompt": "Use case: stylized-concept. Asset type: eight-frame sprite sheet of a SINGLE small lick of flame attached to burning clothing, for Regun game. Reference image is ONLY a style reference for coarse hand-painted pixel shading and gritty muted material detail, do not include character. Strict 2 rows x 4 equal cells, chronological animation left to right then next row. In each cell one narrow torn wispy flame tip emerging from a very small low glowing orange ember seam at bottom center. The thin flame stretches upward, separates briefly into a tiny tip, collapses back into the seam, and reforms across eight DISTINCT animation frames. Frames 1 and 8 connect as a loop. Flames burning on fabric, NOT a bonfire/campfire: no broad base, no coals, no wood, no black mound, no smoke cloud, no three-prong fire icon. The flame's lower half is ragged translucent deep red/rust, top warm muted amber, a tiny gold edge only. Lean irregularly, sparse with abundant clear negative space. Gritty chunky pixels matching the enemy reference, not smooth luminous vector curves. Consistent bottom center anchor, ample transparent gutters, fully transparent background, no floor, no character, no text, no grid lines, no shadows. This will be drawn at 10-18 pixels tall on limbs, so use simple irregular readable silhouettes with 2-3 tonal steps and no white core.",
+  "source": "status_flame_master.png",
+  "sha256": "21289e83ceb4c863c70480fd43871193bb442ba631ac898849f368d3e20f7849",
+  "frames": 8,
+  "decodeWidth": 512,
+  "importer": "tool/import_status_art.py",
+  "version": 2,
+  "frameWindows": "equal size; measured base center; source pixels unchanged",
+  "reference": "assets/art/enemies/mummy_walk.png (style only)"
+}

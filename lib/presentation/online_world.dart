@@ -1,3 +1,4 @@
+import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/support_art.dart';
 import 'package:regun/systems/support_runtime.dart';
 import 'package:regun/systems/support_rewards.dart';
@@ -440,6 +441,21 @@ class OnlineWorldArt {
         ambient: ambient(foundry),
       );
     }
+    if (!dead && entity.number('burn') > 0) {
+      CombatStatusPainter.fire(
+        canvas,
+        Rect.fromLTRB(
+          p.dx - size * .28,
+          p.dy - size * .38,
+          p.dx + size * .28,
+          p.dy + size * .38,
+        ),
+        entity.number('age'),
+        reducedMotion: reducedMotion,
+        front: false,
+        seed: entity.key.hashCode & 255,
+      );
+    }
     canvas.save();
     canvas.translate(p.dx, p.dy);
     final facingLeft = !dead && kind == 'mummy' && mummyWalk != null
@@ -479,7 +495,10 @@ class OnlineWorldArt {
         anchor: Anchor.center,
         overridePaint: Paint()
           ..filterQuality = FilterQuality.none
-          ..colorFilter = ambient(foundry)
+          ..colorFilter = BossArt.ambient(
+            foundry ? ArenaType.foundry : ArenaType.breach,
+            burning: !dead && entity.number('burn') > 0,
+          )
           ..color = Color.fromRGBO(
             255,
             255,
@@ -490,6 +509,22 @@ class OnlineWorldArt {
     }
     if (mummyStance) canvas.restore();
     canvas.restore();
+    if (!dead && entity.number('burn') > 0) {
+      final body = Rect.fromLTRB(
+        p.dx - size * .28,
+        p.dy - size * .38,
+        p.dx + size * .28,
+        p.dy + size * .38,
+      );
+      CombatStatusPainter.fire(
+        canvas,
+        body,
+        entity.number('age'),
+        reducedMotion: reducedMotion,
+        front: true,
+        seed: entity.key.hashCode & 255,
+      );
+    }
     if (!dead &&
         (boss || entity.number('health') < entity.number('maximumHealth', 1))) {
       final width = boss ? 140.0 : 50.0;

@@ -12,29 +12,36 @@ class BossArt {
   static final _cryptAmbient = _makeAmbient(false);
   static final _foundryAmbient = _makeAmbient(true);
 
+  static final _cryptBurn = _makeAmbient(false, burning: true);
+  static final _foundryBurn = _makeAmbient(true, burning: true);
+
   /// Shared ambient light softens source-atlas highlights into the arena.
   /// Preserve silhouettes and material colour; never tint warning geometry.
-  static ColorFilter ambient(ArenaType arena) =>
-      arena == ArenaType.foundry ? _foundryAmbient : _cryptAmbient;
-  static ColorFilter _makeAmbient(bool warm) {
+  static ColorFilter ambient(ArenaType arena, {bool burning = false}) =>
+      arena == ArenaType.foundry
+      ? (burning ? _foundryBurn : _foundryAmbient)
+      : (burning ? _cryptBurn : _cryptAmbient);
+  static ColorFilter _makeAmbient(bool warm, {bool burning = false}) {
     const s = .82;
-    final r = warm ? .96 : .88, g = warm ? .87 : .94, b = warm ? .81 : .9;
+    final r = (warm ? .96 : .88) * (burning ? .94 : 1),
+        g = (warm ? .87 : .94) * (burning ? .78 : 1),
+        b = (warm ? .81 : .9) * (burning ? .66 : 1);
     return ColorFilter.matrix([
       r * (.2126 * (1 - s) + s),
       r * .7152 * (1 - s),
       r * .0722 * (1 - s),
       0,
-      0,
+      burning ? 15 : 0,
       g * .2126 * (1 - s),
       g * (.7152 * (1 - s) + s),
       g * .0722 * (1 - s),
       0,
-      0,
+      burning ? 5 : 0,
       b * .2126 * (1 - s),
       b * .7152 * (1 - s),
       b * (.0722 * (1 - s) + s),
       0,
-      0,
+      burning ? 2 : 0,
       0,
       0,
       0,
