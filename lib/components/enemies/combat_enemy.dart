@@ -1,4 +1,5 @@
 import 'package:regun/presentation/combat_status_art.dart';
+import 'package:regun/presentation/mechanic_vfx.dart';
 
 import 'dart:math' show max;
 
@@ -124,6 +125,14 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   bool incomingArmorPiercing = false;
   bool incomingSupportBallistic = false;
   double statusClock = 0;
+  int contactFlags = 0;
+  double contactAge = 1;
+  void showMechanicContact(int flags) {
+    if (flags == 0 || contactAge < .18) return;
+    contactFlags = flags;
+    contactAge = 0;
+  }
+
   Rect get statusBody {
     if (!isBoss) {
       return Rect.fromLTRB(
@@ -268,6 +277,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     final wasFrozen = freezeHeld || impactHeld;
     if (game.gameState.gameplayState == GameplayState.playing) {
       statusClock += dt;
+      contactAge = (contactAge + dt).clamp(0, 1);
       if (burning || cinderRemaining > 0) game.statusArt.prewarmFire();
       freezeState.advance(dt);
       _staggerRemaining = (_staggerRemaining - dt).clamp(0.0, .3);
@@ -359,33 +369,6 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-    if (freezeState.frozen && !combatHealth.isDead) {
-      final center = (size / 2).toOffset();
-      for (final side in [-1, 1]) {
-        AttackVfx.chip(
-          canvas,
-          center + Offset(side * size.x * .3, size.y * .18),
-          9,
-          const Color(0xffA9C9C7),
-        );
-      }
-    }
-    paintStatusFire(canvas, false);
-    if (marked && !combatHealth.isDead) {
-      final c = (size / 2).toOffset(), r = size.x * .3;
-      for (final sign in [-1, 1]) {
-        AttackVfx.stroke(
-          canvas,
-          [
-            c + Offset(sign * r, -8),
-            c + Offset(sign * r, -r),
-            c + Offset(sign * (r - 8), -r),
-          ],
-          const Color(0xffDAC18A),
-          3,
-        );
-      }
-    }
     if (_flash > 0) {
       AttackVfx.chip(canvas, (size / 2).toOffset(), 9, const Color(0xffD5B88B));
     }
@@ -408,5 +391,23 @@ class _EnemyFireFront extends Component {
   _EnemyFireFront(this.actor) : super(priority: 100000);
   final CombatEnemy actor;
   @override
-  void render(Canvas canvas) => actor.paintStatusFire(canvas, true);
+  void render(Canvas canvas) {
+    if (actor.combatHealth.isDead) return;
+    actor.paintStatusFire(canvas, true);
+    MechanicVfx.frost(
+      canvas,
+      actor.statusBody,
+      frozen: actor.freezeState.frozen,
+      recovery: actor.freezeState.recovery,
+      reducedMotion: actor.game.preferences.reducedMotion,
+    );
+    MechanicVfx.contact(
+      canvas,
+      actor.statusBody,
+      actor.contactFlags,
+      actor.contactAge,
+      reducedMotion: actor.game.preferences.reducedMotion,
+    );
+    if (actor.marked) MechanicVfx.mark(canvas, actor.statusBody);
+  }
 }

@@ -43,6 +43,7 @@ class GameNotifier extends Notifier<GameState> {
   double _activeSeconds = 0;
   double _guardElapsed = 0;
   int guardAbsorptions = 0, guardRecharges = 0;
+  int recoveredHealth = 0;
   int get guardGeneration => _rewardGeneration;
   double get guardRechargeProgress => state.guard
       ? 1
@@ -120,6 +121,7 @@ class GameNotifier extends Notifier<GameState> {
     cancelPendingActions();
     _rewardGeneration++;
     guardAbsorptions = guardRecharges = 0;
+    recoveredHealth = 0;
     _rewardSerial = 0;
     acceptedUpgrade.value = null;
     weapon = loadout.weapon;
@@ -239,6 +241,7 @@ class GameNotifier extends Notifier<GameState> {
   }) {
     _rewardGeneration++;
     guardAbsorptions = guardRecharges = 0;
+    recoveredHealth = 0;
     _rewardSerial = 0;
     acceptedUpgrade.value = null;
     support = SupportProgress.restore(snapshot['supportProgress']);
@@ -831,6 +834,7 @@ class GameNotifier extends Notifier<GameState> {
       default:
         break;
     }
+    recoveredHealth += max(0, state.health - rewardBefore.health);
     state = state.copyWith(
       gameplayState: GameplayState.playing,
       powerUpChoices: const [],
@@ -1050,6 +1054,7 @@ class GameNotifier extends Notifier<GameState> {
     }
     final health = min(state.maxHealth, state.health + amount);
     survivor.healed += health - state.health;
+    recoveredHealth += health - state.health;
     state = state.copyWith(health: health);
   }
 
@@ -1057,6 +1062,7 @@ class GameNotifier extends Notifier<GameState> {
   void awardBossHealth() {
     if (state.health <= 0) return;
     survivor.healed += 2;
+    recoveredHealth += 2;
     state = state.copyWith(health: state.health + 2);
   }
 

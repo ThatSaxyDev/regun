@@ -1,5 +1,6 @@
 import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/guard_feedback.dart';
+import 'package:regun/presentation/mechanic_vfx.dart';
 import 'package:regun/presentation/upgrade_art.dart';
 import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
@@ -48,6 +49,7 @@ class PlayerComponent extends SpriteAnimationComponent
   bool _wasDashing = false;
 
   final guardFeedback = GuardFeedback();
+  final mechanicFeedback = MechanicFeedback();
   Rect get wardBody =>
       Rect.fromLTRB(size.x * .23, size.y * .08, size.x * .77, size.y * .88);
   void paintWard(Canvas canvas, bool front) {
@@ -96,6 +98,14 @@ class PlayerComponent extends SpriteAnimationComponent
       game.gameNotifier.guardRecharges,
       game.gameState.gameplayState == GameplayState.playing ? dt : 0,
     );
+    mechanicFeedback.sync(
+      game.gameNotifier.guardGeneration,
+      game.gameNotifier.recoveredHealth,
+      game.gameState.gameplayState == GameplayState.playing ? dt : 0,
+    );
+    if (game.playerEntrance.active || game.gameState.health <= 0) {
+      mechanicFeedback.settle(game.gameNotifier.recoveredHealth);
+    }
     priority = 10000 + (position.y + size.y * .38).round();
     if (game.playerEntrance.active) {
       animation = game.playerEntrance.landing
@@ -333,6 +343,14 @@ class PlayerComponent extends SpriteAnimationComponent
         reloadShells: game.gameState.maxBullets - game.gameState.noOfBullets,
         reducedMotion: game.preferences.reducedMotion,
       );
+      MechanicVfx.weapon(
+        canvas,
+        ready: game.readyPerkFlags,
+        spent: mechanicFeedback.spent,
+        spentAge: mechanicFeedback.spentAge,
+        reducedMotion: game.preferences.reducedMotion,
+        muzzle: WeaponFeel.of(game.loadout.weapon).muzzle,
+      );
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           const Rect.fromLTWH(-11, -2, 7, 7),
@@ -527,6 +545,14 @@ class PlayerComponent extends SpriteAnimationComponent
       label.paint(canvas, origin);
     }
     paintWard(canvas, true);
+    if (!game.playerEntrance.active) {
+      MechanicVfx.healing(
+        canvas,
+        wardBody,
+        mechanicFeedback.healAge,
+        reducedMotion: game.preferences.reducedMotion,
+      );
+    }
   }
 
   @override

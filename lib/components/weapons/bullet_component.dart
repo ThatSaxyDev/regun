@@ -302,6 +302,9 @@ class BulletComponent extends PositionComponent
             bounces <= game.gameState.countRank(PowerUp.ricochet)) {
           game.upgradePresentation.observe('ricochet', 'Round redirected');
         }
+        if (owner is CombatEnemy && game.gameState.rank(PowerUp.ricochet) > 0) {
+          owner.showMechanicContact(2);
+        }
         bounces--;
         _bouncedThisFrame = true;
         damage = min(
@@ -326,6 +329,10 @@ class BulletComponent extends PositionComponent
       }
     }
     if (pierce > 0) {
+      if (owner is CombatEnemy &&
+          game.gameState.rank(PowerUp.bulletsPhaseThrough) > 0) {
+        owner.showMechanicContact(1);
+      }
       pierce--;
       if (weapon == WeaponType.railLance) damage *= .65;
     } else {

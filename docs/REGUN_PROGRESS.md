@@ -1796,3 +1796,17 @@ Localized charge/body accent and the cool pressure rim are stronger without
 balance/camera changes. Updated signed normal-game build installed on the iPhone.
 See `docs/validation/upgrade-impact-release-2026-10-26/README.md` for captures,
 clock/authority/save semantics and open hosted/physical gates.
+
+### 26 October — visible mechanics and semantic infusion reuse
+
+Normal 1.0.0+24 iPhone candidate installed with body-bound frost/thaw, target seal,
+actual electrical contact, accepted healing, empowered-release readiness/consume
+and bounded native conditional/ricochet/penetration accents. Six existing infusion
+performances are remapped by physical gesture, with independent medical/electric
+colors. Existing fire/guard direction, recovery pulse, timings, pinned stats and
+hosted admission remain. Read [review and evidence](validation/upgrade-mechanics-2026-10-26/README.md)
+and the updated 55-entry source dispositions. Full suite775 passed/five skips;
+final focused58 passed; analyzer clean; backend187/typecheck/build passed.
+Server cosmetic metadata is source-only, not deployed. Visual acceptance, broad
+phone/stacked performance and remaining coverage refinements remain open. Earlier
+exported IPAs do not contain this revision.

@@ -1,4 +1,6 @@
 import 'package:regun/presentation/guard_feedback.dart';
+import 'package:regun/presentation/mechanic_vfx.dart';
+import 'package:regun/multiplayer/combat_state.dart' show OnlineGun;
 import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/upgrade_art.dart';
 import 'package:regun/presentation/upgrade_presentation.dart';
@@ -244,6 +246,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   final upgradeArt = UpgradeArtLease();
   final statusArt = CombatStatusArt();
   final guardFeedback = <String, GuardFeedback>{};
+  final mechanicFeedback = <String, MechanicFeedback>{};
   double seconds = 0;
   Duration last = Duration.zero;
   OnlineSession get session => widget.session;
@@ -293,13 +296,30 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       }
       final generation =
           '${session.room?.id}:${session.match?.data['matchId']}'.hashCode;
-      for (final entry in session.fighters.entries) {
+      if (!session.connected || session.suspended) {
+        mechanicFeedback.clear();
+        guardFeedback.clear();
+      }
+      for (final entry
+          in session.connected && !session.suspended
+              ? session.fighters.entries
+              : const <MapEntry<String, OnlineGun>>[]) {
         final p = entry.value.progress;
         (guardFeedback[entry.key] ??= GuardFeedback()).sync(
           generation,
           (p['guardAbsorptions'] as num?)?.toInt() ?? 0,
           (p['guardRecharges'] as num?)?.toInt() ?? 0,
           session.match?.phase == 'active' ? dt : 0,
+        );
+        final feedback = mechanicFeedback[entry.key] ??= MechanicFeedback();
+        feedback.sync(
+          generation,
+          (p['recoveredHealth'] as num?)?.toInt() ?? 0,
+          session.match?.phase == 'active' ? dt : 0,
+        );
+        feedback.onlineShots(
+          entry.value.shots,
+          acceptedPerks: (entry.value.data['shotPerks'] as num?)?.toInt(),
         );
       }
       _combatCues();
@@ -696,6 +716,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         restingAim: restingAim,
                         mummyWalks: mummyWalks,
                         guardFeedback: guardFeedback,
+                        mechanicFeedback: mechanicFeedback,
                       ),
                     ),
                   ),
@@ -974,12 +995,14 @@ class _ArenaPainter extends CustomPainter {
     required this.restingAim,
     required this.mummyWalks,
     required this.guardFeedback,
+    required this.mechanicFeedback,
   });
   final OnlineSession session;
   final GrenadeAim grenadeAim;
   final Map<String, Offset> restingAim;
   final Map<String, MummyWalk> mummyWalks;
   final Map<String, GuardFeedback> guardFeedback;
+  final Map<String, MechanicFeedback> mechanicFeedback;
   final Map<String, Offset> positions;
   final double seconds;
   final bool artReady;
@@ -1505,6 +1528,14 @@ class _ArenaPainter extends CustomPainter {
           breakAge: !dead ? absorbedAge : -1,
           reformAge: !dead ? rechargeAge : -1,
         );
+        if (!dead) {
+          MechanicVfx.healing(
+            canvas,
+            wardBody,
+            mechanicFeedback[key]?.healAge ?? -1,
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+          );
+        }
         final useLabel = session.upgradeReceipts.useLabels[key];
         if (key == session.identity && useLabel != null && !dead) {
           final text = TextPainter(
@@ -1545,6 +1576,14 @@ class _ArenaPainter extends CustomPainter {
             tactical: gun.data['reloadTactical'] == true,
             recoil: (1 - shotAge / WeaponFeel.of(weapon).recovery).clamp(0, 1),
             reducedMotion: LocalPreferences.shared.reducedMotion,
+          );
+          MechanicVfx.weapon(
+            canvas,
+            ready: _onlineReadyFlags(gun),
+            spent: mechanicFeedback[key]?.spent ?? 0,
+            spentAge: mechanicFeedback[key]?.spentAge ?? 1,
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+            muzzle: WeaponFeel.of(weapon).muzzle,
           );
           if (shotAge < .045 && !LocalPreferences.shared.reducedMotion) {
             final feel = WeaponFeel.of(weapon);
@@ -1669,3 +1708,13 @@ class _ArenaPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _ArenaPainter oldDelegate) => true;
 }
+
+// Only mechanics implemented by the admitted server arsenal. Measured Shot has
+// no hosted implementation and must never acquire a client-predicted ready cue.
+int _onlineReadyFlags(OnlineGun gun) =>
+    gun.health <= 0 || gun.reloading || gun.ammo <= 0
+    ? 0
+    : (gun.ammo == 1 && gun.rank('lastShell') > 0 ? 1 : 0) |
+          (gun.progress['breachCharged'] == true && gun.rank('breachLoader') > 0
+              ? 2
+              : 0);

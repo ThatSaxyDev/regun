@@ -1,8 +1,9 @@
 # Make upgrade mechanics visible during combat
 
-26 October 2026 — burn/guard candidate in implementation; visual acceptance open.
+26 October 2026 — burn/guard plus status/contact/readiness/healing candidates implemented; visual acceptance open.
 
-Current evidence and limitations: [first-slice review](art/COMBAT_STATUS_REVIEW.md).
+Current evidence and limitations: [burn/guard review](art/COMBAT_STATUS_REVIEW.md) and
+[mechanics/remapping review](validation/upgrade-mechanics-2026-10-26/README.md).
 
 ## 1. The result we are building
 
@@ -36,7 +37,7 @@ contains all 55 identities and an explicit planned disposition. It is a planning
 inventory, not a claim that every effect has already been visually audited.
 
 The workspace contains staged and unstaged earlier work. Preserve that index and
-all existing changes; this planning pass adds documents only.
+all existing changes. Implementation progress is recorded in the linked reviews.
 
 ## 3. First slice: unmistakable burning and a proper shield
 

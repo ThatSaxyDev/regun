@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-10-26",
-  "status": "first burn/guard implementation candidate; remaining coverage planned; visual acceptance open",
+  "status": "source coverage dispositions recorded; normal-game presentation candidate; physical visual acceptance open",
   "scope": {
     "offered": 43,
     "fusions": 8,
@@ -22,7 +22,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/weapons/weapon_impact.dart",
+      "auditNote": "Existing weapon-specific impact/recoil and mass-constrained shove; no additional permanent aura."
     },
     {
       "id": "quickTrigger",
@@ -36,7 +40,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/game.dart",
+      "auditNote": "Real firing cadence and mechanism/muzzle events; timing itself is the visible mechanic."
     },
     {
       "id": "maxBulletsIncrease",
@@ -50,7 +58,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/notifiers/game_notifier.dart",
+      "auditNote": "Existing pickup refill/HUD snap and true magazine count; no extra instant reload."
     },
     {
       "id": "fastReload",
@@ -64,7 +76,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/weapons/weapon_art.dart",
+      "auditNote": "Existing mechanism phases follow shortened real reload; original shotgun HUD presentation retained."
     },
     {
       "id": "numberOfBulletsPerShotIncrease",
@@ -78,7 +94,11 @@
         "lib/components/weapons/bullet_component.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/game.dart",
+      "auditNote": "Real fan count/spread; IV\u2013VIII narrowing does not invent more rounds."
     },
     {
       "id": "bulletsPhaseThrough",
@@ -92,7 +112,12 @@
         "lib/components/weapons/bullet_component.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Real native bullet penetration gets bounded contact accent; innate-only penetration is not labelled as this perk.",
+      "onlinePresentation": "Existing authoritative flight/hits retained; new native per-victim contact accent is not yet serialized online."
     },
     {
       "id": "bulletRangeIncrease",
@@ -106,7 +131,11 @@
         "lib/components/weapons/bullet_component.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/weapons/bullet_component.dart",
+      "auditNote": "Actual clipped flight/range persistence; no decorative beam or extra hit."
     },
     {
       "id": "rapidFire",
@@ -120,7 +149,11 @@
         "lib/components/weapons/bullet_component.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/weapons/bullet_component.dart",
+      "auditNote": "Actual speed/flight and bounded existing weapon trail, no additional projectile."
     },
     {
       "id": "walkingSpeedIncrease",
@@ -134,7 +167,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/game_utils/player_component.dart",
+      "auditNote": "Real speed, running art and movement; existing player gait remains time-based, not silently retimed."
     },
     {
       "id": "healthIncrease",
@@ -148,7 +185,12 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Accepted positive HP delta only; new heart remains HUD-owned.",
+      "onlinePresentation": "Optional server-owned HP totals/accepted shot flags added in source; hosted deployment pending. Old servers retain steady readiness without replayed transitions."
     },
     {
       "id": "fieldMedic",
@@ -162,7 +204,12 @@
         "lib/systems/combat_system.dart:260",
         "lib/notifiers/game_notifier.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Accepted heal() delta, including real Suture healing; no burst on a failed proc or full health.",
+      "onlinePresentation": "Optional server-owned HP totals/accepted shot flags added in source; hosted deployment pending. Old servers retain steady readiness without replayed transitions."
     },
     {
       "id": "scrapArmour",
@@ -178,7 +225,10 @@
         "lib/game.dart:2634",
         "lib/components/game_utils/player_component.dart:505"
       ],
-      "status": "shared body-bound burn/guard candidate implemented; phone visual review open"
+      "status": "body-bound burn/guard candidate; creator approved fire direction, physical coverage still open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "existing first-slice candidate retained",
+      "runtimeEvidence": "lib/presentation/combat_status_art.dart"
     },
     {
       "id": "quickstep",
@@ -192,7 +242,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/movement/boost_component.dart",
+      "auditNote": "Actual active-time dash reserve cooldown and ready action display."
     },
     {
       "id": "dashCapacity",
@@ -206,7 +260,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/movement/boost_component.dart",
+      "auditNote": "Actual stored-charge markers and reserve spends/recharge."
     },
     {
       "id": "grenadeCapacity",
@@ -220,7 +278,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/weapons/grenade_component.dart",
+      "auditNote": "Actual inventory/charge control; no decorative third grenade."
     },
     {
       "id": "sprintInvincibility",
@@ -234,7 +296,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/game_utils/player_component.dart",
+      "auditNote": "Existing dash-only survivor trail/protection window, distinct from Guard."
     },
     {
       "id": "scavenger",
@@ -248,7 +314,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/game_utils/coin_component.dart",
+      "auditNote": "Actual attracted XP movement from existing radius and real collection; no radius carpet."
     },
     {
       "id": "luckyFind",
@@ -262,7 +332,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/notifiers/game_notifier.dart",
+      "auditNote": "Offer probability belongs to actual picker/rarity outcome; intentionally no fabricated combat proc."
     },
     {
       "id": "hotShot",
@@ -277,7 +351,10 @@
         "lib/components/enemies/combat_enemy.dart:292",
         "lib/systems/combat_system.dart:120"
       ],
-      "status": "shared body-bound burn/guard candidate implemented; phone visual review open"
+      "status": "body-bound burn/guard candidate; creator approved fire direction, physical coverage still open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "existing first-slice candidate retained",
+      "runtimeEvidence": "lib/presentation/combat_status_art.dart"
     },
     {
       "id": "accelerant",
@@ -292,7 +369,10 @@
         "lib/components/enemies/combat_enemy.dart:292",
         "lib/systems/combat_system.dart:120"
       ],
-      "status": "shared body-bound burn/guard candidate implemented; phone visual review open"
+      "status": "body-bound burn/guard candidate; creator approved fire direction, physical coverage still open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "existing first-slice candidate retained",
+      "runtimeEvidence": "lib/presentation/combat_status_art.dart"
     },
     {
       "id": "staticCharge",
@@ -306,7 +386,12 @@
         "lib/systems/combat_system.dart:165",
         "lib/presentation/attack_vfx.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Accepted chain path with short target discharge; perk and innate channel tint remain distinguishable.",
+      "onlinePresentation": "Same actual chain contacts; optional server role distinguishes perk/weapon/companion. Missing roles keep legacy-safe rendering."
     },
     {
       "id": "conductiveCore",
@@ -320,7 +405,12 @@
         "lib/systems/combat_system.dart:165",
         "lib/presentation/attack_vfx.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Existing true jumps/range with shared contact discharge; no extra decorative target.",
+      "onlinePresentation": "Same actual chain contacts; optional server role distinguishes perk/weapon/companion. Missing roles keep legacy-safe rendering."
     },
     {
       "id": "sprintMine",
@@ -335,7 +425,11 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/weapons/mine_component.dart",
+      "auditNote": "Actual planted mine, arm state and one material blast."
     },
     {
       "id": "fragmentation",
@@ -350,7 +444,11 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/systems/combat_system.dart",
+      "auditNote": "Real mine shards/count/origins and existing material ordnance."
     },
     {
       "id": "ricochet",
@@ -364,7 +462,12 @@
         "lib/components/weapons/bullet_component.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Real native perk bounce gets bounded brass contact accent; existing path redirection remains authoritative.",
+      "onlinePresentation": "Existing authoritative flight/hits retained; new native per-victim contact accent is not yet serialized online."
     },
     {
       "id": "bankShot",
@@ -378,7 +481,12 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Actual bounced hits retain native bounce contact and bounded damage scaling.",
+      "onlinePresentation": "Existing authoritative flight/hits retained; new native per-victim contact accent is not yet serialized online."
     },
     {
       "id": "lastShell",
@@ -392,7 +500,12 @@
         "lib/game.dart:2181",
         "lib/systems/arsenal_system.dart:318"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Weapon-local final-round ready seam, spent on actual accepted release.",
+      "onlinePresentation": "Optional server-owned HP totals/accepted shot flags added in source; hosted deployment pending. Old servers retain steady readiness without replayed transitions."
     },
     {
       "id": "breachLoader",
@@ -406,7 +519,12 @@
         "lib/game.dart:2181",
         "lib/systems/arsenal_system.dart:318"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Weapon-local ready seam after real reload; spent on eligible accepted release.",
+      "onlinePresentation": "Optional server-owned HP totals/accepted shot flags added in source; hosted deployment pending. Old servers retain steady readiness without replayed transitions."
     },
     {
       "id": "orbitDrone",
@@ -420,7 +538,11 @@
         "lib/systems/combat_system.dart:28",
         "lib/components/game_utils/player_component.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/game.dart",
+      "auditNote": "Existing one/three actual companions, real shots and accepted quiet links; no second companion effect."
     },
     {
       "id": "targetingLink",
@@ -434,7 +556,12 @@
         "lib/components/enemies/combat_enemy.dart:325",
         "lib/systems/combat_system.dart:128"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Four worn corners and a small focus seal around the real marked body; companion focus damage unchanged.",
+      "onlinePresentation": "Same seal from authoritative marked flag; no client mark prediction."
     },
     {
       "id": "shrapnel",
@@ -449,7 +576,11 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/systems/combat_system.dart",
+      "auditNote": "Actual successful kill proc emits real shards; no burst for a failed roll."
     },
     {
       "id": "executioner",
@@ -463,7 +594,12 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Accepted primary contact below existing .35 HP fraction gets bounded precision accent.",
+      "onlinePresentation": "Existing authoritative flight/hits retained; new native per-victim contact accent is not yet serialized online."
     },
     {
       "id": "grenadeDamage",
@@ -478,7 +614,11 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/game.dart",
+      "auditNote": "Shared grounded actual blast; damage-only rank does not draw a falsely larger radius."
     },
     {
       "id": "grenadeRadius",
@@ -493,7 +633,11 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/systems/grenades.dart",
+      "auditNote": "Real shared trajectory/landing/blast extent; body-edge/cover rules unchanged."
     },
     {
       "id": "grenadeRecharge",
@@ -507,7 +651,11 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/systems/grenades.dart",
+      "auditNote": "Actual sequential reserve recharge and ready control; no grant on selection."
     },
     {
       "id": "braceLoader",
@@ -521,7 +669,12 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/game.dart",
+      "auditNote": "Actual walking speed during reload; preserve mechanism timing.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "sureFoot",
@@ -535,7 +688,12 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/game.dart",
+      "auditNote": "Actual weapon-weight mobility recovery; no invented resistance aura.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "scouringHeat",
@@ -550,7 +708,12 @@
         "lib/components/enemies/combat_enemy.dart:292",
         "lib/systems/combat_system.dart:120"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/enemies/combat_enemy.dart",
+      "auditNote": "Shared body-attached burn follows real status; rank only changes eligible damage, not all fire coverage.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "faradayReserve",
@@ -564,7 +727,12 @@
         "lib/systems/combat_system.dart:165",
         "lib/presentation/attack_vfx.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Retained actual chain damage uses the same true-contact rendering; no extra jump implied.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "blastHarness",
@@ -579,7 +747,12 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/game.dart",
+      "auditNote": "Actual ordinary-body displacement/grounded blast, planted roles remain planted.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "exposedSeam",
@@ -594,7 +767,12 @@
         "lib/components/enemies/combat_enemy.dart:308",
         "lib/systems/combat_system.dart:88"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Frost crust and thaw follow FreezeState, not perk rank; qualifying frozen-target bonus gets bounded contact accent.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "measuredShot",
@@ -608,7 +786,12 @@
         "lib/game.dart:2181",
         "lib/systems/arsenal_system.dart:318"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Ready seam only after actual .8-active-second idle threshold; actual release spends it.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "closeQuarters",
@@ -622,7 +805,12 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Accepted eligible near contact gets bounded precision accent; no permanent range ring.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "sprintDistanceIncrease",
@@ -636,7 +824,12 @@
         "lib/notifiers/game_notifier.dart",
         "lib/game.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/movement/boost_component.dart",
+      "auditNote": "Legacy real dash duration/distance; no return to ordinary offers.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "salvage",
@@ -650,7 +843,12 @@
         "lib/systems/combat_system.dart:260",
         "lib/notifiers/game_notifier.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Actual HP recovered emits medical cue; scrap remains receipt/HUD-owned.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "firebreak",
@@ -665,7 +863,11 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/components/weapons/combat_effect.dart",
+      "auditNote": "Real bounded burning-ground component and actual body-attached burn recipients."
     },
     {
       "id": "stormCircuit",
@@ -680,7 +882,12 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Actual extra chain paths use shared discharge; no proc chance/target-count change.",
+      "onlinePresentation": "Same actual chain contacts; optional server role distinguishes perk/weapon/companion. Missing roles keep legacy-safe rendering."
     },
     {
       "id": "minefield",
@@ -695,7 +902,11 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/systems/combat_system.dart",
+      "auditNote": "Real accepted trail mines/arm states/blasts; no cosmetic mines."
     },
     {
       "id": "pinball",
@@ -710,7 +921,12 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Existing real bounce count/path shares native contact accent.",
+      "onlinePresentation": "Existing authoritative flight/hits retained; new native per-victim contact accent is not yet serialized online."
     },
     {
       "id": "breachEngine",
@@ -725,7 +941,12 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Existing first/final round bonuses share one bounded ready/consume display.",
+      "onlinePresentation": "Optional server-owned HP totals/accepted shot flags added in source; hosted deployment pending. Old servers retain steady readiness without replayed transitions."
     },
     {
       "id": "hunterSwarm",
@@ -740,7 +961,11 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/systems/combat_system.dart",
+      "auditNote": "Three real companion bodies and quiet accepted links, with shared real marks."
     },
     {
       "id": "kilnPact",
@@ -755,7 +980,12 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/systems/combat_system.dart",
+      "auditNote": "Real qualifying burning elite/boss death creates existing ground patch.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "groundWire",
@@ -770,7 +1000,12 @@
         "lib/systems/combat_system.dart",
         "lib/systems/arsenal_system.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "implemented in source; visual acceptance open",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "changed presentation candidate",
+      "runtimeEvidence": "lib/presentation/mechanic_vfx.dart",
+      "auditNote": "Fourth qualifying discharge retains its gate/jump logic and uses shared contact.",
+      "onlinePresentation": "Not admitted online; this pass does not expand admission."
     },
     {
       "id": "support:sentry",
@@ -785,7 +1020,11 @@
         "lib/systems/support_native.dart",
         "lib/systems/support_runtime.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/systems/support_native.dart",
+      "auditNote": "Existing physical landing/mount/commitment/rounds/battery; do not duplicate deployment."
     },
     {
       "id": "support:aura",
@@ -800,8 +1039,21 @@
         "lib/systems/support_native.dart",
         "lib/systems/support_runtime.dart"
       ],
-      "status": "planned; visual acceptance open"
+      "status": "source audited; retained without inventing an extra proc",
+      "visualAcceptance": "open; creator phone/stacked-combat review required",
+      "disposition": "retain existing actual-mechanic presentation",
+      "runtimeEvidence": "lib/presentation/support_art.dart",
+      "auditNote": "Keep creator-requested muted currents, real moving footprint/phase/lifetime; not protection."
     }
   ],
-  "onlineAdmissionMeaning": "Coded hosted support only; not live enable flags, eligible offers or deployed-version proof."
+  "onlineAdmissionMeaning": "Coded hosted support only; not live enable flags, eligible offers or deployed-version proof.",
+  "audit": "Mechanic triggers traced in native runtime, hosted runtime, API rank preview and admin rank-path verification. Source coverage is not proof that every kit is visually accepted.",
+  "remaining": [
+    "Phone visual/comfort/performance review of new status, readiness and contact candidates.",
+    "Boss/pack/overlap/left-handed/large-text physical review across supported kits.",
+    "Full unique survivor/family animation assets remain deferred; six physical gestures are deliberately reused.",
+    "Hosted deployment/live co-op QA, optional contact-event serialization and broader useful-frequency evidence remain open.",
+    "Native pre-acceptance burn/mark and weak-point proc eligibility divergence needs separate mechanics evidence; unchanged here.",
+    "Ignition/spread-transfer and extinction accents remain a separate burn polish item."
+  ]
 }

@@ -130,6 +130,16 @@ class CombatSystem {
         amount *= 1 + effect(PowerUp.executioner) * 0.3;
       }
     }
+    final precisionContact =
+        (primary || weaponHit) &&
+        ((enemy.freezeHeld && effect(PowerUp.exposedSeam) > 0) ||
+            (travel != null &&
+                travel <= 160 &&
+                effect(PowerUp.closeQuarters) > 0));
+    final executionContact =
+        primary &&
+        enemy.combatHealth.fraction < .35 &&
+        effect(PowerUp.executioner) > 0;
     enemy.incomingSupportBallistic = supportBallistic;
     bool accepted;
     try {
@@ -138,6 +148,7 @@ class CombatSystem {
       enemy.incomingSupportBallistic = false;
     }
     if (!accepted) return false;
+    if (precisionContact || executionContact) enemy.showMechanicContact(4);
     if (primary) {
       game.upgradePresentation.observe('heavyLoad', 'Stronger primary hit');
       if (enemy.burning) {
@@ -208,14 +219,6 @@ class CombatSystem {
             break;
           }
           visited.add(target);
-          game.addCombatEffect(
-            CombatEffect(
-              position: source.position.clone(),
-              endpoint: target.position.clone(),
-              color: const Color(0xffBCD7AE),
-              duration: .16,
-            ),
-          );
           final retention = min(
             .92,
             (innate ? .85 : .65) + .02 * effect(PowerUp.faradayReserve),
@@ -232,6 +235,15 @@ class CombatSystem {
             reaction: WeaponReaction.arcJump,
           );
           if (accepted) {
+            game.addCombatEffect(
+              CombatEffect(
+                position: source.position.clone(),
+                endpoint: target.position.clone(),
+                color: const Color(0xffBCD7AE),
+                perkChain: !innate || coilJump || i >= normalCount,
+                duration: .16,
+              ),
+            );
             acceptedAny = true;
             runtime.chainVictim((target as CombatEnemy).combatId);
           }

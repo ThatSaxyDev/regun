@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:regun/presentation/regun_art.dart';
+import 'package:regun/presentation/mechanic_vfx.dart';
 
 /// World-space pixel masonry, glass and embers. Damage stays in the authored
 /// shape; these bounded-cost strokes give that footprint physical material.
@@ -788,6 +789,9 @@ class AttackVfx {
     Offset end,
     double fade, {
     bool heavy = false,
+    bool perk = false,
+    bool contact = false,
+    bool reducedMotion = false,
   }) {
     final delta = end - start, length = delta.distance;
     if (length < 1) return;
@@ -805,7 +809,9 @@ class AttackVfx {
     stroke(
       canvas,
       points,
-      const Color(0xff79AAA8).withValues(alpha: fade),
+      (perk ? const Color(0xffa5b99a) : const Color(0xff79AAA8)).withValues(
+        alpha: fade,
+      ),
       heavy ? 7 : 5,
     );
     stroke(canvas, points, const Color(0xffE0E8CF).withValues(alpha: fade), 3);
@@ -817,13 +823,24 @@ class AttackVfx {
         3,
       );
     }
-    for (final p in [start, end]) {
-      chip(
+    if (contact) {
+      MechanicVfx.discharge(
         canvas,
-        p,
-        heavy ? 9 : 6,
-        const Color(0xffE7E9D5).withValues(alpha: fade),
+        end,
+        delta,
+        fade,
+        perk: perk,
+        reducedMotion: reducedMotion,
       );
+    } else {
+      for (final p in [start, end]) {
+        chip(
+          canvas,
+          p,
+          heavy ? 9 : 6,
+          const Color(0xffE7E9D5).withValues(alpha: fade),
+        );
+      }
     }
   }
 }

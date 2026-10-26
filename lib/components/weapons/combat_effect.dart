@@ -12,6 +12,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
     bool floorEffect = false,
     this.upgradePulse = false,
     this.companion = false,
+    this.perkChain = false,
     this.dashDirection,
     this.remains,
     this.flipRemains = false,
@@ -31,7 +32,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
              ? -10
              : 20010,
        );
-  final bool upgradePulse, companion;
+  final bool upgradePulse, companion, perkChain;
   final Vector2? dashDirection;
   final Vector2? endpoint;
   final Sprite? remains;
@@ -112,6 +113,9 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
         end,
         (1 - age / duration).clamp(0, 1),
         heavy: true,
+        perk: perkChain,
+        contact: true,
+        reducedMotion: game.preferences.reducedMotion,
       );
     } else if (material == AttackMaterial.ember) {
       AttackVfx.explosion(

@@ -361,13 +361,38 @@ class RegunGame extends FlameGame
             : 1);
   }
 
-  double primaryRelease(double amount) =>
-      amount *
-      gameNotifier.survivor.release(
-        loadout.character,
-        gameState.effectRank(PowerUp.measuredShot),
-        continuous: loadout.weapon.isContinuous,
-      );
+  int get readyPerkFlags {
+    if (gameState.reloading ||
+        gameState.noOfBullets <= 0 ||
+        gameState.health <= 0) {
+      return 0;
+    }
+    return (loadout.weapon.hasLastRound &&
+                gameState.noOfBullets == 1 &&
+                gameState.rank(PowerUp.lastShell) > 0
+            ? 1
+            : 0) |
+        (loadout.weapon.hasLastRound &&
+                _breachCharged &&
+                gameState.rank(PowerUp.breachLoader) > 0
+            ? 2
+            : 0) |
+        (gameState.effectRank(PowerUp.measuredShot) > 0 &&
+                gameNotifier.survivor.rest >= .8 - 1e-8
+            ? 4
+            : 0);
+  }
+
+  double primaryRelease(double amount) {
+    myPlayer.mechanicFeedback.release(readyPerkFlags);
+    return amount *
+        gameNotifier.survivor.release(
+          loadout.character,
+          gameState.effectRank(PowerUp.measuredShot),
+          continuous: loadout.weapon.isContinuous,
+        );
+  }
+
   double burnMultiplier(PositionComponent enemy) =>
       (loadout.character == CharacterType.moth ? 1.25 : 1) *
       ((enemy is CombatEnemy &&
@@ -2027,6 +2052,11 @@ class RegunGame extends FlameGame
 
   bool consumeBreachCharge() {
     final charged = _breachCharged;
+    if (charged &&
+        gameState.rank(PowerUp.breachLoader) > 0 &&
+        loadout.weapon.hasLastRound) {
+      myPlayer.mechanicFeedback.release(2);
+    }
     _breachCharged = false;
     return charged;
   }
@@ -2192,6 +2222,7 @@ class RegunGame extends FlameGame
               state.strength(PowerUp.breachLoader) *
               (breachEngine ? 0.8 : 0.5);
     }
+    myPlayer.mechanicFeedback.release(readyPerkFlags & 3);
     _breachCharged = false;
 
     if (loadout.weapon != WeaponType.burstRifle || burstFire.pending == 0) {

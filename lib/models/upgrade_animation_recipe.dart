@@ -66,6 +66,8 @@ String upgradeAnimationRecipe(String id) {
   final family = id.startsWith('support:')
       ? id.split(':').take(2).join(':')
       : id;
+  // Match the physical performance, rather than routing unrelated perks through
+  // Sentry's command gesture. Six clips remain shared; no new timing or leases.
   return switch (family) {
     'walkingSpeedIncrease' ||
     'quickstep' ||
@@ -73,16 +75,27 @@ String upgradeAnimationRecipe(String id) {
     'sprintInvincibility' ||
     'sprintDistanceIncrease' ||
     'sureFoot' ||
-    'braceLoader' => 'walkingSpeedIncrease',
-    'scrapArmour' ||
-    'healthIncrease' ||
-    'fieldMedic' ||
-    'salvage' => 'scrapArmour',
+    'braceLoader' ||
+    'quickTrigger' ||
+    'fastReload' ||
+    'rapidFire' => 'walkingSpeedIncrease',
+    'scrapArmour' || 'grenadeCapacity' || 'grenadeRecharge' => 'scrapArmour',
+    // Cupped hands pull energy into the body: heat, electricity and restoration.
+    // Colour follows the mechanic, so a medical/electric charge never looks fiery.
     'hotShot' ||
     'accelerant' ||
     'scouringHeat' ||
     'firebreak' ||
-    'kilnPact' => 'hotShot',
+    'kilnPact' ||
+    'staticCharge' ||
+    'conductiveCore' ||
+    'faradayReserve' ||
+    'stormCircuit' ||
+    'groundWire' ||
+    'healthIncrease' ||
+    'fieldMedic' ||
+    'salvage' ||
+    'support:aura' => 'hotShot',
     'ricochet' ||
     'bankShot' ||
     'pinball' ||
@@ -91,25 +104,27 @@ String upgradeAnimationRecipe(String id) {
     'executioner' ||
     'exposedSeam' ||
     'measuredShot' ||
-    'closeQuarters' => 'ricochet',
-    'quickTrigger' ||
+    'targetingLink' => 'ricochet',
+    // Palm command belongs to autonomous equipment and acquisition utilities.
+    'support:sentry' ||
+    'orbitDrone' ||
+    'hunterSwarm' ||
+    'sprintMine' ||
+    'minefield' ||
+    'scavenger' ||
+    'luckyFind' => 'support:sentry',
+    'heavyLoad' ||
     'maxBulletsIncrease' ||
-    'fastReload' ||
-    'rapidFire' ||
-    'grenadeRecharge' ||
+    'numberOfBulletsPerShotIncrease' ||
     'lastShell' ||
     'breachLoader' ||
     'breachEngine' ||
-    'support:sentry' ||
-    'support:aura' ||
-    'staticCharge' ||
-    'conductiveCore' ||
-    'faradayReserve' ||
-    'orbitDrone' ||
-    'targetingLink' ||
-    'stormCircuit' ||
-    'groundWire' ||
-    'hunterSwarm' => 'support:sentry',
+    'fragmentation' ||
+    'shrapnel' ||
+    'grenadeDamage' ||
+    'grenadeRadius' ||
+    'blastHarness' ||
+    'closeQuarters' => 'heavyLoad',
     _ => 'heavyLoad',
   };
 }

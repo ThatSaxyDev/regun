@@ -1,4 +1,5 @@
 import 'package:regun/presentation/combat_status_art.dart';
+import 'package:regun/presentation/mechanic_vfx.dart';
 import 'package:regun/presentation/support_art.dart';
 import 'package:regun/systems/support_runtime.dart';
 import 'package:regun/systems/support_rewards.dart';
@@ -222,6 +223,9 @@ class OnlineWorldArt {
             point(d['end']),
             1 - progress,
             heavy: true,
+            perk: d['role'] == 'upgrade',
+            contact: true,
+            reducedMotion: reducedMotion,
           );
         } else {
           AttackVfx.explosion(
@@ -523,6 +527,24 @@ class OnlineWorldArt {
         reducedMotion: reducedMotion,
         front: true,
         seed: entity.key.hashCode & 255,
+      );
+    }
+    if (!dead) {
+      final statusBody = Rect.fromLTRB(
+        p.dx - size * .28,
+        p.dy - size * .38,
+        p.dx + size * .28,
+        p.dy + size * .38,
+      );
+      if (entity.data['marked'] == true) MechanicVfx.mark(canvas, statusBody);
+      // Frost weapon is not admitted online: only explicit future authoritative
+      // state can enable this; rank ownership never manufactures a freeze.
+      MechanicVfx.frost(
+        canvas,
+        statusBody,
+        frozen: entity.number('freezeRemaining') > 0,
+        recovery: entity.number('freezeRecovery'),
+        reducedMotion: reducedMotion,
       );
     }
     if (!dead &&

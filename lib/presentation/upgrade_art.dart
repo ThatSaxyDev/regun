@@ -96,15 +96,35 @@ class _UpgradeRecipeLease {
   }
 }
 
-Color upgradeInfusionColor(String family) =>
-    switch (upgradeAnimationRecipe(family)) {
-      'hotShot' => const Color(0xffd99869),
-      'walkingSpeedIncrease' => const Color(0xffb4c7a5),
-      'scrapArmour' => const Color(0xffb8c4bd),
-      'ricochet' => const Color(0xffc8bd91),
-      'support:sentry' => const Color(0xffa9bdb8),
-      _ => const Color(0xffdfbd78),
-    };
+Color upgradeInfusionColor(String family) {
+  if ({
+        'healthIncrease',
+        'fieldMedic',
+        'salvage',
+        'support:aura',
+      }.contains(family) ||
+      family.startsWith('support:aura:')) {
+    return const Color(0xffb6cda0);
+  }
+  if ({
+    'staticCharge',
+    'conductiveCore',
+    'faradayReserve',
+    'stormCircuit',
+    'groundWire',
+  }.contains(family)) {
+    return const Color(0xffb1d1cc);
+  }
+  if (family == 'exposedSeam') return const Color(0xffb4d2d4);
+  return switch (upgradeAnimationRecipe(family)) {
+    'hotShot' => const Color(0xffd99869),
+    'walkingSpeedIncrease' => const Color(0xffb4c7a5),
+    'scrapArmour' => const Color(0xffb8c4bd),
+    'ricochet' => const Color(0xffc8bd91),
+    'support:sentry' => const Color(0xffa9bdb8),
+    _ => const Color(0xffdfbd78),
+  };
+}
 
 /// Family currents stay local to the frozen performance. No world entities,
 /// shield boundaries, fake bullets, companion copies or gameplay effects.
@@ -113,9 +133,10 @@ void _paintFamilyInfusion(
   String family,
   double p,
   bool foreground,
-  bool reduced,
-) {
-  final warm = upgradeInfusionColor(family);
+  bool reduced, {
+  Color? tint,
+}) {
+  final warm = tint ?? upgradeInfusionColor(family);
   void chip(
     Offset point,
     double width,
@@ -306,6 +327,7 @@ void paintUpgradeInfusion(
     canvas,
     upgradeAnimationRecipe(family),
     progress,
+    tint: upgradeInfusionColor(family),
     reducedMotion: reducedMotion,
     foreground: foreground,
   );
@@ -315,6 +337,7 @@ void _paintUpgradeInfusion(
   Canvas canvas,
   String family,
   double progress, {
+  Color? tint,
   required bool reducedMotion,
   required bool foreground,
 }) {
@@ -325,10 +348,11 @@ void _paintUpgradeInfusion(
       progress.clamp(0.0, 1.0),
       foreground,
       reducedMotion,
+      tint: tint,
     );
     return;
   }
-  final warm = upgradeInfusionColor(family);
+  final warm = tint ?? upgradeInfusionColor(family);
   final ink = Paint();
   void pixel(double x, double y, double w, double h, Color c, double alpha) {
     ink.color = c.withValues(alpha: alpha.clamp(0, 1));
