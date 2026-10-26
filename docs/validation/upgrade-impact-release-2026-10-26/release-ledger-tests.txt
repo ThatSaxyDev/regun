@@ -1,0 +1,7 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_presentation_test.dart
+00:00 +0: online impact waits for released authority, tolerates split snapshots, never replays
+00:00 +1: absorption contains until release; impact is consumed once and never restored
+00:00 +2: bounded presentation clock, deduplication, static restore and real-use expiry
+00:00 +3: reconnect establishes watermark; retries and old holds cannot replay
+00:00 +4: a delayed real mechanic survives another selection but not a run change
+00:00 +5: All tests passed!

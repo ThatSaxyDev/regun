@@ -1,3 +1,4 @@
+import 'package:regun/presentation/upgrade_art.dart';
 import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/data/loadout.dart';
@@ -140,6 +141,7 @@ class PlayerComponent extends SpriteAnimationComponent
       );
     }
 
+    final upgradePosition = position.clone();
     if (game.boostButtonComponent.tapped) {
       _dashDustClock += dt;
       if (!_wasDashing ||
@@ -165,6 +167,10 @@ class PlayerComponent extends SpriteAnimationComponent
         dt,
         radius: collisionRadius,
       );
+    }
+    if (!game.boostButtonComponent.tapped &&
+        position.distanceToSquared(upgradePosition) > .01) {
+      game.upgradePresentation.observe('walkingSpeedIncrease', 'Faster stride');
     }
     // Direct geometric bounds also handle large dash steps and corner sliding.
     game.constrainActor(
@@ -314,9 +320,86 @@ class PlayerComponent extends SpriteAnimationComponent
       canvas.restore();
     }
 
+    void infusion(bool foreground) {
+      if (!game.presentationHeld) return;
+      canvas.save();
+      canvas.translate(size.x / 2, size.y * .5);
+      paintUpgradeInfusion(
+        canvas,
+        game.upgradePresentation.receipt!.family,
+        game.upgradePresentation.progress,
+        reducedMotion: game.preferences.reducedMotion,
+        foreground: foreground,
+      );
+      canvas.restore();
+    }
+
+    infusion(false);
     if (aimDirection.y < -.35) weapon();
-    super.render(canvas);
+    final upgrade = game.upgradePresentation;
+    final upgradeBody =
+        upgrade.showingBody && (upgrade.holding || hurtFlash <= 0);
+    if (upgradeBody &&
+        game.loadout.character == CharacterType.rook &&
+        game.upgradeArt.readyFor(game.upgradePresentation.receipt!.family)) {
+      final frame = game.preferences.reducedMotion
+          ? 7
+          : game.upgradePresentation.frame;
+      final infusionProgress = game.upgradePresentation.progress;
+      final absorption = game.preferences.reducedMotion
+          ? 0.0
+          : upgrade.releasing
+          ? (1 - upgrade.releaseAge / .16).clamp(0.0, 1.0)
+          : ((infusionProgress - .16) / .78).clamp(0.0, 1.0);
+      final infusionPaint = Paint()
+        ..colorFilter = hurtFlash > 0
+            ? paint.colorFilter
+            : absorption > 0
+            ? ColorFilter.mode(
+                upgradeInfusionColor(game.upgradePresentation.receipt!.family)
+                    .withValues(alpha: absorption * .62),
+                BlendMode.srcATop,
+              )
+            : paint.colorFilter;
+      RegunArt.shared
+          .sprite(
+            UpgradeArtLease.atlasFor(game.upgradePresentation.receipt!.family),
+            _facingRow * UpgradeArtLease.columns + frame,
+          )
+          .render(canvas, size: size, overridePaint: infusionPaint);
+    } else if (upgradeBody) {
+      final p = game.upgradePresentation.progress;
+      final receive =
+          !game.preferences.reducedMotion &&
+          (upgrade.releasing ? upgrade.releaseAge < .12 : p >= .18);
+      final body = receive
+          ? RegunArt.shared.survivorActionFrame(
+              game.loadout.character.name,
+              _facingRow,
+              1,
+            )
+          : RegunArt.shared.survivorIdleFrame(
+              game.loadout.character.name,
+              _facingRow,
+              0,
+            );
+      body.render(canvas, size: size, overridePaint: paint);
+    } else {
+      super.render(canvas);
+    }
     if (aimDirection.y >= -.35) weapon();
+    infusion(true);
+    if (upgrade.releasing) {
+      canvas.save();
+      canvas.translate(size.x / 2, size.y * .5);
+      paintUpgradeRelease(
+        canvas,
+        upgrade.receipt!.family,
+        upgrade.releaseAge,
+        reducedMotion: game.preferences.reducedMotion,
+      );
+      canvas.restore();
+    }
     // A small state cue beside the feet, never an aura obscuring hazards.
     final passive = game.gameNotifier.survivor;
     final charged =

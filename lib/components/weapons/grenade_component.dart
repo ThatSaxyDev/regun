@@ -46,7 +46,7 @@ class GrenadeComponent extends PositionComponent
     super.update(dt);
     if (isRemoving || flight.spent) return;
     if (game.gameState.gameplayState != GameplayState.playing ||
-        game.playerEntrance.active) {
+        game.inputBlocked) {
       return;
     }
     flight.advance(
@@ -109,7 +109,7 @@ class GrenadeButtonComponent extends PositionComponent
   bool get available =>
       game.grenades.ready &&
       game.gameState.gameplayState == GameplayState.playing &&
-      !game.playerEntrance.active;
+      !game.inputBlocked;
   void cancelAim() {
     aim.cancel();
     _dragPointer = null;

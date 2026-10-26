@@ -60,7 +60,8 @@ void main() async {
 }
 
 class GameApp extends StatefulWidget {
-  const GameApp({super.key});
+  const GameApp({super.key, this.reviewHome});
+  final Widget? reviewHome;
 
   @override
   State<GameApp> createState() => _GameAppState();
@@ -116,7 +117,7 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true)
           .copyWith(pageTransitionsTheme: gamePageTransitionsTheme),
-      home: const FlameSplashView(),
+      home: widget.reviewHome ?? const FlameSplashView(),
       // home: kDebugMode ? const BaseView() : const FlameSplashView(),
     );
   }

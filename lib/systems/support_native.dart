@@ -247,6 +247,7 @@ class SupportNative {
             ),
           )..delay = runtime.frameOffset,
         );
+        game.upgradePresentation.observe('support:sentry', 'Sentry firing');
         return true;
       },
       auraHit: (target, damage) {

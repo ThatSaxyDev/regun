@@ -1758,3 +1758,41 @@ Game unsigned iOS and Android release APK builds also passed. Android's first
 no-pub build encountered a stale generated test-plugin registration; the normal
 release build regenerated plugin metadata and succeeded without app-source or
 dependency changes. Final release artifacts preserve 1.0.0+23.
+
+## 25 October: upgrade-feel Rook review slice
+
+Current manifests are mobile1.0.0+24/admin0.2.0+2. Read
+[UPGRADE_FEEL_PROTOTYPE_REVIEW.md](UPGRADE_FEEL_PROTOTYPE_REVIEW.md) and its linked
+55-entry inventory/evidence. All43 family components were audited across240 kits
+at rank milestones; unmeasured useful-frequency/physical balance contexts remain
+explicitly open. The separate review launcher compares original/300ms/420ms flows
+for Heavy Load, Fleet Foot, Scrap Armour, Hot Shot, Ricochet and Sentry supply.
+Typed accepted receipts, independent held presentation, static Continue recovery,
+real-mechanic cues, Reduced Motion, leased Rook frames and server-owned protocol8
+co-op holds are implemented as an opt-in candidate. Recovery mechanics, current
+admission,368 fields/13 historical catalogues and numerical tuning are unchanged.
+API/admin distinguish valid component previews from supported hosted combat.
+No live balance publication or production deployment occurred. Full art coverage
+must wait for the documented five-player/creator phone gate; it has not passed.
+
+
+### 25 October — six-family infusion correction
+
+After creator rejection of the equipment-fitting direction, Heavy Load's real
+absorption sequence was slowed from420ms to1.1s and its direction approved.
+Fleet Foot, Scrap Armour, Hot Shot, Ricochet and Sentry now have their own32-pose
+Rook body packets and material absorption routes. See
+`docs/validation/upgrade-six-infusion-2026-10-25/README.md` for the actual clips,
+retained safety checks, art budget and explicit open review/coverage gates.
+Release identity, numeric balance and API/admin catalogues are unchanged.
+
+
+### 26 October — absorb, then release the existing pushback
+
+Normal gameplay now reacts to every accepted upgrade using shared recipes. The
+creator's next physical feedback aligned the impact pose to active resume and
+the single recovery pulse; containment stays frozen and settle follows release.
+Localized charge/body accent and the cool pressure rim are stronger without
+balance/camera changes. Updated signed normal-game build installed on the iPhone.
+See `docs/validation/upgrade-impact-release-2026-10-26/README.md` for captures,
+clock/authority/save semantics and open hosted/physical gates.

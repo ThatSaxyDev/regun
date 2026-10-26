@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "date": "2026-10-25",
+  "status": "prototype ready for player review; not accepted",
+  "mobileVersion": "1.0.0+24",
+  "adminVersion": "0.2.0+2",
+  "combatPackageVersion": "1.0.0",
+  "identityPackageVersion": null,
+  "checks": {
+    "mobileAnalyze": "pass",
+    "mobileTests": 764,
+    "intentionalSkips": 5,
+    "latestFocusedTests": 16,
+    "serverTests": 182,
+    "apiTests": 26,
+    "apiCompiledSmokeTests": 1,
+    "adminTests": 67,
+    "adminAnalyze": "pass",
+    "localAuthoritativeCoop": {
+      "players": 3,
+      "sharedHolds": 1,
+      "samples": 24,
+      "timeoutAutoselection": true,
+      "reconnectSerialContinuity": true
+    },
+    "webRelease": "pass",
+    "androidRelease": "pass, local private debug signing",
+    "iosRelease": "pass, unsigned"
+  },
+  "artBudget": {
+    "peakBytes": 29156224,
+    "limitBytes": 33554432,
+    "largestEquippedWeapon": "burstRifle",
+    "scope": "decoded art only; not allocation spikes, frame time or device performance"
+  },
+  "coverage": {
+    "nativeFamilies": 43,
+    "fusions": 8,
+    "supports": 2,
+    "fallbackAndLegacy": 2,
+    "kitContexts": 240,
+    "rankTransitions": [
+      "0\u2192I",
+      "I\u2192II",
+      "III\u2192IV",
+      "VII\u2192VIII",
+      "both capacity transitions"
+    ]
+  },
+  "admission": {
+    "onlineFamilies": 35,
+    "onlineFusions": 6,
+    "onlineWeapons": 5,
+    "onlineSurvivors": 3,
+    "unchanged": true
+  },
+  "catalogue": {
+    "fields": 368,
+    "retainedHistoricalCatalogues": 13,
+    "unchanged": true
+  },
+  "balanceChanges": [],
+  "adminPublicationActions": [],
+  "productionDeployment": false,
+  "phoneInstallation": false,
+  "physicalAcceptance": false,
+  "fivePlayerGatePassed": false,
+  "fullCoverageArtProduced": false,
+  "limitations": [
+    "component projection audit is not full DPS/useful-frequency evidence",
+    "observed per-family usefulness beyond the six prototype paths remains open",
+    "one shared Rook fitting recipe is a candidate, not six approved final body recipes",
+    "mechanism audio is reused; family audio layers/native listening remain open",
+    "player gait remains time-based12Hz, contrary to the plan assumption",
+    "local co-op harness does not prove native online UI or device comfort/performance"
+  ]
+}

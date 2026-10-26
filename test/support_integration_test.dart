@@ -106,6 +106,10 @@ void main() {
           card.id,
           offerId: game.gameState.offerId,
         );
+        expect(game.presentationHeld, isTrue);
+        game.update(
+          2,
+        ); // Finish the cosmetic beat before measuring active deployment time.
         for (var i = 0; i < 132; i++) {
           game.update(.05);
           await game.ready();
@@ -342,6 +346,7 @@ void main() {
           aura.id,
           offerId: game.gameState.offerId,
         );
+        game.update(2); // Finish confirmation; measure aura in active time.
         shield.position.setFrom(game.myPlayer.position + Vector2(60, 0));
         for (var i = 0; i < 30; i++) {
           game.update(.05);

@@ -1,0 +1,82 @@
+{
+  "status": "six-family candidate; creator Heavy Load direction approved; full player gate pending",
+  "families": [
+    "heavyLoad",
+    "walkingSpeedIncrease",
+    "scrapArmour",
+    "hotShot",
+    "ricochet",
+    "support:sentry"
+  ],
+  "firstRankHoldSeconds": 1.1,
+  "laterRankHoldSeconds": 0.8,
+  "reducedHoldSeconds": 0.18,
+  "facingsAuthored": 4,
+  "posesPerFamily": 32,
+  "capture": {
+    "size": [
+      844,
+      390
+    ],
+    "cadence": 30,
+    "physicalDevice": false,
+    "muted": true,
+    "labelsHidden": true,
+    "pickerOverlay": false,
+    "controlledSpawns": true
+  },
+  "clips": [
+    {
+      "file": "breach-full-heavyLoad.mp4",
+      "sha256": "e7f36fc2e7267a22c16fffcc0cd20001abbc48eb6042b8ed54b54ff6e6e7db18"
+    },
+    {
+      "file": "breach-full-hotShot.mp4",
+      "sha256": "9a9d3f9532724829b5818d779709b4d97d4e4bdc2b1ee54a95cf4eb82c900f28"
+    },
+    {
+      "file": "breach-full-ricochet.mp4",
+      "sha256": "80de73a46d76c5087f042168e805b5adc2bbffb88059bd877b82c0674c36479c"
+    },
+    {
+      "file": "breach-full-scrapArmour.mp4",
+      "sha256": "9dbe6e19f294cf98f4cf2584026a182abfd17f7f6a74b0d768f0dbea6e345866"
+    },
+    {
+      "file": "breach-full-sentry.mp4",
+      "sha256": "73e3f68681b1a1990e255bd77e602e43a485717af1e6a8b1e9f9e14dfcbbb5c9"
+    },
+    {
+      "file": "breach-full-walkingSpeedIncrease.mp4",
+      "sha256": "c6130cb88484c4100d7b1e1ac058042fc721fa86f8e0813663054906fe6a9765"
+    },
+    {
+      "file": "foundry-full-heavyLoad.mp4",
+      "sha256": "4b8e58e3fde8bc2d91ec0a6f7b7e88cbe172e5ede74035ac9b8e5fa95d1aed25"
+    },
+    {
+      "file": "foundry-full-hotShot.mp4",
+      "sha256": "aaa4e6926dd8356267e76a88ddc51854302d17e4db03dda0df4350f78e5c3c5f"
+    },
+    {
+      "file": "foundry-full-ricochet.mp4",
+      "sha256": "9ca2f90dc9f36910e61140b4f434678337c7e2c0e8b2e36448a394d860b8a110"
+    },
+    {
+      "file": "foundry-full-scrapArmour.mp4",
+      "sha256": "9e157afd290b4bcb6a16038bbd956490abdbd1dc592853d837e02574d4b74ffd"
+    },
+    {
+      "file": "foundry-full-sentry.mp4",
+      "sha256": "b3dff2614328bea123cbb1f57fec67951c4e36d02fb0a2ab8df304aebd7d42bd"
+    },
+    {
+      "file": "foundry-full-walkingSpeedIncrease.mp4",
+      "sha256": "3ae84805fbae571b538abfa4dea85938349f167df04bab579666838f154f511d"
+    },
+    {
+      "file": "six-infusions-review.mp4",
+      "sha256": "b71bbb489b34fd1fff73f153083209d4ea9f0042ae5128b54de4437e84b11551"
+    }
+  ]
+}

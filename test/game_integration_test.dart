@@ -167,6 +167,8 @@ void main() {
       expect(game.gameState.health, 6);
       final offers = game.gameState.powerUpChoices;
       notifier.applyPowerUp(offers.first);
+      expect(game.presentationHeld, isTrue);
+      game.update(2); // Resume active-clock assertions after the confirmation.
       expect(game.paused, isFalse);
       expect(game.timeScale, 1);
       game.myPlayer.position.setValues(-9999, 9999);

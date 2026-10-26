@@ -1,0 +1,19 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_art_lease_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_art_lease_test.dart: pending art releases on disposal; restart keeps only its new lease
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_presentation_test.dart: bounded presentation clock, deduplication, static restore and real-use expiry
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_art_lease_test.dart: load failure leaves a steady-pose fallback and can retry next picker
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_art_lease_test.dart: load failure leaves a steady-pose fallback and can retry next picker
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_presentation_test.dart: a delayed real mechanic survives another selection but not a run change
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_recovery_test.dart: upgrade confirmation creates room once, clears current bullets without invulnerability
+00:01 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_recovery_test.dart: upgrade confirmation creates room once, clears current bullets without invulnerability
+00:01 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_recovery_test.dart: upgrade confirmation creates room once, clears current bullets without invulnerability
+00:01 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_recovery_test.dart: upgrade confirmation creates room once, clears current bullets without invulnerability
+00:01 +9: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_control_parity_test.dart: online shares solo control skin and aiming-side cluster screen=Size(844.0, 390.0) left=true floating=true
+00:01 +10: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_control_parity_test.dart: online shares solo control skin and aiming-side cluster screen=Size(1366.0, 1024.0) left=false floating=false
+00:01 +11: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_control_parity_test.dart: online shares solo control skin and aiming-side cluster screen=Size(1366.0, 1024.0) left=false floating=true
+00:01 +12: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_control_parity_test.dart: online shares solo control skin and aiming-side cluster screen=Size(1366.0, 1024.0) left=true floating=false
+00:01 +13: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_control_parity_test.dart: online shares solo control skin and aiming-side cluster screen=Size(1366.0, 1024.0) left=true floating=true
+00:01 +14: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_control_parity_test.dart: online menu stays at the top and opens the shared persistent settings
+00:01 +15: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_control_parity_test.dart: online leave warns about forfeit and only leaves after confirmation
+00:01 +16: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_control_parity_test.dart: (tearDownAll)
+00:01 +16: All tests passed!

@@ -22,7 +22,7 @@ class ReloadButtonComponent extends ButtonComponent
 
   @override
   void onTapDown(TapDownEvent event) {
-    if (game.playerEntrance.active) return;
+    if (game.inputBlocked) return;
     game.requestReload();
     super.onTapDown(event);
   }

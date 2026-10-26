@@ -1,3 +1,6 @@
+import 'package:regun/models/accepted_upgrade.dart';
+import 'package:regun/presentation/upgrade_art.dart';
+import 'package:regun/presentation/upgrade_presentation.dart';
 import 'package:regun/systems/friendly_impact.dart';
 import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/systems/support_native.dart';
@@ -88,6 +91,8 @@ class RegunGame extends FlameGame
     this.loadout = const Loadout(),
     this.resumeSnapshot,
     this.startPaused = false,
+    this.upgradeFeelMode = UpgradeFeelMode.full,
+    this.reviewControlledSpawns = false,
     RunStore? runStore,
     this.recoveryTransport,
   }) : runStore = runStore ?? RunStore.shared,
@@ -96,6 +101,36 @@ class RegunGame extends FlameGame
   final BuildContext context;
   Loadout loadout;
   final bool startPaused;
+  final UpgradeFeelMode upgradeFeelMode;
+  final bool reviewControlledSpawns;
+  late final upgradePresentation = UpgradePresentationController(
+    mode: upgradeFeelMode,
+  );
+  final upgradeArt = UpgradeArtLease();
+  final confirmationHolding = ValueNotifier<bool>(false);
+  bool get presentationHeld => upgradePresentation.holding;
+  bool get inputBlocked => playerEntrance.active || presentationHeld;
+  void _acceptedUpgrade() {
+    final reward = gameNotifier.acceptedUpgrade.value;
+    if (reward == null) return;
+    _upgradePulsePending = true;
+    if (upgradePresentation.accept(
+      reward,
+      reducedMotion: preferences.reducedMotion,
+      rook: loadout.character == CharacterType.rook,
+    )) {
+      if (loadout.character == CharacterType.rook) {
+        upgradeArt.prewarm([reward.family]);
+      } else {
+        upgradeArt.clear();
+      }
+      confirmationHolding.value = true;
+      resetInput();
+      audio.play('reload_carbine_1.wav');
+      if (preferences.haptics) HapticFeedback.selectionClick();
+    }
+  }
+
   final RunStore runStore;
   final Map<String, dynamic>? resumeSnapshot;
   late String runId;
@@ -888,7 +923,6 @@ class RegunGame extends FlameGame
   late final ReloadButtonComponent reloadButtonComponent;
   late final GrenadeButtonComponent grenadeButtonComponent;
   bool _upgradePulsePending = false;
-  void _queueUpgradePulse() => _upgradePulsePending = true;
   final grenades = GrenadeInventory();
   void syncGrenadeCapacity() => grenades.setCapacity(gameState.grenadeCapacity);
   double get grenadeRecharge =>
@@ -920,7 +954,7 @@ class RegunGame extends FlameGame
 
   bool throwGrenade({Vector2? aim, double power = 1}) {
     if (gameState.gameplayState != GameplayState.playing ||
-        playerEntrance.active ||
+        inputBlocked ||
         world.children.whereType<GrenadeComponent>().length >= 4 ||
         !grenades.spend(grenadeRecharge)) {
       return false;
@@ -1079,6 +1113,7 @@ class RegunGame extends FlameGame
       bossVictory,
       EntranceVeil(),
       SupportStatusHud(),
+      UpgradeConfirmationView(),
       if (loadout.arena == ArenaType.breach) SupplyDropLocator(),
     ]);
   }
@@ -1100,7 +1135,9 @@ class RegunGame extends FlameGame
         }
         if (_started && phase != GameplayState.gameOver) {
           scheduleMicrotask(() {
-            if (isMounted && !_settled) unawaited(saveCheckpoint());
+            if (isMounted && !disposed && !_settled) {
+              unawaited(saveCheckpoint());
+            }
           });
         }
         audio.pauseMusic(
@@ -1113,7 +1150,17 @@ class RegunGame extends FlameGame
         }
         timeScale = phase == GameplayState.powerup ? 0.1 : 1;
         if (phase == GameplayState.playing || phase == GameplayState.powerup) {
-          if (phase == GameplayState.powerup) resetInput();
+          if (phase == GameplayState.powerup) {
+            resetInput();
+            if (upgradeFeelMode != UpgradeFeelMode.baseline &&
+                loadout.character == CharacterType.rook) {
+              upgradeArt.prewarm([
+                ...gameState.powerUpChoices.map((p) => p.name),
+                if (gameNotifier.support.offer != null)
+                  gameNotifier.support.offer!.id,
+              ]);
+            }
+          }
           resumeEngine();
         } else {
           resetInput();
@@ -1121,13 +1168,16 @@ class RegunGame extends FlameGame
         }
       },
     );
-    gameNotifier.upgradeConfirmed.addListener(_queueUpgradePulse);
+    gameNotifier.acceptedUpgrade.addListener(_acceptedUpgrade);
     _startRun(clearSave: resumeSnapshot == null);
     if (resumeSnapshot != null) restoreRun(resumeSnapshot!);
     if (startPaused) gameNotifier.pauseGame();
   }
 
   void _startRun({bool clearSave = true}) {
+    upgradePresentation.cancel();
+    confirmationHolding.value = false;
+    upgradeArt.clear();
     runId = DateTime.now().microsecondsSinceEpoch.toString();
     _settled = false;
     recovery = SoloRecovery(
@@ -1270,6 +1320,8 @@ class RegunGame extends FlameGame
       'supplyDrops': supplyDrops.toJson(),
       'supportRuntime': supportCombat.runtime.toJson(),
       'upgradePulsePending': _upgradePulsePending,
+      if (upgradePresentation.holding)
+        'upgradeConfirmation': upgradePresentation.receipt!.toJson(),
       'dashCount': dashCount,
       'grenadeInventory': grenades.toJson(),
       'grenadeProjectiles': [
@@ -1317,7 +1369,8 @@ class RegunGame extends FlameGame
   }
 
   Future<bool> saveCheckpoint() async {
-    if (!_started ||
+    if (disposed ||
+        !_started ||
         _settled ||
         loadout.training ||
         (gameState.health <= 0 && !recovery.pending)) {
@@ -1414,6 +1467,9 @@ class RegunGame extends FlameGame
   }
 
   bool restoreRun(Map<String, dynamic> snapshot) {
+    upgradePresentation.cancel();
+    confirmationHolding.value = false;
+    upgradeArt.clear();
     playerEntrance.cancel();
     try {
       if (!RunCheckpoint.valid(snapshot)) {
@@ -1559,6 +1615,9 @@ class RegunGame extends FlameGame
         Map<String, dynamic>.from(snapshot['dash'] as Map? ?? {}),
       );
       _upgradePulsePending = snapshot['upgradePulsePending'] == true;
+      upgradePresentation.restoreStatic(
+        AcceptedUpgrade.read(snapshot['upgradeConfirmation']),
+      );
       if (snapshot['grenadeInventory'] case final Map raw) {
         grenades.restore(Map<String, dynamic>.from(raw));
         if (grenades.capacity != gameState.grenadeCapacity) {
@@ -1970,6 +2029,8 @@ class RegunGame extends FlameGame
   }
 
   Future<bool> changeTrainingWeapon(WeaponType next) async {
+    upgradePresentation.cancel();
+    confirmationHolding.value = false;
     if (disposed ||
         !loadout.training ||
         gameState.gameplayState != GameplayState.paused) {
@@ -2032,6 +2093,7 @@ class RegunGame extends FlameGame
   }
 
   void requestReload() {
+    if (inputBlocked) return;
     if (playerEntrance.active ||
         gameState.gameplayState != GameplayState.playing) {
       return;
@@ -2076,7 +2138,7 @@ class RegunGame extends FlameGame
 
   bool spawnShotgunBullets({double releaseOffset = 0}) {
     if (loadout.weapon.usesArsenalRuntime) return false;
-    if (playerEntrance.active) return false;
+    if (inputBlocked) return false;
     final state = gameState;
     if (state.gameplayState != GameplayState.playing || state.reloading) {
       return false;
@@ -2191,6 +2253,29 @@ class RegunGame extends FlameGame
   @override
   void update(double dt) {
     if (!_started) return;
+    if (!applicationActive) return;
+    if (gameState.gameplayState == GameplayState.gameOver) {
+      upgradePresentation.cancel();
+    }
+    if (presentationHeld) {
+      if (gameState.gameplayState == GameplayState.paused) return;
+      resetInput();
+      upgradePresentation.advanceHold(dt);
+      confirmationHolding.value = presentationHeld;
+      if (!presentationHeld &&
+          _upgradePulsePending &&
+          gameState.gameplayState == GameplayState.playing) {
+        _upgradePulsePending = false;
+        upgradePresentation.releaseImpact();
+        combat.upgradePulse();
+      }
+      // Do not call super.update here: even zero-dt updates can release a
+      // queued collision/attack. Rendering reads this independent clock.
+      return;
+    }
+    if (gameState.gameplayState == GameplayState.playing) {
+      upgradePresentation.advanceActive(dt);
+    }
     if (playerEntrance.active) {
       if (gameState.gameplayState == GameplayState.paused) return;
       resetInput();
@@ -2283,6 +2368,7 @@ class RegunGame extends FlameGame
       }
       if (_upgradePulsePending) {
         _upgradePulsePending = false;
+        upgradePresentation.releaseImpact();
         combat.upgradePulse();
       }
       syncGrenadeCapacity();
@@ -2303,7 +2389,7 @@ class RegunGame extends FlameGame
       _advanceRush(dt);
       final reinforce = director.advance(dt);
       if (loadout.training) {
-        if (!bossRush) _advanceTrainingCrowd(dt);
+        if (!bossRush && !reviewControlledSpawns) _advanceTrainingCrowd(dt);
       } else if (reinforce && !bossRush) {
         _spawnEnemy(_directorEnemy());
       }
@@ -2546,12 +2632,13 @@ class RegunGame extends FlameGame
   }
 
   bool damagePlayer({int amount = 1, String cause = 'The horde'}) {
-    if (playerEntrance.active ||
+    if (inputBlocked ||
         boostButtonComponent.tapped ||
         (loadout.training && !trainingDamage)) {
       return false;
     }
     final health = gameState.health;
+    final guarded = gameState.guard;
     if (!gameNotifier.reduceHealth(
       amount: amount,
       cause: cause,
@@ -2559,7 +2646,12 @@ class RegunGame extends FlameGame
     )) {
       return false;
     }
+    if (guarded && !gameState.guard) {
+      upgradePresentation.observe('scrapArmour', 'Guard absorbed one hit');
+    }
     if (loadout.training && gameState.health == 0) {
+      upgradePresentation.cancel();
+      confirmationHolding.value = false;
       resetInput();
       boostButtonComponent.reset();
       playerEntrance.begin(
@@ -2663,6 +2755,9 @@ class RegunGame extends FlameGame
   @override
   void onRemove() {
     disposed = true;
+    upgradePresentation.cancel();
+    confirmationHolding.value = false;
+    upgradeArt.clear();
     if (_started) supportCombat.clear();
     if (_survivorArtHeld) {
       _survivorArtHeld = false;
@@ -2687,10 +2782,11 @@ class RegunGame extends FlameGame
       boss.releaseArt();
     }
     _phaseSubscription?.close();
+    confirmationHolding.dispose();
     damageFeedback.healthLost.dispose();
     bossVictory.current.dispose();
     if (_started) {
-      gameNotifier.upgradeConfirmed.removeListener(_queueUpgradePulse);
+      gameNotifier.acceptedUpgrade.removeListener(_acceptedUpgrade);
       gameNotifier.cancelPendingActions();
     }
     super.onRemove();

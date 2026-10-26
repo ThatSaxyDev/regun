@@ -381,8 +381,26 @@ class AttackVfx {
         p,
         p + tangent * 10 - normal * 3,
       ];
-      stroke(canvas, points, Color.fromRGBO(26, 48, 48, .52 * fade), 9);
-      stroke(canvas, points, Color.fromRGBO(166, 201, 187, .65 * fade), 4);
+      stroke(
+        canvas,
+        points,
+        Color.fromRGBO(26, 48, 48, .72 * fade),
+        reducedMotion ? 9 : 13,
+      );
+      stroke(
+        canvas,
+        points,
+        Color.fromRGBO(166, 201, 187, (reducedMotion ? .65 : .92) * fade),
+        reducedMotion ? 4 : 6,
+      );
+      if (!reducedMotion && i.isEven) {
+        stroke(
+          canvas,
+          points.take(2).toList(),
+          Color.fromRGBO(219, 228, 188, .75 * fade),
+          2,
+        );
+      }
       if (i.isEven) {
         chip(
           canvas,

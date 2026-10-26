@@ -800,3 +800,38 @@ mini-explosions below the grenade blast. Storm Orb should visibly charge .18s,
 spend no ammo when cancelled early, and retain its 1.1s sustained release interval.
 Admin Pre-fire delay0 disables that charge. Review exact numeric controls and
 publication instructions in [FRONTIER_CAPTURE_AND_IMPACT.md](FRONTIER_CAPTURE_AND_IMPACT.md).
+
+## Upgrade-feel review candidate (25 October)
+
+Use [the prototype handoff](UPGRADE_FEEL_PROTOTYPE_REVIEW.md). Run the separate
+review entry point on a landscape phone and compare Original/750ms/1100ms,
+Reduced Motion, mute/unmute and touch controls on both floors. Training Pause
+contains all six family practice choices. Test four facings, repeated ranks,
+Sentry's real delayed firing, overlaps with later choices, pause/background,
+restart/Continue and threatened/crowded scenes. Do not infer acceptance from the
+muted headless motion clips, decoded texture measurement, tests or installation.
+Record actual opportunities and the five-player recognition/pacing/threat results
+before producing remaining survivor/family/fusion art.
+
+
+### Phone infusion review — 26 October
+
+The corrected six-family Rook candidate uses 1.1s first acquisition,800ms later
+ranks and180ms static Reduced Motion. In the dedicated phone review launcher,
+choose **breach /1100ms**, then **Pause → Upgrade feel review**. Choose one family
+and accept its practice card. Watch the immediate freeze, incoming power, distinct
+body reaction and return to combat. Heavy Load, Fleet Foot, Scrap Armour, Hot Shot,
+Ricochet and Sentry are the supported slice. Sentry's actual deployment stays delayed.
+The ordinary shipping entry point still defaults to the original flow; this phone
+candidate intentionally opens the review launcher. Installation is not visual,
+audio, comfort, performance or all-family acceptance.
+
+
+### Normal-game upgrade reactions — 26 October creator correction
+
+The player build now boots normal Home and enables reactions automatically for
+all accepted upgrades. No timing selector or comparison menu is required. Play
+normally, earn an upgrade and accept it: the world freezes briefly, power infuses
+the character, then combat resumes. Shared recipes cover every power-up/fusion/
+support; detailed unique art can follow. All survivors retain their own identity.
+The earlier separate phone-review launcher instructions are historical.

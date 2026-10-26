@@ -1,0 +1,8 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_pressure_test.dart
+00:00 +0: training budgets are bounded and do not accumulate frame/pause backlogs
+00:00 +1: Normal promptly supplies nearby targets; Light/Horde respect limits in breach
+00:01 +2: Normal promptly supplies nearby targets; Light/Horde respect limits in foundry
+00:01 +3: Training arrivals stay offscreen at center and arena corners in breach
+00:01 +4: Training arrivals stay offscreen at center and arena corners in foundry
+00:02 +5: individual boss preserves crowd; Rush clears enemies, pending arrivals and ordnance without rewards
+00:02 +6: All tests passed!

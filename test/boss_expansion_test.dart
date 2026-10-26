@@ -682,12 +682,12 @@ void main() {
     },
   );
 
-  testWidgets(
-    'every new boss supports all weapons, survivors and both arenas',
-    (tester) async {
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      for (final arena in ArenaType.values) {
+  for (final arena in ArenaType.values) {
+    testWidgets(
+      'every new boss supports all weapons and survivors in ${arena.name}',
+      (tester) async {
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
         for (final survivor in CharacterType.values) {
           for (final weapon in WeaponType.values) {
             final game = await mount(
@@ -758,10 +758,10 @@ void main() {
             await tester.pumpWidget(const SizedBox());
           }
         }
-      }
-    },
-    timeout: const Timeout(Duration(minutes: 3)),
-  );
+      },
+      timeout: const Timeout(Duration(minutes: 3)),
+    );
+  }
 
   testWidgets('all distinct boss pairs remain bounded in both arenas', (
     tester,

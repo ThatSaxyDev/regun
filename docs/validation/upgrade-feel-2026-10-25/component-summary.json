@@ -1,0 +1,260 @@
+[
+  {
+    "id": "heavyLoad",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "quickTrigger",
+    "compatibleKits": 230,
+    "incompatibleKits": 10,
+    "unchangedCompatibleSteps": 80
+  },
+  {
+    "id": "maxBulletsIncrease",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 20
+  },
+  {
+    "id": "fastReload",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 1
+  },
+  {
+    "id": "numberOfBulletsPerShotIncrease",
+    "compatibleKits": 110,
+    "incompatibleKits": 130,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "bulletsPhaseThrough",
+    "compatibleKits": 130,
+    "incompatibleKits": 110,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "bulletRangeIncrease",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 180
+  },
+  {
+    "id": "rapidFire",
+    "compatibleKits": 150,
+    "incompatibleKits": 90,
+    "unchangedCompatibleSteps": 80
+  },
+  {
+    "id": "walkingSpeedIncrease",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "healthIncrease",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "fieldMedic",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "scrapArmour",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "quickstep",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "dashCapacity",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "grenadeCapacity",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "sprintInvincibility",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "scavenger",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "luckyFind",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "hotShot",
+    "compatibleKits": 210,
+    "incompatibleKits": 30,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "accelerant",
+    "compatibleKits": 210,
+    "incompatibleKits": 30,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "staticCharge",
+    "compatibleKits": 210,
+    "incompatibleKits": 30,
+    "unchangedCompatibleSteps": 40
+  },
+  {
+    "id": "conductiveCore",
+    "compatibleKits": 210,
+    "incompatibleKits": 30,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "sprintMine",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "fragmentation",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "ricochet",
+    "compatibleKits": 100,
+    "incompatibleKits": 140,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "bankShot",
+    "compatibleKits": 100,
+    "incompatibleKits": 140,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "lastShell",
+    "compatibleKits": 230,
+    "incompatibleKits": 10,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "breachLoader",
+    "compatibleKits": 230,
+    "incompatibleKits": 10,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "orbitDrone",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "targetingLink",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "shrapnel",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "executioner",
+    "compatibleKits": 210,
+    "incompatibleKits": 30,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "grenadeDamage",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "grenadeRadius",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "grenadeRecharge",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 24
+  },
+  {
+    "id": "braceLoader",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "sureFoot",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "scouringHeat",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "faradayReserve",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 9
+  },
+  {
+    "id": "blastHarness",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "exposedSeam",
+    "compatibleKits": 210,
+    "incompatibleKits": 30,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "measuredShot",
+    "compatibleKits": 240,
+    "incompatibleKits": 0,
+    "unchangedCompatibleSteps": 0
+  },
+  {
+    "id": "closeQuarters",
+    "compatibleKits": 210,
+    "incompatibleKits": 30,
+    "unchangedCompatibleSteps": 0
+  }
+]

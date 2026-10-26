@@ -1,3 +1,5 @@
+import 'package:regun/presentation/upgrade_art.dart';
+import 'package:regun/presentation/upgrade_presentation.dart';
 import 'package:regun/presentation/support_art.dart';
 import 'package:regun/widgets/boss_victory_banner.dart';
 import 'package:regun/presentation/mummy_walk.dart';
@@ -81,6 +83,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   final Map<String, String> _worldCues = {};
   String? _music;
   int? _offerCue;
+  String? _confirmationCue;
   void _sceneCues() {
     final liveMummies = <String>{};
     for (final entity in session.scene.where(
@@ -236,6 +239,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     _worldCues.removeWhere((key, _) => !session.scene.any((e) => e.key == key));
   }
 
+  final upgradeArt = UpgradeArtLease();
   double seconds = 0;
   Duration last = Duration.zero;
   OnlineSession get session => widget.session;
@@ -259,9 +263,24 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       final dt = ((elapsed - last).inMicroseconds / 1000000).clamp(0.0, .1);
       last = elapsed;
       session.predictionReducedMotion = LocalPreferences.shared.reducedMotion;
-      seconds += dt * (session.match?.phase == 'choice' ? .1 : 1);
+      if (session.match?.phase != 'confirmation') {
+        seconds += dt * (session.match?.phase == 'choice' ? .1 : 1);
+      }
+      if (OnlineSession.upgradeConfirmationsEnabled &&
+          session.match?.phase == 'choice') {
+        upgradeArt.prewarm(session.fighters.values.expand((g) => g.offers));
+      }
+      if (OnlineSession.upgradeConfirmationsEnabled &&
+          session.match?.phase == 'confirmation') {
+        upgradeArt.prewarm(
+          session.upgradeReceipts.active.values.map((r) => r.family),
+        );
+      }
       if (_controlled && !session.controlsEnabled) clear();
       _controlled = session.controlsEnabled;
+      if (session.match?.phase == 'active') {
+        session.upgradeReceipts.advanceActive(dt);
+      }
       _combatCues();
       if (session.controlsEnabled || session.match?.phase == 'active') {
         for (final m in session.members) {
@@ -322,6 +341,15 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   }
 
   void _combatCues() {
+    final accepted = session.upgradeReceipts.active[session.identity];
+    if (accepted != null) {
+      final key = '${accepted.generation}:${accepted.actor}:${accepted.serial}';
+      if (_confirmationCue != key) {
+        _confirmationCue = key;
+        unawaited(audio.play('reload_carbine_1.wav'));
+        if (LocalPreferences.shared.haptics) HapticFeedback.selectionClick();
+      }
+    }
     final connection =
         '${session.me?.generation}:${session.room?.id}:${session.connected}';
     if (connection != _generation) {
@@ -468,6 +496,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
 
   @override
   void dispose() {
+    upgradeArt.clear();
     if (artReady) {
       for (final c in CharacterType.values.where((c) => c.availableOnline)) {
         RegunArt.shared.releaseSurvivor(c.name);
@@ -1307,7 +1336,39 @@ class _ArenaPainter extends CustomPainter {
         final facing = facingAim.dx.abs() > facingAim.dy.abs()
             ? (facingAim.dx < 0 ? 2 : 0)
             : (facingAim.dy > 0 ? 1 : 3);
-        final survivorSprite = moving && !dead
+        final releaseAge = session.upgradeReceipts.releaseAge(key);
+        final released =
+            session.match?.phase == 'active' &&
+            releaseAge >= 0 &&
+            releaseAge < .24;
+        final reward =
+            session.upgradeReceipts.active[key] ??
+            session.upgradeReceipts.releasing[key];
+        final rewardFamily = reward?.family ?? 'heavyLoad';
+        final held =
+            !dead && reward != null && session.match?.phase == 'confirmation';
+        final holdDuration = reward?.beforeRank == 0 ? 1.1 : .8;
+        final beat = (1 - (session.match?.phaseSeconds ?? 0) / holdDuration)
+            .clamp(0.0, 1.0);
+        final survivorSprite =
+            (held || released) &&
+                survivor == 'rook' &&
+                RegunArt.shared.contains(UpgradeArtLease.atlasFor(rewardFamily))
+            ? RegunArt.shared.sprite(
+                UpgradeArtLease.atlasFor(rewardFamily),
+                facing * UpgradeArtLease.columns +
+                    (LocalPreferences.shared.reducedMotion
+                        ? 7
+                        : released
+                        ? upgradeReleaseFrame(rewardFamily, releaseAge)
+                        : upgradeInfusionFrame(beat, rewardFamily)),
+              )
+            : held || released
+            ? (!LocalPreferences.shared.reducedMotion &&
+                      (released ? releaseAge < .12 : beat >= .18)
+                  ? RegunArt.shared.survivorActionFrame(survivor, facing, 1)
+                  : RegunArt.shared.survivorIdleFrame(survivor, facing, 0))
+            : moving && !dead
             ? RegunArt.shared.survivorRunFrame(survivor, facing, frame)
             : RegunArt.shared.sprite(
                 dead
@@ -1315,6 +1376,24 @@ class _ArenaPainter extends CustomPainter {
                     : 'characters/$survivor',
                 dead ? facing * 4 + 3 : facing * 8,
               );
+        if (held) {
+          canvas.save();
+          canvas.translate(p.dx, p.dy);
+          paintUpgradeInfusion(
+            canvas,
+            reward.family,
+            beat,
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+            foreground: false,
+          );
+          canvas.restore();
+        }
+        final absorption =
+            !LocalPreferences.shared.reducedMotion && (held || released)
+            ? released
+                  ? (1 - releaseAge / .16).clamp(0.0, 1.0)
+                  : ((beat - .16) / .78).clamp(0.0, 1.0)
+            : 0.0;
         survivorSprite.render(
           canvas,
           position: Vector2(p.dx, p.dy),
@@ -1323,8 +1402,83 @@ class _ArenaPainter extends CustomPainter {
           overridePaint: Paint()
             ..colorFilter = hurt
                 ? const ColorFilter.mode(Color(0xffDD826C), BlendMode.modulate)
+                : absorption > 0
+                ? ColorFilter.mode(
+                    upgradeInfusionColor(reward!.family)
+                        .withValues(alpha: absorption * .62),
+                    BlendMode.srcATop,
+                  )
                 : null,
         );
+        if (held) {
+          canvas.save();
+          canvas.translate(p.dx, p.dy);
+          paintUpgradeInfusion(
+            canvas,
+            reward.family,
+            beat,
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+            foreground: true,
+          );
+          canvas.restore();
+          canvas.save();
+          canvas.translate(p.dx, p.dy);
+          if (key == session.identity) {
+            final text = TextPainter(
+              text: TextSpan(
+                text: upgradeReceiptDelta(reward),
+                style: const TextStyle(
+                  fontFamily: 'Orbitron',
+                  fontSize: 18,
+                  color: Color(0xffd1c2a2),
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+            )..layout(maxWidth: 550);
+            canvas.drawRect(
+              Rect.fromLTWH(-text.width / 2 - 8, -94, text.width + 16, 32),
+              Paint()..color = const Color(0xee202721),
+            );
+            text.paint(canvas, Offset(-text.width / 2, -90));
+          }
+          canvas.restore();
+        }
+        if (released && reward != null) {
+          canvas.save();
+          canvas.translate(p.dx, p.dy);
+          paintUpgradeRelease(
+            canvas,
+            reward.family,
+            releaseAge,
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+          );
+          canvas.restore();
+        }
+        final useLabel = session.upgradeReceipts.useLabels[key];
+        if (key == session.identity && useLabel != null && !dead) {
+          final text = TextPainter(
+            text: TextSpan(
+              text: useLabel,
+              style: const TextStyle(
+                fontFamily: 'Orbitron',
+                fontSize: 22,
+                color: Color(0xffd1c2a2),
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: 500);
+          canvas.drawRect(
+            Rect.fromLTWH(
+              p.dx - text.width / 2 - 8,
+              p.dy - 94,
+              text.width + 16,
+              34,
+            ),
+            Paint()..color = const Color(0xee202721),
+          );
+          text.paint(canvas, Offset(p.dx - text.width / 2, p.dy - 90));
+        }
         if (gun != null && !dead) {
           final weapon = WeaponType.values.firstWhere(
             (w) => w.name == gun.weapon,

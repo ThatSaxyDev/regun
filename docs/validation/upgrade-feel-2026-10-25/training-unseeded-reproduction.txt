@@ -1,0 +1,40 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_pressure_test.dart
+00:00 +0: training budgets are bounded and do not accumulate frame/pause backlogs
+00:00 +1: Normal promptly supplies nearby targets; Light/Horde respect limits in breach
+00:01 +2: Normal promptly supplies nearby targets; Light/Horde respect limits in foundry
+00:02 +3: Training arrivals stay offscreen at center and arena corners in breach
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown while running async test code:
+Expected: a value greater than <0>
+  Actual: <0>
+   Which: is not a value greater than <0>
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure>.<anonymous closure> (file:///Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_pressure_test.dart:223:15)
+<asynchronous suspension>
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_pressure_test.dart:184:9)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 2 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +3 -1: Training arrivals stay offscreen at center and arena corners in breach [E]
+  Test failed. See exception logs above.
+  The test description was: Training arrivals stay offscreen at center and arena corners in breach
+  
+00:02 +3 -1: Training arrivals stay offscreen at center and arena corners in foundry
+00:02 +4 -1: individual boss preserves crowd; Rush clears enemies, pending arrivals and ordnance without rewards
+00:02 +5 -1: Some tests failed.
+
+Failing tests:
+  /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_pressure_test.dart: Training arrivals stay offscreen at center and arena corners in breach

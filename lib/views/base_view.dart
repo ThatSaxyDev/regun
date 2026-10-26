@@ -1,3 +1,4 @@
+import 'package:regun/presentation/upgrade_presentation.dart';
 import 'package:regun/widgets/support_thumbnail.dart';
 import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/widgets/boss_health_strip.dart';
@@ -59,6 +60,9 @@ class BaseView extends StatefulWidget {
     super.key,
     this.loadout = const Loadout(),
     this.showTrainingIntro = false,
+    this.upgradeFeelMode = UpgradeFeelMode.full,
+    this.upgradeFeelReview = false,
+    this.reviewControlledSpawns = false,
     this.resumeSnapshot,
     this.runStore,
     this.recoveryTransport,
@@ -67,6 +71,9 @@ class BaseView extends StatefulWidget {
   final Future<Map<String, dynamic>> Function(Map<String, dynamic>)?
   recoveryTransport;
   final Loadout loadout;
+  final UpgradeFeelMode upgradeFeelMode;
+  final bool upgradeFeelReview;
+  final bool reviewControlledSpawns;
   final bool showTrainingIntro;
   final Map<String, dynamic>? resumeSnapshot;
   @override
@@ -101,6 +108,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       context,
       startPaused: _trainingIntro,
       loadout: widget.loadout,
+      upgradeFeelMode: widget.upgradeFeelMode,
+      reviewControlledSpawns: widget.reviewControlledSpawns,
       resumeSnapshot: widget.resumeSnapshot,
       runStore: widget.runStore,
       recoveryTransport: widget.recoveryTransport,
@@ -126,6 +135,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    if (!_admissionDenied) _myGame.disposed = true;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -573,8 +583,14 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                       )
                     : child!,
                 child: state.reloading
-                    ? TickerMode(
-                        enabled: state.gameplayState == GameplayState.playing,
+                    ? ValueListenableBuilder<bool>(
+                        valueListenable: _myGame.confirmationHolding,
+                        builder: (context, held, child) => TickerMode(
+                          enabled:
+                              state.gameplayState == GameplayState.playing &&
+                              !held,
+                          child: child!,
+                        ),
                         child: ValueListenableBuilder<double>(
                           valueListenable: _myGame.gameNotifier.reloadProgress,
                           builder: (context, progress, _) =>
@@ -927,6 +943,38 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       ),
     ),
     const SizedBox(height: 12),
+    if (widget.upgradeFeelReview) ...[
+      PracticeSection(
+        title: 'UPGRADE FEEL REVIEW',
+        summary: 'Choose a comparison family',
+        builder: (_) => Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            for (final p in [
+              PowerUp.heavyLoad,
+              PowerUp.walkingSpeedIncrease,
+              PowerUp.scrapArmour,
+              PowerUp.hotShot,
+              PowerUp.ricochet,
+            ])
+              ClickButton(
+                text: p.title,
+                width: 220,
+                height: 48,
+                onTap: () => _myGame.gameNotifier.offerUpgradeFeelPractice(p),
+              ),
+            ClickButton(
+              text: 'Sentry Gun',
+              width: 220,
+              height: 48,
+              onTap: () => _myGame.practiceSupport(SupportFamily.sentry),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 12),
+    ],
     if (widget.loadout.arena == ArenaType.breach) ...[
       PracticeSection(
         key: const Key('practice-supply'),
@@ -1046,12 +1094,17 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   ];
 
   Widget _upgradePicker(GameState state) {
-    final title = state.evolutionChoices.isNotEmpty
+    final practice = _myGame.gameNotifier.offerSource == 'practice';
+    final title = practice
+        ? 'PRACTICE'
+        : state.evolutionChoices.isNotEmpty
         ? 'FUSE'
         : _myGame.gameNotifier.supplyOffer
         ? 'AIRDROP'
         : 'UPGRADE';
-    final subtitle = state.evolutionChoices.isNotEmpty
+    final subtitle = practice
+        ? null
+        : state.evolutionChoices.isNotEmpty
         ? null
         : _myGame.gameNotifier.supplyOffer
         ? 'Supply secured'

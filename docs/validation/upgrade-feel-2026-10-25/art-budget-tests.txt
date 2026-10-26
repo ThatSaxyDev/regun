@@ -1,0 +1,3 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_art_budget_test.dart
+00:00 +0: Rook activation, largest pair, every equipped weapon and active supports fit 32MiB
+00:00 +1: All tests passed!

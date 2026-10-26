@@ -201,6 +201,10 @@ void main() {
               game.constrainActor(game.myPlayer.position, 40);
               game.update(0);
               await game.ready();
+              // This checks offscreen placement, not the probability of twelve
+              // random candidate attempts succeeding in a one-second window.
+              // Keep a reproducible non-vacuous sample at every corner/pressure.
+              game.random.state = 61;
               final seen = game.liveEnemies.toSet();
               var arrivals = 0;
               for (var frame = 0; frame < 60; frame++) {
@@ -220,7 +224,12 @@ void main() {
                 }
                 expect(game.world.children.whereType<SpawnWarning>(), isEmpty);
               }
-              expect(arrivals, greaterThan(0));
+              expect(
+                arrivals,
+                greaterThan(0),
+                reason:
+                    'seed61 / ${pressure.name} at $point / ${game.enemyPopulation}',
+              );
             }
           }
         });

@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "tool": "built-in image_gen",
+  "status": "prototype; visual review pending",
+  "recipes": {
+    "fleet": {
+      "source": "rook_fleet_master.png",
+      "prompt": "Use case: stylized-concept. Production transparent pixel-art sprite animation sheet for Regun. Reference is existing Rook ONLY for identity and style: dark helmet narrow cyan visor, mustard scarf, cream sleeves, charcoal trousers, boots, same adult rugged proportions, textured crisp pixel art. STRICT 4 rows x 8 columns, 32 separate full-body poses, equal cells with generous transparent gutters. Row1 right, row2 down/front, row3 left, row4 up/back. Same eight-frame performance in each facing; keep full helmet/boots in every cell, consistent scale, planted boot baseline and registration, no translation across cells, no jumping. This is a POWER INFUSION followed by an expressive character reaction, not equipping a prop. Runtime renders incoming energy separately, so NO VFX, NO rings, NO scenery/shadows, NO symbols/text, NO weapons or equipment props. Distinct body/arm silhouettes across frames, anatomically continuous. Fully transparent alpha. Eight frames: 1 ready stance; 2 bend knees deeply with hands lowering toward legs; 3 one hand braces thigh while other pulls back at hip as speed enters legs; 4 low runner crouch, torso forward, elbows bent; 5 power crest, compact spring-loaded runner stance with scarf lifting, both soles still planted; 6 torso rises with elbows pumping in place; 7 strong upright ready stance with fists by hips; 8 return neutral. Clearly emphasize lower body and runner readiness, not spread arms or chest absorption.",
+      "sha256": "e0e28656658fc74d40f3ecf6f47b4f3d7e31a68ea3968d85efa9ddf403133371",
+      "frames": 32,
+      "rows": [
+        "right",
+        "down",
+        "left",
+        "up"
+      ],
+      "decodeWidth": 512,
+      "importer": "tool/import_upgrade_art.py"
+    },
+    "armour": {
+      "source": "rook_armour_master.png",
+      "prompt": "Use case: stylized-concept. Production transparent pixel-art sprite animation sheet for Regun. Reference is existing Rook ONLY for identity and style: dark helmet narrow cyan visor, mustard scarf, cream sleeves, charcoal trousers, boots, same adult rugged proportions, textured crisp pixel art. STRICT 4 rows x 8 columns, 32 separate full-body poses, equal cells with generous transparent gutters. Row1 right, row2 down/front, row3 left, row4 up/back. Same eight-frame performance in each facing; keep full helmet/boots in every cell, consistent scale, planted boot baseline and registration, no translation across cells, no jumping. This is a POWER INFUSION followed by an expressive character reaction, not equipping a prop. Runtime renders incoming energy separately, so NO VFX, NO rings, NO scenery/shadows, NO symbols/text, NO weapons or equipment props. Distinct body/arm silhouettes across frames, anatomically continuous. Fully transparent alpha. Eight frames: 1 ready; 2 fists rise toward sternum; 3 forearms CROSS firmly in front of chest, head bows; 4 crouch slightly and squeeze crossed forearms against torso as force compresses into armour; 5 powerful crossed-arm brace, shoulders high and scarf settles; 6 uncross arms pushing elbows outward; 7 fists lower into wide squared defensive stance; 8 return neutral. Strong silhouette change, grounded defensive absorption, no held plates or blocks.",
+      "sha256": "672f327627ff093c509c3db520b0b6b9a2839b2b3154f1480420643ec6dddfe8",
+      "frames": 32,
+      "rows": [
+        "right",
+        "down",
+        "left",
+        "up"
+      ],
+      "decodeWidth": 512,
+      "importer": "tool/import_upgrade_art.py"
+    },
+    "ember": {
+      "source": "rook_ember_master.png",
+      "prompt": "Use case: stylized-concept. Production transparent pixel-art sprite animation sheet for Regun. Reference is existing Rook ONLY for identity and style: dark helmet narrow cyan visor, mustard scarf, cream sleeves, charcoal trousers, boots, same adult rugged proportions, textured crisp pixel art. STRICT 4 rows x 8 columns, 32 separate full-body poses, equal cells with generous transparent gutters. Row1 right, row2 down/front, row3 left, row4 up/back. Same eight-frame performance in each facing; keep full helmet/boots in every cell, consistent scale, planted boot baseline and registration, no translation across cells, no jumping. This is a POWER INFUSION followed by an expressive character reaction, not equipping a prop. Runtime renders incoming energy separately, so NO VFX, NO rings, NO scenery/shadows, NO symbols/text, NO weapons or equipment props. Distinct body/arm silhouettes across frames, anatomically continuous. Fully transparent alpha. Eight frames: 1 ready; 2 bring cupped hands together low at abdomen; 3 lift both cupped hands toward chest looking down into them; 4 pull hands apart at chest with palms facing each other as heat is absorbed; 5 hold hands apart confidently, shoulders draw back, head lifts, scarf subtly rises; 6 close both hands into fists; 7 fists press downward beside hips as heat settles into body; 8 ready. Real hand-and-torso performance, no fire or objects baked in, no wide lateral generic power pose.",
+      "sha256": "228063797c985babc68420c25a401ec22ec60dd5622c63758dcf19f77a5bd309",
+      "frames": 32,
+      "rows": [
+        "right",
+        "down",
+        "left",
+        "up"
+      ],
+      "decodeWidth": 512,
+      "importer": "tool/import_upgrade_art.py"
+    },
+    "ricochet": {
+      "source": "rook_ricochet_master.png",
+      "prompt": "Use case: stylized-concept. Production transparent pixel-art sprite animation sheet for Regun. Reference is existing Rook ONLY for identity and style: dark helmet narrow cyan visor, mustard scarf, cream sleeves, charcoal trousers, boots, same adult rugged proportions, textured crisp pixel art. STRICT 4 rows x 8 columns, 32 separate full-body poses, equal cells with generous transparent gutters. Row1 right, row2 down/front, row3 left, row4 up/back. Same eight-frame performance in each facing; keep full helmet/boots in every cell, consistent scale, planted boot baseline and registration, no translation across cells, no jumping. This is a POWER INFUSION followed by an expressive character reaction, not equipping a prop. Runtime renders incoming energy separately, so NO VFX, NO rings, NO scenery/shadows, NO symbols/text, NO weapons or equipment props. Distinct body/arm silhouettes across frames, anatomically continuous. Fully transparent alpha. Eight frames: 1 ready; 2 left hand lifts open to chest height, right fist draws back; 3 left palm turns inward while right forearm pulls diagonally across torso; 4 both forearms angle as if redirecting incoming force toward sternum, knees bend; 5 chest twists subtly within unchanged facing and right fist meets left open palm near sternum, sharply containing redirected force; 6 hands separate down and out; 7 shoulders square with fist low and other hand forward ready; 8 neutral. Kinetic deflection/containment acting with clear arm angle changes, no thrown bullets, props, weapons or rotation of whole body.",
+      "sha256": "1fb7328580075c50b325cbbd96223b20fac7edf62f3f57f6ac9d2e4ea865ef90",
+      "frames": 32,
+      "rows": [
+        "right",
+        "down",
+        "left",
+        "up"
+      ],
+      "decodeWidth": 512,
+      "importer": "tool/import_upgrade_art.py"
+    },
+    "sentry": {
+      "source": "rook_sentry_master.png",
+      "prompt": "Use case: stylized-concept. Production transparent pixel-art sprite animation sheet for Regun. Reference is existing Rook ONLY for identity and style: dark helmet narrow cyan visor, mustard scarf, cream sleeves, charcoal trousers, boots, same adult rugged proportions, textured crisp pixel art. STRICT 4 rows x 8 columns, 32 separate full-body poses, equal cells with generous transparent gutters. Row1 right, row2 down/front, row3 left, row4 up/back. Same eight-frame performance in each facing; keep full helmet/boots in every cell, consistent scale, planted boot baseline and registration, no translation across cells, no jumping. This is a POWER INFUSION followed by an expressive character reaction, not equipping a prop. Runtime renders incoming energy separately, so NO VFX, NO rings, NO scenery/shadows, NO symbols/text, NO weapons or equipment props. Distinct body/arm silhouettes across frames, anatomically continuous. Fully transparent alpha. Eight frames: 1 ready; 2 left palm opens upward low by belt, right hand moves over it; 3 hands rise together, head looks down at palms; 4 right hand presses firmly into left palm like accepting a command charge; 5 right fist draws from left palm to chest with decisive squared shoulders as signal power is absorbed; 6 right arm extends a short commanding gesture forward while left hand lowers; 7 hands return confidently to ready position; 8 neutral. A technological bond/command infusion, not drone arrival; no actual controller, drones or equipment, runtime handles deployment.",
+      "sha256": "53949981cab4c558792964e1debc92c03099785d5eb477a2bac7552f46e12068",
+      "frames": 32,
+      "rows": [
+        "right",
+        "down",
+        "left",
+        "up"
+      ],
+      "decodeWidth": 512,
+      "importer": "tool/import_upgrade_art.py"
+    }
+  }
+}

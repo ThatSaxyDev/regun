@@ -711,3 +711,51 @@ boundaries, pause/Continue, saturation and single expiry blast.
 ## Sentry flight reliability (2026-10-25)
 
 Never infer native sentry wall contact from requested-versus-measured Vector2 travel: Float32 coordinate rounding caused premature round deletion. Preserve explicit swept cover contact and double open-flight range accounting. Native/co-op sentry target/muzzle/lead sight must use the same five-unit cover clearance as flight; aura/blast sight stays unchanged. Keep straight released rounds, normal cadence, unlimited ammo and target commitment. `test/sentry_flight_test.dart` covers complete fresh drops, actual walking enemies, retargeting and real wall/range stops. Read docs/SENTRY_FLIGHT_CORRECTION.md.
+
+## Upgrade feel review gate (2026-10-25)
+
+Read docs/UPGRADE_FEEL_PROTOTYPE_REVIEW.md and its evidence inventory. Current
+mobile manifest is1.0.0+24. Shipping defaults retain the original flow; the separate
+tool/upgrade_feel_review.dart launcher enables Rook's six-family candidate. Do not
+mass-produce other family/survivor/fusion assets until the five-player and creator
+phone gate passes. Typed accepted receipts bridge exactly one recovery flag.
+Confirmation has an independent held clock; never advance zero-dt world updates
+or reload HUD tickers during it. Continue settles an unfinished cosmetic beat to
+a static readout; pending recovery remains independent. First-use cues are bounded
+per family for20 active seconds so a later choice cannot discard a delayed sentry
+cue. Protocol8 uses server-owned shared holds with unanimous support; match identity
+scopes client watermarks because phase changes bump the input epoch. Keep older
+servers/mixed rooms safe and preserve5 weapons/3 survivors/35 families/6 fusions
+online. The368-field catalogue and13 historical definitions are untouched. Raw
+Rook fitting art and its prompt/provenance are in art/source/upgrades. Existing
+12Hz player gait is time-based; the plan's distance-gait assumption was incorrect
+and remains a visual-review diagnosis, not an authorized numerical buff.
+
+
+## Normal upgrade reactions — creator correction (2026-10-26)
+
+Every accepted power-up, fusion and support selection must produce a brief world
+freeze, shared infusion/body reaction and active resume in normal gameplay.
+Do not ship the internal comparison launcher, timing choices or a review-only
+feature gate. The creator explicitly authorized reusing a few working animations
+across all rewards now, with uniqueness expanded later. `upgrade_animation_recipe`
+owns bounded accepted identities/recipe reuse. Rook uses its six authored clips;
+other survivors keep their own idle/brace/settle poses, never Rook replacement art.
+Preserve actual perk mechanics, pinned balance, single recovery pulse, input reset,
+save restoration and Reduced Motion. Shared visual coverage is not full unique art
+or physical approval. Hosted confirmation remains capability/server gated.
+
+
+## Upgrade absorption/release alignment (2026-10-26)
+
+Keep absorption/containment inside the confirmation hold. The impact pose,
+contained outward accent, pulse sound and existing recovery impulse release
+at the same simulation boundary; settle is nonblocking after resume. Never play
+the entire settle before the pushback. Native consumes the flag at hold completion
+without advancing the world. Co-op source releases/stamps from server authority;
+client effects tolerate split table delivery and never replay on reconnect.
+The creator requested stronger localized charge/pressure contrast, not added
+radius/damage/shove/protection or a camera/full-screen flash. Retain Reduced Motion
+and route/save safety. Category recipe reuse lives in upgrade_animation_recipe.
+Latest normal phone candidate installed; hosted deployment and physical acceptance
+remain separate. See docs/validation/upgrade-impact-release-2026-10-26/README.md.

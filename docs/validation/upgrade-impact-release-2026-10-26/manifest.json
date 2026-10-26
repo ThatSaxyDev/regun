@@ -1,0 +1,71 @@
+{
+  "status": "normal phone build installed; physical visual review pending",
+  "release": "1.0.0+24",
+  "entry": "lib/main.dart",
+  "normalDefault": true,
+  "allAcceptedRewardsReact": true,
+  "releaseEvent": "existing recovery pulse, consumed once at confirmation boundary",
+  "simulationChanges": "pulse timing aligned to boundary; strength/radius/damage/protection unchanged",
+  "capture": {
+    "width": 844,
+    "height": 390,
+    "cadence": 30,
+    "physicalPhoneRecording": false,
+    "muted": true,
+    "flutterPickerOverlay": false
+  },
+  "clips": [
+    {
+      "file": "breach-full-heavyLoad.mp4",
+      "sha256": "0b1965d6a7645070f1d8173731db4a62e41bb16165be31f472df7bebc8ee3e73"
+    },
+    {
+      "file": "breach-full-hotShot.mp4",
+      "sha256": "794d8ddcb6f3455a99f7942cac5cd60387ac6ab0b8ff2cf19ad817b474d1961b"
+    },
+    {
+      "file": "breach-full-ricochet.mp4",
+      "sha256": "2ffb4d6b3fb543f82d6664ecdee40e2e216f1ac964768f8afc6e9b7bfb0caa5b"
+    },
+    {
+      "file": "breach-full-scrapArmour.mp4",
+      "sha256": "e080174063b884a429b20694f4ee6001ab8a9d85ad72c6632808659779ca346b"
+    },
+    {
+      "file": "breach-full-sentry.mp4",
+      "sha256": "7e951a54a2094d43434f279d83d1d9db6ef9403f4011e427b7b4660ca6dc296e"
+    },
+    {
+      "file": "breach-full-walkingSpeedIncrease.mp4",
+      "sha256": "70df5f69ee7ef326df1a4d02ce5cb87bd69f98155db222acf8b6c0d4ac0eed2b"
+    },
+    {
+      "file": "foundry-full-heavyLoad.mp4",
+      "sha256": "e408714f7a8a97bdaafcd88f28a08c2a40ead727e4d6eefd78f7dcd0702a0fad"
+    },
+    {
+      "file": "foundry-full-hotShot.mp4",
+      "sha256": "7f38dc6d47c946e5bdfc721b49cef52a5daffc89120eaea2799898ca54ed3983"
+    },
+    {
+      "file": "foundry-full-ricochet.mp4",
+      "sha256": "49a75bb47935d33971985fbe6cc5e6fb5943c03e71f8c0e2dfa04467e1f2603b"
+    },
+    {
+      "file": "foundry-full-scrapArmour.mp4",
+      "sha256": "12283b06b3f2e80e15d4782f70a334ce9a743fced23e41dadd3025ca9cdde6c7"
+    },
+    {
+      "file": "foundry-full-sentry.mp4",
+      "sha256": "028914a00e4a5792e1d372a78184dfec43c59aa41bd06cae39d49ce3364bd6ee"
+    },
+    {
+      "file": "foundry-full-walkingSpeedIncrease.mp4",
+      "sha256": "ec04b2b45306479c3364320f877ceab2886c2ffaccfc2f07d92be896dbbf0d47"
+    },
+    {
+      "file": "power-absorption-release.mp4",
+      "sha256": "b0be0664f50e5bbfa54df7157786a219f675b02b02a62ba432e70f65e4bb5b77"
+    }
+  ]
+}

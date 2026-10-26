@@ -105,7 +105,8 @@ class CombatSystem {
     if (enemy is! CombatEnemy ||
         enemy.isRemoving ||
         !enemy.isLoaded ||
-        state.gameplayState != GameplayState.playing) {
+        state.gameplayState != GameplayState.playing ||
+        game.presentationHeld) {
       return false;
     }
     if (enemy.combatHealth.isDead) return false;
@@ -137,6 +138,12 @@ class CombatSystem {
       enemy.incomingSupportBallistic = false;
     }
     if (!accepted) return false;
+    if (primary) {
+      game.upgradePresentation.observe('heavyLoad', 'Stronger primary hit');
+      if (enemy.burning) {
+        game.upgradePresentation.observe('hotShot', 'Burn applied');
+      }
+    }
     if (direction != null && (primary || reaction != null)) {
       enemy.receiveWeaponImpact(
         direction,

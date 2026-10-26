@@ -1,0 +1,7 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_presentation_test.dart: bounded presentation clock, deduplication, static restore and real-use expiry
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_presentation_test.dart: reconnect establishes watermark; retries and old holds cannot replay
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_presentation_test.dart: a delayed real mechanic survives another selection but not a run change
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:12 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: hold freezes the entire checkpoint including live reload and grenade flight
+00:13 +5: All tests passed!

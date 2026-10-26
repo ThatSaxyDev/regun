@@ -1,0 +1,54 @@
+{
+  "status": "creator review pending",
+  "family": "heavyLoad",
+  "worldHoldSeconds": 1.1,
+  "reducedHoldSeconds": 0.18,
+  "bodyFrames": 32,
+  "capture": {
+    "width": 844,
+    "height": 390,
+    "cadence": 30,
+    "physicalDevice": false,
+    "muted": true,
+    "labels": false,
+    "pickerOverlay": false
+  },
+  "clips": [
+    {
+      "file": "heavy-load-breach-1100ms.mp4",
+      "sha256": "e74f49125b5bc3c8573bdfad649410af6fbd5f19be6a1c1dfb8fad7b341fe61f"
+    },
+    {
+      "file": "heavy-load-breach.mp4",
+      "sha256": "7f32e7a99e4bf3f57b1b10e5c9e5044e42f5815c7771694d80e998aa1006d86a"
+    },
+    {
+      "file": "heavy-load-foundry-1100ms.mp4",
+      "sha256": "2f33b3ca6d4b63e01df98769c6e70e838ee6bd417a1e3d455c8b02465c323fff"
+    },
+    {
+      "file": "heavy-load-foundry.mp4",
+      "sha256": "1d858be4d7466b5e36a8971ca43c0d5ed35f01226cf1a2b1485d089a39f27118"
+    },
+    {
+      "file": "heavy-load-reduced.mp4",
+      "sha256": "5e37cfe03b4cf86da69ecf295b3ce99b264520c900011f001ee82fe031e7cdb9"
+    }
+  ],
+  "laterRankHoldSeconds": 0.8,
+  "shortComparisonSeconds": 0.75,
+  "frameEndFractions": [
+    0.08,
+    0.18,
+    0.32,
+    0.46,
+    0.66,
+    0.8,
+    0.92,
+    1.0
+  ],
+  "currentClips": [
+    "heavy-load-breach-1100ms.mp4",
+    "heavy-load-foundry-1100ms.mp4"
+  ]
+}

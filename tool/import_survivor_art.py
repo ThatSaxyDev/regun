@@ -33,7 +33,7 @@ def packet(source,key,rows,cols,decode,kind):
   group=sorted(boxes[row*cols:(row+1)*cols],key=lambda b:b[0])
   floor=max(b[3]for b in group)
   for col,(l,t,r,b)in enumerate(group):
-   standing=(kind=='run' or kind=='left' or (kind=='packet' and row<5) or (kind=='actions' and row==0))
+   standing=(kind=='activation' or kind=='run' or kind=='left' or (kind=='packet' and row<5) or (kind=='actions' and row==0))
    if standing:b=floor
    pixels=[x for y in range(t,t+max(1,(b-t)//3))for x in range(l,r)if alpha.getpixel((x,y))>=96]
    pivot=sum(pixels)/len(pixels)if pixels else(l+r)/2

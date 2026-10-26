@@ -54,7 +54,7 @@ class BoostButtonComponent extends AdvancedButtonComponent
     super.update(dt);
     if (game.gameState.gameplayState != GameplayState.playing) return;
     syncCapacity();
-    if (game.playerEntrance.active) return;
+    if (game.inputBlocked) return;
     reserve.advance(dt, recharge);
     if (!tapped) return;
     _remaining -= dt;
@@ -66,7 +66,7 @@ class BoostButtonComponent extends AdvancedButtonComponent
 
   @override
   void onTapDown(TapDownEvent event) {
-    if (game.playerEntrance.active) return;
+    if (game.inputBlocked) return;
     super.onTapDown(event);
     if (game.gameState.gameplayState != GameplayState.playing ||
         tapped ||

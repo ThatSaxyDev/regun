@@ -64,14 +64,18 @@ void main() {
         await game.ready();
         game.update(2);
         game.update(1 / 60);
-        game.myPlayer.aimDirection.setValues(-1,0);
-        game.movementJoystick.delta.setValues(0,-70);
-        game.myPlayer.weaponHeading.idle=0;
-        game.myPlayer.update(.6);expect(game.myPlayer.aimDirection.x,-1);
-        game.myPlayer.update(.1);expect(game.myPlayer.aimDirection.y,lessThan(0));
-        game.weaponJoystick.delta.setValues(70,0);game.myPlayer.update(0);
-        expect(game.myPlayer.aimDirection.x,1);
-        game.resetInput();game.myPlayer.position.setZero();
+        game.myPlayer.aimDirection.setValues(-1, 0);
+        game.movementJoystick.delta.setValues(0, -70);
+        game.myPlayer.weaponHeading.idle = 0;
+        game.myPlayer.update(.6);
+        expect(game.myPlayer.aimDirection.x, -1);
+        game.myPlayer.update(.1);
+        expect(game.myPlayer.aimDirection.y, lessThan(0));
+        game.weaponJoystick.delta.setValues(70, 0);
+        game.myPlayer.update(0);
+        expect(game.myPlayer.aimDirection.x, 1);
+        game.resetInput();
+        game.myPlayer.position.setZero();
         game.gameNotifier.advanceTime(3);
         game.setTrainingDamage(true);
         final enemy = Enemy2Component(position: Vector2(180, 0));
@@ -101,6 +105,9 @@ void main() {
         game.update(2);
         expect(audio.sounds.where((s) => s == 'upgrade_pulse.wav'), isEmpty);
         game.resumeGame();
+        game.update(
+          2,
+        ); // Confirmation ends before the recovery pulse on active resume.
         game.update(0);
         await game.ready();
         expect(enemy.combatHealth.current, 5);

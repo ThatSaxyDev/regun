@@ -1,0 +1,807 @@
+{
+  "schema": 1,
+  "date": "2026-10-26",
+  "status": "planning inventory; not an implementation or completed visual audit",
+  "scope": {
+    "offered": 43,
+    "fusions": 8,
+    "supports": 2,
+    "legacy": 1,
+    "fallback": 1
+  },
+  "entries": [
+    {
+      "id": "heavyLoad",
+      "label": "Heavy Load",
+      "kind": "offered",
+      "lane": "contact",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Accepted primary-contact weight accent; preserve weapon silhouette and mass response.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "quickTrigger",
+      "label": "Quick Trigger",
+      "kind": "offered",
+      "lane": "mechanism",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual faster mechanism/muzzle cadence, bounded to avoid a continuous flash.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "maxBulletsIncrease",
+      "label": "Extended Tube",
+      "kind": "offered",
+      "lane": "availability",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Keep actual magazine refill/capacity snap; no extra refill or duplicate reload.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "fastReload",
+      "label": "Sleight of Hand",
+      "kind": "offered",
+      "lane": "mechanism",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Read the real weapon reload phases and completion; retain shotgun presentation.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "numberOfBulletsPerShotIncrease",
+      "label": "Scattershot",
+      "kind": "offered",
+      "lane": "projectile",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "True fan/count; later ranks that tighten spread must not draw extra rounds.",
+      "sources": [
+        "lib/components/weapons/bullet_component.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "bulletsPhaseThrough",
+      "label": "Piercing Rounds",
+      "kind": "offered",
+      "lane": "projectile",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Accepted entry/exit continuation with one restrained exit accent per real penetration.",
+      "sources": [
+        "lib/components/weapons/bullet_component.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "bulletRangeIncrease",
+      "label": "Long Barrel",
+      "kind": "offered",
+      "lane": "projectile",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual flight persistence; no permanent aim line or fictitious hit.",
+      "sources": [
+        "lib/components/weapons/bullet_component.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "rapidFire",
+      "label": "High Velocity",
+      "kind": "offered",
+      "lane": "projectile",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual projectile speed with a bounded readable trail, unchanged collision.",
+      "sources": [
+        "lib/components/weapons/bullet_component.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "walkingSpeedIncrease",
+      "label": "Fleet Foot",
+      "kind": "offered",
+      "lane": "movement",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Movement/gait evidence at real speed; no fake dash or permanent aura.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "healthIncrease",
+      "label": "Vitality",
+      "kind": "offered",
+      "lane": "availability",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual new heart; medical recovery only when health actually increases.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "fieldMedic",
+      "label": "Field Medic",
+      "kind": "offered",
+      "lane": "healing",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Brief body-to-heart medical effect on accepted healing, never on every kill.",
+      "sources": [
+        "lib/systems/combat_system.dart:260",
+        "lib/notifiers/game_notifier.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "scrapArmour",
+      "label": "Scrap Armour",
+      "kind": "offered",
+      "lane": "guard",
+      "priority": "first_slice",
+      "onlineAdmitted": true,
+      "visualIntent": "Full-body one-hit ward: ready shell, accepted absorption/break, absent recharge, reformation.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart:519",
+        "lib/notifiers/game_notifier.dart:617",
+        "lib/game.dart:2634",
+        "lib/components/game_utils/player_component.dart:505"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "quickstep",
+      "label": "Quickstep",
+      "kind": "offered",
+      "lane": "availability",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual dash cooldown/ready cue, no protection bubble when merely ready.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "dashCapacity",
+      "label": "Double Dash",
+      "kind": "offered",
+      "lane": "availability",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Real stored dash charges and their accepted spend/return.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "grenadeCapacity",
+      "label": "Grenade Reserve",
+      "kind": "offered",
+      "lane": "availability",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Real inventory markers/ready state; no cosmetic extra grenade.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "sprintInvincibility",
+      "label": "Afterimage",
+      "kind": "offered",
+      "lane": "protection",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Distinct dash-only protected motion treatment for the real active window, not guard.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "scavenger",
+      "label": "Scavenger",
+      "kind": "offered",
+      "lane": "pickup",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Real XP attraction/travel and collection response, no permanent radius carpet.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "luckyFind",
+      "label": "Lucky Find",
+      "kind": "offered",
+      "lane": "offer",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Accurate offer/rarity feedback; no invented combat proc or guaranteed rare reward.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "hotShot",
+      "label": "Hot Shot",
+      "kind": "offered",
+      "lane": "burn",
+      "priority": "first_slice",
+      "onlineAdmitted": true,
+      "visualIntent": "Body-attached living flame throughout actual burn; ignition, sustained state, extinguish.",
+      "sources": [
+        "lib/components/enemies/combat_enemy.dart:118",
+        "lib/components/enemies/combat_enemy.dart:292",
+        "lib/systems/combat_system.dart:120"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "accelerant",
+      "label": "Accelerant",
+      "kind": "offered",
+      "lane": "burn",
+      "priority": "first_slice",
+      "onlineAdmitted": true,
+      "visualIntent": "Directional ignition transfer only to actual spread recipients; shared sustained flame.",
+      "sources": [
+        "lib/components/enemies/combat_enemy.dart:118",
+        "lib/components/enemies/combat_enemy.dart:292",
+        "lib/systems/combat_system.dart:120"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "staticCharge",
+      "label": "Static Charge",
+      "kind": "offered",
+      "lane": "chain",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Real accepted chain contacts and short target-attached discharge, bounded overlap.",
+      "sources": [
+        "lib/systems/combat_system.dart:165",
+        "lib/presentation/attack_vfx.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "conductiveCore",
+      "label": "Conductive Core",
+      "kind": "offered",
+      "lane": "chain",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual jump count/reach; no decorative extra connections.",
+      "sources": [
+        "lib/systems/combat_system.dart:165",
+        "lib/presentation/attack_vfx.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "sprintMine",
+      "label": "Dash Mine",
+      "kind": "offered",
+      "lane": "ordnance",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Real mine placement, armed state and one real detonation.",
+      "sources": [
+        "lib/components/weapons/mine_component.dart",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "fragmentation",
+      "label": "Fragmentation",
+      "kind": "offered",
+      "lane": "ordnance",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Real secondary shard origins/count; retain gameplay caps and material blast.",
+      "sources": [
+        "lib/components/weapons/mine_component.dart",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "ricochet",
+      "label": "Ricochet",
+      "kind": "offered",
+      "lane": "projectile",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Real redirection/contact; distinguish purchased bounce from innate weapon behavior.",
+      "sources": [
+        "lib/components/weapons/bullet_component.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "bankShot",
+      "label": "Bank Shot",
+      "kind": "offered",
+      "lane": "contact",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Stronger accent on an actual bounced hit only, respecting damage caps.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "lastShell",
+      "label": "Last Shell",
+      "kind": "offered",
+      "lane": "readiness",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Visible weapon-local final-round readiness; consume on the real empowered release.",
+      "sources": [
+        "lib/game.dart:2181",
+        "lib/systems/arsenal_system.dart:318"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "breachLoader",
+      "label": "Breach Loader",
+      "kind": "offered",
+      "lane": "readiness",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Prime after actual reload, consume on the real eligible first release.",
+      "sources": [
+        "lib/game.dart:2181",
+        "lib/systems/arsenal_system.dart:318"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "orbitDrone",
+      "label": "Orbit Drone",
+      "kind": "offered",
+      "lane": "companion",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Readable real companion bodies and their actual fire; preserve quiet accepted links.",
+      "sources": [
+        "lib/systems/combat_system.dart:28",
+        "lib/components/game_utils/player_component.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "targetingLink",
+      "label": "Targeting Link",
+      "kind": "offered",
+      "lane": "mark",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "A legible mark attached to the actually marked enemy, plus real companion focus response.",
+      "sources": [
+        "lib/components/enemies/combat_enemy.dart:325",
+        "lib/systems/combat_system.dart:128"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "shrapnel",
+      "label": "Shrapnel",
+      "kind": "offered",
+      "lane": "ordnance",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Real kill-triggered shard cone only when the proc succeeds.",
+      "sources": [
+        "lib/components/weapons/mine_component.dart",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "executioner",
+      "label": "Executioner",
+      "kind": "offered",
+      "lane": "contact",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Accepted wounded-target bonus contact only below the real threshold.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "grenadeDamage",
+      "label": "Heavy Payload",
+      "kind": "offered",
+      "lane": "ordnance",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Grounded central blast weight for actual damage; no larger radius implied.",
+      "sources": [
+        "lib/components/weapons/mine_component.dart",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "grenadeRadius",
+      "label": "Wide Burst",
+      "kind": "offered",
+      "lane": "ordnance",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Shared authoritative preview/blast extent, preserving body-edge and cover rules.",
+      "sources": [
+        "lib/components/weapons/mine_component.dart",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "grenadeRecharge",
+      "label": "Ordnance Cycle",
+      "kind": "offered",
+      "lane": "availability",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual recharge/ready cue; no instantaneous grant on selection.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "braceLoader",
+      "label": "Brace Loader",
+      "kind": "offered",
+      "lane": "movement",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Real walking-while-reloading difference; not a faster reload effect.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "sureFoot",
+      "label": "Sure Foot",
+      "kind": "offered",
+      "lane": "movement",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Real restored weighted-weapon mobility; no fictional slow resistance.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "scouringHeat",
+      "label": "Scouring Heat",
+      "kind": "offered",
+      "lane": "burn",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Eligible elite/boss burn contact/heat accent; do not intensify every burning enemy.",
+      "sources": [
+        "lib/components/enemies/combat_enemy.dart:118",
+        "lib/components/enemies/combat_enemy.dart:292",
+        "lib/systems/combat_system.dart:120"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "faradayReserve",
+      "label": "Faraday Reserve",
+      "kind": "offered",
+      "lane": "chain",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Actual later-jump retained damage contact; do not imply extra targets.",
+      "sources": [
+        "lib/systems/combat_system.dart:165",
+        "lib/presentation/attack_vfx.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "blastHarness",
+      "label": "Blast Harness",
+      "kind": "offered",
+      "lane": "ordnance",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Actual ordinary-enemy shove/debris direction; planted targets stay planted.",
+      "sources": [
+        "lib/components/weapons/mine_component.dart",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "exposedSeam",
+      "label": "Exposed Seam",
+      "kind": "offered",
+      "lane": "freeze",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Readable true frozen state plus accepted bonus hit; perk itself does not freeze.",
+      "sources": [
+        "lib/systems/freeze_state.dart",
+        "lib/components/enemies/combat_enemy.dart:308",
+        "lib/systems/combat_system.dart:88"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "measuredShot",
+      "label": "Measured Shot",
+      "kind": "offered",
+      "lane": "readiness",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Charge-ready weapon cue after real idle threshold; consume on eligible release.",
+      "sources": [
+        "lib/game.dart:2181",
+        "lib/systems/arsenal_system.dart:318"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "closeQuarters",
+      "label": "Close Quarters",
+      "kind": "offered",
+      "lane": "contact",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Accepted near-target bonus contact only, without a permanent range ring.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "sprintDistanceIncrease",
+      "label": "Long Dash",
+      "kind": "legacy",
+      "lane": "movement",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Legacy-save real dash length evidence; do not restore ordinary offers.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart",
+        "lib/game.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "salvage",
+      "label": "Scrap Cache",
+      "kind": "fallback",
+      "lane": "healing",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Actual scrap receipt and actual health recovered; no heal at full health.",
+      "sources": [
+        "lib/systems/combat_system.dart:260",
+        "lib/notifiers/game_notifier.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "firebreak",
+      "label": "Firebreak",
+      "kind": "fusion",
+      "lane": "burn",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual ignition recipients and grounded burning patch footprint.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart:1968",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "stormCircuit",
+      "label": "Storm Circuit",
+      "kind": "fusion",
+      "lane": "chain",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual additional chain jumps using the shared electrical language.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart:1968",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "minefield",
+      "label": "Minefield",
+      "kind": "fusion",
+      "lane": "ordnance",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Actual mine trail placements and arming, no cosmetic mines.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart:1968",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "pinball",
+      "label": "Pinball",
+      "kind": "fusion",
+      "lane": "projectile",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "True additional bounces and actual amplified bounced contacts.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart:1968",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "breachEngine",
+      "label": "Breach Engine",
+      "kind": "fusion",
+      "lane": "readiness",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Distinct first/final-round readiness and eligible release consumption.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart:1968",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "hunterSwarm",
+      "label": "Hunter Swarm",
+      "kind": "fusion",
+      "lane": "companion",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Three actual companions; shared bounded fire/mark feedback.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart:1968",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "kilnPact",
+      "label": "Kiln Pact",
+      "kind": "fusion",
+      "lane": "burn",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Ground patch only after an eligible burning elite/boss death.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart:1968",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "groundWire",
+      "label": "Ground Wire",
+      "kind": "fusion",
+      "lane": "chain",
+      "priority": "coverage",
+      "onlineAdmitted": false,
+      "visualIntent": "Actual qualifying fourth-discharge extra jump, not every shot.",
+      "sources": [
+        "lib/notifiers/game_notifier.dart:1968",
+        "lib/systems/combat_system.dart",
+        "lib/systems/arsenal_system.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "support:sentry",
+      "label": "Sentrygon",
+      "kind": "support",
+      "lane": "support",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Keep actual landing/mount, direction, physical rounds and remaining battery; no second deployment.",
+      "sources": [
+        "lib/presentation/support_art.dart",
+        "lib/systems/support_native.dart",
+        "lib/systems/support_runtime.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    },
+    {
+      "id": "support:aura",
+      "label": "Aura Salad",
+      "kind": "support",
+      "lane": "support",
+      "priority": "coverage",
+      "onlineAdmitted": true,
+      "visualIntent": "Keep accepted muted currents and moving footprint; real phase/lifetime, no invulnerability implication.",
+      "sources": [
+        "lib/presentation/support_art.dart",
+        "lib/systems/support_native.dart",
+        "lib/systems/support_runtime.dart"
+      ],
+      "status": "planned; visual acceptance open"
+    }
+  ],
+  "onlineAdmissionMeaning": "Coded hosted support only; not live enable flags, eligible offers or deployed-version proof."
+}

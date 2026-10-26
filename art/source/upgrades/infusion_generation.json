@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "tool": "built-in image_gen",
+  "status": "infusion exploration; creator review pending",
+  "source": "rook_infusion_master.png",
+  "reference": "assets/art/characters/rook.png",
+  "prompt": "Use case: stylized-concept. Create a production transparent pixel-art animation sprite sheet for Regun. Reference image is existing Rook character ONLY: preserve exact dark helmet with narrow cyan visor, mustard scarf, cream sleeves, dark trousers and boots, same rugged adult proportions and textured pixel art. NEW animation: visibly ABSORBING A POWER INFUSION, not fitting equipment. STRICT grid 4 rows x 8 columns, equal cells, transparent generous gutters, 32 separate full-body poses. Row1 faces right, row2 faces down/front, row3 faces left, row4 faces up/back. Eight sequential frames each row: 1 neutral ready fists low; 2 knees bend head lowers, hands open away from torso anticipating force; 3 arms spread wider elbows bent, torso braces; 4 chest lifts head tilts slightly up as power hits sternum, hands splay; 5 strongest absorption: wide elbows and raised chest with scarf kicked upward, knees planted; 6 hands close to fists and draw force into chest; 7 fists drive down beside hips, powerful grounded stance; 8 settle back into original ready pose. Animation must have clear changing silhouette, actual arm/body acting with smooth anatomical continuity, not 8 identical poses. Both boots remain on same floor baseline and same spacing throughout; no translation, jumping or rotating body bitmap. NO weapon, NO equipment block, NO plate, NO floating symbols, NO text, NO VFX, NO circles, NO scenery or shadows. Runtime will mount actual weapon and render incoming infusion separately. Full head and boots in every cell, each pose same size and same directional facing. Fully transparent alpha background. Crisp textured pixel style readable at 45px character height. Four directional versions of same eight-frame performance. Return one sheet.",
+  "rows": [
+    "right",
+    "down",
+    "left",
+    "up"
+  ],
+  "columns": [
+    "ready",
+    "anticipate",
+    "open",
+    "absorb",
+    "crest",
+    "contain",
+    "ground",
+    "settle"
+  ],
+  "sha256": "086750793a07a281920de78f208a0551eac78e6efad861b2ead0afee0b029634",
+  "frames": 32,
+  "importer": "tool/import_upgrade_art.py",
+  "decodeWidth": 640
+}

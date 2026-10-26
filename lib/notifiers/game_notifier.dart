@@ -1,3 +1,4 @@
+import 'package:regun/models/accepted_upgrade.dart';
 import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/systems/rank_effect_values.dart';
 import 'package:regun/systems/rank_curve.dart';
@@ -43,6 +44,55 @@ class GameNotifier extends Notifier<GameState> {
   double _guardElapsed = 0;
   double _choiceGrace = 0;
   final upgradeConfirmed = ValueNotifier<int>(0);
+  final acceptedUpgrade = ValueNotifier<AcceptedUpgrade?>(null);
+  int _rewardGeneration = 0, _rewardSerial = 0;
+  void _publishReward(String id, GameState before, {int? priorTier}) {
+    final p = PowerUp.values.where((p) => p.name == id).firstOrNull;
+    final card = SupportCard.read(id);
+    Map<String, num> values(GameState state) => p == null
+        ? const {}
+        : state.rankValues(p, state.rank(p), weapon, character, weaponPower);
+    final config = SupportConfig(weaponPower.snapshot?.values ?? const {});
+    acceptedUpgrade.value = AcceptedUpgrade(
+      generation: _rewardGeneration,
+      actor: 'solo',
+      serial: ++_rewardSerial,
+      offerId: before.offerId,
+      source: offerSource,
+      id: id,
+      beforeRank: p != null ? before.rank(p) : priorTier ?? 0,
+      afterRank: p != null ? state.rank(p) : card?.tier ?? 1,
+      balance:
+          weaponPower.snapshot?.hash ?? 'weapon-power-${weaponPower.revision}',
+      before: Map.unmodifiable({
+        ...values(before),
+        if (p == PowerUp.salvage) ...{
+          'Scrap': before.scrap,
+          'Health': before.health,
+        },
+        if (p == PowerUp.heavyLoad) 'Damage multiplier': before.shotDamage,
+        if (p == PowerUp.walkingSpeedIncrease)
+          'Walking speed': before.movementSpeed,
+      }),
+      after: Map.unmodifiable({
+        ...values(state),
+        if (p == PowerUp.salvage) ...{
+          'Scrap': state.scrap,
+          'Health': state.health,
+        },
+        if (p == PowerUp.heavyLoad) 'Damage multiplier': state.shotDamage,
+        if (p == PowerUp.walkingSpeedIncrease)
+          'Walking speed': state.movementSpeed,
+        if (card != null && card.family == SupportFamily.sentry) ...{
+          'Battery (s)': config.sentryLife(card.tier),
+          'Incoming (s)': config.incoming,
+        },
+      }),
+    );
+    // Compatibility event; gameplay has exactly one recovery consumer.
+    upgradeConfirmed.value++;
+  }
+
   final reloadProgress = ValueNotifier<double>(0);
   final quickRefillProgress = ValueNotifier<double>(-1);
   double _quickRefillMs = -1;
@@ -53,6 +103,7 @@ class GameNotifier extends Notifier<GameState> {
   @override
   GameState build() {
     ref.onDispose(upgradeConfirmed.dispose);
+    ref.onDispose(acceptedUpgrade.dispose);
     ref.onDispose(reloadProgress.dispose);
     ref.onDispose(quickRefillProgress.dispose);
     return GameState();
@@ -60,6 +111,9 @@ class GameNotifier extends Notifier<GameState> {
 
   void resetRun({Loadout loadout = const Loadout(), int seed = 1}) {
     cancelPendingActions();
+    _rewardGeneration++;
+    _rewardSerial = 0;
+    acceptedUpgrade.value = null;
     weapon = loadout.weapon;
     character = loadout.character;
     buildBalance = 2;
@@ -175,6 +229,9 @@ class GameNotifier extends Notifier<GameState> {
     Map<String, dynamic> snapshot, {
     bool allowDead = false,
   }) {
+    _rewardGeneration++;
+    _rewardSerial = 0;
+    acceptedUpgrade.value = null;
     support = SupportProgress.restore(snapshot['supportProgress']);
     offerSource =
         snapshot['offerSource'] as String? ??
@@ -713,6 +770,7 @@ class GameNotifier extends Notifier<GameState> {
         !usefulPowerUpRank(state, powerUp, weapon, character, weaponPower)) {
       return;
     }
+    final rewardBefore = state;
     if (powerUp != PowerUp.salvage) {
       state = state.copyWith(
         ranks: Map.unmodifiable({
@@ -770,7 +828,25 @@ class GameNotifier extends Notifier<GameState> {
     supplyOffer = false;
     support.offer = null;
     _choiceGrace = 4;
-    upgradeConfirmed.value++;
+    _publishReward(powerUp.name, rewardBefore);
+  }
+
+  /// Explicit Training review only; never called by normal offers or rewards.
+  void offerUpgradeFeelPractice(PowerUp p) {
+    if (state.gameplayState != GameplayState.paused ||
+        p == PowerUp.salvage ||
+        state.rank(p) >= state.rankLimit(p) ||
+        !weaponSupportsPowerUp(weapon, p)) {
+      return;
+    }
+    supplyOffer = true;
+    offerSource = 'practice';
+    state = state.copyWith(
+      gameplayState: GameplayState.powerup,
+      offerId: state.offerId + 1,
+      powerUpChoices: [p],
+      evolutionChoices: const [],
+    );
   }
 
   void offerSupportPractice(SupportFamily family) {
@@ -794,6 +870,9 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void chooseSupport(String id, {required int offerId}) {
+    final rewardBefore = state;
+    final family = SupportCard.read(id)?.family.name;
+    final priorTier = support.tiers[family] ?? 0;
     if (!supplyOffer ||
         !['supply', 'practice'].contains(offerSource) ||
         state.gameplayState != GameplayState.powerup ||
@@ -808,7 +887,7 @@ class GameNotifier extends Notifier<GameState> {
       powerUpChoices: const [],
       evolutionChoices: const [],
     );
-    upgradeConfirmed.value++;
+    _publishReward(id, rewardBefore, priorTier: priorTier);
   }
 
   void banSupport(String id, {required int offerId}) {
@@ -912,6 +991,7 @@ class GameNotifier extends Notifier<GameState> {
         .where((r) => r.available(state, weapon: weapon))
         .map((r) => r.id)
         .toList();
+    offerSource = 'fusion';
     state = state.copyWith(
       pendingCores: max(0, state.pendingCores - 1),
       gameplayState: GameplayState.powerup,
@@ -927,6 +1007,7 @@ class GameNotifier extends Notifier<GameState> {
         !state.evolutionChoices.contains(id)) {
       return;
     }
+    final rewardBefore = state;
     state = state.copyWith(
       evolutions: Set.unmodifiable({...state.evolutions, id}),
       evolutionChoices: const [],
@@ -936,7 +1017,7 @@ class GameNotifier extends Notifier<GameState> {
     supplyOffer = false;
     support.offer = null;
     _choiceGrace = 4;
-    upgradeConfirmed.value++;
+    _publishReward(id, rewardBefore);
   }
 
   void prepareTrainingFusion(FusionRecipe recipe) {

@@ -1,0 +1,11 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_presentation_test.dart: bounded presentation clock, deduplication, static restore and real-use expiry
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_presentation_test.dart: reconnect establishes watermark; retries and old holds cannot replay
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_presentation_test.dart: a delayed real mechanic survives another selection but not a run change
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_art_lease_test.dart: pending art releases on disposal; restart keeps only its new lease
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_art_lease_test.dart: load failure leaves a steady-pose fallback and can retry next picker
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_art_lease_test.dart: switching offered recipes releases pending retired art only
+00:00 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_art_budget_test.dart: Rook activation, largest pair, every equipped weapon and active supports fit 32MiB
+00:00 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:03 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: hold freezes the entire checkpoint including live reload and grenade flight
+00:03 +9: All tests passed!

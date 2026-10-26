@@ -42,7 +42,8 @@ class GameStick extends JoystickComponent {
 
   @override
   bool onDragStart(DragStartEvent event) {
-    if (_pointer != null ||
+    if ((game as RegunGame).inputBlocked ||
+        _pointer != null ||
         (game as RegunGame).gameState.gameplayState != GameplayState.playing) {
       return false;
     }

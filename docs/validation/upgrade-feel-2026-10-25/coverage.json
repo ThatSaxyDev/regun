@@ -1,0 +1,2155 @@
+{
+  "schema": 1,
+  "date": "2026-10-25",
+  "acceptance": "Not accepted; baseline/source audit only",
+  "projects": {
+    "mobile": {
+      "path": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun",
+      "head": "f89566c0e07dc706aa2bfe9744872af47cf15924",
+      "status": "M AGENTS.md\n M assets/art/manifest.json\n M docs/PLAYTEST_GUIDE.md\n M docs/REGUN_PROGRESS.md\n M lib/components/game_utils/player_component.dart\n M lib/components/movement/boost_component.dart\n M lib/components/movement/game_joystick_component.dart\n M lib/components/weapons/bullet_component.dart\n M lib/components/weapons/grenade_component.dart\n M lib/components/weapons/reload_component.dart\n M lib/game.dart\n M lib/main.dart\n M lib/models/run_checkpoint.dart\n M lib/multiplayer/online_session.dart\n M lib/notifiers/game_notifier.dart\n M lib/systems/combat_system.dart\n M lib/systems/support_native.dart\n M lib/views/base_view.dart\n M lib/widgets/online_arena.dart\n M pubspec.yaml\n M test/boss_expansion_test.dart\n M test/training_pressure_test.dart\n M tool/import_survivor_art.py\n?? art/source/upgrades/\n?? assets/art/upgrades/\n?? docs/UPGRADE_FEEL_PROTOTYPE_REVIEW.md\n?? docs/validation/upgrade-feel-2026-10-25/\n?? lib/models/accepted_upgrade.dart\n?? lib/multiplayer/upgrade_receipts.dart\n?? lib/presentation/upgrade_art.dart\n?? lib/presentation/upgrade_presentation.dart\n?? test/upgrade_art_budget_test.dart\n?? test/upgrade_art_lease_test.dart\n?? test/upgrade_feel_baseline_test.dart\n?? test/upgrade_feel_prototype_test.dart\n?? test/upgrade_presentation_test.dart\n?? tool/audit_upgrade_feel.py\n?? tool/import_upgrade_art.py\n?? tool/upgrade_feel_review.dart",
+      "manifestVersion": "1.0.0+24"
+    },
+    "admin": {
+      "path": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun-admin",
+      "head": "56747fd5974e518d0f5b5a3e1234e9be602c8515",
+      "status": "M lib/widgets/rank_path.dart",
+      "manifestVersion": "0.2.0+2"
+    },
+    "server-api": {
+      "path": "/Users/kiishidavid/Documents/Dev/Projects/MINE/regun-server",
+      "head": "bcefaee6c0ea4ac0950a7e1c7ab998f585e33619",
+      "status": "M identity/src/admin.ts\n M identity/test/ranks.test.ts\n M spacetimedb/src/combat.ts\n M spacetimedb/src/index.ts\n M spacetimedb/src/progression.ts\n M spacetimedb/src/survival_actions.ts\n M spacetimedb/src/survival_runtime.ts\n?? spacetimedb/src/upgrade_admission.ts\n?? spacetimedb/src/upgrade_confirmation.ts\n?? spacetimedb/tests/upgrade_confirmation.smoke.ts\n?? spacetimedb/tests/upgrade_confirmation.test.ts",
+      "manifestVersion": {
+        "combat": "1.0.0",
+        "identity": null
+      }
+    }
+  },
+  "catalog": {
+    "id": "867a3394cff4daeb9803e11ef09b23886d25b1c1462b75c0a915d1509e20e5c9",
+    "fieldCount": 368,
+    "historicalCatalogues": 13,
+    "structuralParity": true,
+    "rankDartByteParity": true,
+    "rankSourceSha256": "d37b404e7cb303e8fba943e618a25567b2f9622675fd76d91b7ed9d24f26d45a"
+  },
+  "admission": {
+    "nativeFamilies": 43,
+    "nativeFusions": 8,
+    "nativeSurvivors": 10,
+    "nativeWeapons": 24,
+    "onlineFamilies": [
+      "dashCapacity",
+      "grenadeCapacity",
+      "grenadeDamage",
+      "grenadeRadius",
+      "grenadeRecharge",
+      "heavyLoad",
+      "quickTrigger",
+      "maxBulletsIncrease",
+      "fastReload",
+      "numberOfBulletsPerShotIncrease",
+      "bulletsPhaseThrough",
+      "bulletRangeIncrease",
+      "rapidFire",
+      "walkingSpeedIncrease",
+      "healthIncrease",
+      "fieldMedic",
+      "scrapArmour",
+      "quickstep",
+      "sprintInvincibility",
+      "scavenger",
+      "luckyFind",
+      "hotShot",
+      "accelerant",
+      "staticCharge",
+      "conductiveCore",
+      "sprintMine",
+      "fragmentation",
+      "ricochet",
+      "bankShot",
+      "lastShell",
+      "breachLoader",
+      "orbitDrone",
+      "targetingLink",
+      "shrapnel",
+      "executioner"
+    ],
+    "onlineFusions": [
+      "firebreak",
+      "stormCircuit",
+      "minefield",
+      "pinball",
+      "breachEngine",
+      "hunterSwarm"
+    ],
+    "onlineWeapons": [
+      "shotgun",
+      "carbine",
+      "revolver",
+      "arcCaster",
+      "burstRifle"
+    ],
+    "onlineSurvivors": [
+      "rook",
+      "scrapper",
+      "warden"
+    ],
+    "versusSurvivors": [
+      "rook"
+    ],
+    "capability": 7
+  },
+  "entries": [
+    {
+      "id": "heavyLoad",
+      "title": "Heavy Load",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": true,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Weapon brace and chamber-weight snap",
+      "requiredActualEvidence": "Actual damage delta; bounded heavier contact accent, preserving base weapon silhouette and mass rules.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 73
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 83
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 805
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1941
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [
+        {
+          "arena": "breach",
+          "mode": "full",
+          "family": "heavyLoad",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 1,
+          "remainingHP": [
+            3.6789209574877626,
+            6.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.4000000000000006,
+          "pulseSounds": 1
+        },
+        {
+          "arena": "foundry",
+          "mode": "full",
+          "family": "heavyLoad",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 1,
+          "remainingHP": [
+            3.6789209574877626,
+            6.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.4000000000000006,
+          "pulseSounds": 1
+        }
+      ],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "quickTrigger",
+      "title": "Quick Trigger",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Trigger/mechanism adjustment",
+      "requiredActualEvidence": "Actual cadence and firing mechanism timing; no invented extra rounds.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2331
+        },
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2347
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1820
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 169
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "maxBulletsIncrease",
+      "title": "Extended Tube",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Magazine/tube seat",
+      "requiredActualEvidence": "Existing immediate refill snap + new capacity markers; no duplicate reload/refill.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 143
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 145
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 783
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1111
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1913
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "fastReload",
+      "title": "Sleight of Hand",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Short practiced mechanism gesture",
+      "requiredActualEvidence": "That weapon's own faster reload phases and audio, using authoritative completion.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 458
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 795
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1166
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1225
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1939
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "numberOfBulletsPerShotIncrease",
+      "title": "Scattershot",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Muzzle assembly opens/settles",
+      "requiredActualEvidence": "True pellet fan/count; IV\u2013VIII show tighter grouping when count stops increasing.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2155
+        },
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2192
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 793
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1159
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1808
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1934
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 295
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 302
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 306
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 310
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 536
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "bulletsPhaseThrough",
+      "title": "Piercing Rounds",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Hardened round/chamber cue",
+      "requiredActualEvidence": "Visible entry/exit continuation on actual penetrations, one restrained exit accent.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2226
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 799
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1809
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1932
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 583
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 1070
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "bulletRangeIncrease",
+      "title": "Long Barrel",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Barrel alignment cue",
+      "requiredActualEvidence": "Actual range delta and flight persistence; no permanent aim line on every gun.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 791
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1154
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1812
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1907
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "rapidFire",
+      "title": "High Velocity",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Feed/propellant cue",
+      "requiredActualEvidence": "Actual flight speed and bounded trail cadence; do not enlarge collisions.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 801
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1198
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1811
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1899
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1936
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "walkingSpeedIncrease",
+      "title": "Fleet Foot",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": true,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Foot plant/stride reset",
+      "requiredActualEvidence": "True movement delta and existing gait matching traveled distance; avoid fake dash trails while walking.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 74
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 84
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 787
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1143
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [
+        {
+          "arena": "breach",
+          "mode": "full",
+          "family": "walkingSpeedIncrease",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 0,
+          "remainingHP": [
+            5.0,
+            6.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.19999999999999996,
+          "pulseSounds": 1
+        },
+        {
+          "arena": "foundry",
+          "mode": "full",
+          "family": "walkingSpeedIncrease",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 0,
+          "remainingHP": [
+            5.0,
+            6.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.19999999999999996,
+          "pulseSounds": 1
+        }
+      ],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "healthIncrease",
+      "title": "Vitality",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Chest/medical equipment set",
+      "requiredActualEvidence": "Actual new heart and actual recovery; no healing cue if no health was restored.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 785
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1137
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1138
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "fieldMedic",
+      "title": "Field Medic",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Medical kit latch",
+      "requiredActualEvidence": "Distinct cue only on accepted healing; ready/cooldown clarity where useful. Never promise a heal per kill.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 259
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 263
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "scrapArmour",
+      "title": "Scrap Armour",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": true,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Armor plate locks",
+      "requiredActualEvidence": "Guard-ready badge, actual absorption/break, recharge completion; no bubble implying full immunity.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 520
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 524
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 813
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [
+        {
+          "arena": "breach",
+          "mode": "full",
+          "family": "scrapArmour",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 0,
+          "remainingHP": [
+            5.0,
+            6.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.16666666666666652,
+          "pulseSounds": 1
+        },
+        {
+          "arena": "foundry",
+          "mode": "full",
+          "family": "scrapArmour",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 0,
+          "remainingHP": [
+            5.0,
+            6.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.16666666666666652,
+          "pulseSounds": 1
+        }
+      ],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "quickstep",
+      "title": "Quickstep",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Boot/dash device ratchet",
+      "requiredActualEvidence": "Actual recharge and ready cue; do not imply extra dash distance.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1225
+        },
+        {
+          "file": "regun/lib/components/movement/boost_component.dart",
+          "line": 29
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "dashCapacity",
+      "title": "Double Dash",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": "pinned capacity minus starting charges",
+      "onlineAdmitted": true,
+      "activationDirection": "Extra dash cell seats",
+      "requiredActualEvidence": "New charge slot, correct Double/Triple naming, real stored capacity and recharge.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1235
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1236
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1267
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1279
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1286
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1796
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "grenadeCapacity",
+      "title": "Grenade Reserve",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": "pinned capacity minus starting charges",
+      "onlineAdmitted": true,
+      "activationDirection": "Pouch clip seats",
+      "requiredActualEvidence": "Actual capacity slot and available charges; capacity does not necessarily mean instant refill.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1235
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1238
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1267
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1281
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1289
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1290
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1796
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "sprintInvincibility",
+      "title": "Afterimage",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Recovery device prime",
+      "requiredActualEvidence": "Protection cue exactly during the existing valid dash recovery window.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 797
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1182
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1184
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1930
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "scavenger",
+      "title": "Scavenger",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Salvage coil/magnet latch",
+      "requiredActualEvidence": "Actual XP attraction motion, one restrained collection accent; no permanent giant circle.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/components/game_utils/coin_component.dart",
+          "line": 27
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "luckyFind",
+      "title": "Lucky Find",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Brass finder/charm set",
+      "requiredActualEvidence": "Honest offer-odds delta and compact build record; never fake a guaranteed rare next card.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 683
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 694
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "hotShot",
+      "title": "Hot Shot",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": true,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Chamber ember ignition",
+      "requiredActualEvidence": "Real burn application and readable smolder on enemy; preserve floor/threat contrast.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1814
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1863
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1972
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1986
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 125
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 126
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [
+        {
+          "arena": "breach",
+          "mode": "full",
+          "family": "hotShot",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 1,
+          "remainingHP": [
+            2.6714229314724163,
+            6.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.4000000000000006,
+          "pulseSounds": 1
+        },
+        {
+          "arena": "foundry",
+          "mode": "full",
+          "family": "hotShot",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 1,
+          "remainingHP": [
+            2.6714229314724163,
+            6.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.4000000000000006,
+          "pulseSounds": 1
+        }
+      ],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "accelerant",
+      "title": "Accelerant",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Fuel channel connects",
+      "requiredActualEvidence": "Real burning-kill spread ignition; avoid flashing all burning enemies together.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1815
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1859
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1870
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1987
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 272
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 285
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 286
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "staticCharge",
+      "title": "Static Charge",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Coil discharge into weapon",
+      "requiredActualEvidence": "Actual primary-proc chain distinct from innate Arc/Storm Orb and companion links.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1816
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1867
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1874
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1979
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1993
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 166
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "conductiveCore",
+      "title": "Conductive Core",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Coil terminals extend",
+      "requiredActualEvidence": "Real longer/multi-target chains; delta describes reach/count, not fake damage.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1817
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1873
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1994
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 177
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 201
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "sprintMine",
+      "title": "Dash Mine",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Mine clip arms",
+      "requiredActualEvidence": "Actual deployed mine placement, arming and one detonation.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 803
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2000
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 452
+        },
+        {
+          "file": "regun/lib/components/weapons/mine_component.dart",
+          "line": 38
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "fragmentation",
+      "title": "Fragmentation",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Segmented casing locks",
+      "requiredActualEvidence": "Real secondary shard burst with readable origin; never more drawn than damaging shards.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2001
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 442
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 445
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "ricochet",
+      "title": "Ricochet",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": true,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Deflector/round seats",
+      "requiredActualEvidence": "Preserve strong existing bounce redirection and target impact; distinguish upgrade from Revolver's innate bounce.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2230
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1810
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1880
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2007
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 586
+        },
+        {
+          "file": "regun/lib/components/weapons/bullet_component.dart",
+          "line": 301
+        },
+        {
+          "file": "regun/lib/components/weapons/bullet_component.dart",
+          "line": 302
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [
+        {
+          "arena": "breach",
+          "mode": "full",
+          "family": "ricochet",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 1,
+          "remainingHP": [
+            4.021422931472417,
+            5.3351692065326475
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.4000000000000006,
+          "pulseSounds": 1
+        },
+        {
+          "arena": "foundry",
+          "mode": "full",
+          "family": "ricochet",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 1,
+          "remainingHP": [
+            4.021422931472417,
+            5.3351692065326475
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 0.4000000000000006,
+          "pulseSounds": 1
+        }
+      ],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "bankShot",
+      "title": "Bank Shot",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Deflector reinforcement",
+      "requiredActualEvidence": "Stronger accent on actual bounced damage, not the initial shot; remain below damage-response caps.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1810
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1879
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2008
+        },
+        {
+          "file": "regun/lib/components/weapons/bullet_component.dart",
+          "line": 313
+        },
+        {
+          "file": "regun/lib/components/weapons/bullet_component.dart",
+          "line": 314
+        },
+        {
+          "file": "regun/lib/components/weapons/bullet_component.dart",
+          "line": 315
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "lastShell",
+      "title": "Last Shell",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Final-round marker",
+      "requiredActualEvidence": "Small ready marker at the real last release and actual empowered impact.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2170
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 809
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1027
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1813
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2014
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 318
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "breachLoader",
+      "title": "Breach Loader",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "First-round chamber prime",
+      "requiredActualEvidence": "Ready after the real reload, consumed on the actual eligible first release.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2177
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 811
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1028
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1813
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2015
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 324
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "orbitDrone",
+      "title": "Orbit Drone",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Controller links to arriving drone",
+      "requiredActualEvidence": "Real companion presence/fire; keep accepted quiet links and target limits.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1884
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2021
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 31
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 33
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 59
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 467
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "targetingLink",
+      "title": "Targeting Link",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Designator sync",
+      "requiredActualEvidence": "Real target mark and drone focus response; no reticle on an unmarked enemy.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1884
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2022
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 40
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 60
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 128
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "shrapnel",
+      "title": "Shrapnel",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Shard cartridge locks",
+      "requiredActualEvidence": "Real kill-triggered close cone; no guaranteed first kill proc.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 311
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 312
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 315
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "executioner",
+      "title": "Executioner",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Chamber/aim focus",
+      "requiredActualEvidence": "Actual wounded-target bonus accent only below the valid health threshold.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1818
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 130
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "grenadeDamage",
+      "title": "Heavy Payload",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Grenade core seats",
+      "requiredActualEvidence": "Actual blast damage delta and grounded central impact; no larger radius implied.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 962
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "grenadeRadius",
+      "title": "Wide Burst",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Fuse/casing opens",
+      "requiredActualEvidence": "True preview/blast radius; contact and cover continue matching.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 965
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "grenadeRecharge",
+      "title": "Ordnance Cycle",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": true,
+      "activationDirection": "Recharge winding cue",
+      "requiredActualEvidence": "Actual recharge timer/ready marker, no free instant grenade.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 924
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "braceLoader",
+      "title": "Brace Loader",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": false,
+      "activationDirection": "Moving reload brace",
+      "requiredActualEvidence": "Real walking-while-reloading difference, not reload speed.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 353
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "sureFoot",
+      "title": "Sure Foot",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": false,
+      "activationDirection": "Weight harness settles",
+      "requiredActualEvidence": "Actual weight penalty recovered for this gun; no fictional slow resistance.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 349
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1890
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "scouringHeat",
+      "title": "Scouring Heat",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": false,
+      "activationDirection": "Ember core hardens",
+      "requiredActualEvidence": "Bonus burn only on eligible elites/bosses; don't brighten every burn.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 368
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1870
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1973
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "faradayReserve",
+      "title": "Faraday Reserve",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": false,
+      "activationDirection": "Reserve coil connects",
+      "requiredActualEvidence": "Actual later-jump damage retention; don't invent additional targets.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1878
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1980
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 221
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 227
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "blastHarness",
+      "title": "Blast Harness",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": false,
+      "activationDirection": "Harness locks to explosive rig",
+      "requiredActualEvidence": "Real ordinary-enemy displacement; bosses/planted bodies remain planted.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 413
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 435
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "exposedSeam",
+      "title": "Exposed Seam",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": false,
+      "activationDirection": "Precision chamber set",
+      "requiredActualEvidence": "Actual bonus primary hit on frozen enemy; does not itself freeze targets.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1819
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1887
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 89
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "measuredShot",
+      "title": "Measured Shot",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": false,
+      "activationDirection": "Weapon settles into ready posture",
+      "requiredActualEvidence": "Ready cue after the true wait; consume on eligible release, not trigger press.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 361
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "closeQuarters",
+      "title": "Close Quarters",
+      "kind": "family",
+      "status": "baseline-audit",
+      "prototype": false,
+      "rankLimit": 8,
+      "onlineAdmitted": false,
+      "activationDirection": "Close combat brace",
+      "requiredActualEvidence": "Actual eligible near-target hit accent; no permanent radius ring.",
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1819
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 93
+        }
+      ],
+      "resolvedProjection": "GameState.rankValues / RankEffects.values",
+      "observation": "unmeasured: source locations are candidates until controlled execution",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "firebreak",
+      "title": "Firebreak",
+      "kind": "fusion",
+      "onlineAdmitted": true,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1984
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 274
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "stormCircuit",
+      "title": "Storm Circuit",
+      "kind": "fusion",
+      "onlineAdmitted": true,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1991
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 178
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "minefield",
+      "title": "Minefield",
+      "kind": "fusion",
+      "onlineAdmitted": true,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1998
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 453
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "pinball",
+      "title": "Pinball",
+      "kind": "fusion",
+      "onlineAdmitted": true,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2231
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2005
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 587
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "breachEngine",
+      "title": "Breach Engine",
+      "kind": "fusion",
+      "onlineAdmitted": true,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/game.dart",
+          "line": 2165
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2012
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 319
+        },
+        {
+          "file": "regun/lib/systems/arsenal_system.dart",
+          "line": 325
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "hunterSwarm",
+      "title": "Hunter Swarm",
+      "kind": "fusion",
+      "onlineAdmitted": true,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 2019
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 35
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 468
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "kilnPact",
+      "title": "Kiln Pact",
+      "kind": "fusion",
+      "onlineAdmitted": false,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1970
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 276
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "groundWire",
+      "title": "Ground Wire",
+      "kind": "fusion",
+      "onlineAdmitted": false,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1977
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 182
+        },
+        {
+          "file": "regun/lib/systems/combat_system.dart",
+          "line": 240
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "support:sentry",
+      "title": "Sentry Gun",
+      "kind": "support",
+      "prototype": true,
+      "onlineAdmitted": true,
+      "capability": 7,
+      "rankLimit": 8,
+      "oldPinnedRankLimit": 3,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 86
+        },
+        {
+          "file": "regun/lib/systems/support_rewards.dart",
+          "line": 25
+        },
+        {
+          "file": "regun/lib/systems/support_rewards.dart",
+          "line": 47
+        },
+        {
+          "file": "regun/lib/systems/support_rewards.dart",
+          "line": 183
+        },
+        {
+          "file": "regun/lib/systems/support_runtime.dart",
+          "line": 29
+        },
+        {
+          "file": "regun/lib/systems/support_runtime.dart",
+          "line": 32
+        },
+        {
+          "file": "regun/lib/systems/support_runtime.dart",
+          "line": 130
+        }
+      ],
+      "observation": "Deployment/landing/fire or field; no extra immediate deployment",
+      "status": "baseline-audit",
+      "controlledObservations": [
+        {
+          "arena": "breach",
+          "mode": "full",
+          "family": "sentry",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 0,
+          "remainingHP": [
+            0.0,
+            0.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 6.73333333333331,
+          "pulseSounds": 1
+        },
+        {
+          "arena": "foundry",
+          "mode": "full",
+          "family": "sentry",
+          "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+          "beforeRank": 0,
+          "shots": 0,
+          "remainingHP": [
+            0.0,
+            0.0
+          ],
+          "firstUseObserved": true,
+          "firstOpportunityActiveSeconds": 6.73333333333331,
+          "pulseSounds": 1
+        }
+      ],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "support:aura",
+      "title": "Aura Salad",
+      "kind": "support",
+      "prototype": false,
+      "onlineAdmitted": true,
+      "capability": 7,
+      "rankLimit": 8,
+      "oldPinnedRankLimit": 3,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/systems/support_rewards.dart",
+          "line": 26
+        },
+        {
+          "file": "regun/lib/systems/support_rewards.dart",
+          "line": 32
+        },
+        {
+          "file": "regun/lib/systems/support_rewards.dart",
+          "line": 277
+        },
+        {
+          "file": "regun/lib/systems/support_runtime.dart",
+          "line": 10
+        },
+        {
+          "file": "regun/lib/systems/support_runtime.dart",
+          "line": 80
+        },
+        {
+          "file": "regun/lib/systems/support_runtime.dart",
+          "line": 309
+        },
+        {
+          "file": "regun/lib/systems/support_runtime.dart",
+          "line": 365
+        }
+      ],
+      "observation": "Deployment/landing/fire or field; no extra immediate deployment",
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "salvage",
+      "title": "Scrap Cache",
+      "kind": "fallback",
+      "onlineAdmitted": true,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 69
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 79
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 762
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 768
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 774
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 815
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 837
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 948
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1795
+        },
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 1945
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    },
+    {
+      "id": "sprintDistanceIncrease",
+      "title": "Long Dash",
+      "kind": "legacy",
+      "onlineAdmitted": false,
+      "sourceReferences": [
+        {
+          "file": "regun/lib/notifiers/game_notifier.dart",
+          "line": 789
+        }
+      ],
+      "status": "baseline-audit",
+      "controlledObservations": [],
+      "timeToOpportunity": "See controlledObservations; other contexts remain unmeasured.",
+      "expectedUsefulFrequency": "Conditional on real eligible mechanic, existing cooldowns, charges, RNG and caps. No guaranteed proc is added."
+    }
+  ],
+  "issues": [
+    {
+      "id": "A11",
+      "severity": "P2",
+      "finding": "Player locomotion currently uses phase-preserved 12Hz cycles, not traveled-distance gait. The plan assumption is inaccurate. Fleet Foot motion coherence still needs review; no gait/balance change is silently introduced.",
+      "prototypeStatus": "open visual diagnosis; no unreviewed gait/balance change"
+    },
+    {
+      "id": "A01",
+      "severity": "P1",
+      "finding": "Acceptance is a generic counter, with a gameplay recovery consumer. Bridge explicitly once; never emit another recovery.",
+      "prototypeStatus": "typed receipts implemented; old pulse bridged once"
+    },
+    {
+      "id": "A02",
+      "severity": "P1",
+      "finding": "No authored multi-frame survivor activation; survivorAction is one existing action frame. Do not relabel hurt/death as upgrade animation.",
+      "prototypeStatus": "Rook shared fitting prototype only; other art gated"
+    },
+    {
+      "id": "A03",
+      "severity": "P1",
+      "finding": "Server admits 35 families / 6 fusions / 5 weapons / 3 survivors. Catalogue preview availability is broader than combat admission.",
+      "prototypeStatus": "admission preserved and preview distinction surfaced"
+    },
+    {
+      "id": "A04",
+      "severity": "P1",
+      "finding": "Co-op choice resolves straight to active in index.ts; a local-only hold would diverge simulation and recovery.",
+      "prototypeStatus": "protocol8 shared authoritative hold implemented; old/mixed fallback retained"
+    },
+    {
+      "id": "A05",
+      "severity": "P1",
+      "finding": "Pinned catalogue digest includes catalogue identity. Same-field retained versions exist. Never replace saved/live values with newest defaults.",
+      "prototypeStatus": "catalogue identity and numeric values untouched"
+    },
+    {
+      "id": "A06",
+      "severity": "P2",
+      "finding": "Brief picker copy can suppress movement deltas; confirmation needs resolved context without raw world units.",
+      "prototypeStatus": "truthful movement ratio in prototype"
+    },
+    {
+      "id": "A07",
+      "severity": "P2",
+      "finding": "Intrinsic Revolver bounce must not be attributed to a purchased Ricochet proc; count total and purchased contribution separately.",
+      "prototypeStatus": "purchased-budget attribution implemented"
+    },
+    {
+      "id": "A08",
+      "severity": "P2",
+      "finding": "Support is delayed and temporary, with unlimited sentry ammunition. Acceptance cannot fake landing/fire or promise player immunity.",
+      "prototypeStatus": "real deployment and physical-release cue in prototype"
+    },
+    {
+      "id": "A09",
+      "severity": "P2",
+      "finding": "Existing API rank/support previews already expose components. Reuse them; do not add balance knobs or regenerate/publish catalogue for cosmetics.",
+      "prototypeStatus": "existing previews reused; no numerical controls added"
+    },
+    {
+      "id": "A10",
+      "severity": "P1",
+      "finding": "No player trials, controlled gameplay clips or phone performance measurements yet. Formula fixtures and source audit cannot close the review gate.",
+      "prototypeStatus": "human gate and physical measurements pending"
+    }
+  ]
+}

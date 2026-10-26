@@ -86,6 +86,7 @@ flutter:
     - assets/art/bosses/
     - assets/art/effects/
     - assets/art/items/
+    - assets/art/upgrades/
     - assets/art/support/
     - assets/art/weapons/
 

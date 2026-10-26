@@ -1,3 +1,4 @@
+import 'package:regun/models/accepted_upgrade.dart';
 import 'package:regun/systems/support_runtime.dart';
 import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/models/boss_history.dart';
@@ -73,6 +74,7 @@ class RunCheckpoint {
           ![1, 2].contains(map['buildBalance'])) {
         return false;
       }
+      AcceptedUpgrade.read(map['upgradeConfirmation']);
       if (map.containsKey('survivorRuntime') &&
           map['survivorRuntime'] is! Map) {
         return false;

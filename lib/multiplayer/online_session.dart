@@ -1,3 +1,4 @@
+import 'package:regun/multiplayer/upgrade_receipts.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/services/account/account_api.dart';
 import 'package:regun/services/account/account_controller.dart';
@@ -53,6 +54,9 @@ class OnlineSession {
   bool rankCurvesAvailable = false;
   bool supportOpsAvailable = false;
   bool supportRanksAvailable = false;
+  bool upgradeConfirmationAvailable = false;
+  static const upgradeConfirmationsEnabled = true;
+  final upgradeReceipts = OnlineUpgradeReceipts();
   bool grenadesAvailable = false, grenadeAimingAvailable = false;
   bool predictionAvailable = false;
   bool predictionReducedMotion = false;
@@ -404,6 +408,8 @@ class OnlineSession {
       grenadeAimingAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'aim_grenade',
       );
+      upgradeConfirmationAvailable = (schemaJson['reducers'] as List? ?? [])
+          .any((v) => v is Map && v['name'] == 'upgrade_confirmation');
       supportRanksAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'support_ranks_viii',
       );
@@ -630,6 +636,11 @@ class OnlineSession {
             aiming: f.fireHeld,
           ),
       };
+      upgradeReceipts.sync(
+        '${room?.id}:${match?.data['matchId']}',
+        match,
+        fighters,
+      );
       scene = [
         for (final row in client.roomScene.iter())
           OnlineEntity(row.id.toString(), row.kind, combatObject(row.data)),
@@ -712,7 +723,9 @@ class OnlineSession {
       unawaited(
         _quiet(
           () => client.reducers.attachCombat(
-            version: supportRanksAvailable
+            version: upgradeConfirmationsEnabled && upgradeConfirmationAvailable
+                ? 8
+                : supportRanksAvailable
                 ? 7
                 : supportOpsAvailable
                 ? 6
@@ -1217,6 +1230,7 @@ class OnlineSession {
   Future<void> start() => command((c) => c.reducers.startMatch());
   Future<void> leave() => command((c) => c.reducers.leaveRoom());
   Future<void> _clearClient() async {
+    upgradeReceipts.clear();
     // Detach ownership before awaiting: route disposal and a simultaneous
     // lifecycle disconnect may both arrive while cancellation is pending.
     final subscriptions = List<StreamSubscription<dynamic>>.of(_listeners);

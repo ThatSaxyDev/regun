@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "tool": "built-in image_gen",
+  "status": "prototype; not visually accepted",
+  "source": "rook_fit_master.png",
+  "reference": "assets/art/characters/rook.png",
+  "prompt": "Use case: stylized-concept. Asset: production transparent pixel game sprite sheet for Regun Rook, using attached image ONLY as character/style reference. Keep helmet cyan narrow visor, mustard scarf, off-white sleeves, dark cargo trousers, boots, rugged proportions exactly. Create 24 full-body poses in STRICT 4 rows by 6 columns, equal cells, ample clear transparent gutters. Row 1 faces right, row 2 faces down toward viewer, row 3 faces left, row 4 faces up away. Each row is a planted six-frame EQUIPMENT FIT animation: 1 neutral hands at chest, 2 left hand reaches belt clasp, 3 both hands lift compact iron chamber block at waist/chest, 4 firmly seat the small block into chest harness, 5 short restrained weapon-ready brace with elbows set, 6 settle neutral. Feet NEVER move across the six columns; no walking, jumping, hurt, death, spinning or body rotation. Hands and elbows change distinctly every frame; keep head height, foot baseline and body scale constant. No held firearm: game mounts its actual weapon separately at waist. No floating symbols, rings, text, particles, scenery, floor or shadows. Fully transparent background. Dark tactile textured pixel art matching reference, crisp readable silhouette. All six poses in each row must retain same facing; front and back distinct. Intended for a 300-420ms clip viewed as a 45px-tall character. Full uncropped boots/head in every frame. Return one sheet.",
+  "sha256": "3c74155a14f2f5d4b6a210449a0bdeb0686b16aedf5a9c66e83ab3e291623834",
+  "frames": 24,
+  "rows": [
+    "right",
+    "down",
+    "left",
+    "up"
+  ],
+  "columns": [
+    "neutral",
+    "reach",
+    "lift",
+    "seat",
+    "brace",
+    "settle"
+  ],
+  "importer": "tool/import_upgrade_art.py",
+  "decodeWidth": 512
+}

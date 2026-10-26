@@ -1,0 +1,76 @@
+ℹ️ INFO Connecting to SpacetimeDB WS...
+Connected c62f0176 JWT seconds left NaN
+ℹ️ INFO Connecting to SpacetimeDB WS...
+Connected 81a3029b JWT seconds left 3600
+ℹ️ INFO Connecting to SpacetimeDB WS...
+Connected bdaec5a1 JWT seconds left 3600
+ℹ️ INFO Connecting to SpacetimeDB WS...
+Connected 2bfee8d3 JWT seconds left 3600
+ℹ️ INFO Connecting to SpacetimeDB WS...
+Connected 81a3029b JWT seconds left 3597
+ℹ️ INFO Connecting to SpacetimeDB WS...
+Connected bdaec5a1 JWT seconds left 3597
+ℹ️ INFO Connecting to SpacetimeDB WS...
+Connected 2bfee8d3 JWT seconds left 3597
+Status active [
+  { health: 12, shots: 0, level: 1, source: '' },
+  { health: 12, shots: 0, level: 1, source: '' },
+  { health: 12, shots: 0, level: 1, source: '' }
+] []
+Status active [
+  { health: 12, shots: 38, level: 1, source: '' },
+  { health: 12, shots: 38, level: 1, source: '' },
+  { health: 12, shots: 38, level: 1, source: '' }
+] []
+Status active [
+  { health: 12, shots: 72, level: 1, source: '' },
+  { health: 12, shots: 72, level: 1, source: '' },
+  { health: 12, shots: 72, level: 1, source: '' }
+] []
+Status active [
+  { health: 12, shots: 120, level: 1, source: '' },
+  { health: 12, shots: 120, level: 1, source: '' },
+  { health: 12, shots: 120, level: 1, source: '' }
+] []
+Status active [
+  { health: 12, shots: 164, level: 1, source: '' },
+  { health: 12, shots: 164, level: 1, source: '' },
+  { health: 12, shots: 164, level: 1, source: '' }
+] []
+Status active [
+  { health: 12, shots: 194, level: 1, source: '' },
+  { health: 12, shots: 194, level: 1, source: '' },
+  { health: 12, shots: 194, level: 1, source: '' }
+] []
+Status active [
+  { health: 12, shots: 240, level: 1, source: '' },
+  { health: 12, shots: 240, level: 1, source: '' },
+  { health: 12, shots: 240, level: 1, source: '' }
+] [ { phase: 'active', capture: 1.5000000000000007, claimed: false } ]
+Status active [
+  { health: 12, shots: 288, level: 1, source: '' },
+  { health: 12, shots: 288, level: 1, source: '' },
+  { health: 12, shots: 288, level: 1, source: '' }
+] [ { phase: 'active', capture: 6.499999999999985, claimed: false } ]
+ℹ️ INFO Connecting to SpacetimeDB WS...
+ℹ️ INFO Connecting to SpacetimeDB WS...
+Connected bdaec5a1 JWT seconds left 3561
+Connected 81a3029b JWT seconds left 3561
+Status choice [
+  { health: 12, shots: 288, level: 1, source: '' },
+  { health: 12, shots: 288, level: 1, source: '' },
+  { health: 12, shots: 288, level: 1, source: 'supply:1' }
+] [ { phase: 'opened', capture: 7.99999999999998, claimed: true } ]
+Status choice [
+  { health: 12, shots: 288, level: 1, source: '' },
+  { health: 12, shots: 288, level: 1, source: '' },
+  { health: 12, shots: 288, level: 1, source: 'supply:1' }
+] [ { phase: 'opened', capture: 7.99999999999998, claimed: true } ]
+Status choice [
+  { health: 12, shots: 288, level: 1, source: '' },
+  { health: 12, shots: 288, level: 1, source: '' },
+  { health: 12, shots: 288, level: 1, source: 'supply:1' }
+] [ { phase: 'opened', capture: 7.99999999999998, claimed: true } ]
+ℹ️ INFO Connecting to SpacetimeDB WS...
+Connected 2bfee8d3 JWT seconds left 3545
+{"result":"PASS","players":3,"confirmationSamples":24,"sharedHolds":1,"timeoutAutoSelection":true,"reconnectRetainsSerial":true,"receipts":[{"id":"heavyLoad","serial":1,"source":"supply:1"},{"id":"support:sentry:1:burstRifle","serial":1,"source":"supply:1"},{"id":"quickTrigger","serial":1,"source":"supply:1"}],"scope":"isolated local custom test balance; not baseline, native UI, audio or performance proof"}

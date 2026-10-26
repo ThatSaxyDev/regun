@@ -298,6 +298,10 @@ class BulletComponent extends PositionComponent
         range: 500,
       );
       if (next != null) {
+        if (game.gameState.countRank(PowerUp.ricochet) > 0 &&
+            bounces <= game.gameState.countRank(PowerUp.ricochet)) {
+          game.upgradePresentation.observe('ricochet', 'Round redirected');
+        }
         bounces--;
         _bouncedThisFrame = true;
         damage = min(

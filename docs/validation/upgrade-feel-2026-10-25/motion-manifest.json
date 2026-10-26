@@ -1,0 +1,288 @@
+{
+  "schema": 1,
+  "evidence": "Actual runtime at logical phone scale; not physical capture or frame-time proof",
+  "controlledTrainingSpawns": true,
+  "clips": [
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-baseline-heavyLoad.mp4",
+      "sha256": "a62d83a5a3e5b397d55bbd27136bad4d68bbc2b5a42bd142ee1a3a03b4e3787f",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-baseline-hotShot.mp4",
+      "sha256": "b963cbfc4cc5890648cda83e3e92f4c967955f32de8853495d02dae6a7e764a9",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-baseline-ricochet.mp4",
+      "sha256": "6598644961ce83df57159ee9ee1e56739841de5da7dc984025a414e09e36e637",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-baseline-scrapArmour.mp4",
+      "sha256": "b74e7467e2cebe26261e648caa946b3d3f6f87c9206ec1195a2eb0fd25c1e4e9",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-baseline-sentry.mp4",
+      "sha256": "1ad4f5244d9f3e193f98122084c8b30afd8653dd7a13939da51a38f7412db953",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 330,
+      "duration": 11.0,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-baseline-walkingSpeedIncrease.mp4",
+      "sha256": "9fb144c461f5d0529beef90a1f904526e5f87a94db0d9a918ac1eace545460e1",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-full-heavyLoad.mp4",
+      "sha256": "105b718482f84fdd55a5c82f2b828e538a7e49b70c5ebe7344627fd952c888cd",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-full-hotShot.mp4",
+      "sha256": "b2b1a6d6cd9631b4cf6ac8564137234a130ab105baeae399ed9b6b31bedc3653",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-full-ricochet.mp4",
+      "sha256": "7da2c85564b5eff0373492cd20838adc5c67f0eda46df4d999ad43d58b8059a0",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-full-scrapArmour.mp4",
+      "sha256": "27c4a05f861d1e4e9d80e405ecb3129b1bf45cc6aad8b260e2520f3a8d499f1b",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-full-sentry.mp4",
+      "sha256": "6ed5fdbd9d69eaf293d4f5f1ac914ad5351fcde8bcfbfaf607250b339b79333a",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 330,
+      "duration": 11.0,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-full-walkingSpeedIncrease.mp4",
+      "sha256": "30820ff89c10a108ac86f4a07706f989ed2f10a12ad3c0ba1f18174ac853b358",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-reduced-heavyLoad.mp4",
+      "sha256": "e0f649db4603cfb6e741a45dde4c539580d50862ed48423c64eee790a2664992",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/breach-short-heavyLoad.mp4",
+      "sha256": "ad9de5578fd8ca518d76c960c47c383a0d565c60d9ba01f3f9104ec9a101685e",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-baseline-heavyLoad.mp4",
+      "sha256": "f0c6948f0eed0518395459890eb18aa3ae03654c08ccec535848fd66c012f57f",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-baseline-hotShot.mp4",
+      "sha256": "d886946bc2cd8cd9ae5d4b415a409aa8fddfe624d96dc75484b0215d7b043c29",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-baseline-ricochet.mp4",
+      "sha256": "313606051acd15855e6ca29e59c4de912255c617261b33068c30e401c7c1dc62",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-baseline-scrapArmour.mp4",
+      "sha256": "5c02b74f2fa8fe5465354bfa9ddaaba238526d342384c45b384aa669e9eb35f1",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-baseline-sentry.mp4",
+      "sha256": "f40e9d90bf817326bcdb15b835af709cfc45e3ccabffce0819007fa631184b4d",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 330,
+      "duration": 11.0,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-baseline-walkingSpeedIncrease.mp4",
+      "sha256": "a2031e7173f7aa21678298fc7d1b81ef78e5e4ccc6fc1b60f32989f3cf34405f",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-full-heavyLoad.mp4",
+      "sha256": "769ad2e56081192477e91202c067b325ff3f8c5aaf951f71de0de5b942f9969b",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-full-hotShot.mp4",
+      "sha256": "7f414461b825855dddb6ea9bb435c7b4b2d11bf09c656c5d6775f5ef06333221",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-full-ricochet.mp4",
+      "sha256": "f01cf8465a5a0272a6db5a536ed63198589888139e6daf1409faa3877097e126",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-full-scrapArmour.mp4",
+      "sha256": "c2f988faf4bd828d203b1cee2aab9094db202993044bcb9cd73e9d60ca30f639",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-full-sentry.mp4",
+      "sha256": "e0d3ac92cfce87d83c0b386b6f4ea385688455cdbddc9481b4393e78827c70c9",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 330,
+      "duration": 11.0,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-full-walkingSpeedIncrease.mp4",
+      "sha256": "b84b278bd6a61cb719742f2b323c2d8317bc28944629d77a331b4c0b3195c5b5",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-reduced-heavyLoad.mp4",
+      "sha256": "dde1fab281335ad7421baafdd51c50c60ac642f65d50db189e9fa7e272379dbe",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    },
+    {
+      "path": "docs/validation/upgrade-feel-2026-10-25/motion/foundry-short-heavyLoad.mp4",
+      "sha256": "bf2bda2667c4bd9416bf757cb2315b1ce9fda633c59b57c945730954d27ccc11",
+      "width": 844,
+      "height": 390,
+      "fps": 30,
+      "frames": 75,
+      "duration": 2.5,
+      "audio": "muted test render; native listening pending"
+    }
+  ],
+  "layers": "Flame canvas, body, controls and confirmation; excludes Flutter picker/HUD overlay"
+}

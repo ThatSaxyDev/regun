@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "status": "pending human review",
+  "creatorPhoneSignoff": null,
+  "players": [],
+  "requiredPlayers": 5,
+  "requiredCorrect": 4,
+  "questions": [
+    "What changed?",
+    "When did you notice it?",
+    "Did it feel useful/stronger?"
+  ],
+  "requiredContexts": [
+    "both floors",
+    "muted/unmuted",
+    "Reduced Motion",
+    "touch controls"
+  ],
+  "gatePassed": false
+}
