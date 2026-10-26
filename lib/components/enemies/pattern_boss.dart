@@ -9,7 +9,6 @@ import 'package:regun/presentation/attack_vfx.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/components/enemies/boss_encounter.dart';
@@ -28,6 +27,7 @@ class PatternBoss extends PositionComponent
     : super(size: Vector2.all(200), anchor: Anchor.center, priority: 5);
   @override
   final BossKind kind;
+  @override
   final double maximumHealth;
   PatternBossPhase phase = PatternBossPhase.arrival;
   double clock = 0;
@@ -279,6 +279,10 @@ class PatternBoss extends PositionComponent
   }
 
   void renderGround(Canvas canvas) {
+    if (game.bossReveal.actors.contains(this) ||
+        phase == PatternBossPhase.arrival) {
+      return;
+    }
     final vfx = BossVfx(
       kind: kind,
       ambient: BossArt.ambient(game.loadout.arena),
@@ -362,11 +366,6 @@ class PatternBoss extends PositionComponent
 
   @override
   void onCombatDeath() {
-    game.addCombatEffectForKill(
-      position,
-      radius: 150,
-      remains: RegunArt.shared.sprite('bosses/${kind.name}', 39),
-    );
     removeFromParent();
   }
 }

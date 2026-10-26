@@ -176,6 +176,12 @@ void main() {
 
   Future<void> tick(WidgetTester tester, RegunGame game, int frames) =>
       tester.runAsync(() async {
+        if (game.bossReveal.active) {
+          await game.ready();
+          game.update(
+            3,
+          ); // Active-combat fixtures finish the safe reveal first.
+        }
         for (var i = 0; i < frames; i++) {
           game.update(1 / 60);
           if (i % 10 == 0) await game.ready();
@@ -358,7 +364,11 @@ void main() {
             offerId: game.gameState.offerId,
           );
         }
-        await tick(tester, game, 90);
+        await tick(
+          tester,
+          game,
+          110,
+        ); // Portal owns corpse art for 1.55 active seconds.
         expect(game.world.children.whereType<BossAttack>(), isEmpty);
         expect(game.weakPoints, isEmpty);
         expect(RegunArt.shared.contains('bosses/${kind.name}'), isFalse);
@@ -931,6 +941,8 @@ void main() {
           game.myPlayer.position.setValues(-180, 0);
           game.spawnBoss(BossKind.marshal);
           await game.ready();
+          game.update(3); // Laser damage is intentionally blocked during reveal.
+
           final boss = game.activeBoss! as LastMarshalBoss;
           boss.position.setValues(380, 0);
           expect(boss.beginMove(), isTrue);
@@ -1251,6 +1263,8 @@ void main() {
           await tester.runAsync(() async {
             game.spawnBoss(kind);
             await game.ready();
+            game.update(3); // Exercise attacks only after the held reveal.
+
             boss = game.activeBoss! as ExpansionBoss;
             boss.position.setValues(-1000, -1400);
             game.movementJoystick.delta.setValues(80, 0);
@@ -1398,6 +1412,8 @@ void main() {
             game.myPlayer.position.setValues(-800, -1400);
             game.spawnBoss(kind);
             await game.ready();
+            game.update(3); // Exercise attacks only after the held reveal.
+
             boss = game.activeBoss!;
             boss.position.setValues(-1800, -1400);
             if (enraged) {

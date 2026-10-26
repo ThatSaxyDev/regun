@@ -279,14 +279,17 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                             if (!_trainingIntro &&
                                 state.gameplayState == GameplayState.playing)
                               Positioned(
-                                top: 88,
+                                top: 58,
                                 left: 24,
                                 right: 24,
                                 child: ValueListenableBuilder<BossKind?>(
                                   valueListenable: _myGame.bossVictory.current,
                                   builder: (context, kind, _) => kind == null
                                       ? const SizedBox.shrink()
-                                      : BossVictoryBanner(kind: kind),
+                                      : BossVictoryBanner(
+                                          kind: kind,
+                                          verb: _myGame.bossVictory.verb,
+                                        ),
                                 ),
                               ),
                             if (state.gameplayState == GameplayState.powerup)

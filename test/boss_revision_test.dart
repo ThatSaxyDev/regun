@@ -143,6 +143,8 @@ void main() {
       game.random.state = 61;
       game.spawnBoss(kind);
       await tester.runAsync(() => game.ready());
+      game.update(3); // Input starts after the held boss reveal returns.
+
       final boss = game.activeBoss!;
       boss.position.setFrom(lane!);
       game.myPlayer.position.setFrom(lane + Vector2(400, 0));
@@ -226,6 +228,8 @@ void main() {
       final game = await mount(tester);
       game.spawnBoss(kind);
       await tester.runAsync(() => game.ready());
+      game.update(3); // Input starts after the held boss reveal returns.
+
       final boss = game.activeBoss! as PatternBoss;
       boss.position.setValues(-1000, -1400);
       game.myPlayer.position.setValues(-600, -1400);

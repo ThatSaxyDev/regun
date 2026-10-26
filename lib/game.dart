@@ -1,3 +1,5 @@
+import 'package:regun/presentation/freeze_focus.dart';
+import 'package:regun/presentation/boss_portal.dart';
 import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/models/accepted_upgrade.dart';
 import 'package:regun/presentation/upgrade_art.dart';
@@ -111,7 +113,8 @@ class RegunGame extends FlameGame
   final statusArt = CombatStatusArt();
   final confirmationHolding = ValueNotifier<bool>(false);
   bool get presentationHeld => upgradePresentation.holding;
-  bool get inputBlocked => playerEntrance.active || presentationHeld;
+  bool get inputBlocked =>
+      playerEntrance.active || presentationHeld || bossReveal.active;
   void _acceptedUpgrade() {
     final reward = gameNotifier.acceptedUpgrade.value;
     if (reward == null) return;
@@ -1004,6 +1007,7 @@ class RegunGame extends FlameGame
 
   final damageFeedback = DamageFeedback();
   final bossVictory = BossVictory();
+  final bossReveal = BossReveal();
   int _weaponImpacts = 0;
   bool claimWeaponImpact() => _weaponImpacts++ < 8;
   late final MapComponent map;
@@ -1140,6 +1144,7 @@ class RegunGame extends FlameGame
       bossVictory,
       EntranceVeil(),
       SupportStatusHud(),
+      FreezeFocusView(),
       UpgradeConfirmationView(),
       if (loadout.arena == ArenaType.breach) SupplyDropLocator(),
     ]);
@@ -1203,6 +1208,7 @@ class RegunGame extends FlameGame
 
   void _startRun({bool clearSave = true}) {
     upgradePresentation.cancel();
+    bossReveal.reset();
     confirmationHolding.value = false;
     upgradeArt.clear();
     statusArt.clear();
@@ -1224,6 +1230,8 @@ class RegunGame extends FlameGame
     newUnlocks = {};
     damageFeedback.reset();
     bossVictory.reset();
+    bossReveal.reset();
+    camera.viewfinder.zoom = 1;
     saveIssue = null;
     if (clearSave && !loadout.training) unawaited(runStore.clear());
     timeScale = 1;
@@ -1283,6 +1291,7 @@ class RegunGame extends FlameGame
     boostButtonComponent.reset();
     world.add(myPlayer = PlayerComponent(position: Vector2.zero()));
     world.addAll([
+      BossPortalFloor(),
       ArsenalOverlay(floor: true),
       ArsenalOverlay(),
       GrenadeAimPreview(),
@@ -1321,8 +1330,12 @@ class RegunGame extends FlameGame
           'bossHit': _bossDamageTaken[entity] ?? _bossWasHit,
         'x': entity.position.x,
         'y': entity.position.y,
-        'health': enemy.combatHealth.current,
-        'maximum': enemy.combatHealth.maximum,
+        'health': entity.isLoaded
+            ? enemy.combatHealth.current
+            : (entity as BossEncounter).maximumHealth,
+        'maximum': entity.isLoaded
+            ? enemy.combatHealth.maximum
+            : (entity as BossEncounter).maximumHealth,
         'elite': entity is ArenaEnemy && entity.elite,
         'burn': enemy.burnRemaining,
         'burnDamage': enemy.burnDamage,
@@ -1366,7 +1379,11 @@ class RegunGame extends FlameGame
       if (loadout.weapon.usesArsenalRuntime) 'arsenal': arsenal!.checkpoint(),
       'breachCharged': _breachCharged,
       'bossWasHit': _bossWasHit,
-      'enemies': [for (final e in liveEnemies) actor(e)],
+      'enemies': [
+        for (final e in liveEnemies) actor(e),
+        for (final e in bosses)
+          if (!e.isLoaded) actor(e),
+      ],
       'drops': [
         for (final c in _coins)
           if (!c.isCollected && !c.isRemoving && !c.isRemoved)
@@ -1496,6 +1513,7 @@ class RegunGame extends FlameGame
 
   bool restoreRun(Map<String, dynamic> snapshot) {
     upgradePresentation.cancel();
+    bossReveal.reset();
     confirmationHolding.value = false;
     upgradeArt.clear();
     playerEntrance.cancel();
@@ -1834,6 +1852,12 @@ class RegunGame extends FlameGame
       final bossKind = (enemy as BossEncounter).kind;
       gameNotifier.awardBossHealth();
       bossVictory.show(bossKind);
+      world.add(
+        BossDeparture(
+          position: enemy.position + Vector2(0, enemy.size.y * .35),
+          kind: bossKind,
+        ),
+      );
       final kind = bossKind.name;
       defeatedBosses.add(kind);
       bossWinCounts[kind] = (bossWinCounts[kind] ?? 0) + 1;
@@ -1896,7 +1920,14 @@ class RegunGame extends FlameGame
       // see the dead health object and clean themselves up on their next tick.
       _retirePracticeActor(old);
     }
+    for (final departure
+        in world.children.whereType<BossDeparture>().toList()) {
+      departure.releaseArt();
+      departure.removeFromParent();
+    }
     bossEncounter.clear();
+    bossReveal.reset();
+    confirmationHolding.value = false;
     _bossDamageTaken.clear();
     director.bossActive = false;
   }
@@ -1949,6 +1980,13 @@ class RegunGame extends FlameGame
     unawaited(audio.playMusic('boss'));
     if (!director.bossActive) director.beginBoss();
     world.add(actor);
+    bossReveal.begin(
+      actor,
+      camera.viewfinder.position,
+      reducedMotion: preferences.reducedMotion,
+    );
+    resetInput();
+    confirmationHolding.value = true;
     final distant =
         liveEnemies
             .where(
@@ -2063,6 +2101,7 @@ class RegunGame extends FlameGame
 
   Future<bool> changeTrainingWeapon(WeaponType next) async {
     upgradePresentation.cancel();
+    bossReveal.reset();
     confirmationHolding.value = false;
     if (disposed ||
         !loadout.training ||
@@ -2350,6 +2389,41 @@ class RegunGame extends FlameGame
       }
       return;
     }
+    if (bossReveal.active && gameState.gameplayState == GameplayState.playing) {
+      resetInput();
+      // Mount/load actors without invoking a zero-dt simulation or collisions.
+      processLifecycleEvents();
+      final done = bossReveal.advance(dt);
+      final target = Vector2.zero();
+      for (final actor in bossReveal.actors) {
+        target.add(actor.position);
+      }
+      if (bossReveal.actors.isNotEmpty) {
+        target.scale(1 / bossReveal.actors.length);
+      }
+      final player = map.bounds.cameraPosition(
+        myPlayer.position,
+        camera.viewport.virtualSize / camera.viewfinder.zoom,
+      );
+      final focus = map.bounds.cameraPosition(
+        target,
+        camera.viewport.virtualSize / camera.viewfinder.zoom,
+      );
+      camera.viewfinder.position = bossReveal.camera(player, focus);
+      if (bossReveal.elapsed >= 2.05 || bossReveal.reduced) {
+        camera.viewfinder.zoom = bossReveal.reduced
+            ? .88
+            : 1 - .12 * ((bossReveal.elapsed - 2.05) / .6).clamp(0, 1);
+      }
+      if (done) {
+        bossReveal.reset();
+        confirmationHolding.value = false;
+        camera.viewfinder.zoom = .88;
+        _updateCamera();
+        layoutControls();
+      }
+      return;
+    }
     bossEncounter.advance(_lingeringBossAttack);
     _weaponImpacts = 0;
     final phase = gameState.gameplayState;
@@ -2492,6 +2566,11 @@ class RegunGame extends FlameGame
       );
     }
     _syncSupplyArt(supplyDrops.drop != null && !bossRush);
+    final targetZoom = bosses.isNotEmpty ? .88 : 1.0;
+    camera.viewfinder.zoom = preferences.reducedMotion
+        ? targetZoom
+        : camera.viewfinder.zoom +
+              (targetZoom - camera.viewfinder.zoom) * (dt * 2.5).clamp(0, 1);
     _updateCamera();
     layoutControls();
   }
@@ -2598,6 +2677,7 @@ class RegunGame extends FlameGame
   }
 
   void _updateCamera() {
+    if (bossReveal.active) return;
     camera.viewfinder.position = map.bounds.cameraPosition(
       myPlayer.position,
       camera.viewport.virtualSize / camera.viewfinder.zoom,
@@ -2741,6 +2821,9 @@ class RegunGame extends FlameGame
       return;
     }
     final restartRush = bossRush;
+    for (final departure in world.children.whereType<BossDeparture>()) {
+      departure.releaseArt();
+    }
     for (final boss in world.children.whereType<ExpansionBoss>()) {
       boss.releaseArt();
     }
@@ -2791,6 +2874,7 @@ class RegunGame extends FlameGame
     disposed = true;
     statusArt.clear();
     upgradePresentation.cancel();
+    bossReveal.reset();
     confirmationHolding.value = false;
     upgradeArt.clear();
     if (_started) supportCombat.clear();
@@ -2813,6 +2897,9 @@ class RegunGame extends FlameGame
       RegunArt.shared.release(loadout.weapon.atlasName);
     }
     _syncSupplyArt(false);
+    for (final departure in world.children.whereType<BossDeparture>()) {
+      departure.releaseArt();
+    }
     for (final boss in world.children.whereType<ExpansionBoss>()) {
       boss.releaseArt();
     }

@@ -1,3 +1,4 @@
+import 'package:regun/presentation/boss_portal.dart';
 import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/mechanic_vfx.dart';
 import 'package:regun/presentation/support_art.dart';
@@ -358,6 +359,7 @@ class OnlineWorldArt {
     Canvas canvas,
     OnlineEntity entity, {
     required bool foundry,
+    bool hideSpawn = false,
   }) {
     final p = Offset(entity.x, entity.y),
         size = entity.number('size', 85),
@@ -367,7 +369,7 @@ class OnlineWorldArt {
       p + Offset(0, size * .3),
       entity.number('radius', 30),
     );
-    if (entity.number('spawning') > 0) {
+    if (!hideSpawn && entity.number('spawning') > 0) {
       (boss ? BossVfx(ambient: ambient(foundry)).disk : AttackVfx.disk)(
         canvas,
         p,
@@ -378,6 +380,51 @@ class OnlineWorldArt {
         material: AttackMaterial.stone,
       );
     }
+  }
+
+  static void bossDeparture(
+    Canvas canvas,
+    OnlineEntity entity, {
+    required bool foundry,
+    required bool reducedMotion,
+  }) {
+    final kind = BossKind.values
+        .where((k) => k.name == entity.data['kind'])
+        .firstOrNull;
+    if (kind == null) return;
+    final age = entity.number('deadAge'), size = entity.number('size');
+    final foot = Offset(entity.x, entity.y + size * .35);
+    BossPortalArt.paint(
+      canvas,
+      foot,
+      kind,
+      (age / .3).clamp(0, 1),
+      ((1.55 - age) / .5).clamp(0, 1),
+      time: age,
+      reducedMotion: reducedMotion,
+    );
+    final name = 'bosses/${kind.name}';
+    if (!RegunArt.shared.contains(name)) return;
+    final fade = ((1.2 - age) / .9).clamp(0.0, 1.0);
+    if (fade <= 0) return;
+    canvas.save();
+    canvas.translate(foot.dx, foot.dy + (reducedMotion ? 0 : age * 26));
+    if (!reducedMotion) canvas.scale(1, (1 - age * .38).clamp(.2, 1));
+    RegunArt.shared
+        .sprite(name, 39)
+        .render(
+          canvas,
+          position: Vector2(0, -size * .35),
+          size: Vector2.all(size),
+          anchor: Anchor.center,
+          overridePaint: Paint()
+            ..filterQuality = FilterQuality.none
+            ..colorFilter = BossArt.ambient(
+              foundry ? ArenaType.foundry : ArenaType.breach,
+            )
+            ..color = Color.fromRGBO(255, 255, 255, fade),
+        );
+    canvas.restore();
   }
 
   static void enemy(

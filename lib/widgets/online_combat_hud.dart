@@ -89,7 +89,7 @@ class OnlineCombatHud extends StatelessWidget {
     final locked = match.phase != 'active';
     return Stack(
       children: [
-        if (locked)
+        if (locked && ['countdown', 'round_break'].contains(match.phase))
           Center(
             child: Text(
               match.phase == 'countdown'

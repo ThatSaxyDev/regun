@@ -65,6 +65,7 @@ abstract class ExpansionBoss extends PositionComponent
     : super(size: Vector2.all(200), anchor: Anchor.center);
   @override
   final BossKind kind;
+  @override
   final double maximumHealth;
   @override
   bool get isBoss => true;
@@ -447,6 +448,10 @@ abstract class ExpansionBoss extends PositionComponent
   }
 
   void renderGround(Canvas canvas) {
+    if (game.bossReveal.actors.contains(this) ||
+        phase == ExpansionPhase.arrival) {
+      return;
+    }
     final center = (size / 2).toOffset();
     final vfx = BossVfx(
       kind: kind,

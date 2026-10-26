@@ -86,6 +86,8 @@ void main() {
         await game.ready();
         game.spawnBoss(BossKind.shadow);
         await game.ready();
+        game.update(3); // Finish the safe boss reveal before testing recovery.
+
         final boss = game.activeBoss! as ShadowBossComponent;
         boss.position.setValues(-230, 0);
         final bossAt = boss.position.clone(),

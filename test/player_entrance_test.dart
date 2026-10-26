@@ -101,6 +101,8 @@ void main() {
     await tester.runAsync(() async {
       game.spawnBoss(BossKind.bellkeeper);
       await game.ready();
+      game.update(3); // Recovery damage starts after the held boss reveal.
+
     });
     final boss = game.activeBoss!;
     final bossPosition = boss.position.clone();

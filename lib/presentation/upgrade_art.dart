@@ -3,7 +3,6 @@ import 'package:regun/systems/support_rewards.dart';
 
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
@@ -482,23 +481,6 @@ class UpgradeConfirmationView extends Component
   @override
   void render(Canvas canvas) {
     final c = game.upgradePresentation;
-    if (c.holding && !game.preferences.reducedMotion) {
-      final bounds = Offset.zero & game.camera.viewport.virtualSize.toSize();
-      final body = game.camera.viewfinder.localToGlobal(game.myPlayer.position);
-      // Constant focus while frozen, then soften back on the final settle.
-      // No flash, zoom, camera displacement or opaque hiding of threats.
-      final shade = .32 * ((1 - c.progress) / .18).clamp(0.0, 1.0);
-      canvas.drawRect(
-        bounds,
-        Paint()
-          ..shader = ui.Gradient.radial(
-            body.toOffset(),
-            230,
-            [const Color(0x00161b18), Color.fromRGBO(13, 18, 16, shade)],
-            [.18, 1],
-          ),
-      );
-    }
     if (const bool.fromEnvironment('REGUN_UPGRADE_HIDE_LABELS')) return;
     if ((!c.visible && c.actualUse == null) ||
         (c.receipt == null && c.actualUse == null)) {

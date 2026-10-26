@@ -8,3 +8,8 @@ hooks_enabled = false
 # [model]
 # name = "gpt-4o-mini"
 
+[tool_optimizer]
+enabled = true
+compact_descriptions = true
+compact_read_output = true
+line_range_edit = true

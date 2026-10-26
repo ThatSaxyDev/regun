@@ -1,0 +1,70 @@
+{
+  "players": 3,
+  "fixture": "disposable local module; test-only stage/kill and sign-in bypass; production auth unchanged",
+  "records": [
+    {
+      "kind": "shadow",
+      "sharedHold": true,
+      "frozenSnapshot": true,
+      "blockedInput": true,
+      "departed": true,
+      "serial": 1
+    },
+    {
+      "kind": "demon",
+      "sharedHold": true,
+      "frozenSnapshot": true,
+      "blockedInput": true,
+      "departed": true,
+      "serial": 2
+    },
+    {
+      "kind": "queen",
+      "sharedHold": true,
+      "frozenSnapshot": true,
+      "blockedInput": true,
+      "departed": true,
+      "serial": 3
+    },
+    {
+      "kind": "bellkeeper",
+      "sharedHold": true,
+      "frozenSnapshot": true,
+      "blockedInput": true,
+      "departed": true,
+      "serial": 4
+    },
+    {
+      "kind": "magistrate",
+      "sharedHold": true,
+      "frozenSnapshot": true,
+      "blockedInput": true,
+      "departed": true,
+      "serial": 5
+    },
+    {
+      "kind": "saint",
+      "sharedHold": true,
+      "frozenSnapshot": true,
+      "blockedInput": true,
+      "departed": true,
+      "serial": 6
+    },
+    {
+      "kind": "sovereign",
+      "sharedHold": true,
+      "frozenSnapshot": true,
+      "blockedInput": true,
+      "departed": true,
+      "serial": 7
+    },
+    {
+      "kind": "marshal",
+      "sharedHold": true,
+      "frozenSnapshot": true,
+      "blockedInput": true,
+      "departed": true,
+      "serial": 8
+    }
+  ]
+}

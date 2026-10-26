@@ -1810,3 +1810,28 @@ final focused58 passed; analyzer clean; backend187/typecheck/build passed.
 Server cosmetic metadata is source-only, not deployed. Visual acceptance, broad
 phone/stacked performance and remaining coverage refinements remain open. Earlier
 exported IPAs do not contain this revision.
+
+### 26 October — boss portal and freeze-focus candidate
+
+Native bosses now reveal through eight geometric portal grammars during a full
+combat hold, return the camera to the player, and widen the fight view slightly.
+Defeat portals remove corpses in world space without any camera pan; view width
+returns after the final boss. Victory uses a compact nonmodal strip and varied
+verbs. Shared charcoal focus eases in/out on boss and upgrade holds. Pause,
+Continue, pairs, pending/failed corpse art and Reduced Motion have dedicated
+coverage. See [candidate/evidence](validation/boss-portals-2026-10-26/README.md).
+Native phone visual/comfort approval remains open. Online shares notice/upgrade
+focus only; server-owned co-op boss cinematic holds remain unimplemented.
+
+### 26 October — online boss portal candidate
+
+Co-op now supports server-owned bounded boss reveals, shared combat holds and
+per-client camera return/wider fight view for all eight bosses. World-space death
+portals never pan the camera; compact victory wording and +2 HP remain once-only.
+Capability9 is optional/unanimous and preserves old/mixed-room admission. No
+balance/catalogue/API/admin tuning changed. Read
+[authority, evidence and rollout](validation/online-boss-portals-2026-10-26/README.md).
+Game analyzer clean, full suite780 passed/five skips; backend192 tests/typecheck/
+build passed; disposable three-player transport passed all eight holds/departures
+and reconnect. Normal signed1.0.0+25 installed/launched on iPhone. Public backend
+rollout and physical/WAN visual/comfort acceptance remain pending.

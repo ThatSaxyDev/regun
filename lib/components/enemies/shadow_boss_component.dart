@@ -40,6 +40,7 @@ class ShadowBossComponent extends PositionComponent
 
   @override
   BossKind get kind => BossKind.shadow;
+  @override
   final double maximumHealth;
   late SpriteAnimationComponent _body;
   late SpriteAnimation _walk, _idle;
@@ -255,6 +256,9 @@ class ShadowBossComponent extends PositionComponent
   }
 
   void renderGround(Canvas canvas) {
+    if (game.bossReveal.actors.contains(this) || phase == ShadowPhase.arrival) {
+      return;
+    }
     final vfx = BossVfx(
       kind: kind,
       ambient: BossArt.ambient(game.loadout.arena),
@@ -315,11 +319,6 @@ class ShadowBossComponent extends PositionComponent
 
   @override
   void onCombatDeath() {
-    game.addCombatEffectForKill(
-      position,
-      radius: 120,
-      remains: RegunArt.shared.sprite('bosses/shadow', 39),
-    );
     for (final bolt
         in game.world.children.whereType<ShadowProjectile>().toList()) {
       bolt.removeFromParent();

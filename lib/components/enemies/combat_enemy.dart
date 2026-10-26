@@ -367,6 +367,26 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   }
 
   @override
+  void renderTree(Canvas canvas) {
+    if (isBoss) {
+      if (combatHealth.isDead) return;
+      final reveal = game.bossReveal;
+      if (reveal.actors.contains(this)) {
+        final alpha = reveal.opacity;
+        if (alpha <= 0) return;
+        canvas.saveLayer(
+          null,
+          Paint()..color = Color.fromRGBO(255, 255, 255, alpha),
+        );
+        super.renderTree(canvas);
+        canvas.restore();
+        return;
+      }
+    }
+    super.renderTree(canvas);
+  }
+
+  @override
   void render(Canvas canvas) {
     super.render(canvas);
     if (_flash > 0) {

@@ -1,3 +1,6 @@
+import 'package:regun/presentation/online_boss_presentation.dart';
+import 'package:regun/presentation/boss_portal.dart';
+import 'package:regun/presentation/freeze_focus.dart';
 import 'package:regun/presentation/guard_feedback.dart';
 import 'package:regun/presentation/mechanic_vfx.dart';
 import 'package:regun/multiplayer/combat_state.dart' show OnlineGun;
@@ -88,6 +91,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   String? _music;
   int? _offerCue;
   String? _confirmationCue;
+  final bossPresentation = OnlineBossPresentation();
   void _sceneCues() {
     final liveMummies = <String>{};
     for (final entity in session.scene.where(
@@ -270,7 +274,15 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       final dt = ((elapsed - last).inMicroseconds / 1000000).clamp(0.0, .1);
       last = elapsed;
       session.predictionReducedMotion = LocalPreferences.shared.reducedMotion;
-      if (session.match?.phase != 'confirmation') {
+      bossPresentation.sync(
+        '${session.room?.id}:${session.match?.data['matchId']}',
+        session.connected && !session.suspended ? session.match : null,
+        session.scene,
+        dt,
+        reducedMotion: LocalPreferences.shared.reducedMotion,
+      );
+      if (session.match?.phase != 'confirmation' &&
+          session.match?.phase != 'boss_reveal') {
         seconds += dt * (session.match?.phase == 'choice' ? .1 : 1);
       }
       if (OnlineSession.upgradeConfirmationsEnabled &&
@@ -707,6 +719,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     child: CustomPaint(
                       painter: _ArenaPainter(
                         session: session,
+                        bossPresentation: bossPresentation,
                         positions: displayed,
                         seconds: seconds,
                         artReady: artReady,
@@ -842,10 +855,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         )
                         .take(1))
                   Positioned(
-                    top: 88,
+                    top: 58,
                     left: 24,
                     right: 24,
                     child: BossVictoryBanner(
+                      verb:
+                          bossDefeatVerbs[(victory.key.hashCode & 0x7fffffff) %
+                              bossDefeatVerbs.length],
                       kind: BossKind.values.firstWhere(
                         (k) =>
                             'bossVictory:${k.name}' == victory.data['material'],
@@ -985,6 +1001,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
 
 class _ArenaPainter extends CustomPainter {
   _ArenaPainter({
+    required this.bossPresentation,
     required this.session,
     required this.positions,
     required this.seconds,
@@ -998,6 +1015,7 @@ class _ArenaPainter extends CustomPainter {
     required this.mechanicFeedback,
   });
   final OnlineSession session;
+  final OnlineBossPresentation bossPresentation;
   final GrenadeAim grenadeAim;
   final Map<String, Offset> restingAim;
   final Map<String, MummyWalk> mummyWalks;
@@ -1021,7 +1039,7 @@ class _ArenaPainter extends CustomPainter {
         ? session.identity
         : teammate?.identity.toHexString ?? session.identity;
     final center = positions[anchor] ?? Offset(mine?.x ?? 0, mine?.y ?? 0);
-    final worldSize = GameLayout.world(size);
+    final worldSize = GameLayout.world(size) / bossPresentation.zoom;
     final scale = math.min(
       size.width / worldSize.width,
       size.height / worldSize.height,
@@ -1048,9 +1066,13 @@ class _ArenaPainter extends CustomPainter {
         hi - lo <= half * 2
         ? (lo + hi) / 2
         : value.clamp(lo + half, hi - half).toDouble();
+    final camera = bossPresentation.camera(
+      center,
+      reducedMotion: LocalPreferences.shared.reducedMotion,
+    );
     canvas.translate(
-      -cameraAxis(center.dx, bounds.left, bounds.right, worldSize.width / 2),
-      -cameraAxis(center.dy, bounds.top, bounds.bottom, worldSize.height / 2),
+      -cameraAxis(camera.dx, bounds.left, bounds.right, worldSize.width / 2),
+      -cameraAxis(camera.dy, bounds.top, bounds.bottom, worldSize.height / 2),
     );
 
     canvas.drawRect(bounds, Paint()..color = const Color(0xff252B25));
@@ -1134,8 +1156,32 @@ class _ArenaPainter extends CustomPainter {
           canvas,
           enemy,
           foundry: session.room?.mapId == 'foundry',
+          hideSpawn: bossPresentation.actors.any((a) => a.key == enemy.key),
         );
+        if (enemy.data['boss'] == true && enemy.number('health') <= 0) {
+          OnlineWorldArt.bossDeparture(
+            canvas,
+            enemy,
+            foundry: session.room?.mapId == 'foundry',
+            reducedMotion: LocalPreferences.shared.reducedMotion,
+          );
+        }
       }
+    }
+    for (final actor in bossPresentation.actors) {
+      final kind = BossKind.values
+          .where((k) => k.name == actor.data['kind'])
+          .firstOrNull;
+      if (kind == null) continue;
+      BossPortalArt.paint(
+        canvas,
+        Offset(actor.x, actor.y + actor.number('size') * .35),
+        kind,
+        bossPresentation.seal,
+        bossPresentation.fade,
+        time: bossPresentation.elapsed,
+        reducedMotion: LocalPreferences.shared.reducedMotion,
+      );
     }
     if (grenadeAim.active &&
         !grenadeAim.cancelled &&
@@ -1211,7 +1257,10 @@ class _ArenaPainter extends CustomPainter {
     }
     if (artReady) {
       for (final dead in session.scene.where(
-        (e) => e.kind == 'enemy' && e.number('health') <= 0,
+        (e) =>
+            e.kind == 'enemy' &&
+            e.data['boss'] != true &&
+            e.number('health') <= 0,
       )) {
         OnlineWorldArt.enemy(
           canvas,
@@ -1325,6 +1374,16 @@ class _ArenaPainter extends CustomPainter {
       final aim = beams.isEmpty
           ? null
           : OnlineWorldArt.point((beams.first.data['points'] as List).last);
+      final revealing =
+          bossPresentation.holding &&
+          bossPresentation.actors.any((a) => a.key == enemy.key);
+      if (revealing) {
+        canvas.saveLayer(
+          null,
+          Paint()
+            ..color = Color.fromRGBO(255, 255, 255, bossPresentation.opacity),
+        );
+      }
       OnlineWorldArt.enemy(
         canvas,
         enemy,
@@ -1336,6 +1395,7 @@ class _ArenaPainter extends CustomPainter {
         foundry: session.room?.mapId == 'foundry',
         reducedMotion: LocalPreferences.shared.reducedMotion,
       );
+      if (revealing) canvas.restore();
     }
 
     if (artReady) {
@@ -1702,6 +1762,35 @@ class _ArenaPainter extends CustomPainter {
       canvas.restore();
     }
 
+    if (bossPresentation.holding && bossPresentation.actors.isNotEmpty) {
+      FreezeFocus.paint(
+        canvas,
+        canvas.getLocalClipBounds(),
+        bossPresentation.focus,
+        bossPresentation.actors.length > 1 ? 650 : 340,
+        FreezeFocus.envelope(
+          bossPresentation.elapsed,
+          bossPresentation.duration,
+        ),
+        reducedMotion: LocalPreferences.shared.reducedMotion,
+      );
+    }
+    if (session.match?.phase == 'confirmation') {
+      final reward = session.upgradeReceipts.active[session.identity];
+      if (reward != null) {
+        final duration = reward.beforeRank == 0 ? 1.1 : .8;
+        final elapsed = (duration - (session.match?.phaseSeconds ?? duration))
+            .clamp(0.0, duration);
+        FreezeFocus.paint(
+          canvas,
+          canvas.getLocalClipBounds(),
+          positions[session.identity] ?? center,
+          230,
+          FreezeFocus.envelope(elapsed, duration),
+          reducedMotion: LocalPreferences.shared.reducedMotion,
+        );
+      }
+    }
     canvas.restore();
   }
 

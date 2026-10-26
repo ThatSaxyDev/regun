@@ -576,6 +576,8 @@ void main() {
     await tester.runAsync(() async {
       game.practiceBoss(BossKind.bellkeeper);
       await game.ready();
+      game.update(3); // Bell combat begins after the held entrance.
+
       final boss = game.activeBoss!;
       boss.position.setFrom(
         game.arsenal!.muzzle(Vector2(1, 0)) + Vector2(100, 0),
