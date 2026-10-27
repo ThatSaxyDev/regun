@@ -1,0 +1,262 @@
+
+> verify
+> npm run typecheck && npm test && npm run build && npm run smoke:compiled
+
+
+> typecheck
+> tsc --noEmit
+
+
+> test
+> tsx --test test/*.test.ts
+
+TAP version 13
+# Subtest: weapon receipt lookup is read-only; debit/cancel forward durable IDs and exact quote
+ok 1 - weapon receipt lookup is read-only; debit/cancel forward durable IDs and exact quote
+  ---
+  duration_ms: 3.97375
+  type: 'test'
+  ...
+# Subtest: public Armory ignores staging query; authoring/history require an administrator session
+ok 2 - public Armory ignores staging query; authoring/history require an administrator session
+  ---
+  duration_ms: 0.62425
+  type: 'test'
+  ...
+# Subtest: weapon receipts and grandfather grants are separate from cosmetic purchases and imported Scrap
+ok 3 - weapon receipts and grandfather grants are separate from cosmetic purchases and imported Scrap
+  ---
+  duration_ms: 0.232458
+  type: 'test'
+  ...
+# Subtest: read-only API strips free grants but keeps previous purchases before ownership migration
+ok 4 - read-only API strips free grants but keeps previous purchases before ownership migration
+  ---
+  duration_ms: 1.825625
+  type: 'test'
+  ...
+# Subtest: per-boss history is private admin metadata and missing legacy history stays unknown
+ok 5 - per-boss history is private admin metadata and missing legacy history stays unknown
+  ---
+  duration_ms: 1.698416
+  type: 'test'
+  ...
+# Subtest: combined deployment preserves publisher and signing state and rejects missing state
+ok 6 - combined deployment preserves publisher and signing state and rejects missing state
+  ---
+  duration_ms: 135.617875
+  type: 'test'
+  ...
+# Subtest: economy report separates current balances, observed flows, requests and cumulative unlock samples
+ok 7 - economy report separates current balances, observed flows, requests and cumulative unlock samples
+  ---
+  duration_ms: 3.202583
+  type: 'test'
+  ...
+# Subtest: production catalogue is immutable release metadata with bundled fallback
+ok 8 - production catalogue is immutable release metadata with bundled fallback
+  ---
+  duration_ms: 0.586125
+  type: 'test'
+  ...
+# Subtest: new weapon component API authenticates, validates full drafts and cannot publish
+ok 9 - new weapon component API authenticates, validates full drafts and cannot publish
+  ---
+  duration_ms: 4.93375
+  type: 'test'
+  ...
+# Subtest: new component/rank projections use adjusted controls and retain prior catalogues
+ok 10 - new component/rank projections use adjusted controls and retain prior catalogues
+  ---
+  duration_ms: 6.150042
+  type: 'test'
+  ...
+# Subtest: overlap keys retain valid sessions; missing/foreign keys cannot authenticate
+ok 11 - overlap keys retain valid sessions; missing/foreign keys cannot authenticate
+  ---
+  duration_ms: 150.304667
+  type: 'test'
+  ...
+# Subtest: all existing accounts and guests appear automatically, including zero-stat players
+ok 12 - all existing accounts and guests appear automatically, including zero-stat players
+  ---
+  duration_ms: 0.99275
+  type: 'test'
+  ...
+# Subtest: guest linking removes duplicate entry without summing cumulative reports
+ok 13 - guest linking removes duplicate entry without summing cumulative reports
+  ---
+  duration_ms: 0.165958
+  type: 'test'
+  ...
+# Subtest: presence expires, account deletion is hidden, epoch guards prevent old reset reports returning
+ok 14 - presence expires, account deletion is hidden, epoch guards prevent old reset reports returning
+  ---
+  duration_ms: 0.269542
+  type: 'test'
+  ...
+# Subtest: guest self lookup requires ownership secret; public IDs are stable and separate from device IDs
+ok 15 - guest self lookup requires ownership secret; public IDs are stable and separate from device IDs
+  ---
+  duration_ms: 0.344792
+  type: 'test'
+  ...
+# Subtest: public list and guest profile need no sign-in, join, or finished tracked run
+ok 16 - public list and guest profile need no sign-in, join, or finished tracked run
+  ---
+  duration_ms: 0.606042
+  type: 'test'
+  ...
+# Subtest: disabled config is safe and no public endpoint leaks legacy admin/player data
+ok 17 - disabled config is safe and no public endpoint leaks legacy admin/player data
+  ---
+  duration_ms: 2.311792
+  type: 'test'
+  ...
+# Subtest: bounded pages, stable snapshot cursor, private me and allowlisted profile DTOs
+ok 18 - bounded pages, stable snapshot cursor, private me and allowlisted profile DTOs
+  ---
+  duration_ms: 14.812542
+  type: 'test'
+  ...
+# Subtest: submission requires owner auth and cannot request server authority
+ok 19 - submission requires owner auth and cannot request server authority
+  ---
+  duration_ms: 5.159917
+  type: 'test'
+  ...
+# Subtest: normal deployment enables both leaderboard paths without new flags
+ok 20 - normal deployment enables both leaderboard paths without new flags
+  ---
+  duration_ms: 0.426333
+  type: 'test'
+  ...
+# Subtest: explicit kill switches are retained and invalid settings fail visibly
+ok 21 - explicit kill switches are retained and invalid settings fail visibly
+  ---
+  duration_ms: 0.126333
+  type: 'test'
+  ...
+# Subtest: sendbyte preserves OTP and provider-specific idempotency
+ok 22 - sendbyte preserves OTP and provider-specific idempotency
+  ---
+  duration_ms: 15.559125
+  type: 'test'
+  ...
+# Subtest: resend preserves OTP and provider-specific idempotency
+ok 23 - resend preserves OTP and provider-specific idempotency
+  ---
+  duration_ms: 0.467
+  type: 'test'
+  ...
+# Subtest: provider errors cannot leak recipient, API key or OTP
+ok 24 - provider errors cannot leak recipient, API key or OTP
+  ---
+  duration_ms: 0.739834
+  type: 'test'
+  ...
+# Subtest: sendbyte uses Regun display name for hello@example.com
+ok 25 - sendbyte uses Regun display name for hello@example.com
+  ---
+  duration_ms: 0.450666
+  type: 'test'
+  ...
+# Subtest: sendbyte uses Regun display name for Hello <hello@example.com>
+ok 26 - sendbyte uses Regun display name for Hello <hello@example.com>
+  ---
+  duration_ms: 0.135583
+  type: 'test'
+  ...
+# Subtest: resend uses Regun display name for hello@example.com
+ok 27 - resend uses Regun display name for hello@example.com
+  ---
+  duration_ms: 0.089166
+  type: 'test'
+  ...
+# Subtest: resend uses Regun display name for Hello <hello@example.com>
+ok 28 - resend uses Regun display name for Hello <hello@example.com>
+  ---
+  duration_ms: 0.066166
+  type: 'test'
+  ...
+# Subtest: rank preview requires an administrator session, validates complete drafts and never mutates
+ok 29 - rank preview requires an administrator session, validates complete drafts and never mutates
+  ---
+  duration_ms: 3.871208
+  type: 'test'
+  ...
+# Subtest: lost refresh acknowledgement retries the same operation without invalidating sign-in
+ok 30 - lost refresh acknowledgement retries the same operation without invalidating sign-in
+  ---
+  duration_ms: 25.399416
+  type: 'test'
+  ...
+# Subtest: recovery cannot revive revoked, expired or deleted sessions; old callers still rotate once
+ok 31 - recovery cannot revive revoked, expired or deleted sessions; old callers still rotate once
+  ---
+  duration_ms: 5.373416
+  type: 'test'
+  ...
+# Subtest: HTTP refresh forwards durable operation identity
+ok 32 - HTTP refresh forwards durable operation identity
+  ---
+  duration_ms: 26.575208
+  type: 'test'
+  ...
+# Subtest: phone and laptop read the same unchanged historical production release and mixed history
+ok 33 - phone and laptop read the same unchanged historical production release and mixed history
+  ---
+  duration_ms: 26.366875
+  type: 'test'
+  ...
+# Subtest: altered release data is rejected instead of relabelled, reset or trusted
+ok 34 - altered release data is rejected instead of relabelled, reset or trusted
+  ---
+  duration_ms: 2.2775
+  type: 'test'
+  ...
+# Subtest: rollback of a valid old catalogue keeps edits and uses the current publish contract
+ok 35 - rollback of a valid old catalogue keeps edits and uses the current publish contract
+  ---
+  duration_ms: 3.248542
+  type: 'test'
+  ...
+# Subtest: support preview authenticates and validates full pinned drafts without publication
+ok 36 - support preview authenticates and validates full pinned drafts without publication
+  ---
+  duration_ms: 5.775417
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 468.894875
+
+> build
+> tsc -p tsconfig.build.json
+
+
+> smoke:compiled
+> node --test test/compiled.test.mjs
+
+TAP version 13
+# Subtest: compiled Node gateway loads shared contracts and serves balance and admin login
+ok 1 - compiled Node gateway loads shared contracts and serves balance and admin login
+  ---
+  duration_ms: 687.151625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 767.762209

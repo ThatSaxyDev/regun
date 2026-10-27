@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/widgets/account_flow.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +10,7 @@ import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/widgets/pixel_icon.dart';
 
 String walletAmount(int value) {
-  final digits = value.toString();
-  return digits.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',');
+  return formatNumber(value);
 }
 
 /// Banked profile value only. Run XP, cores and provisional Scrap never enter

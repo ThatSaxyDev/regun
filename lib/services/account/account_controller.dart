@@ -59,6 +59,10 @@ class AccountController extends ChangeNotifier with WidgetsBindingObserver {
   bool get ready =>
       verified && username.isNotEmpty && account?['requiresRename'] != true;
   bool get attached => session?.accountId == preferences.profileOwner;
+  String get progressEpoch =>
+      _local?['epoch']?.toString() ??
+      account?['cloud']?['epoch']?.toString() ??
+      '0';
   bool get pending => _local?['pending'] == true;
   String get saveLabel {
     if (_local?['purchase'] != null) {

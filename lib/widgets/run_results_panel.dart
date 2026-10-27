@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/widgets/pixel_icon.dart';
 import 'package:flutter/material.dart';
@@ -151,49 +152,60 @@ class RunResultsPanel extends StatelessWidget {
         const SizedBox(height: 12),
       ],
       LayoutBuilder(
-        builder: (context, box) => Wrap(
-          spacing: 16,
-          runSpacing: 12,
-          children: [
-            for (final item in [
-              (
-                '${state.survivalSeconds ~/ 60}:${(state.survivalSeconds % 60).toString().padLeft(2, '0')}',
-                'SURVIVED',
-              ),
-              ('${state.kills}', 'KILLS'),
-              ('${state.bosses}', 'BOSSES'),
-              ('${state.score}', 'SCORE'),
-              ('+$earnedScrap', 'THIS RUN SCRAP'),
-            ])
-              SizedBox(
-                width: (box.maxWidth - 32) / 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.$1,
-                      style: const TextStyle(
-                        fontFamily: FontFam.pressStart,
-                        fontSize: 16,
-                        height: 1.5,
-                        color: _paper,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.$2,
-                      style: const TextStyle(
-                        fontFamily: FontFam.orbitron,
-                        fontSize: 9,
-                        height: 1.4,
-                        color: _muted,
-                      ),
-                    ),
-                  ],
+        builder: (context, box) {
+          final columns = MediaQuery.textScalerOf(context).scale(16) > 20
+              ? 2
+              : 3;
+          return Wrap(
+            spacing: 16,
+            runSpacing: 12,
+            children: [
+              for (final item in [
+                (
+                  '${state.survivalSeconds ~/ 60}:${(state.survivalSeconds % 60).toString().padLeft(2, '0')}',
+                  'SURVIVED',
                 ),
-              ),
-          ],
-        ),
+                (formatNumber(state.kills), 'KILLS'),
+                (formatNumber(state.bosses), 'BOSSES'),
+                (formatNumber(state.score), 'SCORE'),
+                ('+${formatNumber(earnedScrap)}', 'THIS RUN SCRAP'),
+              ])
+                SizedBox(
+                  width: (box.maxWidth - 16 * (columns - 1)) / columns,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          item.$1,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: const TextStyle(
+                            fontFamily: FontFam.pressStart,
+                            fontSize: 16,
+                            height: 1.5,
+                            color: _paper,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.$2,
+                        style: const TextStyle(
+                          fontFamily: FontFam.orbitron,
+                          fontSize: 9,
+                          height: 1.4,
+                          color: _muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          );
+        },
       ),
       const SizedBox(height: 12),
       Text(

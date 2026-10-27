@@ -1,0 +1,9 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/economy_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/economy_test.dart: earned Scrap is unchanged, explicit and absent in Training
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/economy_test.dart: career pin survives save and completed goals give way without removing unlocks
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/economy_test.dart: catalogue accepts older server, ignores unsupported art and refuses malformed prices
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/economy_test.dart: cached catalogue survives offline refresh; failures never fabricate a live quote
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/format_number_test.dart: groups visible counts without losing signs or decimal precision
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: three contact hits during reload show usable results when saving succeeds
+00:01 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/death_results_test.dart: failed settlement retains recovery data and retry never doubles Scrap
+00:01 +7: All tests passed!

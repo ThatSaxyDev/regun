@@ -1,3 +1,5 @@
+import 'package:regun/utils/format_number.dart';
+
 /// Earned Solo economy v1. Independent of payment, shop prices and combat RNG.
 class ScrapReward {
   const ScrapReward({
@@ -23,5 +25,5 @@ class ScrapReward {
   final int salvage, kills, bosses, survival;
   int get total => salvage + kills + bosses + survival;
   String get breakdown =>
-      'Salvage $salvage / Kills $kills / Bosses $bosses / Survival $survival';
+      'Salvage ${formatNumber(salvage)} / Kills ${formatNumber(kills)} / Bosses ${formatNumber(bosses)} / Survival ${formatNumber(survival)}';
 }

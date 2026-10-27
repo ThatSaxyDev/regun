@@ -44,7 +44,7 @@ void main() {
           final state = GameState().copyWith(
             survivalSeconds: 57,
             kills: 52,
-            score: 709,
+            score: 1234567,
             causeOfDeath: 'Mummy strike',
             ranks: {for (final p in PowerUp.values.take(22)) p: 8},
           );
@@ -63,10 +63,10 @@ void main() {
                       key: const Key('results-capture'),
                       child: RunResultsPanel(
                         state: state,
-                        earnedScrap: 5,
+                        earnedScrap: 1234,
                         scrapBreakdown:
                             'Salvage 0 / Kills 5 / Bosses 0 / Survival 0',
-                        record: 'ASSISTED BEST 10781 / LONGEST 7:36',
+                        record: 'ASSISTED BEST 1,234,567 / LONGEST 7:36',
                         nextGoal: 'Rail Lance / 6 / 7 boss victories',
                         unlocks: const ['A new survivor'],
                         onRestart: () => restarts++,
@@ -79,6 +79,16 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
+          final score = tester.renderObject<RenderParagraph>(
+            find.text('1,234,567'),
+          );
+          expect(
+            score.getBoxesForSelection(
+              const TextSelection(baseOffset: 0, extentOffset: 9),
+            ),
+            hasLength(1),
+            reason: 'Grouped scores must stay on one line',
+          );
           expect(find.text('RESTART').hitTestable(), findsOneWidget);
           expect(find.text('MENU').hitTestable(), findsOneWidget);
           final title = tester.getRect(find.text('END OF THE LINE'));

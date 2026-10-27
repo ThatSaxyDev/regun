@@ -1,0 +1,38 @@
+{
+  "defaultSfxVolume": 0.8,
+  "shippingUnchanged": true,
+  "cues": {
+    "accepted": {
+      "playbackGain": 0.128,
+      "duration": 0.1362358276643991,
+      "peak": 0.4556884765625,
+      "energy": 0.0027153637127363696,
+      "rms": 0.1411784266725456,
+      "sha256": "daf5c3e91d47e7d363387ce962de275430657ec2e33b9a0dcfbf4c3392da849b"
+    },
+    "soft-pop": {
+      "playbackGain": 0.128,
+      "duration": 0.11501133786848072,
+      "peak": 0.45,
+      "energy": 0.0013391283066604507,
+      "rms": 0.10790480082806354,
+      "sha256": "c94456b1ff4935e266f75c1a58073bb5c869dffa4e5e3b2e0a3cbc538973a197"
+    },
+    "wood-tap": {
+      "playbackGain": 0.128,
+      "duration": 0.1,
+      "peak": 0.45,
+      "energy": 0.0008280801651325366,
+      "rms": 0.09099891016559136,
+      "sha256": "3beebc9a69b90dcd25d9916c89b849864a148bc3c965d9ffb8fb92d4fc19fe6d"
+    },
+    "soft-pop-spring": {
+      "playbackGain": 0.16000000000000003,
+      "duration": 0.12498866213151927,
+      "peak": 0.45,
+      "energy": 0.0013724192479843984,
+      "rms": 0.10478716492959707,
+      "sha256": "d0efa516e5a5606bc8c15a9c3f25d4618862578d9fd94f7579c97f3754c8b085"
+    }
+  }
+}

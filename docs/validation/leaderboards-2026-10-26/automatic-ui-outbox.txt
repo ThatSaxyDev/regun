@@ -1,0 +1,14 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_outbox_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_outbox_test.dart: stats post automatically without participation; guest ownership is preserved
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_outbox_test.dart: lost response retains the same journal and identity for retry
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_outbox_test.dart: switching account during upload cannot apply an old receipt
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_outbox_test.dart: summary cannot upload before its settlement shares a durable profile
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/player_registry_test.dart: guest ID is stable offline and failed reports retain the latest outbox
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: landscape home keeps new entry reachable with Continue
+00:00 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: landscape home keeps new entry reachable with Continue
+00:00 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: landscape home keeps new entry reachable with Continue
+00:01 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: landscape board/profile navigation at text scale 1.0
+00:02 +9: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: landscape board/profile navigation at text scale 1.5
+00:02 +10: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: landscape board/profile navigation at text scale 2.0
+00:02 +11: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: disabled and offline are never presented as an empty board
+00:02 +12: All tests passed!

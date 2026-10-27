@@ -1,0 +1,1 @@
+Real SpacetimeDB: submit replay, changed-body rejection, best fallback, restore, withdrawal/re-enrollment and operator isolation passed.

@@ -1,3 +1,5 @@
+import 'package:regun/utils/format_number.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -51,7 +53,7 @@ class OnlineCombatHud extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   coop
-                      ? '${match.seconds ~/ 60}:${(match.seconds.toInt() % 60).toString().padLeft(2, '0')} | Score ${gun.progress['score'] ?? 0}'
+                      ? '${match.seconds ~/ 60}:${(match.seconds.toInt() % 60).toString().padLeft(2, '0')} | Score ${formatMetric(gun.progress['score'] ?? 0)}'
                       : '${match.wins[0]} - ${match.wins[1]}',
                   style: const TextStyle(
                     fontFamily: FontFam.orbitron,
@@ -61,7 +63,7 @@ class OnlineCombatHud extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${gun.kills} kills | ${gun.deaths} downed${session.result == null ? ' | Saving…' : ' | +${combatObject(session.result!.data)['scrap']} online scrap'}',
+                  '${formatNumber(gun.kills)} kills | ${formatNumber(gun.deaths)} downed${session.result == null ? ' | Saving…' : ' | +${formatMetric(combatObject(session.result!.data)['scrap'])} online scrap'}',
                   style: const TextStyle(
                     color: Color(0xffB9B7AF),
                     fontFamily: FontFam.orbitron,
@@ -125,7 +127,7 @@ class OnlineCombatHud extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Lv ${gun.progress['level'] ?? 1} | XP ${gun.progress['xp'] ?? 0} | Cores ${gun.progress['cores'] ?? 0}${gun.progress['guard'] == true ? ' | Guard' : ''}',
+                  'Lv ${gun.progress['level'] ?? 1} | XP ${formatMetric(gun.progress['xp'] ?? 0)} | Cores ${gun.progress['cores'] ?? 0}${gun.progress['guard'] == true ? ' | Guard' : ''}',
                   style: const TextStyle(
                     fontFamily: FontFam.orbitron,
                     color: Color(0xffE5DDD1),

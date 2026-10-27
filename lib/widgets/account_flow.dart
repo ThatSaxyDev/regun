@@ -1,3 +1,5 @@
+import 'package:regun/utils/format_number.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -361,7 +363,7 @@ class _AccountFlowState extends State<AccountFlow> {
             ],
             if (step == 'conflict')
               Text(
-                'Device: ${account.preferences.profile.totalKills} kills · ${account.preferences.profile.scrap} scrap\nCloud: ${(account.account?['cloud'] as Map?)?['payload']?['totalKills'] ?? 0} kills · ${(account.account?['cloud'] as Map?)?['payload']?['scrap'] ?? 0} scrap',
+                'Device: ${formatNumber(account.preferences.profile.totalKills)} kills · ${formatNumber(account.preferences.profile.scrap)} scrap\nCloud: ${formatMetric((account.account?['cloud'] as Map?)?['payload']?['totalKills'] ?? 0)} kills · ${formatMetric((account.account?['cloud'] as Map?)?['payload']?['scrap'] ?? 0)} scrap',
                 style: const TextStyle(
                   fontFamily: FontFam.orbitron,
                   color: Color(0xffE5DDD1),

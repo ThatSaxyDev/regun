@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/models/solo_recovery.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -79,7 +80,7 @@ class SoloRevivePanel extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     _text(
-                      '${state.kills} kills  /  ${state.bosses} bosses',
+                      '${formatNumber(state.kills)} kills  /  ${formatNumber(state.bosses)} bosses',
                       color: _muted,
                     ),
                     const SizedBox(height: 10),
@@ -118,7 +119,7 @@ class SoloRevivePanel extends StatelessWidget {
                             ),
                             const SizedBox(width: 10),
                             _text(
-                              '${SoloRecovery.price} SCRAP',
+                              '${formatNumber(SoloRecovery.price)} SCRAP',
                               size: 16,
                               color: _brass,
                             ),
@@ -208,7 +209,7 @@ class SoloRevivePanel extends StatelessWidget {
                         text: recovery.busy
                             ? 'CHECKING…'
                             : canBuy
-                            ? 'REVIVE · ${SoloRecovery.price}'
+                            ? 'REVIVE · ${formatNumber(SoloRecovery.price)}'
                             : paid
                             ? 'RESUME'
                             : 'RETRY CONNECTION',

@@ -69,11 +69,29 @@ class GameApp extends StatefulWidget {
 
 class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
   StreamSubscription<AudioDeviceStartFailure>? _audioFailures;
+  Timer? _presence;
+  bool _foreground = true;
+  void _reportPresence() {
+    final prefs = LocalPreferences.shared;
+    if (prefs.profileReady) {
+      unawaited(
+        PlayerRegistry.shared.record(
+          prefs.profileOwner,
+          prefs.profile.toJson(),
+          force: true,
+          active: _foreground,
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _presence = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_foreground) _reportPresence();
+    });
     _audioFailures = SoLoud.instance.audioDeviceStartFailures.listen((failure) {
       Logger('audio').warning('Audio output failed to start: $failure');
       unawaited(_resumeAudioOutput());
@@ -92,6 +110,8 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    _reportPresence();
     if (state == AppLifecycleState.resumed) {
       unawaited(_resumeAudioOutput());
       unawaited(BalanceRepository.shared.refresh());
@@ -102,6 +122,7 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _presence?.cancel();
     unawaited(_audioFailures?.cancel());
     SoLoud.instance.deinit();
     super.dispose();

@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:regun/widgets/support_thumbnail.dart';
 import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/systems/rank_effect_values.dart';
@@ -112,7 +113,9 @@ class OnlineUpgradePicker extends StatelessWidget {
       survivor: gun.survivor,
       fusions: Set<String>.from(gun.data['fusions'] as List? ?? []),
     );
-    String n(num v) => v.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '');
+    String n(num v) => groupNumberText(
+      v.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), ''),
+    );
     final changed = after.keys.where(
       (k) => ((after[k] ?? 0) - (before[k] ?? 0)).abs() > 1e-8,
     );

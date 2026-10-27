@@ -91,7 +91,12 @@ class PlayerRegistry {
     }
   }
 
-  Future<void> record(String owner, Map<String, dynamic> profile) {
+  Future<void> record(
+    String owner,
+    Map<String, dynamic> profile, {
+    bool force = false,
+    bool active = true,
+  }) {
     // Capture before queuing so profile transitions cannot reattribute metrics.
     final stats = <String, int>{
       for (final key in [
@@ -109,6 +114,29 @@ class PlayerRegistry {
         ),
       'recordedRuns': (profile['settledRuns'] as List?)?.length ?? 0,
     };
+    int bestOf(String first, String second, String third) =>
+        [first, second, third]
+            .map(
+              (key) => (profile[key] is num ? (profile[key] as num).toInt() : 0)
+                  .clamp(0, 1000000000),
+            )
+            .reduce((a, b) => a > b ? a : b);
+    stats['bestScore'] = bestOf(
+      'bestScore',
+      'assistedBestScore',
+      'continuedBestScore',
+    );
+    stats['bestSeconds'] = bestOf(
+      'bestSeconds',
+      'assistedBestSeconds',
+      'continuedBestSeconds',
+    );
+    final usage = profile['publicUsage'] is Map
+        ? jsonDecode(jsonEncode(profile['publicUsage']))
+        : null;
+    final epoch = AccountController.shared.session?.accountId == owner
+        ? AccountController.shared.progressEpoch
+        : '0';
     final next = _queue.then((_) async {
       try {
         await initialize();
@@ -131,6 +159,9 @@ class PlayerRegistry {
         final device = Map<String, dynamic>.from(_devices[owner]);
         device['sequence'] = ((device['sequence'] as num?)?.toInt() ?? 0) + 1;
         device['stats'] = stats;
+        device['usage'] = usage;
+        device['epoch'] = epoch;
+        device['active'] = active;
         _devices[owner] = device;
         // Store sequence before sending; never reuse it after a relaunch.
         await _secrets
@@ -140,9 +171,12 @@ class PlayerRegistry {
           'id': device['id'],
           'sequence': device['sequence'],
           'stats': stats,
+          if (usage != null) 'usage': usage,
+          'epoch': epoch,
+          'active': active,
         };
         await _prefs!.setString(_outboxKey, jsonEncode(_outbox));
-        unawaited(refresh());
+        unawaited(refresh(force: force));
       } catch (_) {
         /* Local progress has already been saved successfully. */
       }
@@ -167,6 +201,9 @@ class PlayerRegistry {
           'sequence': device['sequence'],
           'stats': stats,
           'linkAccountId': accountId,
+          if (device['usage'] is Map) 'usage': device['usage'],
+          'epoch': AccountController.shared.progressEpoch,
+          'active': true,
         };
         await _prefs!.setString(_outboxKey, jsonEncode(_outbox));
       } catch (_) {
@@ -177,6 +214,13 @@ class PlayerRegistry {
     await _queue;
     if (_upload != null) await _upload;
     await refresh(force: true);
+  }
+
+  Future<Map<String, dynamic>?> publicCredentials() async {
+    await initialize();
+    final device = _devices['guest'];
+    if (!_credentialsReady || device is! Map) return null;
+    return {'id': device['id'], 'secret': device['secret']};
   }
 
   Future<void> refresh({bool force = false}) {

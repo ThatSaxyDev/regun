@@ -67,6 +67,7 @@ class SoloudPlay {
         'aura_start.wav',
         'aura_end.wav',
         'hurt_player.wav',
+        'coinSound2.wav',
         'blast.wav',
         'upgrade_pulse.wav',
         'grenade_throw.wav',
@@ -151,7 +152,9 @@ class SoloudPlay {
           ? 100
           : assetPath.startsWith('impact_')
           ? 65
-          : assetPath == 'hit.wav' || assetPath.startsWith('coin')
+          : assetPath.startsWith('coin')
+          ? 150
+          : assetPath == 'hit.wav'
           ? 45
           : 20;
       if (now - (_lastPlayed[assetPath] ?? -1000) < limit) return;
@@ -208,6 +211,8 @@ class SoloudPlay {
             ? .25
             : assetPath.startsWith('reload_')
             ? .32
+            : assetPath.startsWith('coin')
+            ? .20
             : assetPath == 'hit.wav'
             ? .2
             : .5;

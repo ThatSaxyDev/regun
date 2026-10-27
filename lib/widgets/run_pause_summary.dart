@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -66,8 +67,8 @@ class RunPauseSummary extends StatelessWidget {
             'SURVIVED',
             '${state.survivalSeconds ~/ 60}:${(state.survivalSeconds % 60).toString().padLeft(2, '0')}',
           ),
-          _Stat('KILLS', '${state.kills}'),
-          _Stat('BOSSES DEFEATED', '${state.bosses}'),
+          _Stat('KILLS', formatNumber(state.kills)),
+          _Stat('BOSSES DEFEATED', formatNumber(state.bosses)),
           _Stat('HEALTH', '${state.health} / ${state.maxHealth}'),
           _Stat(
             'AMMO',
@@ -79,7 +80,8 @@ class RunPauseSummary extends StatelessWidget {
           _Stat(
             'LEVEL',
             '${state.currentLevel}',
-            note: '${state.xP} / ${state.noOfCoinsToUpgrade.floor()} XP',
+            note:
+                '${formatNumber(state.xP)} / ${formatNumber(state.noOfCoinsToUpgrade.floor())} XP',
           ),
         ],
       ),

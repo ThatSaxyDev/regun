@@ -1835,3 +1835,31 @@ Game analyzer clean, full suite780 passed/five skips; backend192 tests/typecheck
 build passed; disposable three-player transport passed all eight holds/departures
 and reconnect. Normal signed1.0.0+25 installed/launched on iPhone. Public backend
 rollout and physical/WAN visual/comfort acceptance remain pending.
+
+## 26 October — solo leaderboard foundation
+
+The first gated solo community-record slice spans game/API/admin: atomic owner-scoped run summaries, accepted pick counters, replay-safe private evidence, public score/profile DTOs, landscape Home/list/profile UI and authenticated exclude/restore review. See [implementation status](LEADERBOARD_IMPLEMENTATION.md) for exact scope, beta ceilings, tests and rollout gates. Scores remain device-reported; no server-verified solo mode or production rollout is claimed. Physical iPhone/WAN acceptance and public-scale projection work remain open. The creator rejected verbose profile annotations; keep player copy focused on scores, weapons and upgrades.
+
+## Automatic leaderboards (26 October 2026)
+
+Creator correction: Leaderboards includes every account and guest automatically, including existing cloud/device stats. Join/Withdraw is removed. All-player list → profile uses the landscape UI; guest linking removes duplicate rows without summing totals. Persistent settled weapon/upgrade usage and 30-second foreground presence reports feed the public allowlist. Older uncaptured usage stays empty. See [current implementation](LEADERBOARD_IMPLEMENTATION.md); earlier opt-in/scoped-board notes are historical.
+
+Verification: game795 passed/five skips, focused UI/outbox/registry12 passed, receipt-capacity scene passed; admin68, module195 and API36 plus compiled HTTP smoke passed. Analyzer clean. The corrected1.0.0+26 release was installed/launched on the network-connected iPhone. Backend deployment remains with the creator; physical comfort/performance was not measured.
+
+## Coin sound, leaderboard return visits and grouped numbers — 26 October
+
+Pickup audio now uses an octave-lowered, filtered cue at.16gain and a150ms repeat gate. Keep player volume/mute intact; XP and collection mechanics are unchanged. Original source/regeneration and listening reels are documented in `art/source/audio/README.md`. Leaderboard lists and public profiles reuse bounded in-memory public snapshots and silently refresh on return; first load and explicit refresh failures stay distinct. Disabled/removed public records clear their cache. Display-only comma grouping covers game counters, records, wallets/shop/result/pause/online and admin stats, economy, evidence and balance labels. Stored/API values and editable numeric input remain raw.
+
+Validation: full game798 passed/five skips; final layout/cache/results20 and economy/settlement7 checks passed after small final presentation changes; admin69 passed. Both analyzers clean. The regular1.0.0+26 game was installed and launched on the connected iPhone. See [evidence](validation/readability-2026-10-26/README.md); listening comfort remains for device review.
+
+## Player record presentation and history repair — 26 October
+
+Replaced the sparse profile layout with a compact identity header, selected tabs, aligned career rows and separate same-run build; Weapons use leased gameplay art and Upgrades use their existing glyphs. Large text stacks sections and preserves scrolling. Missing breakdowns are labeled history gaps. Native capture no longer discards known weapon/time/accepted picks from older continued saves; coverage2 recovers skipped settled summaries once. The API has equivalent validated recovery from available journal data; unknown history remains unknown. No new flag or database migration. See [evidence](validation/player-records-2026-10-26/README.md).
+
+The updated1.0.0+26 player-record build was installed and launched on the network-connected iPhone. API38 tests/build/compiled smoke and22 focused game checks passed. The broad game run passed799 tests/five skips, with the known random training spawn threshold then pinned and passing in the focused run. Identity gateway recovery remains undeployed.
+
+## Selected pickup sound — 27 October
+
+The creator selected the springier soft-pop candidate and requested clear but restrained pickup feedback. The shipping coin cue now matches that auditioned waveform, with.20 runtime gain and the existing150ms repeat gate; player volume/mute and pickup rewards are preserved. Earlier accepted audio is retained outside packaged assets. Selected-master installation and previews are reproducible through the coin audio tools. Analyzer and six focused checks passed; [evidence](validation/selected-pickup-2026-10-27/README.md).
+
+The selected pickup is now included in the regular1.0.0+26 release and installed on the paired iPhone. Automatic launch was blocked by the device lock; the creator must unlock/open Regun to listen. Packaged waveform hash matches the selected master. Native volume/feel is for the creator to hear in normal play.

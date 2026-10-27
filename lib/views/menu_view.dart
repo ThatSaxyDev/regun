@@ -1,3 +1,5 @@
+import 'package:regun/services/leaderboards.dart';
+import 'package:regun/views/leaderboard_view.dart';
 import 'package:regun/services/player_registry.dart';
 import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/game_notice.dart';
@@ -63,6 +65,7 @@ class _MenuViewState extends ConsumerState<MenuView>
     if (_foreground && (ModalRoute.of(context)?.isCurrent ?? false)) {
       unawaited(_online.refresh());
       unawaited(ref.read(accountProvider).sync());
+      unawaited(Leaderboards.shared.flush());
     }
   }
 
@@ -160,6 +163,7 @@ class _MenuViewState extends ConsumerState<MenuView>
     });
     // Background, optional, bounded: neither Home readiness nor local Play waits.
     unawaited(ref.read(accountProvider).sync());
+    unawaited(Leaderboards.shared.flush());
     if (LocalPreferences.shared.profile.tutorialComplete ||
         LocalPreferences.shared.profile.settledRuns.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -292,6 +296,7 @@ class _MenuViewState extends ConsumerState<MenuView>
                 unawaited(_inviteAfterPlay());
               }
             },
+            onLeaderboards: () => _open(const LeaderboardView()),
             onCollection: () => _open(const CollectionView()),
             onSettings: () =>
                 _open(const SettingsView(allowProgressReset: true)),

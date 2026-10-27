@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:regun/widgets/wallet_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,7 @@ class HomeMenu extends StatelessWidget {
     required this.onTraining,
     required this.onCollection,
     required this.onSettings,
+    this.onLeaderboards,
     this.onContinue,
     this.bestScore = 0,
     this.onlineAvailable = false,
@@ -28,13 +30,13 @@ class HomeMenu extends StatelessWidget {
   final bool ready, reducedMotion, onlineAvailable, onlineChecking;
   final int bestScore;
   final VoidCallback onPlay, onOnline, onTraining, onCollection, onSettings;
-  final VoidCallback? onContinue;
+  final VoidCallback? onContinue, onLeaderboards;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
       final portrait = box.maxHeight > box.maxWidth;
-      final compact = box.maxHeight < 360;
+      final compact = box.maxHeight < 440;
       final panelWidth = portrait
           ? 440.0
           : (box.maxWidth * .48).clamp(290.0, 470.0);
@@ -46,15 +48,15 @@ class HomeMenu extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
+            Text(
               'REGUN',
-              key: Key('home-title'),
+              key: const Key('home-title'),
               style: TextStyle(
                 fontFamily: FontFam.pressStart,
-                fontSize: 34,
+                fontSize: compact ? 24 : 34,
                 height: 1.3,
                 letterSpacing: 3,
-                color: Color(0xffeee5d4),
+                color: const Color(0xffeee5d4),
               ),
             ),
             const SizedBox(height: 6),
@@ -104,6 +106,13 @@ class HomeMenu extends StatelessWidget {
                   ? onOnline
                   : () => showOnlineComingSoon(context),
             ),
+            if (onLeaderboards != null) ...[
+              const SizedBox(height: 10),
+              _HomeAction(
+                label: 'Leaderboards',
+                onTap: ready ? onLeaderboards : null,
+              ),
+            ],
             SizedBox(height: compact ? 10 : 22),
             Row(
               children: [
@@ -137,7 +146,7 @@ class HomeMenu extends StatelessWidget {
       );
       // Large text deliberately switches to a scrollable composition rather than
       // shrinking touch targets or letting the title disappear behind a mask.
-      final scroll = portrait || box.maxHeight < 260 || scale > 1.25;
+      final scroll = portrait || box.maxHeight < 360 || scale > 1.25;
       return Stack(
         fit: StackFit.expand,
         children: [
@@ -199,7 +208,7 @@ class HomeMenu extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        bestScore > 0 ? 'BEST  $bestScore' : '',
+                        bestScore > 0 ? 'BEST  ${formatNumber(bestScore)}' : '',
                         style: const TextStyle(
                           fontFamily: FontFam.orbitron,
                           fontSize: 8,

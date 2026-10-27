@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:regun/widgets/wallet_bar.dart' show walletAmount;
 import 'package:regun/models/economy/armory_catalog.dart';
 import 'package:regun/services/economy/armory_repository.dart';
@@ -423,7 +424,8 @@ class _LoadoutViewState extends State<LoadoutView> {
       }
       if (profile.scrap < price) {
         setState(
-          () => _unlockIssue = '${price - profile.scrap} more Scrap needed.',
+          () => _unlockIssue =
+              '${formatNumber(price - profile.scrap)} more Scrap needed.',
         );
         return;
       }
@@ -432,7 +434,7 @@ class _LoadoutViewState extends State<LoadoutView> {
         eyebrow: 'RE-GUN / ARMORY',
         title: 'UNLOCK ${armoryWeapons[selected]!.title.toUpperCase()}?',
         message:
-            'Permanent weapon unlock for $price Scrap. ${profile.scrap - price} Scrap remaining.',
+            'Permanent weapon unlock for ${formatNumber(price)} Scrap. ${formatNumber(profile.scrap - price)} Scrap remaining.',
         action: 'Unlock / ${walletAmount(price)}',
       );
       if (!accepted ||

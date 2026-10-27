@@ -1,3 +1,4 @@
+import 'package:uuid/uuid.dart';
 import 'package:regun/presentation/freeze_focus.dart';
 import 'package:regun/presentation/boss_portal.dart';
 import 'package:regun/presentation/combat_status_art.dart';
@@ -139,6 +140,7 @@ class RegunGame extends FlameGame
   final RunStore runStore;
   final Map<String, dynamic>? resumeSnapshot;
   late String runId;
+  String _recordOwner = 'guest', _recordEpoch = '0';
   SoloRecovery recovery = SoloRecovery(owner: 'guest', startingScrap: 0);
   bool applicationActive = true;
   Future<Map<String, dynamic>> Function(Map<String, dynamic>)?
@@ -1212,8 +1214,10 @@ class RegunGame extends FlameGame
     confirmationHolding.value = false;
     upgradeArt.clear();
     statusArt.clear();
-    runId = DateTime.now().microsecondsSinceEpoch.toString();
+    runId = const Uuid().v4();
     _settled = false;
+    _recordOwner = preferences.profileOwner;
+    _recordEpoch = AccountController.shared.progressEpoch;
     recovery = SoloRecovery(
       owner: preferences.profileOwner,
       startingScrap: preferences.profile.scrap,
@@ -1349,6 +1353,8 @@ class RegunGame extends FlameGame
     return {
       'schema': 2,
       'recovery': recovery.toJson(),
+      'recordOwner': _recordOwner,
+      'recordEpoch': _recordEpoch,
       'weaponAccessVersion': 2,
       'id': runId,
       'loadout': loadout.toJson(),
@@ -1453,6 +1459,77 @@ class RegunGame extends FlameGame
     final settledId = runId;
     final state = gameState;
     final earned = scrapReward.total;
+    // Save the journal in the SAME owner-scoped profile commit as rewards.
+    // A crash/lost response cannot leave a public summary without settled totals.
+    final journal = preferences.profile.runRecords;
+    if (journal.length >= 100) {
+      final acknowledged = journal.entries
+          .where(
+            (e) => [
+              'accepted',
+              'pending_review',
+              'excluded',
+              'withdrawn',
+              'personal_only',
+            ].contains(e.value['status']),
+          )
+          .map((e) => e.key)
+          .toList();
+      for (final id in acknowledged.take(journal.length - 99)) {
+        journal.remove(id);
+      }
+    }
+    // Career usage must keep accumulating even when receipt storage is full.
+    final balance = gameNotifier.weaponPower.snapshot;
+    final Map<String, dynamic>? summary = balance == null
+        ? null
+        : {
+            'schema': 1,
+            'runId': runId,
+            'epoch': _recordEpoch,
+            'source': 'solo_reported',
+            'mechanics': 'solo-records-1',
+            'rules': 'solo1-${balance.hash.substring(0, 16)}',
+            'catalog': balance.documentCatalogId,
+            'balance': balance.hash,
+            'arena': loadout.arena.name,
+            'survivor': loadout.character.name,
+            'weapon': loadout.weapon.name,
+            'score': state.score,
+            'seconds': state.survivalSeconds,
+            'kills': state.kills,
+            'bosses': state.bosses,
+            'assisted': assisted,
+            'revived': recovery.continued,
+            'complete': gameNotifier.runStatistics.complete,
+            'picks': Map<String, int>.of(gameNotifier.runStatistics.picks),
+            'ranks': {
+              for (final e in state.ranks.entries)
+                if (e.value > 0) e.key.name: e.value,
+            },
+            'fusions': state.evolutions.toList(),
+            'support': Map<String, int>.of(gameNotifier.runStatistics.support),
+          };
+    if (journal.length < 100 || journal.containsKey(runId)) {
+      preferences.profile.recordQueueFull = false;
+      if (summary != null) {
+        journal.putIfAbsent(
+          runId,
+          () => {
+            'owner': _recordOwner,
+            'status':
+                _recordOwner == 'guest' ||
+                    recovery.continued ||
+                    !gameNotifier.runStatistics.complete
+                ? 'personal_only'
+                : 'local',
+            'summary': summary,
+          },
+        );
+      }
+    } else {
+      preferences.profile.recordQueueFull = true;
+    }
     newUnlocks = preferences.profile.settle(
       runId: runId,
       loadout: loadout,
@@ -1472,6 +1549,7 @@ class RegunGame extends FlameGame
       continued: recovery.continued,
       survivorProgress: gameNotifier.survivor.toJson(),
       dashes: dashCount,
+      trackedRun: summary,
     );
     if (!assisted && !recovery.continued) {
       await preferences.record(
@@ -1559,6 +1637,8 @@ class RegunGame extends FlameGame
       }
 
       runId = snapshot['id'] as String;
+      _recordOwner = snapshot['recordOwner'] as String? ?? 'guest';
+      _recordEpoch = snapshot['recordEpoch'] as String? ?? '0';
       random.state = snapshot['random'] as int;
       director.restore(Map<String, dynamic>.from(snapshot['director'] as Map));
       myPlayer.position.setFrom(

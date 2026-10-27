@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "runId": "11111111-2222-4333-8444-555555555555",
+  "epoch": "0",
+  "source": "solo_reported",
+  "rules": "solo1-36bef6761d9d5058",
+  "catalog": "867a3394cff4daeb9803e11ef09b23886d25b1c1462b75c0a915d1509e20e5c9",
+  "balance": "36bef6761d9d5058d5092c43b8526f28d5906bf8d7806b957d1a1ea0299c85d1",
+  "mechanics": "solo-records-1",
+  "arena": "breach",
+  "survivor": "rook",
+  "weapon": "shotgun",
+  "score": 1250,
+  "seconds": 120,
+  "kills": 35,
+  "bosses": 0,
+  "assisted": false,
+  "revived": false,
+  "complete": true,
+  "picks": {
+    "heavyLoad": 2
+  },
+  "ranks": {
+    "heavyLoad": 2
+  },
+  "fusions": [],
+  "support": {}
+}

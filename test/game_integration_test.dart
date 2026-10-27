@@ -269,6 +269,17 @@ void main() {
       await tester.runAsync(() async {
         game.gameOver();
         await game.leaveRun();
+        final journal = game.preferences.profile.runRecords[game.runId]!;
+        expect(journal['summary']['score'], game.gameState.score);
+        expect(journal['summary']['weapon'], game.loadout.weapon.name);
+        expect(
+          journal['summary']['picks'],
+          game.gameNotifier.runStatistics.picks,
+        );
+        final before = game.preferences.profile.totalKills;
+        await game.settleRun();
+        expect(game.preferences.profile.totalKills, before);
+        expect(game.preferences.profile.runRecords[game.runId], journal);
       });
       await tester.pump();
       await tester.pump(const Duration(seconds: 2));
@@ -347,6 +358,26 @@ void main() {
       expect(peakEnemies, lessThanOrEqualTo(game.director.populationLimit));
       expect(peakCoins, lessThanOrEqualTo(RegunGame.maxCoins));
       expect(game.world.children.whereType<EmptyComponent>(), isEmpty);
+      // Offline receipt capacity must never stop automatic career statistics.
+      final profile = game.preferences.profile;
+      final weapon = game.loadout.weapon.name;
+      final usageBefore = profile.publicUsage.weapons[weapon]?['runs'] ?? 0;
+      profile.runRecords
+        ..clear()
+        ..addAll({
+          for (var i = 0; i < 100; i++)
+            'pending-$i': {
+              'owner': 'account-test',
+              'status': 'local',
+              'summary': {},
+            },
+        });
+      await tester.runAsync(() => game.settleRun());
+      expect(profile.recordQueueFull, true);
+      expect(profile.runRecords.length, 100);
+      expect(profile.publicUsage.weapons[weapon]!['runs'], usageBefore + 1);
+      await tester.runAsync(() => game.settleRun());
+      expect(profile.publicUsage.weapons[weapon]!['runs'], usageBefore + 1);
       await tester.pumpWidget(const SizedBox.shrink());
       expect(tester.takeException(), isNull);
     },

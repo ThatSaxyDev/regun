@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:regun/presentation/upgrade_presentation.dart';
 import 'package:regun/widgets/support_thumbnail.dart';
 import 'package:regun/systems/support_rewards.dart';
@@ -461,7 +462,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
               ),
             ),
             const SizedBox(width: 18),
-            _readout('${state.kills}', 'KILLS'),
+            _readout(formatNumber(state.kills), 'KILLS'),
             const SizedBox(width: 12),
           ],
         ),
@@ -803,7 +804,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                       children: [
                         if (!widget.loadout.training) ...[
                           Text(
-                            'This run: +${_myGame.earnedScrap} Scrap',
+                            'This run: +${formatNumber(_myGame.earnedScrap)} Scrap',
                             style: const TextStyle(color: _brass, fontSize: 12),
                           ),
                           const SizedBox(height: 16),
@@ -1430,10 +1431,10 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           nextGoal: goal == null ? null : '${goal.title} / ${goal.detail}',
           record:
               '${_myGame.recovery.continued
-                  ? 'REVIVED BEST ${_myGame.preferences.profile.continuedBestScore}'
+                  ? 'REVIVED BEST ${formatNumber(_myGame.preferences.profile.continuedBestScore)}'
                   : _myGame.assisted
-                  ? 'ASSISTED BEST ${_myGame.preferences.profile.assistedBestScore}'
-                  : 'BEST ${_myGame.preferences.bestScore}'} / LONGEST ${runTime(_myGame.recovery.continued
+                  ? 'ASSISTED BEST ${formatNumber(_myGame.preferences.profile.assistedBestScore)}'
+                  : 'BEST ${formatNumber(_myGame.preferences.bestScore)}'} / LONGEST ${runTime(_myGame.recovery.continued
                   ? _myGame.preferences.profile.continuedBestSeconds
                   : _myGame.assisted
                   ? _myGame.preferences.profile.assistedBestSeconds

@@ -1,8 +1,16 @@
+import 'package:regun/models/player_usage.dart';
 import 'package:regun/models/boss_history.dart';
 import 'package:regun/models/economy/armory_catalog.dart';
 import 'package:regun/data/loadout.dart';
 
 class PlayerProfile {
+  PlayerUsage publicUsage = PlayerUsage();
+
+  /// Atomic settlement journal: totals and pending summary share one save.
+  /// Owner and epoch are captured at run start, never from a later sign-in.
+  final Map<String, Map<String, dynamic>> runRecords = {};
+  bool recordQueueFull = false;
+
   PlayerProfile({
     this.scrap = 0,
     Set<String>? ownedWeapons,
@@ -128,9 +136,11 @@ class PlayerProfile {
     bool continued = false,
     Map<String, dynamic> survivorProgress = const {},
     int dashes = 0,
+    Map<String, dynamic>? trackedRun,
   }) {
     if (loadout.training || settledRuns.contains(runId)) return {};
     settledRuns.add(runId);
+    if (trackedRun != null) publicUsage.record(trackedRun);
     for (final key in [
       'reloads',
       'grenadeKills',
@@ -234,6 +244,9 @@ class PlayerProfile {
 
   Map<String, dynamic> toJson() => {
     'schema': 3,
+    'runRecords': runRecords,
+    'publicUsage': publicUsage.toJson(),
+    'recordQueueFull': recordQueueFull,
     'weaponAccessVersion': 2,
     'ownedWeapons': ownedWeapons.toList(),
     'legacyWeaponClaims': legacyWeaponClaims.toList(),
@@ -335,6 +348,33 @@ class PlayerProfile {
           ? json['pinnedGoal'] as String
           : null,
     );
+    final records = json['runRecords'];
+    if (records is Map && records.length <= 100) {
+      for (final entry in records.entries) {
+        if (entry.key is String && entry.value is Map) {
+          final record = Map<String, dynamic>.from(entry.value as Map);
+          if (record['owner'] is String &&
+              record['summary'] is Map &&
+              record['summary']['runId'] == entry.key) {
+            profile.runRecords[entry.key as String] = record;
+          }
+        }
+      }
+    }
+    profile.publicUsage = PlayerUsage.read(json['publicUsage']);
+    final oldUsage = json['publicUsage'];
+    if (oldUsage == null || oldUsage is Map && oldUsage['coverage'] != 2) {
+      for (final entry in profile.runRecords.entries) {
+        if (profile.settledRuns.contains(entry.key) &&
+            entry.value['summary'] is Map &&
+            (oldUsage == null || entry.value['summary']['complete'] == false)) {
+          profile.publicUsage.record(
+            Map<String, dynamic>.from(entry.value['summary'] as Map),
+          );
+        }
+      }
+    }
+    profile.recordQueueFull = json['recordQueueFull'] == true;
     return profile;
   }
 }

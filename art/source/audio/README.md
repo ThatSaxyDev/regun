@@ -103,3 +103,21 @@ and low pressure layers, .28s duration/.62 normalized peak. Runtime SFX gain .42
 No additional provider recordings. The shared weapon manifest records the new
 hash; `tool/preview_frontier_audio.py` validates the cue and bounded rapid-fire
 mix at the updated launch/impact gains. Physical speaker listening remains open.
+
+## Softer coin pickup — 26 October 2026
+
+The creator rejected the loud, piercing repeated coin clink. `coin-pickup/original.wav` preserves the original bundled `assets/audio/coinSound2.wav` unchanged (existing project source; no new third-party licence claim). `python3 tool/soften_coin_audio.py` derives the shipping cue: octave-lowered pitch,90Hz high-pass,1200/1800Hz low-pass, restrained gain and short edge fades. Runtime gain is.16 (was.5), repeat gate150ms (was45ms); the136ms cue cannot stack continuously at the admitted rate. It is prewarmed with combat. Other sound groups, player SFX volume/mute and collection rewards remain unchanged.
+
+Original SHA256: `b885775a550469881549ce5df903bfa1b7507bf086cfe81cd972956ada4d0c7b`. Derived SHA256: `daf5c3e91d47e7d363387ce962de275430657ec2e33b9a0dcfbf4c3392da849b`. `python3 tool/preview_coin_audio.py` validates asset peak/band energy and writes old/new actual-gain dense-pickup reels plus metrics to `build/audio-review/coin-pickup`. The3kHz comparison uses cascaded two-pole high-pass filters; it is a band-energy approximation, not a brick-wall FFT. Speaker/headphone comfort still needs listening on device.
+
+## Pickup alternatives — 27 October 2026
+
+The creator likes the softened pickup and requested another sound direction to explore. The accepted cue is preserved unchanged in `coin-pickup/exploration-2026-10-27/accepted.wav`; the shipping asset remains unchanged. `python3 tool/explore_coin_audio.py` produces two original procedural alternatives: `soft-pop.wav` (rounded falling body/air texture) and `wood-tap.wav` (short dry resonances). Neither uses external samples. Cue peak and per-pickup energy stay below the accepted reference; preview reels use the actual.16 pickup gain and default.8 SFX setting. Each reel includes an isolated cue, spaced pickups and a150ms burst. Outputs and metrics are under `build/audio-review/coin-exploration-2026-10-27`. These are listening candidates, not a selected replacement or a phone installation.
+
+Soft-pop follow-up: `soft-pop-spring.wav` adds a small rounded rise/fall and restrained overtone for a springier variation. Regenerate with the same exploration script. Peak/per-pickup energy limits and actual-gain preview schedule are preserved; the shipping cue remains unchanged.
+
+## Selected soft pop — 27 October 2026
+
+The creator selected the springier soft pop, asking for clear pickup feedback without returning to the loud original clink. `coinSound2.wav` now exactly matches `exploration-2026-10-27/soft-pop-spring.wav` (SHA256 `d0efa516e5a5606bc8c15a9c3f25d4618862578d9fd94f7579c97f3754c8b085`). Runtime pickup gain is.20; the shorter/rounder cue's total per-pickup energy at that gain is about1dB below the preceding accepted soft clink at.16. The modest gain lift from the auditioned.16 preserves presence. The150ms overlap gate, player SFX settings/mute and other sounds remain unchanged. The125ms cue leaves a short gap even at the admitted burst rate. Native loudness/readability remains for listening.
+
+`python3 tool/explore_coin_audio.py` regenerates the original procedural candidate/master and playback reels without modifying shipping assets. `python3 tool/soften_coin_audio.py` now installs the selected, hash-checked master rather than restoring the earlier softened clink. `python3 tool/preview_coin_audio.py` uses the actual.20 runtime gain. Previous accepted cue and alternatives remain outside packaged assets for comparison.

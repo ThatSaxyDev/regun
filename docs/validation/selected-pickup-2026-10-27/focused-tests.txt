@@ -1,0 +1,9 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/local_fire_feedback_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/local_fire_feedback_test.dart: first trigger cues now and matching server confirmation never doubles it
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/local_fire_feedback_test.dart: empty, reload, cooldown and disabled controls never predict firing
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/local_fire_feedback_test.dart: pending cue bounds repeated taps, expires and resets across epochs
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/settings_navigation_test.dart: home settings opens persistent controls without starting a match
+00:01 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+00:01 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+DENSE SCENE: simulatedSeconds=180 peakEnemies=34 peakCoins=0 retained=54
+00:05 +6: All tests passed!

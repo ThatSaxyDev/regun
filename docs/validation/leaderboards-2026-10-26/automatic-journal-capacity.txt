@@ -1,0 +1,4 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart
+00:00 +0: native game scene mounts, pauses for upgrades, clamps and restarts
+DENSE SCENE: simulatedSeconds=180 peakEnemies=30 peakCoins=1 retained=58
+00:04 +1: All tests passed!

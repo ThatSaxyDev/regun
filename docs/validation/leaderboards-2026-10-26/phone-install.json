@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "build": "26",
+  "bundleId": "dev.kiishi.regun",
+  "transport": "localNetwork",
+  "signedReleaseBuild": true,
+  "installed": true,
+  "launched": true,
+  "processObservedRunning": true,
+  "dataCleared": false,
+  "serverDeployed": false,
+  "executableSha256": "25f0a2f57fa7be127b6016695fd7d4f88a477d9453d7a6f72e125548f8ca9635"
+}

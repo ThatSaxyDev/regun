@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/data/weapon_power_balance.dart';
@@ -47,7 +48,7 @@ class _RankPathPreviewState extends State<RankPathPreview> {
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Text(
-              '${['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][rank]} / ${widget.state.rankValues(p, rank, widget.weapon, widget.character, widget.power).entries.map((e) => '${e.key} ${e.value.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '')}').join(' / ')}',
+              '${['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][rank]} / ${widget.state.rankValues(p, rank, widget.weapon, widget.character, widget.power).entries.map((e) => '${e.key} ${groupNumberText(e.value.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), ''))}').join(' / ')}',
               style: style,
             ),
           ),

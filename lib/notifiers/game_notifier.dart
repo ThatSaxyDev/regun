@@ -1,3 +1,4 @@
+import 'package:regun/models/run_statistics.dart';
 import 'package:regun/models/accepted_upgrade.dart';
 import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/systems/rank_effect_values.dart';
@@ -21,6 +22,7 @@ final gameNotifierProvider = NotifierProvider<GameNotifier, GameState>(
 );
 
 class GameNotifier extends Notifier<GameState> {
+  RunStatistics runStatistics = RunStatistics();
   SurvivorRuntime survivor = SurvivorRuntime();
   WeaponPowerBalance weaponPower = WeaponPowerBalance.current;
   int buildBalance = 2;
@@ -57,6 +59,8 @@ class GameNotifier extends Notifier<GameState> {
   void _publishReward(String id, GameState before, {int? priorTier}) {
     final p = PowerUp.values.where((p) => p.name == id).firstOrNull;
     final card = SupportCard.read(id);
+    if (p != null && p != PowerUp.salvage) runStatistics.picked(id);
+    if (card != null) runStatistics.supported(id);
     Map<String, num> values(GameState state) => p == null
         ? const {}
         : state.rankValues(p, state.rank(p), weapon, character, weaponPower);
@@ -119,6 +123,7 @@ class GameNotifier extends Notifier<GameState> {
 
   void resetRun({Loadout loadout = const Loadout(), int seed = 1}) {
     cancelPendingActions();
+    runStatistics = RunStatistics();
     _rewardGeneration++;
     guardAbsorptions = guardRecharges = 0;
     recoveredHealth = 0;
@@ -206,6 +211,7 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   Map<String, dynamic> checkpoint() => {
+    'runStatistics': runStatistics.toJson(),
     'xpCurve': 3,
     'buildBalance': buildBalance,
     'offerPolicy': _offerPolicy,
@@ -244,6 +250,7 @@ class GameNotifier extends Notifier<GameState> {
     recoveredHealth = 0;
     _rewardSerial = 0;
     acceptedUpgrade.value = null;
+    runStatistics = RunStatistics.read(snapshot['runStatistics']);
     support = SupportProgress.restore(snapshot['supportProgress']);
     offerSource =
         snapshot['offerSource'] as String? ??

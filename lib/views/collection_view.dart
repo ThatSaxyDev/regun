@@ -1,3 +1,4 @@
+import 'package:regun/utils/format_number.dart';
 import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/services/balance_repository.dart';
 import 'package:regun/services/economy/armory_repository.dart';
@@ -44,7 +45,7 @@ class _CollectionViewState extends State<CollectionView> {
       rankCurves: power.rankCurves,
       upgradeStrengths: power.upgradeStrengths,
     );
-    return 'Example / ${weapon.title} / Rook\n${List.generate(state.rankLimit(p), (i) => '${i + 1} / ${state.rankValues(p, i + 1, weapon, CharacterType.rook, power).entries.map((e) => '${e.key} ${e.value.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '')}').join(' / ')}').join('\n')}';
+    return 'Example / ${weapon.title} / Rook\n${List.generate(state.rankLimit(p), (i) => '${i + 1} / ${state.rankValues(p, i + 1, weapon, CharacterType.rook, power).entries.map((e) => '${e.key} ${groupNumberText(e.value.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), ''))}').join(' / ')}').join('\n')}';
   }
 
   int tab = 0;
@@ -192,7 +193,7 @@ class _CollectionViewState extends State<CollectionView> {
             3 => [
               _card(
                 'FIELD RECORD',
-                '${profile.settledRuns.length} runs / ${profile.totalBossVictories} boss victories / ${profile.totalKills} kills\nCombat upgrades are earned during each run. Scrap buys appearances.',
+                '${formatNumber(profile.settledRuns.length)} runs / ${formatNumber(profile.totalBossVictories)} boss victories / ${formatNumber(profile.totalKills)} kills\nCombat upgrades are earned during each run. Scrap buys appearances.',
                 width,
               ),
               _card(
@@ -382,9 +383,9 @@ class _CollectionViewState extends State<CollectionView> {
     return switch (id) {
       'burstRifle' =>
         '${LocalPreferences.shared.profile.totalBossVictories} / 3 bosses',
-      'scrapper' => '${profile.totalKills} / 500 KILLS',
-      'scorpionCharm' => '${profile.scorpionKills} / 1000',
-      'eliteHunter' => '${profile.eliteKills} / 100 ELITES',
+      'scrapper' => '${formatNumber(profile.totalKills)} / 500 KILLS',
+      'scorpionCharm' => '${formatNumber(profile.scorpionKills)} / 1,000',
+      'eliteHunter' => '${formatNumber(profile.eliteKills)} / 100 ELITES',
       'engineer' =>
         '${profile.fusions.where((f) => !['kilnPact', 'groundWire'].contains(f)).length} / 6 FUSIONS',
       'eightFusions' => '${profile.fusions.length} / 8 FUSIONS',
@@ -395,7 +396,7 @@ class _CollectionViewState extends State<CollectionView> {
           when WeaponType.values.any(
             (w) => w.name == id && w.victoryRequirement > 0,
           ) =>
-        '${profile.totalBossVictories} / ${WeaponType.values.byName(id).victoryRequirement} BOSSES',
+        '${formatNumber(profile.totalBossVictories)} / ${WeaponType.values.byName(id).victoryRequirement} BOSSES',
       _ => 'IN PROGRESS',
     };
   }
@@ -464,7 +465,7 @@ class _CollectionViewState extends State<CollectionView> {
       _name(id),
       !shopItem
           ? 'Challenge reward'
-          : '${shopDescriptions[id]}\n${price == null ? 'Not available' : '$price Scrap / ${profile.scrap} available'}',
+          : '${shopDescriptions[id]}\n${price == null ? 'Not available' : '${formatNumber(price)} Scrap / ${formatNumber(profile.scrap)} available'}',
       width,
       badge: selected
           ? 'EQUIPPED'
@@ -535,7 +536,7 @@ class _CollectionViewState extends State<CollectionView> {
             eyebrow: 'RE-GUN / FIELD FINISH',
             title: _name(id),
             message:
-                '$price Scrap / Appearance only. Owned finishes remain available offline.',
+                '${formatNumber(price)} Scrap / Appearance only. Owned finishes remain available offline.',
             action: 'Buy',
             cancel: 'Keep browsing',
           );

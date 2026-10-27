@@ -1,0 +1,57 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "process",
+      "launch",
+      "--device",
+      "00008101-000248EC1450001E",
+      "--terminate-existing",
+      "dev.kiishi.regun",
+      "--json-output",
+      "/tmp/regun-auto-phone-launch.json"
+    ],
+    "commandType" : "devicectl.device.process.launch",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "success",
+    "version" : "642.16"
+  },
+  "result" : {
+    "deviceIdentifier" : "B1CB7226-4861-530C-943A-84DC9B0D0E12",
+    "launchOptions" : {
+      "activatedWhenStarted" : true,
+      "arguments" : [
+
+      ],
+      "environmentVariables" : {
+        "TERM" : "dumb"
+      },
+      "platformSpecificOptions" : {
+
+      },
+      "startStopped" : false,
+      "terminateExistingInstances" : true,
+      "user" : {
+        "active" : true
+      }
+    },
+    "process" : {
+      "auditToken" : [
+        4294967295,
+        501,
+        501,
+        501,
+        501,
+        707,
+        0,
+        1968
+      ],
+      "executable" : "file:///private/var/containers/Bundle/Application/BDC8841F-C7FC-4489-899C-F62F8B74C101/Runner.app/Runner",
+      "processIdentifier" : 707
+    }
+  }
+}

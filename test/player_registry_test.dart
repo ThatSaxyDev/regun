@@ -91,4 +91,42 @@ void main() {
       expect(jsonDecode(prefs.getString('regun.stats.outbox.v1')!), isEmpty);
     },
   );
+  test('automatic guest report includes presence and captured usage', () async {
+    final packets = <Map<String, dynamic>>[];
+    final registry = PlayerRegistry(
+      secrets: Secrets(),
+      endpoint: Uri.parse('https://example.test'),
+      client: () => MockClient((request) async {
+        packets.add(jsonDecode(request.body) as Map<String, dynamic>);
+        return http.Response('{"ok":true}', 200);
+      }),
+    );
+    await registry.record(
+      'guest',
+      {
+        'bestScore': 50,
+        'assistedBestScore': 100,
+        'continuedBestScore': 75,
+        'publicUsage': {
+          'schema': 1,
+          'weapons': {
+            'carbine': {'runs': 1, 'seconds': 10, 'bestScore': 100},
+          },
+          'upgrades': {},
+          'fusions': {},
+          'support': {},
+        },
+      },
+      force: true,
+      active: false,
+    );
+    await registry.refresh(force: true);
+    expect(packets.last['active'], false);
+    expect(packets.last['stats']['bestScore'], 100);
+    expect(packets.last['usage']['weapons']['carbine']['runs'], 1);
+    expect(packets.last['epoch'], '0');
+    final credentials = await registry.publicCredentials();
+    expect(credentials!['id'], packets.last['id']);
+    expect(credentials['secret'], packets.last['secret']);
+  });
 }

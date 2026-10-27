@@ -1,3 +1,4 @@
+import 'package:regun/models/run_statistics.dart';
 import 'package:regun/models/accepted_upgrade.dart';
 import 'package:regun/systems/support_runtime.dart';
 import 'package:regun/systems/support_rewards.dart';
@@ -19,6 +20,7 @@ import 'package:regun/notifiers/game_notifier.dart';
 class RunCheckpoint {
   static bool valid(Map<String, dynamic> map) {
     try {
+      RunStatistics.read(map['runStatistics']);
       final opening = (map['director'] as Map?)?['openingBossWins'];
       if (opening != null && !BossHistory.valid(opening)) {
         return false;

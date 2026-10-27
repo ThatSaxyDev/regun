@@ -284,6 +284,8 @@ void main() {
         game.setTrainingPressure(TrainingPressure.light);
         await advance(game, 1);
         expect(game.runtimeCounts['enemies'], 0);
+        // Keep this pressure-recovery assertion independent of spawn-candidate luck.
+        game.random.state = 61;
         game.practiceBoss(BossKind.demon);
         await game.ready();
         await advance(game, 10);
