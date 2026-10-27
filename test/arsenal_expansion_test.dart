@@ -1,3 +1,5 @@
+import 'package:regun/models/live_balance.dart';
+import 'package:regun/services/balance_repository.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
 import 'package:regun/data/weapon_power_balance.dart';
@@ -216,6 +218,69 @@ void main() {
     game.gameNotifier.playGame();
     game.gameNotifier.applyPowerUp(power, offerId: game.gameState.offerId);
   }
+
+  testWidgets(
+    'edited special behavior survives active weapon checkpoints at supported extremes',
+    (tester) async {
+      final previous = BalanceRepository.shared.current;
+      addTearDown(() => BalanceRepository.shared.current = previous);
+      final specs =
+          jsonDecode(
+                File('lib/data/weapon_behaviors.json').readAsStringSync(),
+              )['fields']
+              as List;
+      for (final limit in ['minimum', 'maximum']) {
+        final values = {
+          ...LiveBalance.bundled.values,
+          for (final spec in specs)
+            'effects.${(spec['weapon'] as String).toLowerCase()}.${spec['key']}':
+                spec[limit] as num,
+        };
+        BalanceRepository.shared.current = LiveBalance.create(23, values);
+        for (final weapon in [
+          WeaponType.rivetDriver,
+          WeaponType.frostShotgun,
+          WeaponType.scrapMortar,
+          WeaponType.sporeLobber,
+          WeaponType.longwatchSniper,
+          WeaponType.anchorEngine,
+          WeaponType.mourningBell,
+          WeaponType.faultlineDriver,
+          WeaponType.houndrack,
+          WeaponType.stormOrb,
+          WeaponType.ringCaster,
+        ]) {
+          final game = await mount(tester, weapon, _Audio());
+          await tester.runAsync(() async {
+            game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+            game.world.add(
+              _PullTarget(game.myPlayer.position + Vector2(180, 0)),
+            );
+            await game.ready();
+            await advance(game, .8);
+            final saved = game.arsenal!.checkpoint();
+            expect(
+              () => ArsenalSystem.validate(
+                saved,
+                weapon,
+                power: game.gameNotifier.weaponPower,
+              ),
+              returnsNormally,
+              reason: '${weapon.name} $limit',
+            );
+            game.arsenal!.restore(saved);
+            expect(
+              game.arsenal!.checkpoint(),
+              saved,
+              reason: '${weapon.name} $limit restore',
+            );
+          });
+          await tester.pumpWidget(const SizedBox());
+          await tester.pump();
+        }
+      }
+    },
+  );
 
   testWidgets(
     'new Pump blast kills a fresh close Mummy without extra pellets',

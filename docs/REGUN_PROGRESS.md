@@ -1863,3 +1863,12 @@ The updated1.0.0+26 player-record build was installed and launched on the networ
 The creator selected the springier soft-pop candidate and requested clear but restrained pickup feedback. The shipping coin cue now matches that auditioned waveform, with.20 runtime gain and the existing150ms repeat gate; player volume/mute and pickup rewards are preserved. Earlier accepted audio is retained outside packaged assets. Selected-master installation and previews are reproducible through the coin audio tools. Analyzer and six focused checks passed; [evidence](validation/selected-pickup-2026-10-27/README.md).
 
 The selected pickup is now included in the regular1.0.0+26 release and installed on the paired iPhone. Automatic launch was blocked by the device lock; the creator must unlock/open Regun to listen. Packaged waveform hash matches the selected master. Native volume/feel is for the creator to hear in normal play.
+
+
+## Weapon tuning and recoverable admin editing — 27 October
+
+Audited all24 weapons across native combat, admin catalogue/editor, preview API and hosted combat. Added93 pinned behavior controls (126 total effect fields;461 catalogue fields) including Ring Caster containment, Houndrack guidance/motor/splash and Storm Orb pulse/body behavior. Old catalogues/digests remain readable; immutable missing-field fallbacks preserve old runs. Checkpoint bounds follow pinned fuse/flight/freeze/sniper/committed attack settings. Hosted admission is unchanged. Admin links specials to each weapon, supports scoped reset/undo, and stages I–VIII support progressions with last-valid recovery and archived migration. See [audit and deployment order](WEAPON_TUNING_AUDIT.md). No production balance was changed.
+
+Validation: game analyzer clean,806 passed/five intentional skips; admin analyzer clean,86 passed plus17 final recovery/responsive checks; server199 passed and module build passed; identity38 passed,build and compiled smoke passed. Admin iOS/Mac/web release builds passed. Physical balance and interaction approval remain open.
+
+Release builds also passed for game iOS. Both updated private apps were installed on the paired iPhone; admin launched successfully. No server deployment or live balance publication was performed.

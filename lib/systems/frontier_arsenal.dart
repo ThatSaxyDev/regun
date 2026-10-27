@@ -105,7 +105,14 @@ class FrontierArsenal {
       : ring!.radius /
             (ring!.trap
                 ? ring!.captureRadius
-                : ring!.maximum * (ring!.gunLaunched ? .35 : 1));
+                : ring!.maximum *
+                      (ring!.gunLaunched
+                          ? 1 -
+                                balance.behavior(
+                                  WeaponType.ringCaster,
+                                  'deliveryShare',
+                                )
+                          : 1));
 
   List<CombatEnemy>? _stepTargets;
   List<CombatEnemy> get targets => _stepTargets ?? collectTargets();
@@ -228,8 +235,8 @@ class FrontierArsenal {
         }
       }
       final acceleration = weapon == WeaponType.houndrack
-          ? .3 +
-                .7 *
+          ? balance.behavior(weapon, 'launchRatio') +
+                (1 - balance.behavior(weapon, 'launchRatio')) *
                     math.pow(
                       (f.age / balance.rocketAcceleration).clamp(0.0, 1.0),
                       1.4,
@@ -247,7 +254,10 @@ class FrontierArsenal {
       for (final e in targets) {
         if (e.combatHealth.isDead) continue;
         final radius =
-            game.crowdRadius(e) + (weapon == WeaponType.houndrack ? 4 : 13);
+            game.crowdRadius(e) +
+            (weapon == WeaponType.houndrack
+                ? 4
+                : balance.behavior(weapon, 'bodyRadius'));
         final hit = BulletComponent.contactDistance(
           e.position,
           before,
@@ -306,7 +316,10 @@ class FrontierArsenal {
           f.range - f.travelled <= .5 ||
           distance <= 1e-8 ||
           before.distanceToSquared(end) < 1e-12 ||
-          f.age >= (weapon == WeaponType.stormOrb ? balance.orbLifetime : 3.0);
+          f.age >=
+              (weapon == WeaponType.stormOrb
+                  ? balance.orbLifetime
+                  : balance.behavior(weapon, 'flightLifetime'));
       if (!stopped) continue;
       // Mark terminal before damage callbacks can retire actors or save the run.
       f.spent = true;
@@ -412,7 +425,9 @@ class FrontierArsenal {
     final previousPhaseTime = r.phaseTime;
     r.phaseTime += dt;
     final progress = (r.age / balance.ringExpand).clamp(0.0, 1.0);
-    final maximumRadius = r.maximum * (r.gunLaunched ? .35 : 1);
+    final maximumRadius =
+        r.maximum *
+        (r.gunLaunched ? 1 - balance.behavior(weapon, 'deliveryShare') : 1);
     final startRadius = r.gunLaunched ? 8.0 : 24.0;
     r.radius = r.returning
         ? math.max(0, r.returnFrom * (1 - r.phaseTime / balance.ringRetract))
@@ -434,7 +449,11 @@ class FrontierArsenal {
       r.center.setFrom(
         system.clip(
           r.origin,
-          r.origin + r.heading * (r.maximum * .65 * progress),
+          r.origin +
+              r.heading *
+                  (r.maximum *
+                      balance.behavior(weapon, 'deliveryShare') *
+                      progress),
         ),
       );
     }
@@ -517,7 +536,11 @@ class FrontierArsenal {
       r.center.setFrom(
         system.clip(
           r.origin,
-          r.origin + r.heading * (r.maximum * .65 * progress),
+          r.origin +
+              r.heading *
+                  (r.maximum *
+                      balance.behavior(weapon, 'deliveryShare') *
+                      progress),
         ),
       );
       r.radius = r.startRadius + (r.captureRadius - r.startRadius) * progress;
@@ -547,7 +570,10 @@ class FrontierArsenal {
       if (!r.captured.contains(e.combatId) || e.combatHealth.isDead) continue;
       if (!e.isBoss && e.impactResponse > 0) {
         final delta = r.center - e.position;
-        final distance = math.min(delta.length, 260 * dt * e.impactResponse);
+        final distance = math.min(
+          delta.length,
+          balance.behavior(weapon, 'pullSpeed') * dt * e.impactResponse,
+        );
         if (distance > .001) {
           game.moveTo(
             e,

@@ -23,7 +23,8 @@ class SupportCard {
   final String mount;
   String get id =>
       'support:${family.name}:$tier:${family == SupportFamily.sentry ? mount : 'field'}';
-  String get title => family == SupportFamily.aura ? 'Aura Salad' : 'Sentry Gun';
+  String get title =>
+      family == SupportFamily.aura ? 'Aura Salad' : 'Sentry Gun';
   String get rankLabel => supportTierLabels[tier];
   String description(Map<String, num> values) {
     final c = SupportConfig(values);
@@ -32,7 +33,7 @@ class SupportCard {
     if (family == SupportFamily.aura) {
       return '${c.auraLife(tier).round()}s moving field. ${number(c.auraDamage(tier) / c.tick)} damage/s per enemy · ${c.auraRadius(tier).round()} radius.';
     }
-    return '${mount == 'carbine' ? 'Carbine' : 'Three-round burst'} mount. ${number(c.weapon(mount, 'damage', mount == 'carbine' ? .9 : 1.25) * c.multiplier(tier))} damage/round · ${c.sentryLife(tier).round()}s battery · unlimited ammo · ${c.incoming}s incoming.';
+    return '${mount == 'carbine' ? 'Carbine' : 'Burst'} mount. ${number(c.weapon(mount, 'damage', mount == 'carbine' ? .9 : 1.25) * c.multiplier(tier))} damage/round · ${c.sentryLife(tier).round()}s battery · unlimited ammo · ${c.incoming}s incoming.';
   }
 
   static SupportCard? read(String id) {
@@ -99,6 +100,13 @@ class SupportConfig {
   );
   double weapon(String mount, String key, double fallback) =>
       (values['weapons.$mount.$key'] ?? fallback).toDouble();
+  double behavior(String mount, String key, double fallback) =>
+      (values['effects.${mount.toLowerCase()}.$key'] ?? fallback).toDouble();
+  double get burstPeriod => max(
+    weapon('burstRifle', 'cadence', .6),
+    behavior('burstRifle', 'burstRounds', 3) *
+        behavior('burstRifle', 'burstSpacing', .1),
+  );
   double auraLife(int t) =>
       _rank('aura', 'life', t, [0, 18, 22, 26, 28, 30, 32, 34, 36], 2, 60);
   double auraRadius(int t) => _rank(
@@ -299,8 +307,12 @@ List<Map<String, num>> supportProjection(
           'fireOnlyDps':
               c.weapon(mount, 'damage', mount == 'carbine' ? .9 : 1.25) *
               c.multiplier(t) *
-              (mount == 'carbine' ? 1 : 3) /
-              c.weapon(mount, 'cadence', mount == 'carbine' ? .1 : .6),
+              (mount == 'carbine'
+                  ? 1
+                  : c.behavior('burstRifle', 'burstRounds', 3)) /
+              (mount == 'carbine'
+                  ? c.weapon(mount, 'cadence', .1)
+                  : c.burstPeriod),
         },
   ];
 }

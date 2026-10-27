@@ -125,7 +125,7 @@ class SupportUnit {
     if (u.ammo < -1 ||
         u.ammo > 100 ||
         u.burst < 0 ||
-        u.burst > 2 ||
+        u.burst > 4 ||
         (u.target?.length ?? 0) > 120 ||
         (card.family == SupportFamily.sentry &&
             (u.landed !=
@@ -306,6 +306,9 @@ class SupportRuntime {
       throw const FormatException('Invalid support capacity');
     }
     for (final u in units) {
+      if (u.burst > config.behavior('burstRifle', 'burstRounds', 3) - 1) {
+        throw const FormatException('Invalid support burst');
+      }
       final maxLife = u.card.family == SupportFamily.aura
           ? config.auraLife(u.card.tier)
           : config.sentryLife(u.card.tier);
@@ -568,12 +571,12 @@ class SupportRuntime {
     cue(u, 'fire');
     if (u.card.mount == 'burstRifle') {
       if (u.burst == 0) {
-        u.burst = 2;
-        u.burstWait = c.weapon(u.card.mount, 'cadence', .6);
+        u.burst = c.behavior('burstRifle', 'burstRounds', 3).toInt() - 1;
+        u.burstWait = c.burstPeriod;
       } else {
         u.burst--;
       }
-      u.shot = .1;
+      u.shot = c.behavior('burstRifle', 'burstSpacing', .1);
     } else {
       u.shot = c.weapon(u.card.mount, 'cadence', .1);
     }

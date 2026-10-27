@@ -93,6 +93,7 @@ class EndgameVfx {
     bool reducedMotion,
     bool Function(Offset, Offset) clear, {
     bool echo = false,
+    double coneDegrees = 35,
   }) {
     final p = progress.clamp(0.0, 1.0);
     if (p >= 1) return;
@@ -107,7 +108,7 @@ class EndgameVfx {
             ? .68 + .28 * p
             : .16 + .80 * (1 - math.pow(1 - p, 2)));
     final angle = math.atan2(direction.dy, direction.dx);
-    const halfAngle = 35 * math.pi / 180;
+    final halfAngle = coneDegrees * math.pi / 180;
     final count = (reach * halfAngle * 2 / 5).ceil().clamp(12, 110);
     Offset point(double a, double radius) {
       final raw = origin + Offset(math.cos(a), math.sin(a)) * radius;
@@ -172,7 +173,7 @@ class EndgameVfx {
     Offset to,
     double progress,
     ColorFilter grade,
-    bool reducedMotion,
+    bool reducedMotion, {double radius = 42}
   ) {
     final delta = to - from,
         length = delta.distance,
@@ -181,7 +182,7 @@ class EndgameVfx {
     canvas.save();
     canvas.translate(from.dx, from.dy);
     canvas.rotate(math.atan2(delta.dy, delta.dx));
-    canvas.clipRect(Rect.fromLTRB(-1, -42, length + 1, 42));
+    canvas.clipRect(Rect.fromLTRB(-1, -radius, length + 1, radius));
     for (var i = 0; i < 5; i++) {
       final x = length * (i + .5) / 5;
       final lift = reducedMotion ? 0.0 : math.sin(p * math.pi) * 12;
@@ -190,7 +191,7 @@ class EndgameVfx {
         1,
         Offset(x, 0),
         length / 4.4,
-        height: 74,
+        height: 74 * radius / 42,
         alpha: (1 - p) * .8,
         ambient: grade,
       );
@@ -199,7 +200,7 @@ class EndgameVfx {
         0,
         Offset(x, -lift),
         length / 4.0,
-        height: 66,
+        height: 66 * radius / 42,
         alpha: (1 - p) * .86,
         ambient: grade,
       );

@@ -179,9 +179,11 @@ class CombatSystem {
         _chainBudget--;
         final normalCount = standard
             ? max(
-                1,
+                innate ? 0 : 1,
                 (innate
-                        ? 2
+                        ? game.gameNotifier.weaponPower
+                              .behavior(WeaponType.arcCaster, 'chainJumps')
+                              .toInt()
                         : game.gameNotifier.buildBalance >= 2
                         ? 1
                         : 0) +
@@ -208,7 +210,12 @@ class CombatSystem {
             excluding: visited,
             range: coilJump
                 ? 200
-                : (innate ? 240 : 170) +
+                : (innate
+                          ? game.gameNotifier.weaponPower.behavior(
+                              WeaponType.arcCaster,
+                              'chainRange',
+                            )
+                          : 170) +
                       state.countRank(PowerUp.conductiveCore) * 55,
           );
           if (target == null) {
@@ -221,7 +228,13 @@ class CombatSystem {
           visited.add(target);
           final retention = min(
             .92,
-            (innate ? .85 : .65) + .02 * effect(PowerUp.faradayReserve),
+            (innate
+                    ? game.gameNotifier.weaponPower.behavior(
+                        WeaponType.arcCaster,
+                        'chainRetention',
+                      )
+                    : .65) +
+                .02 * effect(PowerUp.faradayReserve),
           );
           final accepted = hit(
             target,

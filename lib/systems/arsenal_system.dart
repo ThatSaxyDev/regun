@@ -114,14 +114,23 @@ class ArsenalSystem {
       patches = <SporePatch>[];
   final _procAt = <int, double>{};
   final flame = FlameFlow();
-  final sniperSway = SniperSway();
+  late final sniperSway = SniperSway(
+    minimumDegrees: _b('swayStart', WeaponType.longwatchSniper),
+    maximumDegrees: _b('swayMax', WeaponType.longwatchSniper),
+    buildTime: _b('swayBuildTime', WeaponType.longwatchSniper),
+    recoveryRate: _b('swayRecovery', WeaponType.longwatchSniper),
+  );
   double cooldown = 0, charge = 0, spool = 0, clock = 0;
   double _railReleaseCooldown = 0;
   double sustainedFire = 0;
   final muzzleJitter = Vector2.zero();
+  double _b(String key, [WeaponType? type]) =>
+      balance.behavior(type ?? weapon, key);
   double get beltCadence =>
       balance.cadence(weapon) *
-      (1 + (.040 / .085 - 1) * (sustainedFire / 8).clamp(0.0, 1.0));
+      (1 +
+          (_b('fullSpeedRatio') - 1) *
+              (sustainedFire / _b('rampTime')).clamp(0.0, 1.0));
   double _idle = 0, _cooling = 0, _patchTick = 0;
   int nextAttack = 1;
   final _releaseContexts = <int, (int, double)>{};
@@ -159,9 +168,9 @@ class ArsenalSystem {
       : weapon == WeaponType.twinVerdict
       ? (endgame.brandReady ? 1 : 0)
       : weapon == WeaponType.beltRepeater
-      ? spool / .4
+      ? spool / _b('spinup')
       : weapon == WeaponType.railLance
-      ? charge / RailLanceTiming.chargeSeconds
+      ? charge / _b('chargeTime')
       : weapon == WeaponType.prismCutter
       ? (state.maxBullets - state.noOfBullets) / state.maxBullets
       : 0;
@@ -251,7 +260,11 @@ class ArsenalSystem {
 
   void _railFired() {
     charge = 0;
-    cooldown = RailLanceTiming.recovery(balance.cadence(weapon), _trigger);
+    cooldown = RailLanceTiming.recovery(
+      balance.cadence(weapon),
+      _trigger,
+      chargeTime: _b('chargeTime'),
+    );
     // A release skips aiming time, never the interval between two shots.
     _railReleaseCooldown = RailLanceTiming.cycle(
       balance.cadence(weapon),
@@ -289,14 +302,14 @@ class ArsenalSystem {
   int get pelletCount => !weapon.supportsScatter
       ? 1
       : weapon == WeaponType.cycloneBreacher
-      ? 5 +
+      ? _b('pellets').toInt() +
             math.min(
                   2,
                   state.countRank(PowerUp.numberOfBulletsPerShotIncrease),
                 ) *
                 2
       : weapon == WeaponType.frostShotgun
-      ? 3 +
+      ? _b('pellets').toInt() +
             math.min(
                   3,
                   state.countRank(PowerUp.numberOfBulletsPerShotIncrease),
@@ -396,6 +409,7 @@ class ArsenalSystem {
         nozzle: muzzle(direction),
         direction: direction,
         range: effectiveRange,
+        coneDegrees: _b('coneAngle'),
         clip: clip,
         reducedMotion: game.preferences.reducedMotion,
       );
@@ -427,8 +441,10 @@ class ArsenalSystem {
       sustainedFire = 0;
       spool = math.max(0, spool - dt * 1.6);
       _loop(false);
-      if (weapon == WeaponType.prismCutter && !state.reloading && _idle > .4) {
-        _cooling += dt * 2;
+      if (weapon == WeaponType.prismCutter &&
+          !state.reloading &&
+          _idle > _b('coolingDelay')) {
+        _cooling += dt * _b('coolingRate');
         if (_cooling >= 1) {
           game.gameNotifier.restorePrimaryUnits(_cooling.floor());
           _cooling %= 1;
@@ -450,16 +466,15 @@ class ArsenalSystem {
       }
     } else if (weapon == WeaponType.railLance) {
       if (cooldown > 0) return;
-      charge = math.min(RailLanceTiming.chargeSeconds, charge + dt);
-      if (charge >= RailLanceTiming.chargeSeconds - 1e-8 &&
-          _rounds(fullyCharged: true)) {
+      charge = math.min(_b('chargeTime'), charge + dt);
+      if (charge >= _b('chargeTime') - 1e-8 && _rounds(fullyCharged: true)) {
         _railFired();
       }
     } else if (weapon == WeaponType.beltRepeater) {
       if (spool == 0) audio.play('spin_beltRepeater.wav');
-      spool = math.min(.4, spool + dt);
-      if (spool >= .4) sustainedFire += dt;
-      if (spool >= .4 && cooldown <= 1e-8 && _rounds()) {
+      spool = math.min(_b('spinup'), spool + dt);
+      if (spool >= _b('spinup')) sustainedFire += dt;
+      if (spool >= _b('spinup') && cooldown <= 1e-8 && _rounds()) {
         _loop(true);
         cooldown = math.max(.030, beltCadence * _trigger);
       }
@@ -528,7 +543,7 @@ class ArsenalSystem {
     }
     final spread =
         ({WeaponType.frostShotgun, WeaponType.cycloneBreacher}.contains(weapon)
-            ? math.pi / 20
+            ? _b('spreadDegrees') * math.pi / 180
             : math.pi / 32) *
         (1 -
             math.max(
@@ -576,9 +591,9 @@ class ArsenalSystem {
                 ? 2
                 : 8,
             (weapon == WeaponType.railLance
-                    ? 2
+                    ? _b('innatePierce').toInt()
                     : weapon == WeaponType.longwatchSniper
-                    ? 3
+                    ? _b('innatePierce').toInt()
                     : 0) +
                 state.countRank(PowerUp.bulletsPhaseThrough),
           ),
@@ -709,10 +724,11 @@ class ArsenalSystem {
       destination: target,
     );
     f.patchDamage = balance.sporeDps * _damageScale;
-    f.duration = (.55 + .3 * origin.distanceTo(f.destination) / 620).clamp(
-      .55,
-      1.0,
-    );
+    f.duration = weapon == WeaponType.reaperDisc
+        ? (.55 + .3 * origin.distanceTo(f.destination) / 620).clamp(.55, 1.0)
+        : (_b('flightBase') +
+                  _b('flightScale') * origin.distanceTo(f.destination) / 620)
+              .clamp(_b('flightBase'), _b('flightMax'));
     flights.add(f);
     _released();
     return true;
@@ -783,13 +799,13 @@ class ArsenalSystem {
                     a.position,
                     origin,
                     end,
-                    game.crowdRadius(a) + 6,
+                    game.crowdRadius(a) + _b('beamRadius'),
                   ).compareTo(
                     BulletComponent.contactDistance(
                       b.position,
                       origin,
                       end,
-                      game.crowdRadius(b) + 6,
+                      game.crowdRadius(b) + _b('beamRadius'),
                     ),
                   )
                 : a.position
@@ -807,14 +823,14 @@ class ArsenalSystem {
               origin,
               end,
             ) >
-            (radius + 6) * (radius + 6)) {
+            (radius + _b('beamRadius')) * (radius + _b('beamRadius'))) {
           continue;
         }
         final along = BulletComponent.contactDistance(
           target.position,
           origin,
           end,
-          radius + 6,
+          radius + _b('beamRadius'),
         );
         visibleEnd = origin + direction * along;
         _direct(target, amount, direction);
@@ -826,7 +842,7 @@ class ArsenalSystem {
           math.atan2(delta.y, delta.x) - math.atan2(direction.y, direction.x);
       final wrapped = math.atan2(math.sin(angle), math.cos(angle)).abs();
       if (wrapped >
-          math.pi / 9 +
+          _b('coneAngle') * math.pi / 180 +
               math.asin(
                 (radius / math.max(radius, delta.length)).clamp(0.0, 1.0),
               )) {
@@ -868,7 +884,7 @@ class ArsenalSystem {
         target.combatId,
         target.position.clone(),
         balance.rivetDamage * _damageScale,
-      ),
+      )..remaining = _b('fuse'),
     );
   }
 
@@ -1041,7 +1057,11 @@ class ArsenalSystem {
       if (!d.isZero()) f.direction.setFrom(d.normalized());
     }
     final speed = f.returning
-        ? math.max(950.0, game.gameState.movementSpeed + 500)
+        ? math.max(
+            _b('returnSpeed', WeaponType.reaperDisc),
+            game.gameState.movementSpeed +
+                _b('returnSpeedMargin', WeaponType.reaperDisc),
+          )
         : f.speed;
     final step = math.min(speed * dt, remaining);
     final proposed = before + f.direction * step,
@@ -1067,7 +1087,8 @@ class ArsenalSystem {
     final ledger = f.returning ? f.returnHits : f.outHits;
     final hitLimit = math.min(
       8,
-      3 + state.countRank(PowerUp.bulletsPhaseThrough),
+      _b('bodyLimit', WeaponType.reaperDisc).toInt() +
+          state.countRank(PowerUp.bulletsPhaseThrough),
     );
     for (final target in targets) {
       final owner = game.projectileOwner(target);
@@ -1215,9 +1236,15 @@ class ArsenalSystem {
       if (weapon != WeaponType.longwatchSniper || map['sniperSway'] is! Map) {
         throw const FormatException('Unexpected sniper fatigue');
       }
-      SniperSway.validate(map['sniperSway'] as Map);
+      SniperSway.validate(
+        map['sniperSway'] as Map,
+        limit: savedBalance.behavior(
+          WeaponType.longwatchSniper,
+          'swayBuildTime',
+        ),
+      );
     }
-    EndgameArsenal.validate(map['endgame'], weapon);
+    EndgameArsenal.validate(map['endgame'], weapon, power: savedBalance);
     FrontierArsenal.validate(map['frontier'], weapon, map['nextAttack']);
     if (map['schema'] != 1 || map['weapon'] != weapon.name) {
       throw const FormatException('Invalid arsenal state');
@@ -1243,7 +1270,7 @@ class ArsenalSystem {
         k == 'cooldown'
             ? 10
             : k == 'cooling'
-            ? 1
+            ? savedBalance.behavior(WeaponType.prismCutter, 'coolingDelay')
             : k == 'patchTick'
             ? savedBalance.sporeTick
             : 1e9,
@@ -1307,7 +1334,16 @@ class ArsenalSystem {
           n(raw['range'], 1600);
           n(raw['travelled'], 4000);
           n(raw['age'], 10);
-          n(raw['duration'], 1);
+          n(
+            raw['duration'],
+            {
+                  WeaponType.scrapMortar,
+                  WeaponType.sporeLobber,
+                  WeaponType.anchorEngine,
+                }.contains(weapon)
+                ? savedBalance.behavior(weapon, 'flightMax')
+                : 1,
+          );
           if (raw['returning'] is! bool || raw['impactPending'] is! bool) {
             throw const FormatException('Invalid flight phase');
           }
@@ -1322,7 +1358,9 @@ class ArsenalSystem {
         } else {
           n(
             raw['remaining'],
-            name == 'rivets' ? 3 : savedBalance.sporeLifetime,
+            name == 'rivets'
+                ? savedBalance.behavior(WeaponType.rivetDriver, 'fuse')
+                : savedBalance.sporeLifetime,
           );
           if (name == 'rivets' && (raw['host'] is! int || raw['host'] < 1)) {
             throw const FormatException('Invalid rivet host');
@@ -1619,7 +1657,9 @@ class ArsenalOverlay extends PositionComponent
           AttackVfx.chip(
             canvas,
             from + delta * (i / count),
-            i % 3 == 0 ? 7 : 4,
+            (i % 3 == 0 ? 7 : 4) *
+                system.balance.behavior(WeaponType.prismCutter, 'beamRadius') /
+                6,
             i % 2 == 0 ? const Color(0xffDFDAC1) : const Color(0xffA5B4A5),
           );
         }

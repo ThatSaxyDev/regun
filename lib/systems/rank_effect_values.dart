@@ -22,6 +22,8 @@ class RankEffects {
     final count = (n * strength).round().clamp(0, 8);
     double base(String key, double fallback) =>
         (v['weapons.$weapon.$key'] ?? fallback).toDouble();
+    double behavior(String key, double fallback) =>
+        (v['effects.${weapon.toLowerCase()}.$key'] ?? fallback).toDouble();
     final mag = base('capacity', 5),
         cadence = base('cadence', .35),
         reload = base('reloadMs', 3200);
@@ -58,7 +60,9 @@ class RankEffects {
           if (weapon == 'railLance') ...{
             'Quick shot damage': base('damage', 11.25) * multiplier,
             'Full charge damage':
-                base('damage', 11.25) * multiplier * railChargeMultiplier,
+                base('damage', 11.25) *
+                multiplier *
+                behavior('chargeMultiplier', railChargeMultiplier),
           },
         };
       case 'quickTrigger':
@@ -101,13 +105,19 @@ class RankEffects {
         return {
           'Release interval (s)': interval,
           if (weapon == 'railLance') ...{
-            'Aim charge (s)': RailLanceTiming.chargeSeconds,
-            'Recovery (s)': interval - RailLanceTiming.chargeSeconds,
+            'Aim charge (s)': behavior(
+              'chargeTime',
+              RailLanceTiming.chargeSeconds,
+            ),
+            'Recovery (s)': m.max(
+              0,
+              interval - behavior('chargeTime', RailLanceTiming.chargeSeconds),
+            ),
           },
           if (weapon == 'beltRepeater')
             'Fully spun interval (s)': m.max(
               .030,
-              cadence * (.040 / .085) * m.pow(.85, e),
+              cadence * behavior('fullSpeedRatio', .040 / .085) * m.pow(.85, e),
             ),
         };
       case 'maxBulletsIncrease':
@@ -144,9 +154,9 @@ class RankEffects {
             ? 2
             : 3;
         final pellets = {'shotgun', 'frostShotgun'}.contains(weapon)
-            ? 3 + 2 * m.min(3, count)
+            ? behavior('pellets', 3) + 2 * m.min(3, count)
             : weapon == 'cycloneBreacher'
-            ? 5 + 2 * m.min(2, count)
+            ? behavior('pellets', 5) + 2 * m.min(2, count)
             : 1 + m.min(cap, count);
         return {
           'Projectiles': pellets,
@@ -282,7 +292,14 @@ class RankEffects {
       case 'faradayReserve':
         return {
           'Chain retention (%)':
-              m.min(.92, (weapon == 'arcCaster' ? .85 : .65) + .02 * e) * 100,
+              m.min(
+                .92,
+                (weapon == 'arcCaster'
+                        ? behavior('chainRetention', .85)
+                        : .65) +
+                    .02 * e,
+              ) *
+              100,
           if (survivor == 'coil')
             'Secondary retention (%)': m.min(.92, .50 + .02 * e) * 100,
         };

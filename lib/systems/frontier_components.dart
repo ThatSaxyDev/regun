@@ -1,3 +1,5 @@
+import 'package:regun/data/weapon_behavior.dart';
+
 /// Base components only: no survivor, upgrade, overkill or cover assumptions.
 /// Shared with the admin; the gateway verifies the same projection in TypeScript.
 Map<String, num> frontierComponents(String weapon, Map<String, num> values) {
@@ -10,19 +12,21 @@ Map<String, num> frontierComponents(String weapon, Map<String, num> values) {
     'Tactical reload (s)': base('reloadMs') * .7 / 1000,
     'Range': base('range'),
   };
-  return switch (weapon) {
+  final projected = switch (weapon) {
     'revolver' => {
       ...common,
       'Direct damage': base('damage'),
       'Innate enemy ricochets': base('ricochets'),
-      'Bounce damage retention': .7,
-      'Bounce seek range': 500,
+      'Bounce damage retention':
+          values['effects.revolver.bounceRetention'] ?? .7,
+      'Bounce seek range': values['effects.revolver.bounceRange'] ?? 500,
     },
     'houndrack' => {
       ...common,
       'Direct damage': base('damage'),
       'Distance damage multiplier': 1,
-      'Launch speed': base('speed') * .3,
+      'Launch speed':
+          base('speed') * (values['effects.houndrack.launchRatio'] ?? .3),
       'Maximum speed': base('speed'),
       'Secondary splash damage': n('effects.houndrack.rocketSplashDamage'),
       'Splash radius': n('effects.houndrack.rocketSplashRadius'),
@@ -46,7 +50,8 @@ Map<String, num> frontierComponents(String weapon, Map<String, num> values) {
       ...common,
       'Capture radius': n('effects.ringcaster.ringRadius'),
       'Starting radius': n('effects.ringcaster.ringStart'),
-      'Forward travel': base('range') * .65,
+      'Forward travel':
+          base('range') * (values['effects.ringcaster.deliveryShare'] ?? .65),
       'Collapse damage per captured body':
           base('damage') * n('effects.ringcaster.ringReturnScale'),
       'Expansion (s)': n('effects.ringcaster.ringExpand'),
@@ -55,6 +60,14 @@ Map<String, num> frontierComponents(String weapon, Map<String, num> values) {
       'Cutting thickness': n('effects.ringcaster.ringThickness'),
       'Capture body limit': 120,
     },
-    _ => throw ArgumentError.value(weapon, 'weapon'),
+    _ => {...common, 'Direct damage': base('damage')},
   };
+  final prefix = 'effects.${weapon.toLowerCase()}.';
+  for (final entry in values.entries) {
+    if (entry.key.startsWith(prefix) &&
+        weaponBehaviorLabels.containsKey(entry.key)) {
+      projected[weaponBehaviorLabels[entry.key]!] = entry.value;
+    }
+  }
+  return projected;
 }

@@ -6,6 +6,9 @@ class RailLanceTiming {
   static const fullChargeMultiplier = 1.25;
   static double cycle(double cadence, double triggerScale) =>
       .45 + math.max(.35, (cadence - .45) * triggerScale);
-  static double recovery(double cadence, double triggerScale) =>
-      cycle(cadence, triggerScale) - chargeSeconds;
+  static double recovery(
+    double cadence,
+    double triggerScale, {
+    double chargeTime = chargeSeconds,
+  }) => math.max(0, cycle(cadence, triggerScale) - chargeTime);
 }

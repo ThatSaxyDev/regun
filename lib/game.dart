@@ -1691,7 +1691,21 @@ class RegunGame extends FlameGame
         enemy.combatId = record['combatId'] as int? ?? _nextCombatId++;
         _nextCombatId = max(_nextCombatId, enemy.combatId + 1);
         if (record['freeze'] case final Map raw) {
-          enemy.freezeState.restore(Map<String, dynamic>.from(raw));
+          enemy.freezeState.restore(
+            Map<String, dynamic>.from(raw),
+            durationCap: gameNotifier.weaponPower.behavior(
+              WeaponType.frostShotgun,
+              'freezeDuration',
+            ),
+            recoveryCap: gameNotifier.weaponPower.behavior(
+              WeaponType.frostShotgun,
+              'freezeRecovery',
+            ),
+            immunityCap: gameNotifier.weaponPower.behavior(
+              WeaponType.frostShotgun,
+              'freezeImmunity',
+            ),
+          );
         }
         enemy.restoreHealth(
           (record['health'] as num).toDouble(),
@@ -1730,6 +1744,7 @@ class RegunGame extends FlameGame
       _fireCooldown = (snapshot['fireCooldown'] as num).toDouble().clamp(0, 2);
       burstFire.reset(
         recovery: (snapshot['burstRecovery'] as num?)?.toDouble() ?? 0,
+        maximumRecovery: gameNotifier.weaponPower.burstRecoveryCap,
       );
       if (snapshot['arsenal'] case final Map raw) {
         arsenal!.restore(Map<String, dynamic>.from(raw));
@@ -2315,7 +2330,12 @@ class RegunGame extends FlameGame
       }
     }
     final count = loadout.weapon == WeaponType.shotgun
-        ? state.bulletNumberRange * 2 + 1
+        ? state.bulletNumberRange * 2 +
+              1 +
+              gameNotifier.weaponPower
+                  .behavior(WeaponType.shotgun, 'pellets')
+                  .toInt() -
+              3
         : 1 + min(3, state.countRank(PowerUp.numberOfBulletsPerShotIncrease));
     if (projectileCount + count > maxProjectiles) return false;
     audio.play('shot_${loadout.weapon.name}_${shotsFired % 3}.wav');
@@ -2352,7 +2372,14 @@ class RegunGame extends FlameGame
     final releaseId = gameNotifier.survivor.lastRelease;
     final releaseBonus = gameNotifier.survivor.releaseBonus;
     final spread =
-        (loadout.weapon == WeaponType.shotgun ? pi / 20 : pi / 32) *
+        (loadout.weapon == WeaponType.shotgun
+            ? gameNotifier.weaponPower.behavior(
+                    WeaponType.shotgun,
+                    'spreadDegrees',
+                  ) *
+                  pi /
+                  180
+            : pi / 32) *
         (1 -
             max(0, state.rank(PowerUp.numberOfBulletsPerShotIncrease) - 3) *
                 .04);
@@ -2363,7 +2390,15 @@ class RegunGame extends FlameGame
       var muzzleOffset = Vector2.zero();
       if (loadout.weapon == WeaponType.carbine) {
         // A tight per-round grouping, not a shotgun fan or a wandering bullet.
-        direction.rotate((random.nextDouble() * 2 - 1) * pi / 90);
+        direction.rotate(
+          (random.nextDouble() * 2 - 1) *
+              gameNotifier.weaponPower.behavior(
+                WeaponType.carbine,
+                'spreadDegrees',
+              ) *
+              pi /
+              180,
+        );
         final side = Vector2(-baseDirection.y, baseDirection.x);
         muzzleOffset =
             side * ((random.nextDouble() * 2 - 1) * 2) +
@@ -2523,6 +2558,14 @@ class RegunGame extends FlameGame
         final wait = min(dt, reloadWait);
         if (wait > 0) {
           burstFire.advance(
+            rounds: gameNotifier.weaponPower
+                .behavior(WeaponType.burstRifle, 'burstRounds')
+                .toInt(),
+            spacingSeconds: gameNotifier.weaponPower.behavior(
+              WeaponType.burstRifle,
+              'burstSpacing',
+            ),
+            maximumInterval: gameNotifier.weaponPower.burstRecoveryCap,
             wait,
             held: false,
             interval: .6,
@@ -2531,6 +2574,14 @@ class RegunGame extends FlameGame
           );
         }
         burstFire.advance(
+          rounds: gameNotifier.weaponPower
+              .behavior(WeaponType.burstRifle, 'burstRounds')
+              .toInt(),
+          spacingSeconds: gameNotifier.weaponPower.behavior(
+            WeaponType.burstRifle,
+            'burstSpacing',
+          ),
+          maximumInterval: gameNotifier.weaponPower.burstRecoveryCap,
           max(0, dt - wait),
           held: firing,
           interval:

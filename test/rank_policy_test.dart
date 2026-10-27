@@ -16,7 +16,12 @@ void main() {
     final fixture = jsonDecode(
       File('test/fixtures/rank-effects-v1.json').readAsStringSync(),
     );
-    expect(fixture['catalogId'], LiveBalance.catalogId);
+    expect([
+      LiveBalance.catalogId,
+      ...(LiveBalance.catalog['previousCatalogs'] as List).map(
+        (c) => c['catalogId'],
+      ),
+    ], contains(fixture['catalogId']));
     final values = Map<String, num>.from(fixture['values']);
     final seen = <String>{};
     for (final c in fixture['cases']) {

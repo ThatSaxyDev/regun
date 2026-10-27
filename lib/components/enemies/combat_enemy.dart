@@ -28,7 +28,12 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     if (!canFreeze ||
         combatHealth.isDead ||
         isRemoving ||
-        !freezeState.apply()) {
+        !freezeState.apply(
+          duration: game.gameNotifier.weaponPower.behavior(
+            WeaponType.frostShotgun,
+            'freezeDuration',
+          ),
+        )) {
       return false;
     }
     // Freezing stops intent, but must not erase the force of the ice hit.
@@ -171,7 +176,10 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   double cinderRemaining = 0, cinderTick = 0;
   void igniteCinder() {
     game.statusArt.prewarmFire();
-    cinderRemaining = 1;
+    cinderRemaining = game.gameNotifier.weaponPower.behavior(
+      WeaponType.cinderHose,
+      'burnDuration',
+    );
   }
 
   String lastDamageSource = 'secondary';
@@ -279,7 +287,17 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
       statusClock += dt;
       contactAge = (contactAge + dt).clamp(0, 1);
       if (burning || cinderRemaining > 0) game.statusArt.prewarmFire();
-      freezeState.advance(dt);
+      freezeState.advance(
+        dt,
+        recoverySeconds: game.gameNotifier.weaponPower.behavior(
+          WeaponType.frostShotgun,
+          'freezeRecovery',
+        ),
+        immunitySeconds: game.gameNotifier.weaponPower.behavior(
+          WeaponType.frostShotgun,
+          'freezeImmunity',
+        ),
+      );
       _staggerRemaining = (_staggerRemaining - dt).clamp(0.0, .3);
       _staggerRecovery = (_staggerRecovery - dt).clamp(0.0, .65);
     }
@@ -326,11 +344,21 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
       final step = dt.clamp(0.0, cinderRemaining);
       cinderRemaining -= step;
       cinderTick += step;
-      while (cinderTick >= .5 - 1e-8 && !combatHealth.isDead) {
-        cinderTick = (cinderTick - .5).clamp(0, .5);
+      final interval = game.gameNotifier.weaponPower.behavior(
+        WeaponType.cinderHose,
+        'burnTick',
+      );
+      while (cinderTick >= interval - 1e-8 && !combatHealth.isDead) {
+        cinderTick = (cinderTick - interval).clamp(0, interval);
         lastHitWasSecondary = true;
         lastDamageSource = 'cinder';
-        takeDamage(.3 * game.burnMultiplier(this));
+        takeDamage(
+          game.gameNotifier.weaponPower.behavior(
+                WeaponType.cinderHose,
+                'burnDamage',
+              ) *
+              game.burnMultiplier(this),
+        );
       }
       if (cinderRemaining <= 1e-8) {
         cinderRemaining = 0;

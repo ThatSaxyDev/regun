@@ -15,8 +15,8 @@ class BurstFireClock {
     _untilShot = 0;
   }
 
-  void reset({double recovery = 0}) {
-    if (!recovery.isFinite || recovery < 0 || recovery > .6) {
+  void reset({double recovery = 0, double maximumRecovery = .6}) {
+    if (!recovery.isFinite || recovery < 0 || recovery > maximumRecovery) {
       throw const FormatException('Invalid burst recovery');
     }
     cancelIntent();
@@ -30,6 +30,9 @@ class BurstFireClock {
 
   void advance(
     double dt, {
+    int rounds = 3,
+    double spacingSeconds = .10,
+    double maximumInterval = .60,
     required bool held,
     required double interval,
     required bool Function() ready,
@@ -42,7 +45,19 @@ class BurstFireClock {
       _elapse(dt);
       return;
     }
-    final period = interval.clamp(.30, .60);
+    if (rounds < 1 ||
+        rounds > 5 ||
+        !spacingSeconds.isFinite ||
+        spacingSeconds < .05 ||
+        spacingSeconds > .15 ||
+        maximumInterval < .6 ||
+        maximumInterval > 5) {
+      throw ArgumentError('Invalid burst configuration');
+    }
+    final minimum = double.parse(
+      math.max(.30, rounds * spacingSeconds).toStringAsFixed(12),
+    );
+    final period = interval.clamp(minimum, math.max(minimum, maximumInterval));
     var offset = 0.0;
     // Bounded work after pathological stalls; no unbounded offline catch-up.
     for (var events = 0; events < 32; events++) {
@@ -69,12 +84,12 @@ class BurstFireClock {
         return;
       }
       if (_pending == 0) {
-        _pending = 2;
-        _untilBurst = period;
+        _pending = rounds - 1;
+        _untilBurst = period.toDouble();
       } else {
         _pending--;
       }
-      _untilShot = spacing;
+      _untilShot = spacingSeconds;
     }
     cancelIntent();
     _untilBurst = math.max(_untilBurst, .05);

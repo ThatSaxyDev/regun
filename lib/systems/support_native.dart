@@ -348,6 +348,7 @@ class SupportNative {
                 r.mount == 'carbine'
                     ? WeaponType.carbine
                     : WeaponType.burstRifle,
+                power: game.gameNotifier.weaponPower,
               ).multiplier(travel),
           'sentry_round',
           ballistic: true,

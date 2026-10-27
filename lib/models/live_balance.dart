@@ -1,3 +1,4 @@
+import 'package:regun/data/weapon_behavior.dart';
 import 'package:regun/systems/support_rewards.dart';
 
 import 'dart:convert';
@@ -66,6 +67,9 @@ class LiveBalance {
       throw const FormatException('Orb lifetime must include an arc tick');
     }
     SupportConfig.validate(result);
+    if (weaponBehaviorErrors(result).isNotEmpty) {
+      throw const FormatException('Invalid weapon behavior relationship');
+    }
     return result;
   }
 

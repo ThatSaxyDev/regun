@@ -37,7 +37,12 @@ class WeaponReaction {
     WeaponType.anchorEngine => const WeaponReaction(96, .26, stagger: .16),
     WeaponType.faultlineDriver => const WeaponReaction(82, .25, stagger: .15),
     WeaponType.cycloneBreacher => const WeaponReaction(64, .21, stagger: .10),
-    WeaponType.houndrack => const WeaponReaction(28, .14, stagger: .04, slow: .5),
+    WeaponType.houndrack => const WeaponReaction(
+      28,
+      .14,
+      stagger: .04,
+      slow: .5,
+    ),
     WeaponType.stormOrb => const WeaponReaction(30, .16, stagger: .04),
     WeaponType.ringCaster => const WeaponReaction(42, .18, stagger: .06),
     WeaponType.mourningBell => const WeaponReaction(

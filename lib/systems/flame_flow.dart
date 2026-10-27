@@ -36,6 +36,7 @@ class FlameFlow {
     required double range,
     required Vector2 Function(Vector2, Vector2) clip,
     bool reducedMotion = false,
+    double coneDegrees = 20,
   }) {
     if (active && (!_active || direction.dot(_heading) < .94)) {
       sustained = 0;
@@ -56,7 +57,8 @@ class FlameFlow {
         tongues.add(
           FlameTongue(
             nozzle.clone(),
-            (direction.clone()..rotate(((_serial % 5) - 2) * .14)),
+            (direction.clone()
+              ..rotate(((_serial % 5) - 2) * .14 * coneDegrees / 20)),
             _serial++,
             range,
           )..position.setFrom(nozzle),

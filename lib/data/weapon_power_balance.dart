@@ -1,6 +1,6 @@
+import 'package:regun/data/weapon_behavior.dart';
 import 'package:regun/models/live_balance.dart';
 import 'package:regun/data/loadout.dart';
-import 'package:regun/systems/rail_lance_timing.dart';
 import 'package:regun/systems/weapon_reaction.dart';
 
 /// A run keeps its numerical revision. Saved payload damage is never multiplied
@@ -37,7 +37,7 @@ class WeaponPowerBalance {
   });
   bool get upgraded => revision >= 2;
   double get railChargeMultiplier =>
-      revision >= 3 ? RailLanceTiming.fullChargeMultiplier : 1;
+      revision >= 3 ? behavior(WeaponType.railLance, 'chargeMultiplier') : 1;
   double get railBulletRadius => revision >= 3 ? 7 : 5;
   WeaponReaction get railReaction => revision >= 3
       ? const WeaponReaction(90, .24, stagger: .23)
@@ -116,6 +116,14 @@ class WeaponPowerBalance {
   double get ringReturnScale => n('effects.ringcaster.ringReturnScale', 1.5);
   int get ringTargets => n('effects.ringcaster.ringTargets', 8).toInt();
   double get ringThickness => n('effects.ringcaster.ringThickness', 28);
+  double behavior(WeaponType weapon, String key) {
+    final id = 'effects.${weapon.name.toLowerCase()}.$key';
+    return n(id, weaponBehaviorFallbacks[id]!);
+  }
+
+  bool get expandedBurst =>
+      snapshot?.values.containsKey('effects.burstrifle.burstRounds') == true;
+  double get burstRecoveryCap => expandedBurst ? 5 : .6;
   double n(String key, num fallback) =>
       snapshot?.number(key, fallback) ?? fallback.toDouble();
   int capacity(WeaponType w) =>

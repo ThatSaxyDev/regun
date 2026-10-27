@@ -244,7 +244,10 @@ class BulletComponent extends PositionComponent
   }) {
     final distance = travelled ?? _travelled;
     final factor = primary
-        ? WeaponBallistics.of(weapon).multiplier(distance)
+        ? WeaponBallistics.of(
+            weapon,
+            power: game.gameNotifier.weaponPower,
+          ).multiplier(distance)
         : 1.0;
     // Preserve the existing hard Bank Shot ceiling after the close bonus too.
     final owner = game.projectileOwner(other);
@@ -295,7 +298,9 @@ class BulletComponent extends PositionComponent
       final next = game.nearestEnemy(
         other.position,
         excluding: _hitEnemies,
-        range: 500,
+        range: weapon == WeaponType.revolver
+            ? game.gameNotifier.weaponPower.behavior(weapon, 'bounceRange')
+            : 500,
       );
       if (next != null) {
         if (game.gameState.countRank(PowerUp.ricochet) > 0 &&
@@ -315,7 +320,13 @@ class BulletComponent extends PositionComponent
                 game.gameNotifier.buildBalance >= 2 &&
                         game.gameState.rank(PowerUp.bankShot) > 0
                     ? 1 + game.gameState.effectRank(PowerUp.bankShot) * .08
-                    : 0.7 + game.gameState.effectRank(PowerUp.bankShot) * 0.15,
+                    : (weapon == WeaponType.revolver
+                              ? game.gameNotifier.weaponPower.behavior(
+                                  weapon,
+                                  'bounceRetention',
+                                )
+                              : .7) +
+                          game.gameState.effectRank(PowerUp.bankShot) * 0.15,
               ),
         );
         // A ricochet keeps its cumulative path; turning never refreshes the
@@ -334,7 +345,12 @@ class BulletComponent extends PositionComponent
         owner.showMechanicContact(1);
       }
       pierce--;
-      if (weapon == WeaponType.railLance) damage *= .65;
+      if (weapon == WeaponType.railLance) {
+        damage *= game.gameNotifier.weaponPower.behavior(
+          weapon,
+          'pierceRetention',
+        );
+      }
     } else {
       removeFromParent();
     }

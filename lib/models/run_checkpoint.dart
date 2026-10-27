@@ -102,26 +102,45 @@ class RunCheckpoint {
             (actor['cinder'] is! num ||
                 !(actor['cinder'] as num).isFinite ||
                 actor['cinder'] < 0 ||
-                actor['cinder'] > 1)) {
+                actor['cinder'] >
+                    power.behavior(WeaponType.cinderHose, 'burnDuration'))) {
           return false;
         }
         if (actor['cinderTick'] != null &&
             (actor['cinderTick'] is! num ||
                 !(actor['cinderTick'] as num).isFinite ||
                 actor['cinderTick'] < 0 ||
-                actor['cinderTick'] > .5)) {
+                actor['cinderTick'] >
+                    power.behavior(WeaponType.cinderHose, 'burnTick'))) {
           return false;
         }
         if (actor['combatId'] case final int id) {
           if (id < 1 || id > 1000000000 || !ids.add(id)) return false;
         }
         if (actor['freeze'] case final Map raw) {
-          FreezeState().restore(Map<String, dynamic>.from(raw));
+          FreezeState().restore(
+            Map<String, dynamic>.from(raw),
+            durationCap: power.behavior(
+              WeaponType.frostShotgun,
+              'freezeDuration',
+            ),
+            recoveryCap: power.behavior(
+              WeaponType.frostShotgun,
+              'freezeRecovery',
+            ),
+            immunityCap: power.behavior(
+              WeaponType.frostShotgun,
+              'freezeImmunity',
+            ),
+          );
         }
       }
       if (map.containsKey('burstRecovery')) {
         final value = map['burstRecovery'];
-        if (value is! num || !value.isFinite || value < 0 || value > .6) {
+        if (value is! num ||
+            !value.isFinite ||
+            value < 0 ||
+            value > power.burstRecoveryCap) {
           return false;
         }
       }

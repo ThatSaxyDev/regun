@@ -60,7 +60,7 @@ class EndgameArsenal {
           shot > _primeShot &&
           shot % 2 != _primeShot % 2 &&
           system.clock < _primeUntil
-      ? 1.8
+      ? system.balance.behavior(WeaponType.twinVerdict, 'pairMultiplier')
       : 1;
   bool acceptPair(
     PositionComponent target,
@@ -80,10 +80,17 @@ class EndgameArsenal {
     _primeOwner = paired ? null : ownerId(target);
     _fatalBrand =
         !paired && target is CombatEnemy && target.combatHealth.isDead;
-    _primeUntil = system.clock + 1.25;
+    _primeUntil =
+        system.clock +
+        system.balance.behavior(WeaponType.twinVerdict, 'pairWindow');
     if (direction != null) {
       if (paired) {
-        _verdict(target, direction, amount * .4);
+        _verdict(
+          target,
+          direction,
+          amount *
+              system.balance.behavior(WeaponType.twinVerdict, 'forkDamage'),
+        );
       } else {
         system.audio.play('prime_twinVerdict.wav');
       }
@@ -113,7 +120,15 @@ class EndgameArsenal {
                 BulletComponent.segmentDistanceSquared(
                   target.position,
                   origin,
-                  system.clip(origin, origin + d * 220),
+                  system.clip(
+                    origin,
+                    origin +
+                        d *
+                            system.balance.behavior(
+                              WeaponType.twinVerdict,
+                              'forkRange',
+                            ),
+                  ),
                 ) <=
                 radius * radius,
           )) {
@@ -190,14 +205,17 @@ class EndgameArsenal {
     final amount = system._releaseDamage();
     system.flights.add(
       ArsenalFlight(
-        system.nextAttack,
-        ArsenalFlightKind.flak,
-        system.muzzle(direction),
-        direction.clone(),
-        amount,
-        math.min(1600, system.state.bulletSpeed),
-        system.effectiveRange,
-      )..patchDamage = amount * (.45 / 2.4),
+          system.nextAttack,
+          ArsenalFlightKind.flak,
+          system.muzzle(direction),
+          direction.clone(),
+          amount,
+          math.min(1600, system.state.bulletSpeed),
+          system.effectiveRange,
+        )
+        ..patchDamage =
+            amount *
+            system.balance.behavior(WeaponType.flakRegent, 'fragmentDamage'),
     );
     system._released();
     return true;
@@ -242,16 +260,26 @@ class EndgameArsenal {
     if (!terminal) return;
     // Release all four reservations before adding the complete secondary fan.
     f.spent = true;
-    for (final turn in [-.42, -.14, .14, .42]) {
-      final d = f.direction.clone()..rotate(turn);
+    for (final ratio in [-1.0, -1.0 / 3, 1.0 / 3, 1.0]) {
+      final d = f.direction.clone()
+        ..rotate(
+          ratio *
+              system.balance.behavior(WeaponType.flakRegent, 'fragmentSpread'),
+        );
       game.addProjectile(
         BulletComponent(
           position: end.clone(),
           direction: d,
           angle: math.atan2(d.y, d.x),
           damage: f.patchDamage,
-          speed: 750,
-          maxTravelDistance: 140,
+          speed: system.balance.behavior(
+            WeaponType.flakRegent,
+            'fragmentSpeed',
+          ),
+          maxTravelDistance: system.balance.behavior(
+            WeaponType.flakRegent,
+            'fragmentRange',
+          ),
           weapon: WeaponType.flakRegent,
           primary: false,
           reaction: WeaponReaction.flakFragment,
@@ -283,7 +311,7 @@ class EndgameArsenal {
         f.id,
         f.position.clone(),
         f.direction.clone(),
-        190,
+        system.balance.behavior(WeaponType.anchorEngine, 'pullRadius'),
         f.damage,
       ),
     );
@@ -320,7 +348,9 @@ class EndgameArsenal {
       (delta.normalized().dot(cone.direction)).clamp(-1.0, 1.0),
     );
     return angle <=
-        35 * math.pi / 180 +
+        system.balance.behavior(WeaponType.mourningBell, 'coneAngle') *
+                math.pi /
+                180 +
             math.asin(
               (radius / math.max(radius, delta.length)).clamp(0.0, 1.0),
             );
@@ -358,7 +388,10 @@ class EndgameArsenal {
       )) {
         cone.owners[id] = 0;
       }
-      if (cone.owners.length >= 5) break;
+      if (cone.owners.length >=
+          system.balance.behavior(WeaponType.mourningBell, 'targetLimit')) {
+        break;
+      }
     }
     game.reserveWeaponPatch();
     echoes.add(cone);
@@ -367,7 +400,14 @@ class EndgameArsenal {
   }
 
   void _laneStep(CommittedArea lane) {
-    while (lane.next < 3 && lane.age >= lane.next * .1 - 1e-8) {
+    while (lane.next < 3 &&
+        lane.age >=
+            lane.next *
+                    system.balance.behavior(
+                      WeaponType.faultlineDriver,
+                      'sectionDelay',
+                    ) -
+                1e-8) {
       final section = lane.next++;
       system.audio.play('section_faultlineDriver.wav');
       final from = lane.position + lane.direction * (lane.range * section / 3);
@@ -380,7 +420,13 @@ class EndgameArsenal {
               .compareTo(b.position.distanceToSquared(from)),
         );
       for (final target in targets) {
-        final id = ownerId(target), radius = game.enemyRadius(target) + 42;
+        final id = ownerId(target),
+            radius =
+                game.enemyRadius(target) +
+                system.balance.behavior(
+                  WeaponType.faultlineDriver,
+                  'laneRadius',
+                );
         if (lane.owners.containsKey(id) ||
             lane.owners.length >= 6 ||
             BulletComponent.segmentDistanceSquared(target.position, from, to) >
@@ -411,7 +457,14 @@ class EndgameArsenal {
     final pulls = <CombatEnemy, ({CommittedArea area, double amount})>{};
     for (final a in anchors) {
       a.age += dt;
-      if (!a.resolved && a.age >= .4 && a.age < 1.05) {
+      if (!a.resolved &&
+          a.age >=
+              system.balance.behavior(WeaponType.anchorEngine, 'pullDelay') &&
+          a.age <
+              system.balance.behavior(
+                WeaponType.anchorEngine,
+                'detonationDelay',
+              )) {
         final targets = game.liveEnemies.whereType<CombatEnemy>().toList()
           ..sort(
             (x, y) => x.position
@@ -422,15 +475,18 @@ class EndgameArsenal {
           if (target.isBoss ||
               target.impactResponse <= 0 ||
               target.combatHealth.isDead ||
-              target.position.distanceTo(a.position) > 190 ||
+              target.position.distanceTo(a.position) > a.range ||
               game.segmentBlocked(a.position, target.position)) {
             continue;
           }
           final id = target.combatId;
           if (!a.owners.containsKey(id) && a.owners.length >= 8) continue;
           final amount = math.min(
-            55.0 - (a.owners[id] ?? 0.0),
-            90 * dt * target.impactResponse,
+            system.balance.behavior(WeaponType.anchorEngine, 'pullLimit') -
+                (a.owners[id] ?? 0.0),
+            system.balance.behavior(WeaponType.anchorEngine, 'pullSpeed') *
+                dt *
+                target.impactResponse,
           );
           if (amount <= 0) continue;
           final previous = pulls[target];
@@ -439,7 +495,13 @@ class EndgameArsenal {
           }
         }
       }
-      if (!a.resolved && a.age >= 1.05 - 1e-8) {
+      if (!a.resolved &&
+          a.age >=
+              system.balance.behavior(
+                    WeaponType.anchorEngine,
+                    'detonationDelay',
+                  ) -
+                  1e-8) {
         a.resolved = true;
         game.explode(
           a.position,
@@ -466,15 +528,43 @@ class EndgameArsenal {
           (pull.area.owners[body.combatId] ?? 0) +
           before.distanceTo(body.position);
     }
-    anchors.removeWhere((a) => a.age >= 1.6);
+    anchors.removeWhere(
+      (a) =>
+          a.age >=
+          math.max(
+            1.6,
+            system.balance.behavior(
+                  WeaponType.anchorEngine,
+                  'detonationDelay',
+                ) +
+                .55,
+          ),
+    );
     for (final lane in lanes) {
       lane.age += dt;
       _laneStep(lane);
     }
-    lanes.removeWhere((lane) => lane.age >= .75);
+    lanes.removeWhere(
+      (lane) =>
+          lane.age >=
+          math.max(
+            .75,
+            2 *
+                    system.balance.behavior(
+                      WeaponType.faultlineDriver,
+                      'sectionDelay',
+                    ) +
+                .55,
+          ),
+    );
     for (final echo in echoes) {
       echo.age += dt;
-      if (echo.resolved || echo.age < .55 - 1e-8) continue;
+      if (echo.resolved ||
+          echo.age <
+              system.balance.behavior(WeaponType.mourningBell, 'echoDelay') -
+                  1e-8) {
+        continue;
+      }
       echo.resolved = true;
       final seen = <int>{};
       // A lethal echo unregisters its victim (including the last boss). Keep
@@ -488,7 +578,11 @@ class EndgameArsenal {
         }
         if (system._direct(
               target,
-              echo.damage / 3,
+              echo.damage *
+                  system.balance.behavior(
+                    WeaponType.mourningBell,
+                    'echoRetention',
+                  ),
               echo.direction,
               primary: false,
               reaction: WeaponReaction.bellEcho,
@@ -505,7 +599,14 @@ class EndgameArsenal {
       }
       system.audio.play('echo_mourningBell.wav');
     }
-    echoes.removeWhere((e) => e.age >= .9);
+    echoes.removeWhere(
+      (e) =>
+          e.age >=
+          math.max(
+            .9,
+            system.balance.behavior(WeaponType.mourningBell, 'echoDelay') + .35,
+          ),
+    );
   }
 
   Map<String, dynamic> checkpoint() => {
@@ -514,11 +615,25 @@ class EndgameArsenal {
     'lanes': [for (final a in lanes) a.toJson()],
     'echoes': [for (final a in echoes) a.toJson()],
   };
-  static void validate(dynamic map, WeaponType weapon) {
+  static void validate(
+    dynamic map,
+    WeaponType weapon, {
+    WeaponPowerBalance? power,
+  }) {
     if (map == null) return;
     if (map is! Map || map['schema'] != 1) {
       throw const FormatException('Invalid committed attacks');
     }
+    final tuning = power ?? WeaponPowerBalance.current;
+    final anchorDelay = tuning.behavior(
+      WeaponType.anchorEngine,
+      'detonationDelay',
+    );
+    final echoDelay = tuning.behavior(WeaponType.mourningBell, 'echoDelay');
+    final sectionDelay = tuning.behavior(
+      WeaponType.faultlineDriver,
+      'sectionDelay',
+    );
     for (final name in ['anchors', 'lanes', 'echoes']) {
       final list = map[name];
       final allowed =
@@ -563,7 +678,7 @@ class EndgameArsenal {
               v < 0 ||
               v >
                   (k == 'age'
-                      ? 3
+                      ? math.max(3, anchorDelay + .55)
                       : k == 'range'
                       ? 1600
                       : 2000)) {
@@ -572,12 +687,15 @@ class EndgameArsenal {
         }
         final age = (a['age'] as num).toDouble();
         if (name == 'anchors' &&
-                (age >= 1.6 || a['resolved'] != (age >= 1.05 - 1e-8)) ||
+                (age >= math.max(1.6, anchorDelay + .55) ||
+                    a['resolved'] != (age >= anchorDelay - 1e-8)) ||
             name == 'echoes' &&
-                (age >= .9 || a['resolved'] != (age >= .55 - 1e-8)) ||
+                (age >= math.max(.9, echoDelay + .35) ||
+                    a['resolved'] != (age >= echoDelay - 1e-8)) ||
             name == 'lanes' &&
-                (age >= .75 ||
-                    a['next'] != math.min(3, (age / .1 + 1e-7).floor() + 1))) {
+                (age >= math.max(.75, 2 * sectionDelay + .55) ||
+                    a['next'] !=
+                        math.min(3, (age / sectionDelay + 1e-7).floor() + 1))) {
           throw const FormatException('Inconsistent committed phase');
         }
         final owners = a['owners'];
@@ -585,7 +703,7 @@ class EndgameArsenal {
             ? 8
             : name == 'lanes'
             ? 6
-            : 5;
+            : tuning.behavior(WeaponType.mourningBell, 'targetLimit').toInt();
         if (owners is! List || owners.length > cap) {
           throw const FormatException('Attack ledger');
         }
@@ -600,7 +718,9 @@ class EndgameArsenal {
               row[1] is! num ||
               !row[1].isFinite ||
               row[1] < 0 ||
-              row[1] > 55.001) {
+              row[1] >
+                  tuning.behavior(WeaponType.anchorEngine, 'pullLimit') +
+                      .001) {
             throw const FormatException('Attack owner');
           }
         }
@@ -683,6 +803,10 @@ class EndgameArsenal {
           grade,
           game.preferences.reducedMotion,
           clear,
+          coneDegrees: system.balance.behavior(
+            WeaponType.mourningBell,
+            'coneAngle',
+          ),
         );
         if (echo.resolved) {
           EndgameVfx.pressure(
@@ -690,11 +814,21 @@ class EndgameArsenal {
             echo.position.toOffset(),
             echo.direction.toOffset(),
             echo.range,
-            ((echo.age - .55) / .35).clamp(0.0, 1.0),
+            ((echo.age -
+                        system.balance.behavior(
+                          WeaponType.mourningBell,
+                          'echoDelay',
+                        )) /
+                    .35)
+                .clamp(0.0, 1.0),
             grade,
             game.preferences.reducedMotion,
             clear,
             echo: true,
+            coneDegrees: system.balance.behavior(
+              WeaponType.mourningBell,
+              'coneAngle',
+            ),
           );
         }
       }
@@ -707,7 +841,9 @@ class EndgameArsenal {
         canvas,
         1,
         a.position.toOffset(),
-        140,
+        system.balance.behavior(WeaponType.anchorEngine, 'pullRadius') *
+            140 /
+            190,
         alpha: a.resolved ? .3 : .65,
         ambient: grade,
       );
@@ -734,7 +870,9 @@ class EndgameArsenal {
           canvas.restore();
         }
       }
-      if (!a.resolved && a.age > .4) {
+      if (!a.resolved &&
+          a.age >
+              system.balance.behavior(WeaponType.anchorEngine, 'pullDelay')) {
         for (var i = 0; i < 8; i++) {
           final angle = i * math.pi / 4,
               r = game.preferences.reducedMotion
@@ -763,9 +901,20 @@ class EndgameArsenal {
           canvas,
           from.toOffset(),
           to.toOffset(),
-          ((lane.age - section * .1) / .55).clamp(0.0, 1.0),
+          ((lane.age -
+                      section *
+                          system.balance.behavior(
+                            WeaponType.faultlineDriver,
+                            'sectionDelay',
+                          )) /
+                  .55)
+              .clamp(0.0, 1.0),
           grade,
           game.preferences.reducedMotion,
+          radius: system.balance.behavior(
+            WeaponType.faultlineDriver,
+            'laneRadius',
+          ),
         );
       }
     }

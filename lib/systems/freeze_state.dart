@@ -6,13 +6,17 @@ class FreezeState {
   double remaining = 0, recovery = 0, immunity = 0;
   bool get frozen => remaining > 1e-8;
   bool get held => frozen || recovery > 1e-8;
-  bool apply() {
+  bool apply({double duration = .6}) {
     if (held || immunity > 1e-8) return false;
-    remaining = .6;
+    remaining = duration;
     return true;
   }
 
-  void advance(double dt) {
+  void advance(
+    double dt, {
+    double recoverySeconds = .2,
+    double immunitySeconds = 1.2,
+  }) {
     if (!dt.isFinite || dt < 0) throw ArgumentError.value(dt);
     var left = dt;
     if (frozen) {
@@ -21,8 +25,8 @@ class FreezeState {
       left -= step;
       if (!frozen) {
         remaining = 0;
-        recovery = .2;
-        immunity = 1.2;
+        recovery = recoverySeconds;
+        immunity = immunitySeconds;
       }
     }
     recovery = math.max(0, recovery - left);
@@ -34,7 +38,12 @@ class FreezeState {
     'recovery': recovery,
     'immunity': immunity,
   };
-  void restore(Map<String, dynamic> map) {
+  void restore(
+    Map<String, dynamic> map, {
+    double durationCap = .6,
+    double recoveryCap = .2,
+    double immunityCap = 1.2,
+  }) {
     double read(String key, double cap) {
       final n = map[key];
       if (n is! num || !n.isFinite || n < 0 || n > cap + 1e-7) {
@@ -43,9 +52,9 @@ class FreezeState {
       return n.toDouble().clamp(0, cap);
     }
 
-    remaining = read('remaining', .6);
-    recovery = read('recovery', .2);
-    immunity = read('immunity', 1.2);
+    remaining = read('remaining', durationCap);
+    recovery = read('recovery', recoveryCap);
+    immunity = read('immunity', immunityCap);
     if (remaining > 0 && (recovery > 0 || immunity > 0)) {
       throw const FormatException('Overlapping freeze phases');
     }
