@@ -1872,3 +1872,18 @@ Audited all24 weapons across native combat, admin catalogue/editor, preview API 
 Validation: game analyzer clean,806 passed/five intentional skips; admin analyzer clean,86 passed plus17 final recovery/responsive checks; server199 passed and module build passed; identity38 passed,build and compiled smoke passed. Admin iOS/Mac/web release builds passed. Physical balance and interaction approval remain open.
 
 Release builds also passed for game iOS. Both updated private apps were installed on the paired iPhone; admin launched successfully. No server deployment or live balance publication was performed.
+
+
+## Power-up confirmation volume — 27 October
+
+Raised the accepted-upgrade recovery cue (`upgrade_pulse.wav`) gain from.35 to.42 at the creator's request. Player SFX volume/mute and the120ms overlap gate remain in force. Analyzer passed.
+
+
+## Pickup tone clarification — 27 October
+
+The creator meant repeated coin/XP pickup, not the accepted-upgrade force pulse. Restored the latter from.42 to.35. Coin cue now has a slightly higher rounded midrange body and shorter attack/tail at unchanged.20gain/150ms overlap gate. Replaced melodic ascending level/fusion chimes with brief recorded CC0 mechanical contacts. Old masters are retained; regenerate via tool/refine_pickup_audio.py. No reward, timing, player volume or mute changes. Listening remains for creator review.
+
+
+## Level-up presence — 27 October
+
+The creator found the first mechanical level cue too faint. Soft-limited the narrow recorded-contact peaks, added a short damped midrange body and raised only level.wav gain from.5 to.6. The cue remains290ms and non-melodic; total waveform energy is22% of the rejected original chime (up from5.5% in the thin first mechanical version). Coin and fusion masters remain byte-identical. Preview generator uses the actual.6gain and default SFX volume. Native listening remains for creator approval.

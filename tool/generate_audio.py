@@ -1,4 +1,4 @@
-"""Original procedural Regun sound kit. No samples or third-party recordings."""
+"""Legacy procedural sound kit; pickup/upgrade cues use the focused refinement generator."""
 from pathlib import Path
 import math, random, struct, wave
 
@@ -38,9 +38,10 @@ for weapon in ['carbine', 'revolver', 'arcCaster']:
           [(0, 0.18, {'carbine': 120, 'revolver': 75, 'arcCaster': 420}[weapon], 0.38, 'bass'),
            (0, 0.1, 900, 0.18, 'noise')])
 
-write('level.wav', 0.55, [(i * 0.11, 0.22, note(n), 0.2, 'triangle') for i, n in enumerate([60, 64, 67, 72])])
+# Upgrade cues are generated from recorded mechanisms below.
 write('boss.wav', 0.9, [(0, 0.85, note(33), 0.3, 'bass'), (0.15, 0.7, note(40), 0.2, 'triangle')])
-write('fusion.wav', 0.9, [(i * 0.12, 0.35, note(n), 0.2, 'triangle') for i, n in enumerate([57, 60, 64, 69, 76])])
+import runpy
+runpy.run_path(str(Path(__file__).with_name('refine_pickup_audio.py')), run_name='__main__')
 
 # Menu and combat music live in tool/generate_action_music.py.
 # Keep this legacy UI/effect generator from overwriting the current score.

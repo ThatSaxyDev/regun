@@ -1,0 +1,23 @@
+{
+  "level": {
+    "seconds": 0.29,
+    "gain": 0.6,
+    "peak": 0.40378878172690325,
+    "energyRatioToBefore": 0.22000000000000008,
+    "sha256": "f1135d1c29ff25d028ecaafbdba73e9b91a3e68a46261a97da4fcdebbf701b47"
+  },
+  "fusion": {
+    "seconds": 0.4,
+    "gain": 0.5,
+    "peak": 0.38000000000000006,
+    "energyRatioToBefore": 0.07627659066208989,
+    "sha256": "1476128b27de25e8e6da051915c49e54c273d45abf3d519661710676f4e9572b"
+  },
+  "coin": {
+    "seconds": 0.10498866213151928,
+    "gain": 0.2,
+    "peak": 0.45,
+    "energyRatioToBefore": 0.8502312923193237,
+    "sha256": "d971730dfbac1d52a8a0e0d1d1671d6d0b98789f4ec59bbecd41923ee42d45a8"
+  }
+}

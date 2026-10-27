@@ -181,6 +181,8 @@ class SoloudPlay {
             ? .55
             : assetPath.startsWith('section_') || assetPath.startsWith('echo_')
             ? .38
+            : assetPath == 'level.wav'
+            ? .6
             : assetPath == 'upgrade_pulse.wav'
             ? .35
             : assetPath == 'blast.wav'
