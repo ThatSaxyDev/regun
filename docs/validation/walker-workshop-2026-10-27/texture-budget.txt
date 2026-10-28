@@ -1,0 +1,3 @@
+Workshop-owned RGBA: 6294152 bytes
+Shared cache RGBA: 21983744 bytes
+Floors borrowed from shared cache. Not total device memory or performance.

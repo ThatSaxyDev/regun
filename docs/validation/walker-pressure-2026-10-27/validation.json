@@ -1,0 +1,26 @@
+{
+  "analyzer": "passed",
+  "fullTests": {
+    "passed": 827,
+    "skipped": 5
+  },
+  "focusedWalkerTests": 17,
+  "recordedNativeEncounter": "passed",
+  "iOSRelease": "built",
+  "phoneInstalled": false,
+  "reason": "No iOS device detected",
+  "rotary": {
+    "normal": 36,
+    "enraged": 48
+  },
+  "cannon": {
+    "normal": 4,
+    "enraged": 5
+  },
+  "approachSpeed": {
+    "normal": 230,
+    "enraged": 260
+  },
+  "ramDamage": 2,
+  "rocketInterception": "one accepted weapon hit; normal proximity blast; no kill rewards"
+}

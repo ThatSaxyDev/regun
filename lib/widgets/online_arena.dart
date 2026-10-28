@@ -1,3 +1,4 @@
+import 'package:regun/presentation/online_walker.dart';
 import 'package:regun/presentation/online_boss_presentation.dart';
 import 'package:regun/presentation/boss_portal.dart';
 import 'package:regun/presentation/freeze_focus.dart';
@@ -64,6 +65,11 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     with SingleTickerProviderStateMixin {
   late final Ticker ticker;
   late SoloudPlay audio;
+  late final walkers = OnlineWalkers(() {
+    if (mounted) setState(() {});
+  });
+  final _walkerCues = <String, int>{};
+  String? _walkerCueScope;
   final mummyWalks = <String, MummyWalk>{};
   final weaponHeadings = <String, WeaponHeading>{};
   final restingAim = <String, Offset>{};
@@ -93,6 +99,11 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   String? _confirmationCue;
   final bossPresentation = OnlineBossPresentation();
   void _sceneCues() {
+    final scope = '${session.room?.id}:${session.match?.data['matchId']}';
+    if (_walkerCueScope != scope) {
+      _walkerCues.clear();
+      _walkerCueScope = scope;
+    }
     final liveMummies = <String>{};
     for (final entity in session.scene.where(
       (e) =>
@@ -119,7 +130,34 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       (e) => e.kind == 'enemy' && e.data['boss'] == true,
     )) {
       final kind = BossKind.values.byName(e.data['kind'] as String);
-      if (_warmed.add('boss_${kind.name}')) unawaited(audio.warmBoss(kind));
+      if (_warmed.add('boss_${kind.name}')) {
+        unawaited(
+          kind == BossKind.walker ? audio.warmWalker() : audio.warmBoss(kind),
+        );
+      }
+      if (kind == BossKind.walker && e.data['walker'] is Map) {
+        final state = e.data['walker'] as Map;
+        final serial = (state['signalSerial'] as num?)?.toInt() ?? 0;
+        final previous = _walkerCues[e.key];
+        _walkerCues[e.key] = serial;
+        if (previous != null && session.connected && !session.suspended) {
+          for (final raw in state['signals'] as List? ?? []) {
+            if ((raw['serial'] as num) <= previous) continue;
+            final sound = switch (raw['event']) {
+              'rotary' => 'sentry_fire.wav',
+              'cannon' => 'shot_revolver_0.wav',
+              'rocket' => 'walker_rocket_launch.wav',
+              'blast' => 'blast.wav',
+              'land' => 'supply_land.wav',
+              'spool' => 'reload_carbine_1.wav',
+              'charge' => 'supply_incoming.wav',
+              'fatal' => 'supply_break.wav',
+              _ => null,
+            };
+            if (sound != null) audio.play(sound);
+          }
+        }
+      }
     }
     if (!session.connected) return;
     final boss = session.scene.any(
@@ -362,6 +400,15 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           }
         }
       }
+      walkers.sync(
+        session.scene,
+        dt,
+        scope: '${session.room?.id}:${session.match?.data['matchId']}',
+        active:
+            session.connected &&
+            !session.suspended &&
+            session.match?.phase == 'active',
+      );
       _sceneCues();
       if (artReady) leases.update(session.scene);
       for (final member in session.members) {
@@ -558,6 +605,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     }
     ticker.dispose();
     leases.dispose();
+    walkers.dispose();
     clear();
     unawaited(audio.playMusic('menu'));
     super.dispose();
@@ -728,6 +776,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         grenadeAim: grenadeAim,
                         restingAim: restingAim,
                         mummyWalks: mummyWalks,
+                        walkers: walkers,
                         guardFeedback: guardFeedback,
                         mechanicFeedback: mechanicFeedback,
                       ),
@@ -1011,6 +1060,7 @@ class _ArenaPainter extends CustomPainter {
     required this.grenadeAim,
     required this.restingAim,
     required this.mummyWalks,
+    required this.walkers,
     required this.guardFeedback,
     required this.mechanicFeedback,
   });
@@ -1019,6 +1069,7 @@ class _ArenaPainter extends CustomPainter {
   final GrenadeAim grenadeAim;
   final Map<String, Offset> restingAim;
   final Map<String, MummyWalk> mummyWalks;
+  final OnlineWalkers walkers;
   final Map<String, GuardFeedback> guardFeedback;
   final Map<String, MechanicFeedback> mechanicFeedback;
   final Map<String, Offset> positions;
@@ -1152,6 +1203,17 @@ class _ArenaPainter extends CustomPainter {
     }
     if (artReady) {
       for (final enemy in session.scene.where((e) => e.kind == 'enemy')) {
+        if (enemy.data['kind'] == 'walker') {
+          walkers.floor(
+            canvas,
+            enemy.key,
+            session.room?.mapId == 'foundry'
+                ? ArenaType.foundry
+                : ArenaType.breach,
+            LocalPreferences.shared.reducedMotion,
+          );
+          continue;
+        }
         OnlineWorldArt.enemyFloor(
           canvas,
           enemy,
@@ -1325,7 +1387,8 @@ class _ArenaPainter extends CustomPainter {
         session.scene
             .where(
               (e) =>
-                  e.kind == 'enemy' && e.number('health') > 0 ||
+                  e.kind == 'enemy' &&
+                      (e.number('health') > 0 || e.data['kind'] == 'walker') ||
                   e.kind == 'supply' && e.data['phase'] != 'warning' ||
                   e.kind == 'support',
             )
@@ -1383,6 +1446,11 @@ class _ArenaPainter extends CustomPainter {
           Paint()
             ..color = Color.fromRGBO(255, 255, 255, bossPresentation.opacity),
         );
+      }
+      if (enemy.data['kind'] == 'walker') {
+        walkers.body(canvas, enemy.key, LocalPreferences.shared.reducedMotion);
+        if (revealing) canvas.restore();
+        return;
       }
       OnlineWorldArt.enemy(
         canvas,
@@ -1775,6 +1843,11 @@ class _ArenaPainter extends CustomPainter {
         reducedMotion: LocalPreferences.shared.reducedMotion,
       );
     }
+    walkers.ordnance(
+      canvas,
+      session.room?.mapId == 'foundry' ? ArenaType.foundry : ArenaType.breach,
+      LocalPreferences.shared.reducedMotion,
+    );
     if (session.match?.phase == 'confirmation') {
       final reward = session.upgradeReceipts.active[session.identity];
       if (reward != null) {

@@ -1887,3 +1887,76 @@ The creator meant repeated coin/XP pickup, not the accepted-upgrade force pulse.
 ## Level-up presence — 27 October
 
 The creator found the first mechanical level cue too faint. Soft-limited the narrow recorded-contact peaks, added a short damped midrange body and raised only level.wav gain from.5 to.6. The cue remains290ms and non-melodic; total waveform energy is22% of the rejected original chime (up from5.5% in the thin first mechanical version). Coin and fusion masters remain byte-identical. Preview generator uses the actual.6gain and default SFX volume. Native listening remains for creator approval.
+
+
+## Rejected boss candidate reset — 27 October 2026
+
+Creator phone review rejected the boss art and attack-art foundation. Restored
+conversation candidate source to pre-overhaul baseline and reverted sibling
+backend capability10 candidate without a new commit/publication. Previous phone
+installation still has rejected candidate. Unrelated committed work preserved.
+Clean analyzer,12 focused Flutter tests and199 backend tests/typecheck/build
+verify rollback. New direction: one original modular mechanical robot, long
+procedural legs, independent turret/rocket/ram modules. Identity proposal and
+honest staged acceptance: [MECHANICAL_BOSS_WORKSHOP.md](MECHANICAL_BOSS_WORKSHOP.md).
+Only the concept has been produced; the new robot is not in gameplay yet.
+
+
+## Original walker — first procedural rig study
+
+Added a separate Training-preparation Walker workshop: long two-link legs with
+world-planted feet, controlled transfers, root braking/turning, brace and
+independent360-degree turret aiming. Dedicated modular textured parts retain
+full1774px source resolution; route-local disposal and borrowed shared floor
+textures keep the standalone decoded-art setup near27MiB. Walk/strafe/turn/
+stand/brace controls, floor taps, draggable Rook target, both floors, close view
+and joint inspection support review. No normal boss/encounter/backend behavior
+is added. Firing/recoil, rocket travel/pursuit, charge, mechanical sky deployment
+and damaging death explosion remain future modules. Actual rendered captures
+and verification live under validation/walker-workshop-2026-10-27; these do not
+approve art/motion or physical performance. See MECHANICAL_BOSS_WORKSHOP.md.
+
+
+## Walker complete native Training candidate
+
+Normal Training Pause → Boss Practice now includes Walker, with faster walking,
+mechanical sky deployment, rotary/cannon with recoil and independent targeting,
+physical rockets with delayed bounded pursuit, committed rocket ram/braking and
+a warned large damaging death explosion followed by wreck/replay. Normal player
+controls/kit/Take damage and Training recovery remain authoritative. No occult
+entry/departure, boss reward/picker interruption, survival enum, random-rush or
+hosted admission. Native end-to-end test proves real primary-shot damage and
+once-only3HP final blast through the normal Training selector, including pause,
+replacement and pending-load cleanup. Complete report: MECHANICAL_BOSS_WORKSHOP.md.
+Installed and launched release on connected iPhone for creator review; physical
+quality/balance/performance approval is still open.
+
+Final Walker candidate verification: clean analyzer,824 tests pass/5 deliberate
+skips. Release iOS build/install/launch succeeded. Evidence and simulated native
+combat/destruction footage: validation/walker-complete-2026-10-27/README.md.
+
+
+## Walker pressure and agility — 27 October 2026
+
+Creator follow-up extends rotary to36/48 rounds and cannon to4/5 with bounded
+tracking/reacquisition, strafing and shorter recovery. Faster230/260 battle
+approach uses planted diagonal paired steps, acceleration/braking and occupancy.
+Rockets now accept actual weapon hits and explode once with normal proximity
+risk; no kill/reward/proc grants. Real native shot interception and2HP charge
+contact are tested with the normal Training damage/protection contract intact.
+See MECHANICAL_BOSS_WORKSHOP.md for values and acceptance limits.
+
+Validation for Walker pressure: analyzer clean;827 tests pass with5 existing
+skips,17 focused Walker tests plus native encounter capture pass, iOS release
+build succeeds. Evidence: docs/validation/walker-pressure-2026-10-27. Device
+discovery returned no iPhone; installation and physical acceptance remain open.
+
+## Walker roster and collateral — 28 October 2026
+
+Walker now enters normal solo survival, Training/Boss Rush and capability-10 online co-op. Mirror Saint is retired from all playable selection; legacy solo checkpoints migrate it to Walker while preserving the run/build. Old co-op clients receive Marshal instead when migrating a living Saint, and cannot select Walker. The Walker workshop button is removed from loadout; the internal art inspector remains available to tests. Walker uses its mechanical arrival/destruction, never occult portals, and is solo in Boss Rush.
+
+Grounded chassis participates in ordinary enemy occupancy. Rotary fire kills intercepted minions; cannon shells detonate on contact and clear nearby minions. Rockets ignore minion flight collisions, remain shootable, and clear minions within their cover-tested explosion. Thruster rush ignores ordinary minions while airborne and clears only its landing blast area; it still damages players along the swept path and at landing, once per player per rush. These are environmental kills without player rewards or procs. Solids and other bosses still constrain movement.
+
+Normal checkpoints retain rig feet, AI/random state, release schedule, live ordnance and destruction phase. Victory/core/director progression happens once after mechanical destruction completes. Training remains without profile rewards. Online snapshots are server authority; Flutter only interpolates/draws the shared rig, and route-owned assets/audio are cleaned up on leave/restart.
+
+Validation: Flutter analyzer clean; full suite856 passed,5 skipped; focused shared-contract tests7 passed. Server typecheck,208 tests and SpacetimeDB2.12 build pass. Disposable local three-player WebSocket smoke proves capability10, replicated Walker gunfire and the delayed single death blast. Shared native/server snapshot fixtures verify mechanics through30 seconds. Physical readability, performance and difficulty remain for device review.

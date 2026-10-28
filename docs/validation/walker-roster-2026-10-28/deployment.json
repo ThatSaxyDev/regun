@@ -1,0 +1,8 @@
+{
+  "commit": "2b729c0",
+  "branch": "main",
+  "health": 200,
+  "mechanical_bosses": true,
+  "persistentVolume": "regun-state-recovered",
+  "environmentChanges": false
+}

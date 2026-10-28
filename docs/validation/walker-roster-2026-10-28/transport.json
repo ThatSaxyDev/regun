@@ -1,0 +1,10 @@
+{
+  "players": 3,
+  "capability": 10,
+  "version": 1,
+  "replicated": true,
+  "shots": 1,
+  "mechanicalArrival": true,
+  "delayedDestruction": true,
+  "onceOnlyDetonation": true
+}

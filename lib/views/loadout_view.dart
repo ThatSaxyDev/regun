@@ -461,42 +461,35 @@ class _LoadoutViewState extends State<LoadoutView> {
     }
   }
 
-  Widget _footer() => Container(
-    padding: const EdgeInsets.only(top: 8),
-    decoration: const BoxDecoration(
-      border: Border(top: BorderSide(color: Color(0xff51424f))),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${character.title} / ${weapon.title} / ${arena.title}${WeaponMobility.label(weapon).isEmpty ? '' : ' / ${WeaponMobility.label(weapon)}'}',
-                key: const Key('loadout-summary'),
-                style: const TextStyle(
-                  fontFamily: FontFam.orbitron,
-                  fontSize: 11,
-                  height: 1.5,
-                  color: Color(0xffc7b9a6),
-                ),
-              ),
-              if (_unlockIssue != null)
-                Text(
-                  _unlockIssue!,
-                  maxLines: 2,
-                  style: const TextStyle(
-                    fontFamily: FontFam.orbitron,
-                    fontSize: 9,
-                    color: Color(0xffE1BA78),
-                  ),
-                ),
-            ],
+  Widget _footer() => LayoutBuilder(
+    builder: (_, box) {
+      final summary = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${character.title} / ${weapon.title} / ${arena.title}${WeaponMobility.label(weapon).isEmpty ? '' : ' / ${WeaponMobility.label(weapon)}'}',
+            key: const Key('loadout-summary'),
+            style: const TextStyle(
+              fontFamily: FontFam.orbitron,
+              fontSize: 11,
+              height: 1.5,
+              color: Color(0xffc7b9a6),
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
+          if (_unlockIssue != null)
+            Text(
+              _unlockIssue!,
+              maxLines: 2,
+              style: const TextStyle(
+                fontFamily: FontFam.orbitron,
+                fontSize: 9,
+                color: Color(0xffE1BA78),
+              ),
+            ),
+        ],
+      );
+      final actions = <Widget>[
         if (!widget.training &&
             !profile.weaponUnlocked(weapon) &&
             armoryWeapons.containsKey(weapon.name))
@@ -551,8 +544,33 @@ class _LoadoutViewState extends State<LoadoutView> {
                     }
                   },
           ),
-      ],
-    ),
+      ];
+      return Container(
+        padding: const EdgeInsets.only(top: 8),
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Color(0xff51424f))),
+        ),
+        child: widget.training && box.maxWidth < 400
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  summary,
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: actions,
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  Expanded(child: summary),
+                  const SizedBox(width: 12),
+                  ...actions,
+                ],
+              ),
+      );
+    },
   );
 }
 

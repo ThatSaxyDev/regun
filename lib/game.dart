@@ -1,3 +1,5 @@
+import 'package:regun/systems/walker_combat.dart';
+import 'package:regun/components/enemies/walker_boss.dart';
 import 'package:uuid/uuid.dart';
 import 'package:regun/presentation/freeze_focus.dart';
 import 'package:regun/presentation/boss_portal.dart';
@@ -107,6 +109,8 @@ class RegunGame extends FlameGame
   final bool startPaused;
   final UpgradeFeelMode upgradeFeelMode;
   final bool reviewControlledSpawns;
+  bool walkerTrial = false;
+  WalkerBoss? walkerCandidate;
   late final upgradePresentation = UpgradePresentationController(
     mode: upgradeFeelMode,
   );
@@ -207,8 +211,17 @@ class RegunGame extends FlameGame
     }
   }
 
+  Iterable<WalkerBoss> get walkerActors sync* {
+    yield* bosses.whereType<WalkerBoss>();
+    final trial = walkerCandidate;
+    if (trial != null && !bosses.contains(trial)) yield trial;
+  }
+
   Iterable<PositionComponent> get projectileTargets sync* {
     yield* liveEnemies;
+    for (final robot in walkerActors) {
+      yield* robot.rocketTargets;
+    }
     yield* weakPoints.where((p) => !p.isRemoving && !p.combatHealth.isDead);
   }
 
@@ -455,6 +468,13 @@ class RegunGame extends FlameGame
   }
 
   void clearHostileShots(Vector2 origin, double radius) {
+    for (final walker in walkerActors.where((w) => w.prepared)) {
+      walker.fight.rounds.removeWhere(
+        (round) =>
+            (round.position - origin.toOffset()).distance <=
+            radius + round.radius,
+      );
+    }
     for (final shot in _hostileProjectiles.toList()) {
       final reach = radius + min(shot.size.x, shot.size.y) / 2;
       if (shot.position.distanceToSquared(origin) <= reach * reach) {
@@ -491,7 +511,11 @@ class RegunGame extends FlameGame
         : director.populationLimit,
     'xp': _coins.length,
     'playerProjectiles': projectileCount,
-    'hostileProjectiles': _hostileProjectiles.length,
+    'hostileProjectiles':
+        _hostileProjectiles.length +
+        walkerActors
+            .where((w) => w.prepared)
+            .fold<int>(0, (n, w) => n + w.fight.rounds.length),
     'effects': _effects.length + (arsenal?.effectCount ?? 0),
     'fire': _fires.length,
     'mines': _mines.length,
@@ -517,7 +541,11 @@ class RegunGame extends FlameGame
     }
   }
 
-  double enemyRadius(PositionComponent enemy) => enemy is BossWeakPoint
+  double enemyRadius(PositionComponent enemy) => enemy is WalkerRocketTarget
+      ? enemy.round.radius
+      : enemy is WalkerBoss
+      ? 88
+      : enemy is BossWeakPoint
       ? 26
       : enemy is BossEncounter
       ? (enemy as BossEncounter).kind.bodyRadius
@@ -532,7 +560,9 @@ class RegunGame extends FlameGame
   final enemyTactics = EnemyTactics();
   final _temporaryCoverRouter = ObstacleRouter();
   final crowdOccupancy = CrowdOccupancy();
-  double crowdRadius(PositionComponent actor) => actor is BossEncounter
+  double crowdRadius(PositionComponent actor) => actor is WalkerBoss
+      ? 88
+      : actor is BossEncounter
       ? (actor as BossEncounter).kind.bodyRadius
       : (min(actor.size.x, actor.size.y) * .45).clamp(30.0, 52.0);
 
@@ -791,19 +821,28 @@ class RegunGame extends FlameGame
     double? travel,
     WeaponReaction? reaction,
     Vector2? direction,
-  }) => combat.hit(
-    enemy,
-    amount,
-    primary: primary,
-    weaponHit: weaponHit,
-    direction: direction,
-    allowChain: allowChain,
-    armorPiercing: armorPiercing,
-    releaseId: releaseId,
-    releaseBonus: releaseBonus,
-    travel: travel,
-    reaction: reaction,
-  );
+  }) {
+    if (enemy is WalkerRocketTarget) {
+      if (gameState.gameplayState != GameplayState.playing || inputBlocked) {
+        return false;
+      }
+      return enemy.hit(amount);
+    }
+    return combat.hit(
+      enemy,
+      amount,
+      primary: primary,
+      weaponHit: weaponHit,
+      direction: direction,
+      allowChain: allowChain,
+      armorPiercing: armorPiercing,
+      releaseId: releaseId,
+      releaseBonus: releaseBonus,
+      travel: travel,
+      reaction: reaction,
+    );
+  }
+
   void explode(
     Vector2 position, {
     required double radius,
@@ -858,12 +897,15 @@ class RegunGame extends FlameGame
     trainingPressure = value;
     _trainingPressureClock.reset();
     if (lower && !bossRush) {
-      final ordinary = _enemies.toList()
-        ..sort(
-          (a, b) => b.position
-              .distanceToSquared(myPlayer.position)
-              .compareTo(a.position.distanceToSquared(myPlayer.position)),
-        );
+      final ordinary =
+          _enemies
+              .where((enemy) => enemy is! CombatEnemy || !enemy.isBoss)
+              .toList()
+            ..sort(
+              (a, b) => b.position
+                  .distanceToSquared(myPlayer.position)
+                  .compareTo(a.position.distanceToSquared(myPlayer.position)),
+            );
       for (final enemy in ordinary.take(
         max(0, ordinary.length - value.nearbyTarget),
       )) {
@@ -1248,6 +1290,7 @@ class RegunGame extends FlameGame
     }
     _spawnWarnings.clear();
     activeBoss = null;
+    walkerCandidate = null;
     _bossDamageTaken.clear();
     _bossAttacks.clear();
     weakPoints.clear();
@@ -1317,6 +1360,7 @@ class RegunGame extends FlameGame
       camera: camera.viewfinder.position,
     );
     layoutControls();
+    if (walkerTrial && loadout.training) _placeWalker();
     revision.value++;
     resumeEngine();
   }
@@ -1327,6 +1371,7 @@ class RegunGame extends FlameGame
       final enemy = entity as CombatEnemy;
       return {
         'kind': enemyId(entity),
+        if (entity is WalkerBoss) 'walker': entity.checkpointState,
         'combatId': enemy.combatId,
         'freeze': enemy.freezeState.toJson(),
         if (entity is BossEncounter) 'actor': bossEncounter.idOf(entity),
@@ -1388,7 +1433,9 @@ class RegunGame extends FlameGame
       'enemies': [
         for (final e in liveEnemies) actor(e),
         for (final e in bosses)
-          if (!e.isLoaded) actor(e),
+          if (!e.isLoaded ||
+              (e is WalkerBoss && e.prepared && e.fight.defeated))
+            actor(e),
       ],
       'drops': [
         for (final c in _coins)
@@ -1669,7 +1716,7 @@ class RegunGame extends FlameGame
           if (bosses.length >= 2) {
             throw const FormatException('Multiple bosses');
           }
-          entity = _createBoss(BossKind.values.byName(kind), position, maximum);
+          entity = _createBoss(BossKind.read(kind), position, maximum);
           bossEncounter.add(entity, restoredId: record['actor'] as int?);
           _bossDamageTaken[entity] = record.containsKey('bossHit')
               ? record['bossHit'] == true
@@ -1707,10 +1754,18 @@ class RegunGame extends FlameGame
             ),
           );
         }
-        enemy.restoreHealth(
-          (record['health'] as num).toDouble(),
-          maximum: maximum,
-        );
+        if (entity is WalkerBoss && record['walker'] is Map) {
+          entity.restoreFight(
+            Map<String, dynamic>.from(record['walker'] as Map),
+          );
+        }
+        if ((record['health'] as num) > 0) {
+          enemy.restoreHealth(
+            (record['health'] as num).toDouble(),
+            maximum: maximum,
+          );
+        }
+
         enemy.marked = record['marked'] == true;
         enemy.burnRemaining = (record['burn'] as num?)?.toDouble() ?? 0;
         enemy.burnDamage = (record['burnDamage'] as num?)?.toDouble() ?? 0;
@@ -1842,7 +1897,11 @@ class RegunGame extends FlameGame
   }
 
   bool registerEnemy(PositionComponent enemy) {
-    if (isRetiredActor(enemy) || (loadout.training && bossRush)) return false;
+    if (isRetiredActor(enemy) ||
+        (loadout.training && bossRush) ||
+        (walkerTrial && enemy is! WalkerBoss)) {
+      return false;
+    }
     if (!_enemies.contains(enemy) && _enemies.length >= maxEnemies) {
       return false;
     }
@@ -1867,7 +1926,7 @@ class RegunGame extends FlameGame
   }
 
   void _spawnEnemy(PositionComponent enemy) {
-    if (loadout.training && bossRush) return;
+    if (walkerTrial || (loadout.training && bossRush)) return;
     if (gameState.gameplayState != GameplayState.playing) return;
     _enemies.removeWhere((entity) => entity.isRemoving || entity.isRemoved);
     if (_enemies.length >= maxEnemies) return;
@@ -1936,8 +1995,21 @@ class RegunGame extends FlameGame
     required int xp,
     required int score,
     bool boss = false,
+    bool mechanicalComplete = false,
   }) {
     if (enemy.parent != world) return;
+    if (enemy is WalkerBoss && !mechanicalComplete) {
+      // Keep the encounter registered until its warned mechanical destruction ends.
+      _enemies.remove(enemy);
+      crowdOccupancy.forget(enemy);
+      return;
+    }
+    if (enemy is WalkerBoss && loadout.training) {
+      unregisterEnemy(enemy);
+      bossEncounter.remove(enemy);
+      if (bosses.isEmpty && bossRush) bossRushWait = 2.8;
+      return;
+    }
     if (enemyId(enemy) == 'scorpion') scorpionKills++;
     if (enemy is ArenaEnemy && enemy.elite) eliteKills++;
     gameNotifier.recordKill(score: score, boss: boss);
@@ -1947,12 +2019,14 @@ class RegunGame extends FlameGame
       final bossKind = (enemy as BossEncounter).kind;
       gameNotifier.awardBossHealth();
       bossVictory.show(bossKind);
-      world.add(
-        BossDeparture(
-          position: enemy.position + Vector2(0, enemy.size.y * .35),
-          kind: bossKind,
-        ),
-      );
+      if (enemy is! WalkerBoss) {
+        world.add(
+          BossDeparture(
+            position: enemy.position + Vector2(0, enemy.size.y * .35),
+            kind: bossKind,
+          ),
+        );
+      }
       final kind = bossKind.name;
       defeatedBosses.add(kind);
       bossWinCounts[kind] = (bossWinCounts[kind] ?? 0) + 1;
@@ -1993,6 +2067,7 @@ class RegunGame extends FlameGame
   }
 
   String enemyId(PositionComponent enemy) => switch (enemy) {
+    WalkerBoss() => 'walker',
     EnemyComponent() => 'scorpion',
     Enemy2Component() => 'mummy',
     Enemy3Component() => 'ranged',
@@ -2001,8 +2076,51 @@ class RegunGame extends FlameGame
     _ => 'unknown',
   };
 
+  void _placeWalker() {
+    for (final offset in [
+      Vector2(520, -100),
+      Vector2(-520, -100),
+      Vector2(0, -520),
+      Vector2(0, 520),
+    ]) {
+      final at = myPlayer.position + offset;
+      constrainActor(at, 220);
+      if (at.distanceTo(myPlayer.position) < 350) continue;
+      final robot = WalkerBoss(position: at, practiceTrial: true);
+      if (reserveEnemySpace(robot, minPlayerDistance: 350)) {
+        walkerCandidate = robot;
+        world.add(robot);
+        break;
+      }
+    }
+  }
+
+  void _retireWalker() {
+    final robot = walkerCandidate;
+    walkerCandidate = null;
+    walkerTrial = false;
+    if (robot != null) {
+      unregisterEnemy(robot);
+      robot.removeFromParent();
+      robot.assets.dispose();
+    }
+  }
+
+  void practiceWalker() {
+    if (!loadout.training) return;
+    // Reuse the existing boss-only field cleanup without ever advancing a rush.
+    // The current build, magazine, health and visit's Take damage choice stay.
+    startBossRush();
+    bossRush = false;
+    bossRushWait = 0;
+    walkerTrial = true;
+    _placeWalker();
+    revision.value++;
+  }
+
   void practiceBoss(BossKind kind) {
     if (!loadout.training) return;
+    _retireWalker();
     bossRush = false;
     _retirePracticeBosses();
     resumeGame();
@@ -2034,6 +2152,8 @@ class RegunGame extends FlameGame
     Vector2 position,
     double health,
   ) => switch (kind) {
+    BossKind.walker ||
+    BossKind.saint => WalkerBoss(position: position, maximumHealth: health),
     BossKind.shadow => ShadowBossComponent(
       position: position,
       maximumHealth: health,
@@ -2051,6 +2171,11 @@ class RegunGame extends FlameGame
   };
 
   void spawnBoss(BossKind kind, {bool companion = false}) {
+    if (kind == BossKind.saint) kind = BossKind.walker;
+    if (kind == BossKind.walker && bosses.isNotEmpty ||
+        bosses.any((boss) => boss is WalkerBoss)) {
+      return;
+    }
     if ((!companion && bosses.isNotEmpty) ||
         bosses.length >= 2 ||
         gameState.gameplayState != GameplayState.playing) {
@@ -2075,13 +2200,15 @@ class RegunGame extends FlameGame
     unawaited(audio.playMusic('boss'));
     if (!director.bossActive) director.beginBoss();
     world.add(actor);
-    bossReveal.begin(
-      actor,
-      camera.viewfinder.position,
-      reducedMotion: preferences.reducedMotion,
-    );
-    resetInput();
-    confirmationHolding.value = true;
+    if (actor is! WalkerBoss) {
+      bossReveal.begin(
+        actor,
+        camera.viewfinder.position,
+        reducedMotion: preferences.reducedMotion,
+      );
+      resetInput();
+      confirmationHolding.value = true;
+    }
     final distant =
         liveEnemies
             .where(
@@ -2103,6 +2230,7 @@ class RegunGame extends FlameGame
 
   void startBossRush() {
     if (!loadout.training) return;
+    _retireWalker();
     _retirePracticeBosses();
     for (final warning in _spawnWarnings.toList()) {
       warning.cancel();
@@ -2157,11 +2285,11 @@ class RegunGame extends FlameGame
   }
 
   BossKind _nextRushBoss({BossKind? excluding}) {
-    if (_rushBag.isEmpty) _rushBag.addAll(BossKind.values);
-    if (_rushBag.length == BossKind.values.length) _rushBag.shuffle(random);
+    if (_rushBag.isEmpty) _rushBag.addAll(BossKind.active);
+    if (_rushBag.length == BossKind.active.length) _rushBag.shuffle(random);
     var index = _rushBag.indexWhere((kind) => kind != excluding);
     if (index < 0) {
-      _rushBag.addAll(BossKind.values.where((kind) => kind != excluding));
+      _rushBag.addAll(BossKind.active.where((kind) => kind != excluding));
       _rushBag.shuffle(random);
       index = _rushBag.indexWhere((kind) => kind != excluding);
     }
@@ -2176,8 +2304,13 @@ class RegunGame extends FlameGame
     gameNotifier.refillPractice();
     final first = _nextRushBoss();
     spawnBoss(first);
-    if (random.nextDouble() < .4) {
-      spawnBoss(_nextRushBoss(excluding: first), companion: true);
+    if (first != BossKind.walker && random.nextDouble() < .4) {
+      final second = _nextRushBoss(excluding: first);
+      if (second != BossKind.walker) {
+        spawnBoss(second, companion: true);
+      } else {
+        _rushBag.add(second);
+      }
     }
     if (bosses.isEmpty) bossRushWait = 1;
     revision.value++;
@@ -2616,7 +2749,15 @@ class RegunGame extends FlameGame
       if (!bossRush) supportCombat.advance(dt);
     }
     enemyTactics.rebuild(liveEnemies);
-    crowdOccupancy.rebuild([..._enemies, ...bosses], crowdRadius);
+    crowdOccupancy.rebuild(
+      [..._enemies, ...bosses].where(
+        (e) =>
+            e is! WalkerBoss ||
+            !e.prepared ||
+            ![WalkerPhase.charge, WalkerPhase.brake].contains(e.fight.phase),
+      ),
+      crowdRadius,
+    );
     super.update(dt);
     final state = gameState;
     if (state.gameplayState == GameplayState.playing) {
@@ -2628,7 +2769,9 @@ class RegunGame extends FlameGame
       _advanceRush(dt);
       final reinforce = director.advance(dt);
       if (loadout.training) {
-        if (!bossRush && !reviewControlledSpawns) _advanceTrainingCrowd(dt);
+        if (!bossRush && !reviewControlledSpawns && !walkerTrial) {
+          _advanceTrainingCrowd(dt);
+        }
       } else if (reinforce && !bossRush) {
         _spawnEnemy(_directorEnemy());
       }
@@ -2676,6 +2819,7 @@ class RegunGame extends FlameGame
     if (gameState.gameplayState == GameplayState.playing &&
         loadout.arena == ArenaType.breach &&
         !bossRush &&
+        !walkerTrial &&
         !_supplyArtLoading) {
       supplyDrops.advance(
         dt,
@@ -2697,7 +2841,7 @@ class RegunGame extends FlameGame
       );
     }
     _syncSupplyArt(supplyDrops.drop != null && !bossRush);
-    final targetZoom = bosses.isNotEmpty ? .88 : 1.0;
+    final targetZoom = bosses.isNotEmpty || walkerTrial ? .88 : 1.0;
     camera.viewfinder.zoom = preferences.reducedMotion
         ? targetZoom
         : camera.viewfinder.zoom +
@@ -2958,6 +3102,9 @@ class RegunGame extends FlameGame
     for (final boss in world.children.whereType<ExpansionBoss>()) {
       boss.releaseArt();
     }
+    for (final robot in world.children.whereType<WalkerBoss>()) {
+      robot.assets.dispose();
+    }
     // Replace the run world, including components that are still loading and
     // are not yet visible in world.children. They must never enter a new run.
     world = World();
@@ -3033,6 +3180,9 @@ class RegunGame extends FlameGame
     }
     for (final boss in world.children.whereType<ExpansionBoss>()) {
       boss.releaseArt();
+    }
+    for (final robot in world.children.whereType<WalkerBoss>()) {
+      robot.assets.dispose();
     }
     _phaseSubscription?.close();
     confirmationHolding.dispose();

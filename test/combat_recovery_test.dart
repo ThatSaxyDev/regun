@@ -139,7 +139,7 @@ void main() {
       await tester.runAsync(() async {
         game.myPlayer.position.setValues(0, -1200);
         game.myPlayer.update(0);
-        for (final kind in BossKind.values) {
+        for (final kind in _legacyBosses) {
           game.practiceBoss(kind);
           await game.ready();
           final boss = game.activeBoss!;
@@ -322,3 +322,7 @@ void main() {
     },
   );
 }
+
+final _legacyBosses = BossKind.active
+    .where((kind) => kind != BossKind.walker)
+    .toList();

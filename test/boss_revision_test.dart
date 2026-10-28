@@ -121,7 +121,7 @@ void main() {
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    for (final kind in BossKind.values.where((kind) => !kind.expansion)) {
+    for (final kind in _legacyBosses.where((kind) => !kind.expansion)) {
       final game = await mount(tester);
       for (var i = 0; i < 30; i++) {
         game.gameNotifier.healthIncrease();
@@ -286,3 +286,5 @@ void main() {
     }
   });
 }
+
+final _legacyBosses = BossKind.active.where((kind) => kind != BossKind.walker).toList();

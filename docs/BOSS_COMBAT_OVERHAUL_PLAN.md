@@ -1,5 +1,9 @@
 # Eight-boss combat overhaul implementation plan
 
+> Discarded after creator phone review on 27 October 2026. Candidate source
+> changes were rolled back in game and backend. Historical plan only. The new
+> one-boss mechanical direction is in [MECHANICAL_BOSS_WORKSHOP.md](MECHANICAL_BOSS_WORKSHOP.md).
+
 27 October 2026 · Planning only · No gameplay implementation in this document
 
 ## 1. Mandate and outcome

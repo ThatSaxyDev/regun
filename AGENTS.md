@@ -759,3 +759,73 @@ radius/damage/shove/protection or a camera/full-screen flash. Retain Reduced Mot
 and route/save safety. Category recipe reuse lives in upgrade_animation_recipe.
 Latest normal phone candidate installed; hosted deployment and physical acceptance
 remain separate. See docs/validation/upgrade-impact-release-2026-10-26/README.md.
+
+
+## Boss reset and original mechanical walker (2026-10-27)
+
+The creator rejected the entire boss-overhaul candidate, including its artwork,
+attack presentation and subsequent barbed-chain work. Those conversation changes
+were rolled back; do not reapply them from the discarded plan/evidence. Existing
+bosses are only the pre-overhaul baseline, not visually accepted. Read
+`docs/MECHANICAL_BOSS_WORKSHOP.md`. New direction: ONE original modular mechanical
+boss inspired by the sentry's function/material, with longer articulated legs and
+its own body/silhouette. Large boss scale is intentional. Begin with a
+world-planted-foot procedural walking rig and real joints, then individually add
+aimed turrets, rocket-assisted melee charge and rocket/gun modules. The saved
+identity board is a concept, not runtime art or an implemented boss. Preserve
+unrelated systems. No roster/protocol/installation change is implied yet.
+
+
+### Walker rig study implementation
+
+Training preparation now has Walker workshop, isolated before starting a run.
+WalkerRig uses120Hz stepping, world-planted feet and two-link long-leg IK;
+WalkerArt renders separate full-resolution textured parts with route-owned
+loading/disposal. Floors are borrowed from RegunArt; do not decode/own them twice.
+Keep it out of the live roster/backend/checkpoints until actual encounter
+admission. Current scope is walking/strafe/turn/stand/brace and independent turret
+aim, with close-view/joint inspection. Firing, recoil, charge, rockets, sky drop
+and damaging death explosion remain required later modules, not implemented
+features. Visual proportions/depth/lighting and native comfort remain open.
+
+
+### Complete Walker Training candidate (supersedes rig-only scope above)
+
+Walker is now in Training Pause → Boss Practice, outside the BossKind enum and
+normal survival/random rush/hosted admission. practiceWalker preserves the build
+and Take damage visit setting, clears other pressure and deploys mechanically
+from the sky. WalkerCombat owns active fixed-step targeting/weapons, delayed
+rocket pursuit, committed ram and warned damaging death blast. WalkerBoss uses
+CombatEnemy's one fatal transition but intercepts rewards/occult departure and
+keeps world render layers for destruction. Never give a boss heal/core/picker
+before that blast. Preserve the330-radius/3-damage/2.6s once-only death contract,
+external-cover clipping, hull-clear muzzles and phase-pinned variants. Selected
+weapons/player mechanics remain untouched. Pending retirement/replacement must
+release both atlases and all owned rounds/layers. See the complete candidate
+section of docs/MECHANICAL_BOSS_WORKSHOP.md. Installed for creator review; human
+visual/fairness/audio/performance acceptance remains open.
+
+
+### Walker pressure and agility (2026-10-27)
+
+The creator requests aggressive sustained fire and heavy-but-agile movement.
+Battle gait uses230/260 approach,150/170 strafe,600 acceleration,1.5rad/s yaw and
+.16s diagonal paired steps with at least two planted supports. Keep the inspector
+gait unchanged. Rotary36/48 at.10/.085s; cannon4/5 at.48/.40s with follow-up aim
+committed.16s before release. Only successful shots consume the volley; blocked
+retries are bounded by the phase end. Recover.9/.65s; never overlap the next salvo
+with live pursuit rockets. Any accepted weapon hit detonates a live rocket once
+through lightweight projectile targets, outside enemy rewards/procs/occupancy.
+Keep110-radius/2HP proximity risk, cover and pause/death/retirement guards. Ram
+retains committed swept2HP once; native regression verifies actual damage.
+Training Take damage Off and existing dash/shield/hit-cooldown protections remain.
+
+## Walker roster and collateral — 28 October 2026
+
+Walker now enters normal solo survival, Training/Boss Rush and capability-10 online co-op. Mirror Saint is retired from all playable selection; legacy solo checkpoints migrate it to Walker while preserving the run/build. Old co-op clients receive Marshal instead when migrating a living Saint, and cannot select Walker. The Walker workshop button is removed from loadout; the internal art inspector remains available to tests. Walker uses its mechanical arrival/destruction, never occult portals, and is solo in Boss Rush.
+
+Grounded chassis participates in ordinary enemy occupancy. Rotary fire kills intercepted minions; cannon shells detonate on contact and clear nearby minions. Rockets ignore minion flight collisions, remain shootable, and clear minions within their cover-tested explosion. Thruster rush ignores ordinary minions while airborne and clears only its landing blast area; it still damages players along the swept path and at landing, once per player per rush. These are environmental kills without player rewards or procs. Solids and other bosses still constrain movement.
+
+Normal checkpoints retain rig feet, AI/random state, release schedule, live ordnance and destruction phase. Victory/core/director progression happens once after mechanical destruction completes. Training remains without profile rewards. Online snapshots are server authority; Flutter only interpolates/draws the shared rig, and route-owned assets/audio are cleaned up on leave/restart.
+
+Validation: Flutter analyzer clean; full suite856 passed,5 skipped; focused shared-contract tests7 passed. Server typecheck,208 tests and SpacetimeDB2.12 build pass. Disposable local three-player WebSocket smoke proves capability10, replicated Walker gunfire and the delayed single death blast. Shared native/server snapshot fixtures verify mechanics through30 seconds. Physical readability, performance and difficulty remain for device review.

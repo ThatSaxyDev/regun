@@ -1001,7 +1001,7 @@ ExpansionBoss createExpansionBoss(
     position: position,
     maximumHealth: health,
   ),
-  BossKind.saint => MirrorSaintBoss(position: position, maximumHealth: health),
+  BossKind.saint => throw ArgumentError('Retired boss'),
   BossKind.sovereign => KilnSovereignBoss(
     position: position,
     maximumHealth: health,

@@ -41,22 +41,34 @@ enum BossKind {
   marshal(
     'The Last Marshal',
     'Punish the reload. Flank the brace. Watch the returning blade.',
+  ),
+  walker(
+    'Walker',
+    'Read the guns. Evade the thruster rush and its landing blast.',
   );
 
   const BossKind(this.title, this.description);
   final String title, description;
-  bool get expansion => index >= BossKind.bellkeeper.index;
+  static List<BossKind> get active =>
+      values.where((kind) => kind != saint).toList(growable: false);
+  static BossKind read(String id) => id == 'saint' ? walker : values.byName(id);
+  bool get expansion => this != walker && index >= BossKind.bellkeeper.index;
 
   /// Render footprint grows with its authoritative body, not a root transform
   /// that would also scale attack geometry and movement distances.
   double get spriteSize => switch (this) {
+    walker => 206,
     shadow => 310,
     demon => 360,
     queen => 370,
     sovereign => 410,
     _ => 340,
   };
-  double get bodyRadius => this == shadow ? 68 : 80;
+  double get bodyRadius => this == walker
+      ? 88
+      : this == shadow
+      ? 68
+      : 80;
   double get baseHealth => switch (this) {
     shadow => 140,
     demon => 230,
@@ -64,6 +76,7 @@ enum BossKind {
     bellkeeper => 260,
     magistrate => 280,
     saint => 300,
+    walker => 190,
     sovereign => 340,
     marshal => 270,
   };

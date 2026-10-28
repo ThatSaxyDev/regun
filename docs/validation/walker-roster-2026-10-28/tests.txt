@@ -1,0 +1,12 @@
+02:48 +846 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: Marshal beams start at the gun, hit their visible route and freeze
+02:50 +847 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: explosions stay grounded, fade and preserve damage on both arenas
+02:51 +848 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: Magistrate sends multiple straight chains toward the player
+02:52 +849 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: Skitter keeps shorter with direct and predicted locked attacks
+02:52 +850 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: magistrate threatens straight retreat and rewards a warned sidestep false
+02:52 +851 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: magistrate threatens straight retreat and rewards a warned sidestep true
+02:52 +852 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: regular enemy warnings and impacts use the same material effects
+02:53 +853 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: all eight bosses threaten an open long-distance retreat in both phases
+02:54 +854 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: faster boss bolts cannot tunnel through a player or a shield
+02:54 +855 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: schema two restores a damaged pair without transient attacks
+02:54 +856 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: (tearDownAll)
+02:54 +856 ~5: All tests passed!

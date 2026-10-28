@@ -328,7 +328,7 @@ void main() {
       for (var i = 0; i < 500; i++) {
         game.gameNotifier.healthIncrease();
       }
-      for (final kind in BossKind.values) {
+      for (final kind in _legacyBosses) {
         await tester.runAsync(() async {
           game.spawnBoss(kind);
           await game.ready().timeout(const Duration(seconds: 10));
@@ -393,10 +393,10 @@ void main() {
         game.update(1 / 60);
         await tester.runAsync(() => game.ready());
       }
-      expect(game.gameState.bosses, BossKind.values.length);
+      expect(game.gameState.bosses, _legacyBosses.length);
       expect(
         game.defeatedBosses,
-        BossKind.values.map((kind) => kind.name).toSet(),
+        _legacyBosses.map((kind) => kind.name).toSet(),
       );
 
       // A damaged live enemy, a boss, earned XP, and a partial reload survive a checkpoint.
@@ -564,3 +564,7 @@ void main() {
     timeout: const Timeout(Duration(minutes: 3)),
   );
 }
+
+final _legacyBosses = BossKind.active
+    .where((kind) => kind != BossKind.walker)
+    .toList();

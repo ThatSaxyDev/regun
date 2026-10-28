@@ -56,6 +56,7 @@ class OnlineSession {
   bool supportRanksAvailable = false;
   bool upgradeConfirmationAvailable = false;
   bool bossPresentationAvailable = false;
+  bool mechanicalBossesAvailable = false;
   static const upgradeConfirmationsEnabled = true;
   final upgradeReceipts = OnlineUpgradeReceipts();
   bool grenadesAvailable = false, grenadeAimingAvailable = false;
@@ -409,6 +410,8 @@ class OnlineSession {
       grenadeAimingAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'aim_grenade',
       );
+      mechanicalBossesAvailable = (schemaJson['reducers'] as List? ?? []).any(
+        (v) => v is Map && v['name'] == 'mechanical_bosses');
       bossPresentationAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'boss_presentation',
       );
@@ -727,7 +730,7 @@ class OnlineSession {
       unawaited(
         _quiet(
           () => client.reducers.attachCombat(
-            version: bossPresentationAvailable
+            version: mechanicalBossesAvailable ? 10 : bossPresentationAvailable
                 ? 9
                 : upgradeConfirmationsEnabled && upgradeConfirmationAvailable
                 ? 8

@@ -835,3 +835,124 @@ normally, earn an upgrade and accept it: the world freezes briefly, power infuse
 the character, then combat resumes. Shared recipes cover every power-up/fusion/
 support; detailed unique art can follow. All survivors retain their own identity.
 The earlier separate phone-review launcher instructions are historical.
+
+
+## Walker workshop — first rig study
+
+From the menu choose Training, then Walker workshop BEFORE Start. This is an
+isolated review route, not a ninth boss in survival. Compare Walk, Strafe, Turn,
+Stand and Brace on Breach/Foundry. Tap the floor for a destination; drag Rook to
+aim independently. Auto aim restores the moving target; Close view follows the
+robot for detail; Joints shows the rig sockets. Controls scroll horizontally.
+
+Check supporting feet stay on the floor, knees/pistons remain connected, the
+body stops/turns with weight, brace keeps feet planted and the gun tracks through
+all headings while the chassis stands. Test pause/background/resume and Back;
+training selections should persist. Judge proportions, crispness and depth at
+phone scale, not only enlarged view. No combat, weapon firing/recoil, charge,
+rockets, sky drop or death blast is present yet. Those remain required modules.
+
+
+## Complete Walker fight in normal Training
+
+Choose Training, select your kit, Start, Pause → Boss Practice → Walker. Use the
+normal sticks, dash, reload and grenades. The robot drops from the sky, walks
+faster, cycles rotary/cannon/rockets/rocket ram, and intensifies below half health.
+Kill it and KEEP MOVING through core failure: its final large explosion can hurt
+you. Training Take damage defaults Off as usual; enable it in Pause to test real
+hits and the final blast. Training player death recovers normally without losing
+the fight/build. Fight again appears after the wreck settles. Pause → Boss
+Practice → Walker destruction lets you inspect the ending without shooting all
+its HP. Other boss choices/random rush retire Walker safely. This candidate is
+not part of normal survival, random Boss Rush or hosted play yet.
+
+
+### Walker sustained pressure candidate
+
+Training → Pause → Boss Practice → Walker. Rotary should sustain a long burst;
+cannon fires a four-shot volley, stronger at half health. Walk/strafe should
+reposition briskly while feet remain planted between deliberate steps. Dodge
+the committed cannon shots and thruster charge. Enable Take damage On to test
+ram contact (2HP before existing protections). Shoot incoming rockets: they
+explode early, consume the hit and grant no XP/kill rewards. Shoot at distance;
+the ordinary blast still hurts if you destroy one near your character. Pause
+mid-salvo, restart/switch boss, and verify no ghost missiles or repeated blast.
+
+### Walker pursuit and ram follow-up (27 October)
+
+Training → Pause → Boss Practice → Walker. Retreat while aiming: Walker should
+advance diagonally during both gun volleys and rocket recovery. At long range,
+it should brace, settle its direction, then thrust through the committed target
+instead of braking short. Sidestep after the warning settles to evade; it must
+not turn to follow you mid-rush. Enable Take damage to verify ram contact costs
+2HP (normal protection/shield rules apply). Repeat near solid cover: neither
+walking nor rushing may cross it. Rush cooldown prevents repeated immediate
+charges. Physical feel and fairness remain for creator review.
+
+### Walker foot stability and cannon speed (27 October)
+
+Circle close around Walker, then reverse direction while firing. Watch for
+crossing feet, sudden knee flips, tiny repeated foot adjustments or feet twisting
+while planted. The body should wait briefly for a supporting step when turning,
+then keep advancing. Try turning near cover and after the rocket ram. The heavy
+white cannon shells should travel noticeably faster, with the same warning and
+2HP impact. Pause/resume must not jump the gait. Native motion/comfort approval
+remains open until creator review.
+
+### Walker follow-up: planted rhythm and forward rockets
+
+Watch for complete lift/place/settle steps rather than small repeated taps.
+Diagonal feet should change support together and supporting feet stay firm.
+Circle and reverse directions; confirm pursuit remains agile. For rockets,
+watch the roof launcher rotate toward you, then release in your direction;
+rockets should not begin by flying behind Walker. They remain shootable, and
+close interceptions retain the normal hostile explosion risk.
+
+### Walker chassis choices and damaging rush landing
+
+In useful gun range, circle Walker: the gun should swivel while the body holds
+its heading during lock/fire. Retreat far enough: the chassis should deliberately
+turn and pursue, then use its warned rush at the existing far-distance threshold.
+Move closer again: it should settle without constantly changing modes.
+
+Enable Training Take damage to test damage. Stand in the rush path to lose2HP;
+a braking collision also counts. Sidestep the hull but stay within the marked
+180-unit landing area to test2HP landing damage. One rush must not stack a path
+hit and a landing hit on the same player. Cover blocks the landing damage;
+normal player dash protection/shields remain valid. Stay outside the marked area
+for a clean dodge. Pause must freeze warning, flight and impact timers.
+
+### Walker aggression: burst-first escalation
+
+Expect repeated short rotary bursts, then a clear increase to sustained machine
+gun fire, followed by8 heavy cannon shots and6 forward rockets (10/8 at half HP).
+Normal bursts:8 groups of3; enraged:10 groups of4. Sustained fire should continue
+for more than4 seconds while you move, not stop after one group. Cannon must
+continue reacquiring you throughout its volley. Miss deliberately to confirm
+stray projectiles do not stall subsequent attacks. Rockets remain shootable;
+listen for soft ignition at launch and explosions on real impacts. A timed-out
+rocket must not make an unrelated explosion. Check comfort/performance with the
+higher48-round cap, especially while rockets overlap the next gun sequence.
+
+### Walker deliberate aggression and recoil
+
+Repeat the fight: the next attack family should vary rather than repeat a fixed
+rotation. Distance, live missiles and rush cooldown constrain its choices; a far
+escape should still provoke a warned chase. Heavy attacks should end with a
+noticeable pause to land your own shots, then the next warning. Walker stays
+hittable throughout; previously launched rounds can still threaten you.
+
+Watch sustained fire: muzzle/flash and barrel should kick together, with tight
+shot-to-shot variation. Bullets must keep their launch heading instead of curving
+later. The stream should spread modestly, not become a wide random shotgun fan.
+No camera shake or body wobble should accompany the gun recoil. Review whether
+these openings and varied decisions feel fair and purposeful on the phone.
+
+## Walker tester cleanup — 28 October 2026
+
+- Loadout has no Walker workshop button. Training boss selection and collection show Walker and no Mirror Saint. Normal survival can draw Walker. Boss Rush runs Walker alone.
+- Lead minions between you and Walker: grounded hull blocks them; gunfire and cannon blasts can kill them. Rockets fly over them and only kill them in the explosion. Use cover to protect from blast damage.
+- Lead a rush over a minion: it survives the airborne path; minions around the landing die. Players can still be hurt along the rush or its landing (one hit per rush). Shoot rockets down before they reach you.
+- Close/continue during firing and the fatal warning. Rig/phase/ordnance should resume; the core blast must occur once and victory/rewards only after destruction.
+- With updated clients, co-op can draw Walker. All players should see the same arrival, shots, landing and fatal blast. Old clients retain the other bosses.
+- Check on-device leg stability, readable warnings, audio overlap and crowded-scene frame pacing; automated passes do not establish those.

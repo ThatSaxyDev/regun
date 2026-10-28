@@ -22,7 +22,7 @@ class EncounterDirector {
   BossKind? _lastBoss;
   BossKind chooseBoss(Random random) {
     if (_bossBag.isEmpty) {
-      _bossBag.addAll(BossKind.values);
+      _bossBag.addAll(BossKind.active);
       _bossBag.shuffle(random);
       if (_openingWins != null) {
         final order = {
@@ -86,13 +86,11 @@ class EncounterDirector {
     bossesDefeated = json['bossesDefeated'] as int;
     _bossBag.clear();
     _bossBag.addAll(
-      (json['bossBag'] as List? ?? []).map(
-        (id) => BossKind.values.byName(id as String),
-      ),
+      (json['bossBag'] as List? ?? []).map((id) => BossKind.read(id as String)),
     );
     _lastBoss = json['lastBoss'] == null
         ? null
-        : BossKind.values.byName(json['lastBoss'] as String);
+        : BossKind.read(json['lastBoss'] as String);
     if (![
       elapsed,
       _spawnElapsed,

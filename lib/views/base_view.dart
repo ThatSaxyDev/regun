@@ -472,6 +472,39 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             final bosses = _myGame.bosses
                 .where((boss) => boss.isLoaded && !boss.isRemoving)
                 .toList();
+            final walker = _myGame.walkerCandidate;
+            if (walker != null && walker.prepared) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 430),
+                    child: BossHealthStrip(
+                      name: 'WALKER',
+                      fraction: walker.combatHealth.fraction,
+                      enraged:
+                          walker.combatHealth.fraction <= .5 &&
+                          !walker.combatHealth.isDead,
+                    ),
+                  ),
+                  Text(
+                    walker.fight.label,
+                    style: const TextStyle(
+                      fontFamily: FontFam.orbitron,
+                      fontSize: 11,
+                      color: _brass,
+                    ),
+                  ),
+                  if (walker.fight.finished)
+                    ClickButton(
+                      text: 'Fight again',
+                      width: 155,
+                      height: 40,
+                      onTap: _myGame.practiceWalker,
+                    ),
+                ],
+              );
+            }
             if (bosses.isEmpty) return const SizedBox.shrink();
             return IgnorePointer(
               child: Padding(
@@ -1067,11 +1100,14 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           MenuCardGrid(
             minColumnWidth: 180,
             children: [
-              for (final kind in BossKind.values)
+              for (final kind in BossKind.active)
                 ClickButtonM(
+                  key: kind == BossKind.walker
+                      ? const Key('practice-boss-walker')
+                      : null,
                   text: kind.title,
                   height: 48,
-                  onTap: () => _myGame.practiceBoss(kind),
+                  onTap: kind == BossKind.walker ? _myGame.practiceWalker : () => _myGame.practiceBoss(kind),
                 ),
             ],
           ),

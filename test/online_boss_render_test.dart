@@ -40,7 +40,7 @@ void main() {
       });
       for (final scenario in [
         (BossKind.shadow, 'breach', false),
-        (BossKind.saint, 'foundry', false),
+        (BossKind.magistrate, 'foundry', false),
         (BossKind.marshal, 'breach', true),
       ]) {
         final (kind, arena, reduced) = scenario;

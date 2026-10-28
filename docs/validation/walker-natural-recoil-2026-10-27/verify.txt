@@ -1,0 +1,980 @@
+flutter analyze
+Resolving dependencies...
+Downloading packages...
+  cli_util 0.4.2 (0.6.0 available)
+  clock 1.1.2 (1.1.3 available)
+  crypto 3.0.7 (3.0.8 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  device_info_plus 11.5.0 (13.3.0 available)
+  device_info_plus_platform_interface 7.0.3 (8.1.0 available)
+  flame 1.37.0 (1.38.2 available)
+  flame_riverpod 5.4.21 (5.5.5 available)
+  flame_tiled 3.1.1 (3.1.2 available)
+  flutter_lints 3.0.2 (6.0.0 available)
+  flutter_riverpod 2.6.1 (3.4.3 available)
+  flutter_secure_storage 9.2.4 (11.2.0 available)
+  flutter_secure_storage_linux 1.2.3 (3.0.3 available)
+  flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+  flutter_secure_storage_platform_interface 1.1.2 (2.1.1 available)
+  flutter_secure_storage_web 1.2.1 (2.1.1 available)
+  flutter_secure_storage_windows 3.1.2 (4.2.2 available)
+  flutter_shaders 0.1.3 (0.1.5 available)
+  go_router 14.8.1 (18.1.1 available)
+  html 0.15.6 (0.15.7 available)
+  jni 1.0.0 (1.1.1 available)
+  jni_flutter 1.0.1 (1.0.4+1 available)
+  js 0.6.7 (0.7.2 available)
+  lints 3.0.0 (6.1.0 available)
+  lottie 3.6.1 (3.7.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  ordered_set 8.0.0 (8.0.1 available)
+  package_config 2.2.0 (3.0.0 available)
+  package_info_plus 9.0.1 (10.2.2 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  path_provider 2.1.5 (2.1.6 available)
+  path_provider_linux 2.2.1 (2.2.2 available)
+  path_provider_platform_interface 2.1.2 (2.1.3 available)
+  petitparser 7.0.2 (7.1.0 available)
+  platform 3.1.6 (3.2.0 available)
+  posix 6.5.2 (6.5.3 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  riverpod 2.6.1 (3.4.3 available)
+  shared_preferences 2.5.5 (2.5.6 available)
+  shared_preferences_android 2.4.23 (2.5.4 available)
+  shared_preferences_foundation 2.5.6 (2.6.1 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  test_api 0.7.12 (0.7.15 available)
+  tiled 0.11.1 (0.12.0 available)
+  uuid 4.5.3 (4.6.0 available)
+  vector_math 2.4.3 (2.4.4 available)
+  vm_service 15.2.0 (15.4.0 available)
+  web 1.1.1 (1.1.2 available)
+  win32 5.15.0 (6.4.0 available)
+  win32_registry 2.1.0 (3.0.3 available)
+  xml 6.6.1 (7.1.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+52 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing regun...                                              
+No issues found! (ran in 3.4s)
+flutter test
+Resolving dependencies...
+Downloading packages...
+  cli_util 0.4.2 (0.6.0 available)
+  clock 1.1.2 (1.1.3 available)
+  crypto 3.0.7 (3.0.8 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  device_info_plus 11.5.0 (13.3.0 available)
+  device_info_plus_platform_interface 7.0.3 (8.1.0 available)
+  flame 1.37.0 (1.38.2 available)
+  flame_riverpod 5.4.21 (5.5.5 available)
+  flame_tiled 3.1.1 (3.1.2 available)
+  flutter_lints 3.0.2 (6.0.0 available)
+  flutter_riverpod 2.6.1 (3.4.3 available)
+  flutter_secure_storage 9.2.4 (11.2.0 available)
+  flutter_secure_storage_linux 1.2.3 (3.0.3 available)
+  flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+  flutter_secure_storage_platform_interface 1.1.2 (2.1.1 available)
+  flutter_secure_storage_web 1.2.1 (2.1.1 available)
+  flutter_secure_storage_windows 3.1.2 (4.2.2 available)
+  flutter_shaders 0.1.3 (0.1.5 available)
+  go_router 14.8.1 (18.1.1 available)
+  html 0.15.6 (0.15.7 available)
+  jni 1.0.0 (1.1.1 available)
+  jni_flutter 1.0.1 (1.0.4+1 available)
+  js 0.6.7 (0.7.2 available)
+  lints 3.0.0 (6.1.0 available)
+  lottie 3.6.1 (3.7.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  ordered_set 8.0.0 (8.0.1 available)
+  package_config 2.2.0 (3.0.0 available)
+  package_info_plus 9.0.1 (10.2.2 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  path_provider 2.1.5 (2.1.6 available)
+  path_provider_linux 2.2.1 (2.2.2 available)
+  path_provider_platform_interface 2.1.2 (2.1.3 available)
+  petitparser 7.0.2 (7.1.0 available)
+  platform 3.1.6 (3.2.0 available)
+  posix 6.5.2 (6.5.3 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  riverpod 2.6.1 (3.4.3 available)
+  shared_preferences 2.5.5 (2.5.6 available)
+  shared_preferences_android 2.4.23 (2.5.4 available)
+  shared_preferences_foundation 2.5.6 (2.6.1 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  test_api 0.7.12 (0.7.15 available)
+  tiled 0.11.1 (0.12.0 available)
+  uuid 4.5.3 (4.6.0 available)
+  vector_math 2.4.3 (2.4.4 available)
+  vm_service 15.2.0 (15.4.0 available)
+  web 1.1.1 (1.1.2 available)
+  win32 5.15.0 (6.4.0 available)
+  win32_registry 2.1.0 (3.0.3 available)
+  xml 6.6.1 (7.1.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+52 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart: camera view stays inside the tile map at every edge and corner
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart: player and dash cannot cross walls; moving along an edge still works
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arena_bounds_test.dart: oversized view centers on the map instead of invalid clamp ranges
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_heading_test.dart: gun holds last aim briefly then turns smoothly toward running
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_heading_test.dart: deliberate aim wins immediately and resets resting delay, stationary holds
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/weapon_heading_test.dart: turn crosses the short angular route; reduced motion settles without sweep
+00:01 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/support_aim_test.dart: mounted lead meets a lateral target at the physical intercept
+00:01 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/support_aim_test.dart: stationary, close, escaping and extreme velocities stay finite and bounded
+00:01 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +9: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +10: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +11: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +12: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +13: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +14: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +15: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +16: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +17: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:01 +18: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:02 +19: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:02 +20: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:04 +21: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:04 +22: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/upgrade_feel_prototype_test.dart: six-family phone-scale actual runtime comparisons and held-clock safety
+00:04 +23: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_menu_test.dart: Training pressure selector stays paused, persists through restart and is ignored by Rush
+00:04 +24: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_menu_test.dart: Training pressure selector stays paused, persists through restart and is ignored by Rush
+00:04 +25: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_menu_test.dart: Training pressure selector stays paused, persists through restart and is ignored by Rush
+00:04 +26: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_menu_test.dart: Training pressure selector stays paused, persists through restart and is ignored by Rush
+00:04 +27: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_menu_test.dart: Training pressure selector stays paused, persists through restart and is ignored by Rush
+00:04 +28: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_menu_test.dart: Training pressure selector stays paused, persists through restart and is ignored by Rush
+00:04 +29: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_menu_test.dart: Training pressure selector stays paused, persists through restart and is ignored by Rush
+00:04 +30: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_menu_test.dart: Training pressure selector stays paused, persists through restart and is ignored by Rush
+00:04 +31: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/training_menu_test.dart: Training pressure selector stays paused, persists through restart and is ignored by Rush
+00:04 +32: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/account_offline_entry_test.dart: Home and local settings stay usable while account and online policy are unavailable
+00:04 +33: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/account_offline_entry_test.dart: Home and local settings stay usable while account and online policy are unavailable
+00:04 +34: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/account_offline_entry_test.dart: Home and local settings stay usable while account and online policy are unavailable
+00:04 +35: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/account_offline_entry_test.dart: Home and local settings stay usable while account and online policy are unavailable
+00:04 +36: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/account_offline_entry_test.dart: Home and local settings stay usable while account and online policy are unavailable
+00:04 +37: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/account_offline_entry_test.dart: Home and local settings stay usable while account and online policy are unavailable
+00:04 +38: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/account_offline_entry_test.dart: Home and local settings stay usable while account and online policy are unavailable
+00:04 +39: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/account_offline_entry_test.dart: Home and local settings stay usable while account and online policy are unavailable
+00:04 +40: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:04 +41: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:04 +42: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:05 +43: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:05 +44: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:05 +45: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:05 +46: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:05 +47: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:05 +48: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +49: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +50: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +51: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +52: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +53: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +54: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +55: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +56: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +57: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +58: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +59: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +60: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +61: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +62: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +63: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +64: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +65: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +66: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +67: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +68: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +69: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +70: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +71: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +72: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +73: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +74: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +75: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +76: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +77: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +78: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +79: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +80: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +81: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +82: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +83: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +84: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +85: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +86: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +87: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +88: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +89: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +90: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +91: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +92: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +93: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +94: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +95: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +96: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +97: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +98: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +99: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +100: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +101: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +102: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +103: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +104: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +105: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +106: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +107: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +108: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +109: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +110: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +111: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +112: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +113: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +114: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +115: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +116: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +117: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +118: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:06 +119: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +120: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +121: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +122: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +123: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +124: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +125: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +126: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +127: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +128: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +129: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +130: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +131: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +132: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +133: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +134: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +135: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +136: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +137: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +138: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +139: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +140: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +141: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +142: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +143: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +144: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +145: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +146: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +147: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +148: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +149: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +150: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +151: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +152: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +153: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +154: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +155: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +156: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +157: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +158: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +159: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +160: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +161: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +162: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +163: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +164: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +165: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +166: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +167: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +168: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +169: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +170: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +171: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +172: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +173: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +174: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +175: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +176: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +177: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +178: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +179: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +180: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +181: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +182: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +183: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +184: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +185: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +186: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +187: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +188: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +189: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +190: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +191: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +192: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +193: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +194: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +195: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +196: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +197: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +198: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +199: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +200: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +201: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +202: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +203: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +204: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +205: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +206: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +207: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +208: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +209: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +210: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +211: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +212: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +213: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +214: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +215: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +216: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +217: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +218: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +219: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +220: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +221: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +222: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +223: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +224: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +225: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +226: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +227: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +228: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +229: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +230: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +231: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +232: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +233: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +234: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +235: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +236: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +237: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +238: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +239: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +240: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +241: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:07 +242: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:08 +243: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:08 +244: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:08 +245: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/online_availability_menu_test.dart: pending policy leaves solo usable and remote off updates the same Home
+00:08 +246: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: landscape home keeps new entry reachable with Continue
+00:08 +247: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: landscape home keeps new entry reachable with Continue
+00:08 +248: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/survivor_idle_test.dart: loadout idle moves rendered art and system Reduced Motion holds it still
+00:08 +249: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/survivor_idle_test.dart: loadout idle moves rendered art and system Reduced Motion holds it still
+00:08 +250: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/survivor_idle_test.dart: loadout idle moves rendered art and system Reduced Motion holds it still
+00:08 +251: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/survivor_idle_test.dart: loadout idle moves rendered art and system Reduced Motion holds it still
+00:08 +252: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/leaderboard_view_test.dart: landscape board/profile navigation at text scale 1.0
+00:09 +253: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +254: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +255: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +256: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +257: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +258: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +259: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +260: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +261: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +262: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +263: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +264: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +265: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +266: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +267: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +268: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +269: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +270: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +271: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +272: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +273: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +274: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +275: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +276: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +277: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +278: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +279: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +280: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +281: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +282: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +283: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +284: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +285: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +286: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +287: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +288: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:09 +289: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +290: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +291: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +292: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +293: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +294: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +295: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +296: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +297: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +298: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +299: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +300: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +301: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +302: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +303: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +304: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +305: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +306: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +307: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +308: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +309: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +310: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +311: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +312: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +313: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +314: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +315: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +316: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +317: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +318: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +319: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +320: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:10 +321: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +322: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +323: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +324: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +325: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +326: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +327: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +327: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/art_contract_test.dart: authored frames are finite, inside textures and fit the mobile budget
+Shared decoded art: 20.97 MiB
+00:11 +328: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +329: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +330: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +331: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:11 +332: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +333: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +334: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +335: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +336: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +337: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +338: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +339: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +340: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +341: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +342: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +343: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +344: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +345: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +346: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +347: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +348: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +349: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +350: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +351: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:12 +352: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +353: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +354: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +355: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +356: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +357: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +358: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +359: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +360: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +361: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +362: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +363: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +364: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +365: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +366: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +367: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +368: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +369: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:13 +370: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +371: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +372: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +373: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +374: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +375: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +376: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +377: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +378: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +379: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +380: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +381: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +382: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +383: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +384: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +385: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +386: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +387: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +388: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +389: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +390: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +391: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +392: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +393: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: five complete boss controllers animate, commit, interrupt and retire safely
+00:14 +394: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:14 +395: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +396: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +397: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +398: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +399: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +400: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +401: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +402: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +403: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +404: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +405: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +405: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/survivor_art_expansion_test.dart: every active survivor plus largest pair and Cinder fits existing texture budget
+Largest survivor/pair/Cinder decoded budget: 27386368 bytes
+00:15 +406: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +407: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:15 +408: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +409: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +410: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +411: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +412: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +413: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +414: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +415: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +416: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +417: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +418: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:16 +419: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:17 +420: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +421: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +422: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +423: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +424: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +425: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +426: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +427: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +428: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +429: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +430: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +431: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +432: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +433: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +434: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +435: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +436: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +437: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +438: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +439: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:19 +440: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:20 +441: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/arsenal_expansion_test.dart: audit all 21 real weapon paths before and after the numerical revision
+00:20 +442: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +443: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +444: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +445: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +446: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +447: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +448: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +449: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +450: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +451: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +452: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +453: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +454: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +455: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:20 +456: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:21 +457: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:21 +458: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:21 +459: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:21 +460: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:21 +461: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:21 +462: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:21 +463: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +464: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +465: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +466: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +467: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +468: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +469: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +470: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +471: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +472: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +473: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +474: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +475: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +476: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +477: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +478: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +479: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +480: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +481: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +482: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +483: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +484: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +485: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +486: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +487: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +488: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +489: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +490: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +491: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +492: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +493: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +494: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:22 +495: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +496: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +497: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +498: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +499: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +500: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +501: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +502: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +503: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +504: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +505: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +506: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +507: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +508: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +509: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +510: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +511: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +512: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +513: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +514: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +515: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:23 +515 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:24 +516 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:24 +517 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:24 +518 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:24 +519 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:24 +520 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:24 +521 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:24 +522 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:24 +523 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:24 +524 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +525 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +526 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +527 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +528 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +529 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +530 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +531 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +532 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +533 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +534 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +535 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +536 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +537 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +538 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +539 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +540 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +541 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +542 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:25 +543 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +544 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +545 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +545 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/game_integration_test.dart: native game scene mounts, pauses for upgrades, clamps and restarts
+DENSE SCENE: simulatedSeconds=180 peakEnemies=32 peakCoins=0 retained=56
+00:26 +546 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +547 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +548 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +549 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +550 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +551 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +552 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:26 +553 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:27 +554 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:27 +555 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:27 +556 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:27 +557 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:27 +558 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:27 +559 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:27 +560 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:27 +561 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +562 ~1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +562 ~2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +562 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +563 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +564 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +565 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +566 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +567 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +568 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +569 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +570 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +571 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:28 +572 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:29 +573 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:29 +574 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:29 +575 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:29 +576 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:29 +577 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:29 +578 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:29 +579 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:29 +580 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:29 +581 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:30 +582 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:30 +583 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:30 +584 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:30 +585 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:30 +586 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:30 +587 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:31 +588 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:31 +589 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:31 +590 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:31 +591 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:31 +592 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:31 +593 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +594 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +595 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +596 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +597 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +598 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +599 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +600 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +601 ~3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +601 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:32 +602 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:33 +603 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:33 +604 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:33 +605 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:33 +606 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:33 +607 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:33 +608 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:33 +609 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:33 +610 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:34 +611 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:34 +612 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:34 +613 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:34 +614 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:34 +615 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:34 +616 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:34 +617 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:34 +618 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +619 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +620 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +621 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +622 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +623 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +624 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +625 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +626 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +627 ~4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +627 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +628 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +629 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +630 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:35 +631 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +632 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +633 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +634 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +635 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +636 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +637 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +638 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +639 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +640 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:36 +641 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:37 +642 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:37 +643 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:37 +644 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:37 +645 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:37 +646 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:37 +647 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:37 +648 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:37 +649 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:37 +650 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +651 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +652 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +653 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +654 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +655 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +656 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +657 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +658 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +659 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +660 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +661 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +662 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +663 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +664 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +665 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +666 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:38 +667 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +668 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +669 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +670 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +671 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +672 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +673 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +674 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +675 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +676 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +677 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +678 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +679 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +680 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +681 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +682 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +683 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +684 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +685 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +686 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +687 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +688 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +689 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +690 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +691 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +692 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:39 +693 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:40 +694 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:41 +695 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:41 +696 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +697 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +698 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +699 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +700 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +701 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +702 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +703 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +704 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +705 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +706 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:42 +707 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:43 +708 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:43 +709 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:43 +710 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:43 +711 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:43 +712 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:43 +713 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:43 +714 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:43 +715 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:43 +716 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:44 +717 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:44 +718 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:44 +719 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:44 +720 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:44 +721 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +722 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +723 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +724 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +725 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +726 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +727 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +728 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +729 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +730 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +731 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:47 +732 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +733 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +734 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +735 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +736 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +737 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +738 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +739 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +740 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +741 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +742 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +743 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +744 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +745 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +746 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +747 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +748 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +749 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +750 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +751 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +752 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +753 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +754 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:48 +755 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:51 +756 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:51 +757 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +758 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +759 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +760 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +761 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +762 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +763 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +764 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +765 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +766 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +767 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +768 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +769 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +770 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +771 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:52 +772 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:53 +773 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:53 +774 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:53 +775 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:53 +776 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:53 +777 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:54 +778 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:54 +779 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:54 +780 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:54 +781 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:55 +782 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:55 +783 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:55 +784 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:55 +785 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:55 +786 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +787 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +788 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +789 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +790 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +791 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +792 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +793 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +794 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +795 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:56 +796 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:57 +797 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:57 +798 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:58 +799 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:58 +800 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +800 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/performance_budget_test.dart: ten minutes of idle firing retain one timer and no per-tick components
+AFTER: simulatedSeconds=600 timerTicks=1714 retainedTimerComponents=1 updateMicros=27403
+00:59 +801 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +802 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +803 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +804 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +805 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +806 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +807 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +808 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +809 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +810 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +811 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +812 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +813 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +814 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+00:59 +815 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:00 +816 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:00 +817 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:00 +818 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:00 +819 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:00 +820 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:00 +821 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:00 +822 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:00 +823 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:01 +824 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:01 +825 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:01 +826 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:01 +827 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:02 +828 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:05 +829 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in breach
+01:39 +830 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: every new boss supports all weapons and survivors in foundry
+03:02 +831 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: all distinct boss pairs remain bounded in both arenas
+03:05 +832 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: Arc Caster clears three spaced targets and respects walls and proc bounds
+03:05 +833 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: laser renders an unbroken bright core instead of tiled sprites
+03:05 +834 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: Marshal beams start at the gun, hit their visible route and freeze
+03:06 +835 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: explosions stay grounded, fade and preserve damage on both arenas
+03:08 +836 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: Magistrate sends multiple straight chains toward the player
+03:08 +837 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: Skitter keeps shorter with direct and predicted locked attacks
+03:08 +838 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: saint threatens straight retreat and rewards a warned sidestep false
+03:09 +839 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: saint threatens straight retreat and rewards a warned sidestep true
+03:09 +840 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: magistrate threatens straight retreat and rewards a warned sidestep false
+03:09 +841 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: magistrate threatens straight retreat and rewards a warned sidestep true
+03:09 +842 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: regular enemy warnings and impacts use the same material effects
+03:09 +843 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: all eight bosses threaten an open long-distance retreat in both phases
+03:11 +844 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: faster boss bolts cannot tunnel through a player or a shield
+03:11 +845 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: schema two restores a damaged pair without transient attacks
+03:11 +846 ~5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/boss_expansion_test.dart: (tearDownAll)
+03:11 +846 ~5: All tests passed!

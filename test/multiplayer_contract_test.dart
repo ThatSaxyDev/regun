@@ -67,7 +67,7 @@ void main() {
     for (final c in CharacterType.values.where((c) => c.availableOnline)) {
       expect([c.health, c.speed, c.damage], fixture['survivors'][c.name]);
     }
-    for (final b in BossKind.values) {
+    for (final b in BossKind.active) {
       expect([
         b.baseHealth,
         b.spriteSize,

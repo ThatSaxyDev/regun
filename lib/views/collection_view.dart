@@ -186,7 +186,7 @@ class _CollectionViewState extends State<CollectionView> {
                       : 'FIELD GUIDE',
                 ),
               ),
-              ...BossKind.values.map(
+              ...BossKind.active.map(
                 (e) => _card(e.title, e.description, width, badge: 'BOSS'),
               ),
             ],

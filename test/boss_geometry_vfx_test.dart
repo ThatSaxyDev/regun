@@ -125,7 +125,7 @@ void main() {
   );
   test('export boss comparison on both arena floors', () async {
     await RegunArt.shared.load();
-    for (final b in BossKind.values) {
+    for (final b in _legacyBosses) {
       await RegunArt.shared.acquire('bosses/${b.name}');
     }
     await (FontLoader('PressStart2P')
@@ -134,7 +134,7 @@ void main() {
     for (final arena in ArenaType.values) {
       final recorder = ui.PictureRecorder(), c = Canvas(recorder);
       const cell = 340.0, rowHeight = 280.0;
-      for (final b in BossKind.values) {
+      for (final b in _legacyBosses) {
         for (var col = 0; col < 4; col++) {
           c.save();
           c.translate(col * cell, b.index * rowHeight);
@@ -276,8 +276,12 @@ void main() {
       image.dispose();
       picture.dispose();
     }
-    for (final b in BossKind.values) {
+    for (final b in _legacyBosses) {
       RegunArt.shared.release('bosses/${b.name}');
     }
   });
 }
+
+final _legacyBosses = BossKind.active
+    .where((kind) => kind != BossKind.walker)
+    .toList();

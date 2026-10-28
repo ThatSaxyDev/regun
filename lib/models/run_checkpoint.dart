@@ -1,3 +1,4 @@
+import 'package:regun/systems/walker_combat.dart';
 import 'package:regun/models/run_statistics.dart';
 import 'package:regun/models/accepted_upgrade.dart';
 import 'package:regun/systems/support_runtime.dart';
@@ -260,9 +261,19 @@ class RunCheckpoint {
           return false;
         }
         if (BossKind.values.any((e) => e.name == id)) bosses++;
+        if (id == 'walker' && !WalkerCombat.validState(enemy['walker'])) {
+          return false;
+        }
         if (!point([enemy['x'], enemy['y']]) ||
             !number(enemy['health'], 1e6) ||
-            (enemy['health'] as num) <= 0 ||
+            ((enemy['health'] as num) <= 0 &&
+                !(id == 'walker' &&
+                    enemy['walker'] is Map &&
+                    WalkerCombat.validState(enemy['walker']) &&
+                    WalkerPhase.values
+                            .byName(enemy['walker']['phase'] as String)
+                            .index >=
+                        WalkerPhase.failing.index)) ||
             !number(enemy['maximum'], 1e6) ||
             (enemy['health'] as num) > (enemy['maximum'] as num)) {
           return false;

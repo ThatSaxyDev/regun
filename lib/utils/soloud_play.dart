@@ -112,6 +112,27 @@ class SoloudPlay {
     }
   }
 
+  Future<void> warmWalker() async {
+    try {
+      if (!_soloud.isInitialized) return;
+      for (final name in [
+        'sentry_fire.wav',
+        'shot_revolver_0.wav',
+        'walker_rocket_launch.wav',
+        'reload_carbine_1.wav',
+        'supply_incoming.wav',
+        'supply_land.wav',
+        'blast.wav',
+        'supply_break.wav',
+        'supply_claim.wav',
+      ]) {
+        await _source(name);
+      }
+    } catch (_) {
+      // Native audio remains optional, as with other encounter prewarming.
+    }
+  }
+
   Future<void> warmBoss(BossKind kind) async {
     try {
       if (!kind.expansion || !_soloud.isInitialized) return;
@@ -187,7 +208,8 @@ class SoloudPlay {
             ? .35
             : assetPath == 'blast.wav'
             ? .65
-            : assetPath == 'grenade_throw.wav'
+            : assetPath == 'grenade_throw.wav' ||
+                  assetPath == 'walker_rocket_launch.wav'
             ? .3
             : assetPath == 'supply_land.wav'
             ? .8

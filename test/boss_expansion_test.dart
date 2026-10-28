@@ -129,7 +129,7 @@ void main() {
         for (var seed = 1; seed <= 100; seed++)
           EncounterDirector().chooseBoss(RunRandom(seed)),
       };
-      expect(openings, BossKind.values.toSet());
+      expect(openings, BossKind.active.toSet());
       expect(director.chooseBoss(rng), isNot(remaining.last));
     },
   );
@@ -218,7 +218,7 @@ void main() {
     (tester) async {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      for (final kind in BossKind.values.where((kind) => kind.expansion)) {
+      for (final kind in BossKind.active.where((kind) => kind.expansion)) {
         final game = await mount(tester);
         await tester.runAsync(() async {
           game.practiceBoss(kind);
@@ -392,7 +392,7 @@ void main() {
       });
       game.preferences.profile.bossWins
         ..clear()
-        ..addAll({for (final b in BossKind.values) b.name: 4, 'queen': 0});
+        ..addAll({for (final b in BossKind.active) b.name: 4, 'queen': 0});
       game.restartGame();
       await tick(tester, game, 150);
       expect(game.director.chooseBoss(game.random), BossKind.queen);
@@ -458,10 +458,15 @@ void main() {
           expect(game.bossRushRound, roundBefore);
           (actors.last as CombatEnemy).takeDamage(100000);
         }
+        if (actors.any(
+          (actor) => (actor as BossEncounter).kind == BossKind.walker,
+        )) {
+          await tick(tester, game, 330);
+        }
         expect(game.bosses, isEmpty);
         expect(game.gameState.gameplayState, GameplayState.playing);
       }
-      expect(seen, BossKind.values.toSet());
+      expect(seen, BossKind.active.toSet());
       expect(pairs, greaterThan(0));
       expect(game.gameState.pendingCores, 0);
       expect(game.gameState.xP, 0);
@@ -709,7 +714,7 @@ void main() {
                 weapon: weapon,
               ),
             );
-            for (final kind in BossKind.values.where(
+            for (final kind in BossKind.active.where(
               (kind) => kind.expansion,
             )) {
               late ExpansionBoss boss;
@@ -783,18 +788,27 @@ void main() {
         tester,
         loadout: Loadout(training: true, arena: arena),
       );
-      for (var first = 0; first < BossKind.values.length; first++) {
+      for (var first = 0; first < BossKind.active.length - 1; first++) {
         for (
           var second = first + 1;
-          second < BossKind.values.length;
+          second < BossKind.active.length - 1;
           second++
         ) {
           await tester.runAsync(() async {
             game.startBossRush();
             game.myPlayer.position.setZero();
-            game.practiceBoss(BossKind.values[first]);
+            game.practiceBoss(
+              BossKind.active
+                  .where((k) => k != BossKind.walker)
+                  .toList()[first],
+            );
             game.bossRush = true;
-            game.spawnBoss(BossKind.values[second], companion: true);
+            game.spawnBoss(
+              BossKind.active
+                  .where((k) => k != BossKind.walker)
+                  .toList()[second],
+              companion: true,
+            );
             await game.ready();
             expect(game.bosses.length, 2);
             for (final actor in game.bosses) {
@@ -823,7 +837,7 @@ void main() {
             tester.takeException(),
             isNull,
             reason:
-                '$arena/${BossKind.values[first]}/${BossKind.values[second]}',
+                '$arena/${BossKind.active.where((k) => k != BossKind.walker).toList()[first]}/${BossKind.active.where((k) => k != BossKind.walker).toList()[second]}',
           );
         }
       }
@@ -941,7 +955,9 @@ void main() {
           game.myPlayer.position.setValues(-180, 0);
           game.spawnBoss(BossKind.marshal);
           await game.ready();
-          game.update(3); // Laser damage is intentionally blocked during reveal.
+          game.update(
+            3,
+          ); // Laser damage is intentionally blocked during reveal.
 
           final boss = game.activeBoss! as LastMarshalBoss;
           boss.position.setValues(380, 0);
@@ -1250,7 +1266,7 @@ void main() {
     },
   );
 
-  for (final kind in [BossKind.saint, BossKind.magistrate]) {
+  for (final kind in [BossKind.magistrate]) {
     for (final dodge in [false, true]) {
       testWidgets(
         '${kind.name} threatens straight retreat and rewards a warned sidestep $dodge',
@@ -1404,7 +1420,7 @@ void main() {
     (tester) async {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      for (final kind in BossKind.values) {
+      for (final kind in BossKind.active.where((k) => k != BossKind.walker)) {
         for (final enraged in [false, true]) {
           final game = await mount(tester, loadout: const Loadout());
           late PositionComponent boss;

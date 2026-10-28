@@ -55,7 +55,7 @@ void main() {
           g.pauseEngine();
           g.update(2);
           g.update(.01);
-          for (final kind in BossKind.values) {
+          for (final kind in _legacyBosses) {
             g.myPlayer.position.setZero();
             g.practiceBoss(kind);
             await g.ready();
@@ -187,7 +187,7 @@ void main() {
           expect(g.bosses.length, 2);
           // Reduced Motion keeps the camera on the player through entrance as well.
           g.preferences.reducedMotion = true;
-          g.practiceBoss(BossKind.saint);
+          g.practiceBoss(BossKind.marshal);
           await g.ready();
           final at = g.camera.viewfinder.position.clone();
           g.update(.2);
@@ -197,7 +197,7 @@ void main() {
           g.preferences.reducedMotion = false;
           await tester.pumpWidget(const SizedBox.shrink());
         }
-        for (final kind in BossKind.values.where((k) => k.expansion)) {
+        for (final kind in _legacyBosses.where((k) => k.expansion)) {
           expect(RegunArt.shared.contains('bosses/${kind.name}'), isFalse);
         }
       });
@@ -205,3 +205,7 @@ void main() {
     },
   );
 }
+
+final _legacyBosses = BossKind.active
+    .where((kind) => kind != BossKind.walker)
+    .toList();
