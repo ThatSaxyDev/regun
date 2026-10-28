@@ -1231,7 +1231,7 @@ void main() {
         expect(game.gameState.health, health - 1);
         runner.removeFromParent();
         await game.ready();
-        // A long leap still cannot cross another enemy's occupied body.
+        // The committed leap flies over living minions without killing them.
         final blocker = Enemy2Component(position: Vector2(-500, -1400));
         final blocked = ArenaEnemy(
           EnemyKind.runner,
@@ -1239,11 +1239,14 @@ void main() {
         )..clock = 1.21;
         await game.world.addAll([blocker, blocked]);
         await game.ready();
+        final blockerHealth = blocker.combatHealth.current;
         game.random.state = 2;
         blocked.update(0);
         blocked.update(.75);
         blocked.update(1);
-        expect(blocked.position.x, lessThan(blocker.position.x - 75));
+        expect(blocked.position.x, greaterThan(blocker.position.x + 75));
+        expect(blocker.combatHealth.current, blockerHealth);
+        expect(blocked.phase, 3);
         blocker.removeFromParent();
         blocked.removeFromParent();
         await game.ready();

@@ -36,7 +36,7 @@ class Enemy2Component extends SpriteAnimationComponent
   static const pursuitSpeed = 95.0;
 
   double attackInterval = 0.6; // Time between health reductions in seconds
-  double firstStrikeDelay = 0.3; // Faster opening hit once melee is reached
+  double firstStrikeDelay = 0.15; // Faster opening hit once melee is reached
   double timeSinceLastAttack = 0.0; // Timer to track the interval
 
   @override

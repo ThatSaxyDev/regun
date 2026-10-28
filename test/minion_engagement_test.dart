@@ -146,7 +146,7 @@ void main() {
   );
 
   testWidgets(
-    'mummy walks until melee, opens with a .3s strike, then hits only in reach',
+    'mummy walks until melee, opens with a .15s strike, then hits only in reach',
     (tester) async {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -179,7 +179,7 @@ void main() {
       expect(
         game.gameState.health,
         hp - 1,
-        reason: 'opening strike lands .3s after reaching melee',
+        reason: 'opening strike lands .15s after reaching melee',
       );
       game.myPlayer.position.setValues(-500, 0);
       await ticks(tester, game, .1);

@@ -1966,3 +1966,7 @@ Validation: Flutter analyzer clean; full suite856 passed,5 skipped; focused shar
 Skitter phase2 is airborne: ignore ordinary minion occupancy/separation, release its ground reservation, and let recoil/pressure displacement use that same layer. Keep solid cover, world bounds and boss bodies blocking. Warning.75s,480 commitment range, committed non-homing heading, duration/speed, swept player contact, pack coordination and1.4s recovery remain unchanged. Landing restores ordinary occupancy; the jump does not kill minions. Native and authoritative online actors agree.
 
 Mummy pursuit rises modestly90→95. It keeps its walk pose until the original36-unit melee contact (PlayerHurtGeometry.reach(40)); the raised strike pose begins only there, never during the approach. The opening strike lands after.3s, later strikes keep the.6s cadence, and leaving melee reach or breaking cover sight resets arming. Blocked walking poses/facing and freeze/pause behavior remain. Native and authoritative online timing agree.
+
+## Faster mummy opening — 28 October 2026
+
+The creator still found the first strike slow. Opening delay is now.15s (previously.3s) after melee contact. Preserve the creator’s natural walk until contact, speed95, original36-unit melee reach,1HP damage and.6s repeat interval. Retreat/cover resets the opening wind-up. Native and server timing agree; focused crowd/walk/contact tests and server cadence tests cover the change.
