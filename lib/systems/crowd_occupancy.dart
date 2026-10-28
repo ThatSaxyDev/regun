@@ -106,6 +106,7 @@ class CrowdOccupancy {
     Vector2 from,
     Vector2 to,
     double radius,
+    bool Function(PositionComponent)? blocks,
   ) {
     final delta = to - from;
     final length2 = delta.length2;
@@ -113,6 +114,7 @@ class CrowdOccupancy {
       if (identical(actor, other) || other.isRemoving || other.isRemoved) {
         continue;
       }
+      if (blocks != null && !blocks(other)) continue;
       final gap = radius + _radii[other]! + 4;
       final startDistance2 = from.distanceToSquared(other.position);
       // Old checkpoints or external repositioning can start with overlaps.
@@ -134,16 +136,23 @@ class CrowdOccupancy {
 
   /// Substeps prevent fast actors crossing a body. Committed attacks stop at
   /// occupied space; ordinary pursuit can slide along the blocking body.
+  /// Airborne actors can filter blockers and release their ground reservation.
   void move(
     PositionComponent actor,
     Vector2 delta, {
     required double radius,
     required void Function(Vector2) constrain,
     bool slide = true,
+    bool reserve = true,
+    bool Function(PositionComponent)? blocks,
     double side = 1,
     void Function(Vector2 from, Vector2 to)? beforeStep,
   }) {
-    if (!_radii.containsKey(actor) && !place(actor, radius, constrain)) return;
+    if (!reserve) {
+      forget(actor);
+    } else if (!_radii.containsKey(actor) && !place(actor, radius, constrain)) {
+      return;
+    }
     final steps = (delta.length / 12).ceil().clamp(1, 256);
     final step = delta / steps.toDouble();
     // Bound catch-up travel after an extreme frame as well as the loop cost.
@@ -153,7 +162,7 @@ class CrowdOccupancy {
       var next = from + step;
       constrain(next);
       beforeStep?.call(from, next);
-      final blocker = _blocker(actor, from, next, radius);
+      final blocker = _blocker(actor, from, next, radius, blocks);
       if (blocker != null) {
         if (!slide) break;
         var normal = from - blocker.position;
@@ -165,17 +174,17 @@ class CrowdOccupancy {
         }
         next = from + tangent;
         constrain(next);
-        if (_blocker(actor, from, next, radius) != null ||
+        if (_blocker(actor, from, next, radius, blocks) != null ||
             next.distanceToSquared(from) < step.length2 * .04) {
           // A solid can close the preferred side of another body. The other
           // tangent still has to pass the same swept body/cover constraints.
           next = from - Vector2(-normal.y, normal.x) * (step.length * side);
           constrain(next);
-          if (_blocker(actor, from, next, radius) != null) break;
+          if (_blocker(actor, from, next, radius, blocks) != null) break;
         }
       }
       actor.position.setFrom(next);
     }
-    _index(actor);
+    if (reserve) _index(actor);
   }
 }

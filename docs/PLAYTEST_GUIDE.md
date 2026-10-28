@@ -956,3 +956,9 @@ these openings and varied decisions feel fair and purposeful on the phone.
 - Close/continue during firing and the fatal warning. Rig/phase/ordnance should resume; the core blast must occur once and victory/rewards only after destruction.
 - With updated clients, co-op can draw Walker. All players should see the same arrival, shots, landing and fatal blast. Old clients retain the other bosses.
 - Check on-device leg stability, readable warnings, audio overlap and crowded-scene frame pacing; automated passes do not establish those.
+
+## Minion engagement review — 28 October 2026
+
+Put a crowd between yourself and a Skitter. Its warned jump should pass over them and reach the committed landing point; walls and boss bodies still stop it. Sidestepping remains valid because the jump cannot home. After landing it should rejoin ground occupancy without teleporting away from an overlap.
+
+Mummies should walk normally until they reach melee, then raise their strike immediately; there should be no raised-hands pose at a distance. The opening hit should land about .3s after contact and repeat every .6s. Stay outside actual melee reach or move behind cover: a wound-up mummy must not hit at a distance or through a wall. Step out of reach and approach again to confirm a fresh .3s opening strike. Test both solo and co-op, including crowded poison fields and bullet knockback.

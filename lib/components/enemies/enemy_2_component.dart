@@ -33,7 +33,10 @@ class Enemy2Component extends SpriteAnimationComponent
   late SpriteAnimation blockedAnimation;
   bool _hasStruck = false;
 
+  static const pursuitSpeed = 95.0;
+
   double attackInterval = 0.6; // Time between health reductions in seconds
+  double firstStrikeDelay = 0.3; // Faster opening hit once melee is reached
   double timeSinceLastAttack = 0.0; // Timer to track the interval
 
   @override
@@ -102,12 +105,13 @@ class Enemy2Component extends SpriteAnimationComponent
     final direction = game.enemyIntent(this, EnemyKind.mummy);
     final distanceToPlayer = (playerPosition - position).length;
     final minimumDistance = PlayerHurtGeometry.reach(40);
-    if (distanceToPlayer > minimumDistance) {
+    if (distanceToPlayer > minimumDistance ||
+        game.segmentBlocked(position, playerPosition)) {
       isAttacking = false;
       _hasStruck = false;
       timeSinceLastAttack = 0;
       walk.follow(position.toOffset(), walking: false, dt: 0);
-      game.moveActor(this, direction, 90, dt);
+      game.moveActor(this, direction, pursuitSpeed, dt);
       walk.follow(
         position.toOffset(),
         walking: true,
@@ -126,7 +130,8 @@ class Enemy2Component extends SpriteAnimationComponent
         dt: dt,
       );
       timeSinceLastAttack += dt;
-      if (timeSinceLastAttack >= attackInterval &&
+      final strikeDelay = _hasStruck ? attackInterval : firstStrikeDelay;
+      if (timeSinceLastAttack >= strikeDelay &&
           !game.segmentBlocked(position, playerPosition)) {
         timeSinceLastAttack = 0;
         _hasStruck = true;

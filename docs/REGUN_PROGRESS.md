@@ -1960,3 +1960,9 @@ Grounded chassis participates in ordinary enemy occupancy. Rotary fire kills int
 Normal checkpoints retain rig feet, AI/random state, release schedule, live ordnance and destruction phase. Victory/core/director progression happens once after mechanical destruction completes. Training remains without profile rewards. Online snapshots are server authority; Flutter only interpolates/draws the shared rig, and route-owned assets/audio are cleaned up on leave/restart.
 
 Validation: Flutter analyzer clean; full suite856 passed,5 skipped; focused shared-contract tests7 passed. Server typecheck,208 tests and SpacetimeDB2.12 build pass. Disposable local three-player WebSocket smoke proves capability10, replicated Walker gunfire and the delayed single death blast. Shared native/server snapshot fixtures verify mechanics through30 seconds. Physical readability, performance and difficulty remain for device review.
+
+## Airborne Skitter and earlier mummy engagement — 28 October 2026
+
+Skitter phase2 is airborne: ignore ordinary minion occupancy/separation, release its ground reservation, and let recoil/pressure displacement use that same layer. Keep solid cover, world bounds and boss bodies blocking. Warning.75s,480 commitment range, committed non-homing heading, duration/speed, swept player contact, pack coordination and1.4s recovery remain unchanged. Landing restores ordinary occupancy; the jump does not kill minions. Native and authoritative online actors agree.
+
+Mummy pursuit rises modestly90→95. It keeps its walk pose until the original36-unit melee contact (PlayerHurtGeometry.reach(40)); the raised strike pose begins only there, never during the approach. The opening strike lands after.3s, later strikes keep the.6s cadence, and leaving melee reach or breaking cover sight resets arming. Blocked walking poses/facing and freeze/pause behavior remain. Native and authoritative online timing agree.

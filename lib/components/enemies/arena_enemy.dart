@@ -37,6 +37,7 @@ class ArenaEnemy extends PositionComponent
   double walkDistance = 0;
   final walkDirection = Vector2(0, 1);
   int phase = 0;
+  bool get airborne => kind == EnemyKind.runner && phase == 2;
   final _committed = Vector2(1, 0);
   final _shieldDirection = Vector2(1, 0);
   double _lungeDistance = 105, _lungeDuration = .3;
@@ -150,13 +151,21 @@ class ArenaEnemy extends PositionComponent
         } else if (phase == 1 && clock >= lungeWarning) {
           phase = 2;
           clock = 0;
+          game.crowdOccupancy.forget(this);
         } else if (phase == 2) {
           final before = position.clone();
           final step = math.min(
             dt,
             math.max(0.0, _lungeDuration - (clock - dt)),
           );
-          game.moveActor(this, _committed, lungeSpeed, step, avoidCrowd: false);
+          game.moveActor(
+            this,
+            _committed,
+            lungeSpeed,
+            step,
+            avoidCrowd: false,
+            airborne: true,
+          );
           if (BulletComponent.segmentDistanceSquared(
                     game.myPlayer.position,
                     before,

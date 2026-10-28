@@ -167,12 +167,17 @@ void main() {
         expect(enemy.isFlippedHorizontally, isFalse);
         expect(enemy.walk.distance, isNot(distance));
         game.myPlayer.position.setFrom(enemy.position + Vector2(20, 0));
-        enemy.update(.3);
+        enemy.update(.2);
         expect(enemy.isAttacking, isTrue);
+        expect(enemy.timeSinceLastAttack, closeTo(.2, .0001));
+        enemy.update(.1);
+        expect(enemy.timeSinceLastAttack, 0);
+        enemy.update(.3);
         expect(enemy.timeSinceLastAttack, closeTo(.3, .0001));
         enemy.update(.3);
         expect(enemy.timeSinceLastAttack, 0);
         expect(enemy.attackInterval, .6);
+        expect(enemy.firstStrikeDelay, .3);
         expect(enemy.animation!.frames.length, 2);
         final planted = enemy.position.clone();
         final blockers = [

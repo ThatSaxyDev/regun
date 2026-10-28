@@ -589,6 +589,12 @@ class RegunGame extends FlameGame
         enemyTactics.side(actor),
       );
 
+  bool isAirborneActor(PositionComponent actor) =>
+      (actor is ArenaEnemy && actor.airborne) ||
+      (actor is WalkerBoss &&
+          actor.prepared &&
+          [WalkerPhase.charge, WalkerPhase.brake].contains(actor.fight.phase));
+
   void moveActor(
     PositionComponent actor,
     Vector2 direction,
@@ -596,6 +602,7 @@ class RegunGame extends FlameGame
     double dt, {
     double radius = 30,
     bool avoidCrowd = true,
+    bool airborne = false,
   }) {
     if (actor is! PlayerComponent) {
       speed *= 1 + min(0.5, (director.cycle - 1) * 0.08);
@@ -643,6 +650,10 @@ class RegunGame extends FlameGame
           _constrainEnemyMove(actor, point, max(radius, crowdRadius(actor)));
         },
         slide: avoidCrowd,
+        reserve: !airborne,
+        blocks: airborne
+            ? (other) => other is CombatEnemy && other.isBoss
+            : null,
         side: enemyTactics.side(actor),
       );
       return;
@@ -726,6 +737,10 @@ class RegunGame extends FlameGame
       _constrainEnemyMove(actor, point, max(radius, crowdRadius(actor)));
     },
     slide: false,
+    reserve: !isAirborneActor(actor),
+    blocks: isAirborneActor(actor)
+        ? (other) => other is CombatEnemy && other.isBoss
+        : null,
     beforeStep: crushMinions && actor is CombatEnemy && actor.isBoss
         ? (from, to) => clearMinionsInBossPath(from, to, crowdRadius(actor) + 4)
         : null,
@@ -2748,14 +2763,9 @@ class RegunGame extends FlameGame
       combat.update(dt);
       if (!bossRush) supportCombat.advance(dt);
     }
-    enemyTactics.rebuild(liveEnemies);
+    enemyTactics.rebuild(liveEnemies.where((e) => !isAirborneActor(e)));
     crowdOccupancy.rebuild(
-      [..._enemies, ...bosses].where(
-        (e) =>
-            e is! WalkerBoss ||
-            !e.prepared ||
-            ![WalkerPhase.charge, WalkerPhase.brake].contains(e.fight.phase),
-      ),
+      [..._enemies, ...bosses].where((e) => !isAirborneActor(e)),
       crowdRadius,
     );
     super.update(dt);
