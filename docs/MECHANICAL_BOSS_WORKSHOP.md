@@ -1,10 +1,11 @@
 # Mechanical boss workshop — Walker / 01
 
-**Current status — 28 October 2026:** Walker is an implemented, Training-only
-candidate under creator review. The latest recorded verification is a clean
-analyzer and846 passing tests with5 intentional skips; this does not establish
-physical acceptance. The latest intent/recoil section supersedes earlier numeric
-candidate tables below. Use Training → Start → Pause → Boss Practice → Walker.
+**Current status — 28 October 2026:** Walker now participates in solo survival,
+Training and capable online co-op. The tester-facing Walker workshop button is
+removed. Its mechanical rig/combat remain implemented; physical acceptance is
+still a separate creator review. Historical candidate sections below record the
+workshop's development, not current roster restrictions. Use Training → Start →
+Pause → Boss Practice → Walker for the current fight.
 
 **Next workshop proposal:** [Ariet — modular gunship workshop plan](ARIET_BOSS_WORKSHOP_PLAN.md).
 This is a written plan, not an implemented second boss or a declaration that
