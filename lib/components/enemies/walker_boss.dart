@@ -3,6 +3,7 @@ import 'package:regun/data/enemies.dart';
 import 'package:regun/components/enemies/boss_encounter.dart';
 
 import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flame/components.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
@@ -255,6 +256,22 @@ class WalkerBoss extends PositionComponent
     if (!prepared) return;
     fight.beginDestruction();
     game.revision.value++;
+  }
+
+  void advanceArrival(double dt) {
+    if (!prepared || fight.vulnerable || fight.defeated) return;
+    final before = fight.phase;
+    rig.reducedMotion = game.preferences.reducedMotion;
+    // Step only deployment, including rounding at phase boundaries. Never run
+    // attacks while the arrival camera is returning to the survivor.
+    var remaining = dt.isFinite ? math.min(dt, 3.2) : 0.0;
+    while (remaining > 0 && !fight.vulnerable) {
+      final step = math.min(remaining, 1 / 120);
+      fight.advance(step);
+      remaining -= step;
+    }
+    position.setValues(rig.position.dx, rig.position.dy);
+    if (before != fight.phase) game.revision.value++;
   }
 
   @override

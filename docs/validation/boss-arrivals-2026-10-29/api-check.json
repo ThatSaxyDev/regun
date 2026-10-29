@@ -1,0 +1,22 @@
+[
+  {
+    "path": "/health",
+    "curlExit": 0,
+    "status": "200"
+  },
+  {
+    "path": "/features",
+    "curlExit": 0,
+    "status": "200",
+    "noStore": true,
+    "policy": {
+      "schemaVersion": 1,
+      "onlinePlay": true
+    }
+  },
+  {
+    "path": "/account",
+    "curlExit": 0,
+    "status": "401"
+  }
+]

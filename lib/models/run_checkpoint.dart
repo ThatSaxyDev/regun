@@ -1,3 +1,4 @@
+import 'package:regun/systems/ariet_combat.dart';
 import 'package:regun/systems/walker_combat.dart';
 import 'package:regun/models/run_statistics.dart';
 import 'package:regun/models/accepted_upgrade.dart';
@@ -253,6 +254,7 @@ class RunCheckpoint {
       final enemies = map['enemies'] as List, drops = map['drops'] as List;
       if (enemies.length > 122 || drops.length > 80) return false;
       var bosses = 0;
+      var hasAriet = false;
       for (final raw in enemies) {
         final enemy = raw as Map;
         final id = enemy['kind'];
@@ -261,25 +263,59 @@ class RunCheckpoint {
           return false;
         }
         if (BossKind.values.any((e) => e.name == id)) bosses++;
+        if (id == 'ariet') {
+          hasAriet = true;
+          final ariet = enemy['ariet'];
+          if (ariet is! Map ||
+              !ArietCombat.validCheckpoint(ariet['fight']) ||
+              ariet['escorts'] is! List ||
+              (ariet['escorts'] as List).length > 2) {
+            return false;
+          }
+          final ids = <int>{};
+          for (final raw in ariet['escorts'] as List) {
+            if (raw is! Map ||
+                raw['id'] is! int ||
+                (raw['id'] as int) < 1 ||
+                (raw['id'] as int) > (ariet['fight']['released'] as int) ||
+                !ids.add(raw['id'] as int) ||
+                !point([raw['x'], raw['y']]) ||
+                !number(raw['health'], 50) ||
+                (raw['health'] as num) <= 0) {
+              return false;
+            }
+          }
+        }
         if (id == 'walker' && !WalkerCombat.validState(enemy['walker'])) {
           return false;
         }
         if (!point([enemy['x'], enemy['y']]) ||
             !number(enemy['health'], 1e6) ||
             ((enemy['health'] as num) <= 0 &&
-                !(id == 'walker' &&
-                    enemy['walker'] is Map &&
-                    WalkerCombat.validState(enemy['walker']) &&
-                    WalkerPhase.values
-                            .byName(enemy['walker']['phase'] as String)
-                            .index >=
-                        WalkerPhase.failing.index)) ||
+                !((id == 'ariet' &&
+                        enemy['ariet'] is Map &&
+                        ArietCombat.validCheckpoint(enemy['ariet']['fight']) &&
+                        ArietPhase.values
+                                .byName(
+                                  enemy['ariet']['fight']['phase'] as String,
+                                )
+                                .index >=
+                            ArietPhase.failing.index) ||
+                    (id == 'walker' &&
+                        enemy['walker'] is Map &&
+                        WalkerCombat.validState(enemy['walker']) &&
+                        WalkerPhase.values
+                                .byName(enemy['walker']['phase'] as String)
+                                .index >=
+                            WalkerPhase.failing.index))) ||
             !number(enemy['maximum'], 1e6) ||
             (enemy['health'] as num) > (enemy['maximum'] as num)) {
           return false;
         }
       }
-      if (bosses > (map['schema'] == 2 ? 2 : 1)) return false;
+      if ((hasAriet && bosses > 1) || bosses > (map['schema'] == 2 ? 2 : 1)) {
+        return false;
+      }
       for (final raw in drops) {
         final drop = raw as Map;
         if (!point([drop['x'], drop['y']]) ||

@@ -8,6 +8,7 @@ import 'package:regun/presentation/attack_vfx.dart';
 import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/presentation/walker_art.dart';
 import 'package:regun/systems/ariet_combat.dart';
+import 'package:regun/systems/ariet_escort_study.dart';
 import 'package:regun/systems/walker_rig.dart';
 
 class ArietBattleArt {
@@ -64,6 +65,16 @@ class ArietBattleArt {
       }
       AttackVfx.floorArea(c, 0, f.routeEnd, 130, alpha: .6, ambient: grade);
     }
+    for (final shell in f.rounds.where((r) => r.cannon && r.burstAt != null)) {
+      AttackVfx.floorArea(
+        c,
+        0,
+        shell.burstAt!,
+        140,
+        alpha: .65,
+        ambient: grade,
+      );
+    }
     for (final target in f.flakTargets) {
       AttackVfx.floorArea(c, 0, target, 162, alpha: .8, ambient: grade);
     }
@@ -107,7 +118,6 @@ class ArietBattleArt {
       }
     }
     for (final i in f.impacts) {
-      if (i.rocketHeading != null) continue;
       if (i.dust) {
         AttackVfx.groundMaterial(
           c,
@@ -158,8 +168,8 @@ class ArietBattleArt {
       l.footYaw = yaw + math.atan2(l.rest.dy, l.rest.dx);
     }
     c.save();
-    c.translate(at.dx, at.dy + rig.height * .7 * .675);
-    c.scale(.675);
+    c.translate(at.dx, at.dy + rig.height * .7 * ArietEscortStudy.combatScale);
+    c.scale(ArietEscortStudy.combatScale);
     if (alpha < 1) {
       c.saveLayer(null, Paint()..color = Color.fromRGBO(255, 255, 255, alpha));
     }
@@ -192,9 +202,13 @@ class ArietBattleArt {
       );
     }
     c.translate(0, reduced ? 0 : -f.descent);
-    if (!f.deploymentSpent && f.drops.isEmpty && !f.defeated) {
-      for (var i = 0; i < 2; i++) {
-        _payload(c, rig.cargoReleaseSocket(i), rig.yaw, 0);
+    if (!f.defeated) {
+      for (var id = 1; id <= f.escortQuota; id++) {
+        if (!f.drops.any(
+          (d) => d.id == id && (!d.aborted || d.origin != null),
+        )) {
+          _payload(c, rig.cargoReleaseSocket(id - 1), rig.yaw, 0);
+        }
       }
     }
     for (final d in f.drops) {
@@ -320,21 +334,50 @@ class ArietBattleArt {
   }
 
   void rounds(Canvas c, ArietCombat f, ArenaType arena, bool reduced) {
-    for (final spent in f.impacts) {
-      final angle = spent.rocketHeading;
-      if (angle == null) continue;
-      final p = (spent.age / .4).clamp(0.0, 1.0);
+    // The airborne burst must draw with ordnance, above actor art. The floor
+    // layer supplies its planted scorch; neither alone communicates detonation.
+    for (final blast in f.impacts) {
+      if (!blast.rocketBlast || blast.age > .45) continue;
+      final expansion = reduced
+          ? 1.0
+          : .65 + .35 * (blast.age / .18).clamp(0, 1);
+      AttackVfx.stamp(
+        c,
+        18 + (blast.age * 12).floor().clamp(0, 2),
+        blast.position,
+        blast.radius * 2,
+        height: blast.radius * 1.55,
+        alpha: (1 - blast.age / .45).clamp(0, 1) * (reduced ? .65 : .95),
+        material: AttackMaterial.ember,
+        anchor: Anchor.center,
+      );
+      // Short radial flame tongues precede the planted char. Borrow the owned
+      // exhaust sprites, but expand radially rather than draw a stationary jet.
+      if (blast.age < .28) {
+        for (var i = 0; i < 5; i++) {
+          final a = i * math.pi * 2 / 5;
+          ArietArt(assets).engineSprite(
+            c,
+            i.isEven ? 0 : 1,
+            blast.position +
+                ArietCombat.unit(a) * blast.radius * .25 * expansion,
+            blast.radius * 1.3 * expansion,
+            height: blast.radius * .65 * expansion,
+            angle: a,
+            alpha: (1 - blast.age / .28) * (reduced ? .55 : .9),
+            jet: true,
+          );
+        }
+      }
       ArietArt(assets).engineSprite(
         c,
         2,
-        spent.position - ArietCombat.unit(angle) * 24,
-        32 + p * 28,
-        height: 24 + p * 16,
-        angle: angle + math.pi,
-        alpha: .4 * (1 - p),
+        blast.position + Offset(0, -blast.radius * .15),
+        blast.radius * 2.2 * expansion,
+        height: blast.radius * 1.6 * expansion,
+        angle: 0,
+        alpha: .35 * (1 - blast.age / .45),
       );
-      WalkerArt(assets.walker)
-          .part(c, 'rocket', spent.position, 64, angle: angle, alpha: 1 - p);
     }
     for (final r in f.rounds) {
       if (r.seeker) {

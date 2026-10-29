@@ -87,12 +87,12 @@ class ArietImpact {
     this.position,
     this.radius, {
     this.dust = false,
-    this.rocketHeading,
+    this.rocketBlast = false,
   });
   Offset position;
   final double radius;
   final bool dust;
-  final double? rocketHeading;
+  final bool rocketBlast;
   double age = 0;
 }
 
@@ -124,7 +124,17 @@ class ArietCombat {
     this.crushMinion,
     this.steer,
     int seed = 427,
+    int? reinforcementCount,
   }) : random = RunRandom(seed) {
+    final supportRoll = RunRandom(seed ^ 0x51a7).nextInt(100);
+    escortQuota =
+        reinforcementCount ??
+        (supportRoll < 25
+            ? 0
+            : supportRoll < 70
+            ? 1
+            : 2);
+    deploymentSpent = escortQuota == 0;
     rig.trackCannon = false;
     rig.hoverMotion = true;
     rig.height = rig.hoverElevation = flightHeight;
@@ -154,6 +164,10 @@ class ArietCombat {
   int _attackCycle = 0;
   bool _flakHit = false;
   double _quiet = 0;
+  Offset? _flightFocus, _previousPlayer;
+  Offset _aimVelocity = Offset.zero, _observedVelocity = Offset.zero;
+  double _aimTurn = 0;
+  double _flightRefresh = 0;
   double cannonRecoil = 0, cannonFlash = 0;
   Offset player = Offset.zero, playerVelocity = Offset.zero;
   ArietPhase phase = ArietPhase.incoming;
@@ -162,7 +176,16 @@ class ArietCombat {
       paused = false,
       deploymentSpent = false,
       deploymentPass = false;
-  bool _passHit = false, _exhaustHit = false;
+  bool _exhaustHit = false;
+  late int escortQuota;
+  double healthFraction = 1, _lastDropAt = -1000, _gunHitReady = 0;
+  bool get _canReinforce =>
+      enraged &&
+      totalDrops < escortQuota &&
+      drops.every((d) => d.activated || d.aborted) &&
+      (totalDrops == 0 ||
+          (elapsed - _lastDropAt >= 20 &&
+              (healthFraction <= .25 || elapsed - _lastDropAt >= 32)));
   double clock = 0,
       elapsed = 0,
       _remainder = 0,
@@ -273,7 +296,7 @@ class ArietCombat {
     round.removed = true;
     totalIntercepts++;
     signal(ArietCue.intercept);
-    _impact(round.position, 36);
+    _impact(round.position, 70, rocketBlast: true);
     return true;
   }
 
@@ -319,7 +342,7 @@ class ArietCombat {
   void beginDestruction() {
     if (defeated) return;
     rig.enginesRunning = false;
-    impacts.removeWhere((i) => i.rocketHeading != null);
+    impacts.removeWhere((i) => i.rocketBlast);
     rounds.clear();
     exhaust.clear();
     flakTargets.clear();
@@ -347,6 +370,18 @@ class ArietCombat {
   void _step(double dt) {
     elapsed += dt;
     clock += dt;
+    final previous = _previousPlayer;
+    final movement = previous == null ? Offset.zero : player - previous;
+    final observed = movement.distance > 80 ? Offset.zero : movement / dt;
+    final velocity = playerVelocity.distance > 1 ? playerVelocity : observed;
+    _aimVelocity = ArietRig.limit(velocity, 700);
+    final turn = velocity.distance > 50 && _observedVelocity.distance > 50
+        ? ArietRig.difference(heading(velocity), heading(_observedVelocity)) /
+              dt
+        : 0.0;
+    _aimTurn += (turn.clamp(-2.5, 2.5) - _aimTurn) * (1 - math.exp(-8 * dt));
+    _observedVelocity = velocity;
+    _previousPlayer = player;
     for (var i = 0; i < 2; i++) {
       recoil[i] = math.max(0, recoil[i] - 90 * dt);
       flash[i] = math.max(0, flash[i] - dt);
@@ -358,11 +393,7 @@ class ArietCombat {
     launcherFlash = math.max(0, launcherFlash - dt);
     // Bearings track independently of flight, with no hull-relative arc clamp.
     for (var i = 0; i < 2; i++) {
-      noseYaw[i] = ArietRig.turn(
-        noseYaw[i],
-        heading(player - rig.noseSocket(i)),
-        12 * dt,
-      );
+      noseYaw[i] = ArietRig.turn(noseYaw[i], _rotaryAim(i), 12 * dt);
     }
     if (phase != ArietPhase.flakLock && phase != ArietPhase.flak) {
       rig.flakYaw = ArietRig.turn(
@@ -373,12 +404,8 @@ class ArietCombat {
     }
     for (final impact in impacts) {
       impact.age += dt;
-      if (impact.rocketHeading case final a?) {
-        impact.position +=
-            unit(a) * (170 * (1 - impact.age / .4).clamp(0, 1) * dt);
-      }
     }
-    impacts.removeWhere((i) => i.age > (i.rocketHeading == null ? .65 : .4));
+    impacts.removeWhere((i) => i.age > .65);
     _rounds(dt);
     _drops(dt);
     rig.thrustBoost = 0;
@@ -409,7 +436,6 @@ class ArietCombat {
         rig.desiredYaw = heading(routeHeading);
         if (clock >= 1) {
           _distance = 0;
-          _passHit = false;
           sequence++;
           _enter(ArietPhase.strafe);
         } else if (clock > 2.8) {
@@ -456,13 +482,12 @@ class ArietCombat {
           _combatOrbit();
         }
         rig.thrustBoost = .3;
-        rig.desiredYaw = heading(player - rig.bodyPosition);
         if (released < 36 &&
             clock >= _nextShot &&
             rounds.length < roundLimit &&
             _nose(released % 2)) {
           released++;
-          _nextShot = clock + .06;
+          _nextShot = clock + .05;
         }
         if (released >= 36 || clock >= 3.2) _enter(ArietPhase.recovery);
       case ArietPhase.cannonLock:
@@ -484,9 +509,9 @@ class ArietCombat {
           if (ArietRig.difference(rig.cannonYaw, aim).abs() < .10 &&
               _cannon()) {
             released++;
-            _nextShot += .35;
+            _nextShot += .30;
           } else if (clock > _nextShot + .18) {
-            _nextShot = clock + .35;
+            _nextShot = clock + .30;
           }
           if (released >= 4 || clock >= 3.0) _enter(ArietPhase.recovery);
         }
@@ -516,7 +541,7 @@ class ArietCombat {
             signal(ArietCue.seeker);
           }
           released++;
-          _nextShot += .3;
+          _nextShot += .28;
         }
         if (released == seekerVolley && !rounds.any((r) => r.seeker)) {
           _enter(ArietPhase.recovery);
@@ -645,6 +670,24 @@ class ArietCombat {
       ArietPhase.seekers,
     ].contains(phase)) {
       rig.command = steer?.call(rig.command, dt) ?? rig.command;
+      if (rig.command.distance > 1 &&
+          !(phase == ArietPhase.turnFire && clock < .18)) {
+        final current = rig.velocity.distance > 60
+            ? heading(rig.velocity)
+            : rig.yaw;
+        final course = ArietRig.turn(current, heading(rig.command), 1.6 * dt);
+        final curved = unit(course) * rig.command.distance;
+        // Cover steering can make an urgent correction; never curve back into
+        // a wall just to preserve a decorative arc.
+        if (clear(
+          rig.position,
+          rig.position + unit(course) * 90,
+          ArietRig.navigationRadius,
+        )) {
+          rig.command = curved;
+        }
+        rig.desiredYaw = heading(rig.command);
+      }
     }
     final before = rig.position;
     rig.advance(dt);
@@ -688,7 +731,7 @@ class ArietCombat {
       return;
     }
     // Cargo is a full, quiet alternate pass; no seeking/flak under the drop.
-    if (enraged && !deploymentSpent && _planPass() && deploymentPass) {
+    if (_canReinforce && _planPass() && deploymentPass) {
       lastAttack = ArietPhase.strafe;
       _enter(ArietPhase.strafeLock);
       return;
@@ -743,7 +786,7 @@ class ArietCombat {
     final delta = player + playerVelocity * .3 - rig.position;
     if (delta.distance < 1) return false;
     final direction = delta / delta.distance;
-    final cargo = enraged && !deploymentSpent && drops.every((d) => d.aborted);
+    final cargo = _canReinforce;
     final length = cargo
         ? (delta.distance + 400).clamp(1000.0, 1100.0)
         : (delta.distance + 180).clamp(620.0, 1100.0);
@@ -757,38 +800,45 @@ class ArietCombat {
     routeEnd = end;
     routeLength = length;
     deploymentPass = false;
-    if (enraged && !deploymentSpent && drops.every((d) => d.aborted)) {
+    if (_canReinforce) {
       final side = Offset(-direction.dy, direction.dx);
-      final sites = [
-        rig.position + direction * 440 - side * 130,
-        rig.position + direction * 580 + side * 130,
-      ];
-      if (sites.every((p) => landingLegal(p, 70)) &&
-          (sites[0] - sites[1]).distance > 220) {
-        drops.clear();
-        for (var i = 0; i < 2; i++) {
-          drops.add(ArietDrop(i + 1, sites[i], .95 + i * .3));
+      final id = totalDrops + 1, sign = id.isOdd ? -1.0 : 1.0;
+      for (final candidate in [
+        rig.position + direction * 480 + side * (300 * sign),
+        rig.position + direction * 620 - side * (300 * sign),
+        rig.position + direction * 420 + side * (420 * sign),
+      ]) {
+        if (!landingLegal(candidate, 70) ||
+            drops.any((d) => (d.landing - candidate).distance < 420)) {
+          continue;
         }
+        drops.removeWhere((d) => d.id == id && d.origin == null);
+        drops.add(ArietDrop(id, candidate, .95));
         deploymentPass = true;
         _passStart = null;
+        break;
       }
     }
     return true;
   }
 
   void _combatOrbit({double? speed}) {
-    final delta = player - rig.position;
+    // Fly a leg around a sampled intercept, rather than leash every frame to
+    // the survivor. Roof bearings keep tracking independently at full speed.
+    if (_flightFocus == null || elapsed >= _flightRefresh) {
+      _flightFocus = player + ArietRig.limit(playerVelocity * .55, 180);
+      _flightRefresh = elapsed + 1.2;
+    }
+    final delta = _flightFocus! - rig.position;
     final direction = delta.distance > 1
         ? delta / delta.distance
         : unit(rig.yaw);
-    final side = _attackCycle.isEven ? 1.0 : -1.0;
-    final tangent = Offset(-direction.dy, direction.dx) * side;
+    final tangent = Offset(-direction.dy, direction.dx);
+    final radial = ((delta.distance - 520) * .9).clamp(-190.0, 190.0);
     rig.command = ArietRig.limit(
-      direction * ((delta.distance - 400) * 1.6) +
-          tangent * (speed ?? (enraged ? 290 : 250)),
+      direction * radial + tangent * (speed ?? (enraged ? 290 : 250)),
       ArietRig.cruiseSpeed,
     );
-    rig.desiredYaw = heading(player - rig.bodyPosition);
     rig.thrustBoost = .3;
   }
 
@@ -800,8 +850,29 @@ class ArietCombat {
     );
   }
 
+  double _rotaryAim(int i) {
+    final socket = rig.noseSocket(i);
+    var time = ((player - noseMuzzle(i)).distance / 850).clamp(0.0, 1.3);
+    var lead = Offset.zero;
+    for (var n = 0; n < 3; n++) {
+      final w = _aimTurn;
+      if (w.abs() < .1) {
+        lead = _aimVelocity * time;
+      } else {
+        final sine = math.sin(w * time), arc = 1 - math.cos(w * time);
+        lead = Offset(
+          (_aimVelocity.dx * sine - _aimVelocity.dy * arc) / w,
+          (_aimVelocity.dx * arc + _aimVelocity.dy * sine) / w,
+        );
+      }
+      lead = ArietRig.limit(lead, 360);
+      time = ((player + lead - noseMuzzle(i)).distance / 850).clamp(0.0, 1.3);
+    }
+    return heading(player + lead - socket);
+  }
+
   bool _nose(int i) {
-    final aim = heading(player - rig.noseSocket(i));
+    final aim = _rotaryAim(i);
     if (ArietRig.difference(aim, noseYaw[i]).abs() > .12) return false;
     final origin = noseMuzzle(i);
     if (rig.barrelClear(i, noseYaw[i], recoil: recoil[i]) &&
@@ -830,7 +901,16 @@ class ArietCombat {
         !clear(origin, origin + unit(rig.cannonYaw) * 12, 10)) {
       return false;
     }
-    rounds.add(ArietRound(origin, rig.cannonYaw, cannon: true));
+    final aim = _clip(origin, locked, 9);
+    final distance = math.min(900.0, math.max(80.0, (aim - origin).distance));
+    rounds.add(
+      ArietRound(
+        origin,
+        rig.cannonYaw,
+        cannon: true,
+        burstAt: origin + unit(rig.cannonYaw) * distance,
+      ),
+    );
     cannonRecoil = 15;
     cannonFlash = .065;
     totalCannon++;
@@ -847,8 +927,9 @@ class ArietCombat {
         d.groundOrigin = rig.cargoSocket(d.id - 1);
         d.origin = rig.cargoReleaseSocket(d.id - 1);
         d.age = 0;
-        deploymentSpent = true;
         totalDrops++;
+        _lastDropAt = elapsed;
+        deploymentSpent = totalDrops >= escortQuota;
         signal(ArietCue.release);
       } else {
         d.age += dt;
@@ -870,17 +951,15 @@ class ArietCombat {
     Offset p,
     double radius, {
     bool dust = false,
-    double? rocketHeading,
+    bool rocketBlast = false,
   }) {
     if (impacts.length >= 6) impacts.removeAt(0);
-    impacts.add(
-      ArietImpact(p, radius, dust: dust, rocketHeading: rocketHeading),
-    );
+    impacts.add(ArietImpact(p, radius, dust: dust, rocketBlast: rocketBlast));
   }
 
   void _blast(Offset p) {
     signal(ArietCue.impact);
-    _impact(p, 70);
+    _impact(p, 70, rocketBlast: true);
     if ((player - p).distance <= 96 && clear(p, player, 0)) {
       hurt(2, 'Ariet cannon');
     }
@@ -890,6 +969,127 @@ class ArietCombat {
         crushMinion?.call(m.id);
       }
     }
+  }
+
+  /// Continue keeps encounter identity, reinforcement history and pending
+  /// deployments. Hostile rounds/warnings are discarded and resume safely.
+  Map<String, dynamic> checkpoint() => {
+    'schema': 1,
+    'position': [rig.position.dx, rig.position.dy],
+    'yaw': rig.yaw,
+    'phase': phase.name,
+    'clock': clock,
+    'elapsed': elapsed,
+    'quota': escortQuota,
+    'released': totalDrops,
+    'lastDrop': _lastDropAt,
+    'cycle': _attackCycle,
+    'random': random.state,
+    'crash': [crashEnd.dx, crashEnd.dy],
+    'drops': [
+      for (final d in drops)
+        {
+          'id': d.id,
+          'landing': [d.landing.dx, d.landing.dy],
+          'origin': d.origin == null ? null : [d.origin!.dx, d.origin!.dy],
+          'ground': d.groundOrigin == null
+              ? null
+              : [d.groundOrigin!.dx, d.groundOrigin!.dy],
+          'age': d.age,
+          'activated': d.activated,
+          'aborted': d.aborted,
+        },
+    ],
+  };
+
+  static bool validCheckpoint(dynamic value) {
+    bool number(dynamic v, double lo, double hi) =>
+        v is num && v.isFinite && v >= lo && v <= hi;
+    bool point(dynamic p) =>
+        p is List &&
+        p.length == 2 &&
+        p.every((v) => number(v, -100000, 100000));
+    try {
+      final m = value as Map;
+      if (m['schema'] != 1 ||
+          !point(m['position']) ||
+          !point(m['crash']) ||
+          !number(m['yaw'], -1e9, 1e9) ||
+          !number(m['clock'], 0, 1e9) ||
+          !number(m['elapsed'], 0, 1e9) ||
+          !number(m['lastDrop'], -1000, m['elapsed'].toDouble()) ||
+          m['quota'] is! int ||
+          !number(m['quota'], 0, 2) ||
+          m['released'] is! int ||
+          !number(m['released'], 0, m['quota'].toDouble()) ||
+          m['cycle'] is! int ||
+          !number(m['cycle'], 0, 1e9) ||
+          m['random'] is! int ||
+          !number(m['random'], 0, 0x7fffffff.toDouble()) ||
+          !ArietPhase.values.any((p) => p.name == m['phase'])) {
+        return false;
+      }
+      final ds = m['drops'] as List;
+      if (ds.length > 2) return false;
+      final ids = <int>{};
+      for (final raw in ds) {
+        final d = raw as Map;
+        if (d['id'] is! int ||
+            !number(d['id'], 1, m['quota'].toDouble()) ||
+            !ids.add(d['id'] as int) ||
+            !point(d['landing']) ||
+            (d['origin'] != null && !point(d['origin'])) ||
+            (d['ground'] != null && !point(d['ground'])) ||
+            ((d['origin'] == null) != (d['ground'] == null)) ||
+            !number(d['age'], -1, 2) ||
+            d['activated'] is! bool ||
+            d['aborted'] is! bool) {
+          return false;
+        }
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void restore(Map<String, dynamic> m) {
+    if (!validCheckpoint(m)) throw const FormatException('Invalid Ariet state');
+    Offset point(dynamic p) =>
+        Offset((p[0] as num).toDouble(), (p[1] as num).toDouble());
+    rig.position = point(m['position']);
+    rig.yaw = rig.desiredYaw = (m['yaw'] as num).toDouble();
+    elapsed = (m['elapsed'] as num).toDouble();
+    escortQuota = m['quota'] as int;
+    totalDrops = m['released'] as int;
+    deploymentSpent = totalDrops >= escortQuota;
+    _lastDropAt = (m['lastDrop'] as num).toDouble();
+    _attackCycle = m['cycle'] as int;
+    random.state = m['random'] as int;
+    crashEnd = point(m['crash']);
+    final savedPhase = ArietPhase.values.byName(m['phase'] as String);
+    phase = savedPhase.index >= ArietPhase.failing.index
+        ? savedPhase
+        : ArietPhase.navigate;
+    clock = defeated ? (m['clock'] as num).toDouble() : 0;
+    grace = 1.5;
+    drops.clear();
+    for (final raw in m['drops'] as List) {
+      final d = raw as Map;
+      if (d['origin'] == null) continue;
+      final item = ArietDrop(d['id'] as int, point(d['landing']), .95)
+        ..age = (d['age'] as num).toDouble()
+        ..activated = d['activated'] as bool
+        ..aborted = d['aborted'] as bool;
+      if (d['origin'] != null) {
+        item.origin = point(d['origin']);
+        item.groundOrigin = point(d['ground']);
+      } else {
+        item.aborted = true;
+      }
+      drops.add(item);
+    }
+    rig.enginesRunning = !defeated;
   }
 
   void _rounds(double dt) {
@@ -903,11 +1103,12 @@ class ArietCombat {
         );
       }
       final from = r.position;
-      final step = r.flakPacket
+      final timedShell = r.flakPacket || (r.cannon && r.burstAt != null);
+      final step = timedShell
           ? math.min(r.speed * dt, (r.burstAt! - from).distance)
-          : r.speed * dt;
+          : math.min(r.speed * dt, math.max(0.0, 1600 - r.travel));
       final desired = from + unit(r.heading) * step;
-      final airburst = r.flakPacket && (desired - r.burstAt!).distance < .01;
+      final airburst = timedShell && (desired - r.burstAt!).distance < .01;
       var end = desired;
       var wall = !clear(from, desired, r.radius);
       if (wall) {
@@ -965,7 +1166,7 @@ class ArietCombat {
             );
           }
         } else if (r.seeker) {
-          _impact(end, 90);
+          _impact(end, 90, rocketBlast: true);
           signal(ArietCue.impact);
           if ((player - end).distance <= 116 && clear(end, player, 0)) {
             hurt(1, 'Ariet seeker');
@@ -981,12 +1182,12 @@ class ArietCombat {
         } else if (touch && r.fragment) {
           if (!_flakHit) _flakHit = hurt(1, 'Ariet flak');
         } else if (touch) {
-          if (r.owner != 0 || !_passHit) {
+          if (elapsed >= _gunHitReady) {
             if (hurt(
               1,
               r.owner == 0 ? 'Ariet strafing run' : 'Walker escort',
             )) {
-              if (r.owner == 0) _passHit = true;
+              _gunHitReady = elapsed + .5;
             }
           }
         } else if (hit != null) {
@@ -1003,7 +1204,11 @@ class ArietCombat {
                   : 1.6) ||
           r.travel > 1600) {
         r.removed = true;
-        if (r.seeker) _impact(r.position, 0, rocketHeading: r.heading);
+        if (r.cannon) _blast(r.position);
+        if (r.seeker) {
+          _impact(r.position, 70, rocketBlast: true);
+          signal(ArietCue.intercept);
+        }
         rounds.remove(r);
       }
     }

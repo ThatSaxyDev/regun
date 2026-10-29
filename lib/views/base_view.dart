@@ -1139,7 +1139,9 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 height: 48,
                 onTap: _myGame.practiceAriet,
               ),
-              for (final kind in BossKind.active)
+              for (final kind in BossKind.active.where(
+                (kind) => kind != BossKind.ariet,
+              ))
                 ClickButtonM(
                   key: kind == BossKind.walker
                       ? const Key('practice-boss-walker')

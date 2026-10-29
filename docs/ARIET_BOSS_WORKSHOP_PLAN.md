@@ -758,3 +758,13 @@ continuous joystick movement with at least12 escort rounds and both shooters in1
 Physical aggression/fairness/performance approval remains open.
 
 Current evidence: `docs/validation/ariet-continuous-flight-2026-10-28/README.md`.
+
+## Native normal-run testing admission —29 October2026
+
+Creator explicitly admitted Ariet into the normal Solo roster for testing. This
+supersedes the historical Training-only admission restriction. It now owns normal
+registry/rewards/Continue contracts; online combat and Boss Rush pairs remain
+outside admission. Latest cannon fuse, rotary contact, optional staggered support
+and faster grounded escort contracts/evidence are authoritative in
+[normal admission validation](validation/ariet-normal-admission-2026-10-29/README.md).
+Physical approval remains open; no release increment beyond1.0.0+28.

@@ -301,9 +301,9 @@ class _ArietWorkshopViewState extends State<ArietWorkshopView>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
             child: Text(
               controller.mode == ArietDemo.cargo
-                  ? 'Carrier cutaway (fit) / two folded 67.5% Walkers'
+                  ? 'Carrier cutaway (fit) / two folded 55% Walkers'
                   : controller.mode == ArietDemo.scale
-                  ? 'Full Walker / 65% / 67.5% / 70% / geometry study'
+                  ? 'Full Walker / 55% / 65% / 70% / geometry study'
                   : 'Tap floor to move. Mounted weapons are inactive.',
               style: const TextStyle(
                 fontFamily: FontFam.orbitron,
@@ -476,7 +476,7 @@ class ArietWorkshopPainter extends CustomPainter {
   }
 
   void _scale(Canvas c) {
-    for (final (index, scale) in [1.0, .65, .675, .70].indexed) {
+    for (final (index, scale) in [1.0, .55, .65, .70].indexed) {
       final escort = ArietEscortStudy(scale: scale);
       final at = Offset(-480 + index * 300.0, 20);
       c.save();

@@ -18,3 +18,13 @@ between head and tail. Materials, attached crescents, couplers, roller support,
 induction-pole idea and telescoping tail establish the proposed vocabulary.
 Production will consolidate the pole equipment to the designated carriage and
 use compatible orthographic parts, explicit sockets and constrained couplings.
+
+
+## Superseded equipment —29 October2026
+
+The workshop plan was revised after creator discussion: war-built serpent,
+individual section destruction, head-led boring/eruption, shards, twin mortars
+with an adjacent physical feeder, strategic proximity mines and a joint-driven
+tail sweep. This original board's anchors and telescoping lance are obsolete;
+its six-body silhouette/coupling/material vocabulary remain a reference only.
+No updated weapon art or playable Lodestar is claimed by this plan revision.

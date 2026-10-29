@@ -17,15 +17,36 @@ enum OnlineAvailabilityState { checking, enabled, disabled, unavailable }
 /// Public server policy, never a persisted build-time feature flag. Unknown or
 /// failed responses close new entry; no request blocks solo navigation.
 class OnlineAvailability extends ChangeNotifier {
-  OnlineAvailability({http.Client Function()? client, Uri? endpoint})
-    : _client = client ?? http.Client.new,
-      endpoint = endpoint ?? Uri.parse(ReleaseFeatures.remoteConfigUrl);
+  OnlineAvailability({
+    http.Client Function()? client,
+    Uri? endpoint,
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now,
+       _client = client ?? http.Client.new,
+       endpoint = endpoint ?? Uri.parse(ReleaseFeatures.remoteConfigUrl);
   final http.Client Function() _client;
   final Uri endpoint;
+  final DateTime Function() _now;
   OnlineAvailabilityState state = OnlineAvailabilityState.checking;
   bool get enabled => state == OnlineAvailabilityState.enabled;
   Future<bool>? _request;
   bool _disposed = false;
+  DateTime? _checkedAt;
+
+  /// Splash and Home share a non-persisted result. Explicit entry, lifecycle
+  /// and periodic policy checks still force a request.
+  Future<bool> ensureFresh() {
+    if (_request != null) return _request!;
+    final age = _checkedAt == null ? null : _now().difference(_checkedAt!);
+    if (!_disposed &&
+        age != null &&
+        !age.isNegative &&
+        age < const Duration(seconds: 30) &&
+        state != OnlineAvailabilityState.unavailable) {
+      return Future.value(enabled);
+    }
+    return refresh();
+  }
 
   Future<bool> refresh() {
     if (_disposed) return Future.value(false);
@@ -62,6 +83,7 @@ class OnlineAvailability extends ChangeNotifier {
       client.close();
     }
     if (_disposed) return false;
+    _checkedAt = _now();
     state = next;
     notifyListeners();
     return enabled;

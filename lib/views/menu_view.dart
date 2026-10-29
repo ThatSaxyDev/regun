@@ -136,7 +136,7 @@ class _MenuViewState extends ConsumerState<MenuView>
   }
 
   Future<void> _refresh() async {
-    unawaited(_online.refresh());
+    unawaited(_online.ensureFresh());
     await ref.read(accountProvider).localProfileReady;
     await LocalPreferences.shared.load();
     unawaited(

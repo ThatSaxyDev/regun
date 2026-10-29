@@ -1,0 +1,35 @@
+[
+  {
+    "path": "/health",
+    "status": "200",
+    "curlExit": 0,
+    "noStore": false
+  },
+  {
+    "path": "/features",
+    "status": "200",
+    "curlExit": 0,
+    "noStore": true,
+    "policy": {
+      "schemaVersion": 1,
+      "onlinePlay": true
+    }
+  },
+  {
+    "path": "/v1/database/regun/sql",
+    "status": "403",
+    "curlExit": 0,
+    "noStore": false
+  },
+  {
+    "path": "/.well-known/openid-configuration",
+    "status": "200",
+    "curlExit": 0,
+    "oidcMetadataValid": true
+  },
+  {
+    "path": "/account",
+    "status": "401",
+    "curlExit": 0
+  }
+]

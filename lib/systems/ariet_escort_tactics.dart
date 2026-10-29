@@ -3,11 +3,13 @@ import 'dart:ui';
 
 import 'package:regun/systems/target_shape.dart';
 
+enum ArietEscortRole { pressure, intercept, solo }
+
 class ArietEscortBody {
   const ArietEscortBody(
     this.id,
     this.position, {
-    this.radius = 59.4,
+    this.radius = 48.4,
     this.velocity = Offset.zero,
   });
   final int id;
@@ -24,6 +26,15 @@ class ArietEscortTactics {
   Offset player = Offset.zero;
   double? _anchor;
   int? lastShooter;
+  int? _pressureId;
+  double _roleUntil = 0;
+  Offset _motion = Offset.zero;
+  bool _moving = false;
+  ArietEscortRole roleFor(int id) => _bodies.length < 2
+      ? ArietEscortRole.solo
+      : id == _pressureId
+      ? ArietEscortRole.pressure
+      : ArietEscortRole.intercept;
   double elapsed = 0;
   static const flankAngle = 1.0, standOff = 330.0;
 
@@ -63,6 +74,10 @@ class ArietEscortTactics {
     _bodies = const [];
     _anchor = null;
     lastShooter = null;
+    _pressureId = null;
+    _roleUntil = 0;
+    _motion = Offset.zero;
+    _moving = false;
     elapsed = 0;
   }
 
@@ -73,6 +88,7 @@ class ArietEscortTactics {
     required Iterable<ArietEscortBody> bodies,
     required bool Function(Offset, double) legal,
     bool Function(Offset, Offset, double)? sight,
+    bool mayHoldFirePosition = true,
   }) {
     if (!dt.isFinite || dt <= 0) return;
     elapsed += dt;
@@ -83,6 +99,29 @@ class ArietEscortTactics {
     _goals.removeWhere((id, _) => !ids.contains(id));
     if (!ids.contains(lastShooter)) lastShooter = null;
     if (_bodies.isEmpty) return;
+    // Hold roles long enough to execute a manoeuvre. Never use the partner as
+    // the pursuit target; one actor establishes pressure while the other cuts
+    // across the survivor's route. Hysteresis avoids role jitter on reversals.
+    _motion = Offset.lerp(_motion, velocity, 1 - math.exp(-8 * dt))!;
+    _moving = _motion.distance > (_moving ? 45 : 90);
+    if (!ids.contains(_pressureId)) {
+      _pressureId = _bodies
+          .reduce(
+            (a, b) =>
+                (a.position - player).distance <= (b.position - player).distance
+                ? a
+                : b,
+          )
+          .id;
+      _roleUntil = elapsed + 4;
+    } else if (elapsed >= _roleUntil && _bodies.length > 1) {
+      final relief = _bodies.firstWhere((b) => b.id != _pressureId);
+      if ((relief.position - player).distance < 620 &&
+          (sight == null || sight(relief.position, player, 6))) {
+        _pressureId = relief.id;
+      }
+      _roleUntil = elapsed + 4;
+    }
     final midpoint =
         _bodies.fold(Offset.zero, (Offset p, b) => p + b.position) /
         _bodies.length.toDouble();
@@ -113,15 +152,41 @@ class ArietEscortTactics {
     final selected = <Offset>[];
     for (final body in _bodies) {
       final side = _sides[body.id] ?? 1;
-      final desiredAngle =
+      var desiredAngle =
           _anchor! + (_bodies.length > 1 ? side * flankAngle : 0);
+      var plannedCentre = centre;
+      if (_moving && _bodies.length > 1) {
+        final forward = _motion / _motion.distance;
+        final lateral = Offset(-forward.dy, forward.dx) * side;
+        if (body.id != _pressureId) {
+          // Ahead and to the side, not a second trailing pursuit point.
+          final cutoff =
+              forward * math.min(240, _motion.distance * .8) + lateral * 330;
+          desiredAngle = angle(cutoff);
+          plannedCentre = player;
+        } else {
+          final range = (body.position - player).distance;
+          if (mayHoldFirePosition &&
+              range >= 260 &&
+              range <= 620 &&
+              legal(body.position, body.radius) &&
+              (sight == null || sight(body.position, player, 6)) &&
+              firingLaneClear(body.id, body.position, player)) {
+            _goals[body.id] = body.position;
+            selected.add(body.position);
+            continue;
+          }
+          desiredAngle = angle(-forward * 120 + lateral * 330);
+          plannedCentre = player;
+        }
+      }
       Offset? best;
       var score = double.infinity;
       // Bounded cover/bounds alternatives preserve the allocated firing sector.
       for (final radius in [330.0, 390.0, 270.0, 540.0]) {
         for (final offset in [0.0, .3, -.3, .6, -.6, .9, -.9, 1.0, -1.0]) {
           final candidate =
-              centre + unit(desiredAngle + offset * side) * radius;
+              plannedCentre + unit(desiredAngle + offset * side) * radius;
           if (!legal(candidate, body.radius)) continue;
           final bodyCrowded = selected.any(
             (p) => (p - candidate).distance < 210,

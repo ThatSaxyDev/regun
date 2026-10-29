@@ -2142,3 +2142,96 @@ continuous movement, warning/escape rules, lifecycle/resource budgets and staged
 review through a full Training candidate. Original identity concept and prompt
 provenance live in `art/source/bosses/lodestar`. Planning/art study only: no playable
 Lodestar or runtime assets added; release remains1.0.0+28.
+
+
+## Lodestar discussion revision —29 October2026
+
+Updated `LODESTAR_BOSS_WORKSHOP_PLAN.md` to the agreed war-serpent direction:
+six independently damaged sections (head boring jaws, shards, twin mortars,
+physical mortar feeder, tactical mines, articulated tail sweep). Local destruction
+removes weapons/contact; feeder loss reduces salvos. Connected structural spine,
+shared contact acceptance, head-led burrow with committed exit/corridor, strategic
+two-mine limit, distinct projectile/burst mechanisms and partial-section lifecycle
+are explicit. Anchors, saw discs, swivel lance and pooled-only health are superseded.
+Existing concept is labelled historical equipment. Planning only; no Lodestar runtime.
+
+## Ariet revisit —29 October2026,1.0.0+28
+
+Corrected rocket presentation with above-actor burst material/flame/smoke for all
+terminal paths; shot/expiry remain harmless. Moving escorts gain held pressure vs
+forward/lateral intercept roles and eligible relief, preserving sight/lane/occupancy
+and attack exclusions. Both are55% scale (was67.5%); payload/IK/body/muzzle match,
+world movement remains independent of scale. Focused capture36 pass; final full
+checks/device result recorded in `validation/ariet-revisit-2026-10-29/README.md`.
+Normal roster unchanged: Walker yes, Ariet Training-only. Physical tactics/visual/
+performance acceptance remains open; Lodestar runtime work waits for that review.
+
+Ariet flight/framing follow-up: held course focus,520 stand-off, smooth turns and
+course-facing hull replace per-frame nose lock. Independent bounded pre-shot rotary
+prediction and slightly tighter existing volley spacing balance the extra space;
+damage/counts/warnings/quiet windows remain. World zoom Ariet .74 /Walker .80 with
+unchanged viewport controls. New hull/gun reversal and native framing/control tests
+join the existing full-bearing/orbit/damage and complete encounter checks.
+
+Final combined Ariet revisit/flight/framing verification: analyzer clean; full
+**918 passed /5 intentional skips**; focused native Walker/Ariet+flight33 pass.
+Same1.0.0+28. Physical acceptance remains open; Lodestar construction stays gated.
+
+Final combined release built/signed (Xcode28.0s), installed (Apple sequence8360)
+and launched on the iPhone. Fresh device query confirms **1.0.0/build28**. No version
+increment or distribution upload. Flight/cadence/tactical/size/framing feel remains
+for creator physical review; Ariet stays Training-only and Lodestar remains a plan.
+
+## Ariet native normal-run admission —29 October2026
+
+Creator authorized normal Solo testing. Nine-boss native director now includes
+Ariet with its own mechanical arrival, registry/HUD/rocket targets, deferred normal
+victory/core/XP/health/history and validated Continue (owned escorts/pending drops,
+no repeated rewards). Existing Rush/online scopes stay separate. Whole-volley rotary
+hit suppression replaced with accepted .5s contact interval; heavy cannon gains
+committed ranged detonation and planted endpoint marker. Optional0/1/2 support
+quota releases one per separated later pass. Minis stay55%/50HP with faster world
+speed, lower/wider stance and short grounded steps. Analyzer clean,926 pass/5 skip;
+final capture/admission3 pass. Backend209 tests/typecheck/build pass for Solo history
+compatibility20ca419, source pushed with deployment approval; live rollout requires
+Dokploy sign-in. See `validation/ariet-normal-admission-2026-10-29/README.md`.
+
+Final device result: signed iOS build (Xcode30.4s), successful installation
+sequence8368, launch confirmed and fresh device app query **1.0.0/build28**.
+Client source remains uncommitted; backend compatibility20ca419 is pushed to main.
+Live backend verification awaits Dokploy authentication, not further deployment
+permission: creator already explicitly approved it. Existing SSH configuration
+references missing id_ed25519_vps; fallback existing key did not connect. Chrome
+Dokploy sign-in tab1031406723 (browser2) is kept for handoff. Resume there after
+sign-in, deploy/verify20ca419 while preserving the existing state volume and online
+policy, and update this evidence; do not equate the source push with live rollout.
+
+
+Server release clarification (29 October2026): creator requested only pushing main
+and testing the API; do not keep requesting Dokploy login/manual rollout. Remote main
+confirmed20ca4190bbac9d1aae8ef03a4e06b1ff7d8f2c99. Live health/features/OIDC200,
+account401 without auth, raw SQL403; onlinePlay:true/no-store verified. API checks
+do not expose deployed revision or prove an authenticated history save. Results in
+`docs/validation/ariet-normal-admission-2026-10-29/api-check.json`.
+
+## Distant boss arrivals and early online policy —29 October2026
+
+All native normal/Training bosses now search distant legal sites, retaining at
+least700 units after arena clamping and occupancy correction. Walker220/Ariet230
+footprints reject walls/cover/bodies, with no close fallback. Mechanical arrival
+camera pans to deployment, holds, returns wide before combat; readiness, pause,
+background and Reduced Motion are respected. Death has no focus replay and eases
+zoom back. Continue skips arrival focus. Early online policy warms during existing
+logos; Home reuses the fresh/in-flight result without delaying local startup.
+Co-op spawn clearance is being verified in the sibling server as well. See
+`validation/boss-arrivals-2026-10-29/README.md` for final checks/device results.
+Version remains1.0.0+28; human comfort/difficulty acceptance remains open.
+
+Final arrival validation: analyzer clean, full934 passed/5 intentional skips;
+additional startup6/native arrival capture1 passed. Server typecheck210 tests and
+build passed; clearance commit5fa8353 pushed to main. Native render captures and
+API evidence saved under `validation/boss-arrivals-2026-10-29/`.
+
+Final phone result: signed release installed (sequence8376), launched, fresh device
+query confirms1.0.0/build28. Live API health/features200, unauthenticated account401;
+features remains onlinePlay:true/no-store. Source push is not live-revision proof.

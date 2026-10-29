@@ -1,4 +1,7 @@
 import 'package:regun/systems/ariet_escort_tactics.dart';
+import 'package:regun/components/enemies/boss_encounter.dart';
+import 'package:regun/data/enemies.dart';
+import 'package:regun/systems/ariet_escort_study.dart';
 import 'package:regun/components/weapons/shootable_ordnance.dart';
 
 import 'dart:math' as math;
@@ -21,12 +24,57 @@ import 'package:regun/systems/target_shape.dart';
 import 'package:regun/systems/walker_combat.dart';
 import 'package:regun/systems/walker_rig.dart';
 
-/// Complete Training encounter. Intentionally outside BossKind/saves/hosted play.
+/// Native solo gunship encounter; explicit practice trials skip normal rewards.
 class ArietBoss extends PositionComponent
     with HasGameReference<RegunGame>, CombatEnemy
-    implements ShapedTarget {
-  ArietBoss({required super.position})
-    : super(size: Vector2.all(200), anchor: Anchor.center);
+    implements ShapedTarget, BossEncounter {
+  ArietBoss({
+    required super.position,
+    this.maximumHealth = 160,
+    this.practiceTrial = false,
+    this.seed = 427,
+  }) : super(size: Vector2.all(200), anchor: Anchor.center);
+  @override
+  final double maximumHealth;
+  final bool practiceTrial;
+  final int seed;
+  @override
+  BossKind get kind => BossKind.ariet;
+  @override
+  bool get enraged => prepared && combatHealth.fraction <= .5;
+  bool _completionAwarded = false;
+  Map<String, dynamic>? _saved;
+  void restoreFight(Map<String, dynamic> state) {
+    _saved = state;
+  }
+
+  Map<String, dynamic> get checkpointState => {
+    'fight': prepared
+        ? fight.checkpoint()
+        : _saved?['fight'] ??
+              ArietCombat(
+                rig: ArietRig(position: position.toOffset()),
+                seed: seed,
+                clear: (_, __, ___) => true,
+                hurt: (_, __) => false,
+                signal: (_) {},
+                landingLegal: (_, __) => true,
+                deploy: (_) {},
+              ).checkpoint(),
+    'escorts': prepared
+        ? [
+            for (final e in escorts)
+              if (!e.isRemoving && (!e.prepared || !e.combatHealth.isDead))
+                {
+                  'id': e.escortId,
+                  'x': e.position.x,
+                  'y': e.position.y,
+                  'health': e.prepared ? e.combatHealth.current : 50,
+                },
+          ]
+        : _saved?['escorts'] ?? [],
+  };
+
   final assets = ArietAssets();
   final _router = ObstacleRouter();
   final _navigationBody = PositionComponent();
@@ -112,7 +160,7 @@ class ArietBoss extends PositionComponent
 
   @override
   Future<void> onLoad() async {
-    initializeHealth(160);
+    initializeHealth(maximumHealth);
     final world = game.world;
     await game.audio.warmWalker();
     await assets.load(combat: true);
@@ -142,7 +190,7 @@ class ArietBoss extends PositionComponent
     );
     fight = ArietCombat(
       rig: rig,
-      seed: game.random.nextInt(0x40000000),
+      seed: seed,
       clear: clear,
       steer: (intent, dt) {
         if (intent.distance < .1) return intent;
@@ -193,7 +241,27 @@ class ArietBoss extends PositionComponent
         }
       },
     );
+    if (_saved case final saved?) {
+      fight.restore(Map<String, dynamic>.from(saved['fight'] as Map));
+      if (fight.defeated) combatHealth.current = 0;
+    }
     prepared = true;
+    if (_saved case final saved?) {
+      for (final raw in saved['escorts'] as List) {
+        final e = raw as Map;
+        final escort = ArietEscort(
+          this,
+          e['id'] as int,
+          position: Vector2(
+            (e['x'] as num).toDouble(),
+            (e['y'] as num).toDouble(),
+          ),
+        );
+        escort.restoreHealth((e['health'] as num).toDouble(), maximum: 50);
+        escorts.add(escort);
+        world.add(escort);
+      }
+    }
 
     layers.addAll([
       _ArietLayer(this, -10),
@@ -226,7 +294,7 @@ class ArietBoss extends PositionComponent
           (e) =>
               !e.isRemoving &&
               (!e.prepared || !e.combatHealth.isDead) &&
-              (p - e.position.toOffset()).distance < 125,
+              (p - e.position.toOffset()).distance < 340,
         );
   }
 
@@ -255,7 +323,7 @@ class ArietBoss extends PositionComponent
       return;
     }
     super.onMount();
-    if (!game.registerEnemy(this)) {
+    if (practiceTrial && !game.registerEnemy(this)) {
       retire();
       removeFromParent();
     }
@@ -276,6 +344,22 @@ class ArietBoss extends PositionComponent
     game.revision.value++;
   }
 
+  void advanceArrival(double dt) {
+    if (!prepared || fight.vulnerable || fight.defeated) return;
+    final before = fight.phase;
+    rig.reducedMotion = game.preferences.reducedMotion;
+    // Step only deployment, including rounding at phase boundaries. Never run
+    // attacks while the arrival camera is returning to the survivor.
+    var remaining = dt.isFinite ? math.min(dt, 2.7) : 0.0;
+    while (remaining > 0 && !fight.vulnerable) {
+      final step = math.min(remaining, 1 / 120);
+      fight.advance(step);
+      remaining -= step;
+    }
+    position.setValues(rig.bodyPosition.dx, rig.bodyPosition.dy);
+    if (before != fight.phase) game.revision.value++;
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
@@ -290,6 +374,7 @@ class ArietBoss extends PositionComponent
         (game.movementJoystick.relativeDelta * game.playerWalkSpeed).toOffset();
     rig.reducedMotion = game.preferences.reducedMotion;
     fight.enraged = combatHealth.fraction <= .5;
+    fight.healthFraction = combatHealth.fraction;
     escortTactics.advance(
       dt,
       target: fight.player,
@@ -297,6 +382,7 @@ class ArietBoss extends PositionComponent
       bodies: escortBodies,
       legal: escortGoalLegal,
       sight: clear,
+      mayHoldFirePosition: fight.escortsMayFire,
     );
     final before = fight.phase;
     fight.advance(dt);
@@ -307,7 +393,19 @@ class ArietBoss extends PositionComponent
       }
     }
     if (before != fight.phase) game.revision.value++;
-    if (fight.finished) {
+    if (fight.finished && !_completionAwarded) {
+      _completionAwarded = true;
+      if (!practiceTrial) {
+        game.enemyDefeated(
+          this,
+          xp: 25,
+          score: 1200,
+          boss: true,
+          mechanicalComplete: true,
+        );
+      } else {
+        game.bossEncounter.remove(this);
+      }
       game.unregisterEnemy(this);
       removeFromParent();
       game.revision.value++;
@@ -340,6 +438,9 @@ class ArietBoss extends PositionComponent
   @override
   void onRemove() {
     retire();
+    if (!practiceTrial && identical(game.arietCandidate, this)) {
+      game.arietCandidate = null;
+    }
     super.onRemove();
   }
 }
@@ -389,8 +490,8 @@ class _ArietLayer extends Component {
 class ArietEscort extends PositionComponent
     with HasGameReference<RegunGame>, CombatEnemy {
   ArietEscort(this.owner, this.escortId, {required super.position})
-    : super(size: Vector2.all(138), anchor: Anchor.center);
-  static const rigScale = .675;
+    : super(size: Vector2.all(205 * rigScale), anchor: Anchor.center);
+  static const rigScale = ArietEscortStudy.combatScale;
   final ArietBoss owner;
   final int escortId;
   final _router = ObstacleRouter();
@@ -411,10 +512,14 @@ class ArietEscort extends PositionComponent
     final floor = game.map.bounds.interior;
     rig = WalkerRig(
       position: Offset(position.x / rigScale, position.y / rigScale),
-      maxSpeed: 330,
-      acceleration: 1100,
+      maxSpeed: 385 / rigScale,
+      acceleration: 1050 / rigScale,
       turnSpeed: 2.0,
       agileGait: true,
+      standingHeight: 64,
+      stanceWidth: 1.10,
+      agileStepTime: .18,
+      agileLift: 12,
       barrelLength: 158,
       bodyBounds: Rect.fromLTRB(
         floor.left / rigScale,
@@ -490,7 +595,7 @@ class ArietEscort extends PositionComponent
       owner.escortGoalLegal,
     );
     final delta = goal - position.toOffset();
-    final intent = ArietRig.limit(delta / rigScale * 1.8, 310);
+    final intent = ArietRig.limit(delta / rigScale * 1.8, 365 / rigScale);
     final desired = intent.distance < .01
         ? Vector2.zero()
         : Vector2(intent.dx, intent.dy).normalized();

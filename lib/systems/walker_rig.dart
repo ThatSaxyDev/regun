@@ -49,6 +49,10 @@ class WalkerRig {
     this.acceleration = 240,
     this.turnSpeed = .95,
     this.agileGait = false,
+    this.standingHeight = 88,
+    this.stanceWidth = 1,
+    this.agileStepTime = .24,
+    this.agileLift = 26,
     this.barrelLength = 104,
     this.foldedReach = .72,
     this.foldedAnkleZ = 24,
@@ -64,7 +68,7 @@ class WalkerRig {
           WalkerLeg(
             (x > 0 ? 2 : 0) + (y > 0 ? 1 : 0),
             Offset(x * 54, y * 36),
-            Offset(x * 156, y * 116),
+            Offset(x * 156, y * 116 * stanceWidth),
             position,
           ),
     ];
@@ -81,6 +85,7 @@ class WalkerRig {
   final bool foldedKneeDown;
   final double foldedPoleAngle;
   final bool agileGait;
+  final double standingHeight, stanceWidth, agileStepTime, agileLift;
   final Rect bodyBounds, footBounds;
   late final List<WalkerLeg> legs;
   Offset position, velocity = Offset.zero, command = Offset.zero;
@@ -143,7 +148,10 @@ class WalkerRig {
 
   void _step() {
     elapsed += tick;
-    height += ((braced ? 42 : 88) - height).clamp(-65 * tick, 65 * tick);
+    height += ((braced ? 42 : standingHeight) - height).clamp(
+      -65 * tick,
+      65 * tick,
+    );
     final nextYaw = turn(yaw, desiredYaw, turnSpeed * tick);
     // A supporting foot owns its ground position. Turn only as far as the
     // stance permits; the swing planner rotates the next foothold ahead.
@@ -167,7 +175,7 @@ class WalkerRig {
         leg.plantedFor += tick;
         continue;
       }
-      leg.swing += tick / (agileGait ? .24 : stepDuration);
+      leg.swing += tick / (agileGait ? agileStepTime : stepDuration);
       final t = leg.swing.clamp(0.0, 1.0);
       final eased = t * t * t * (t * (t * 6 - 15) + 10);
       leg.foot = Offset.lerp(leg.from, leg.destination, eased)!;
@@ -180,7 +188,7 @@ class WalkerRig {
           (reducedMotion
               ? 5
               : agileGait
-              ? 26
+              ? agileLift
               : 18);
       if (t >= 1) {
         leg.foot = leg.destination;

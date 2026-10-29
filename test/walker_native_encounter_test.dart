@@ -147,6 +147,7 @@ void main() {
           pic.dispose();
         }
 
+        expect(game.encounterCameraZoom, .80);
         final seen = <WalkerPhase>{};
         for (var i = 0; i < 30 * 50; i++) {
           game.update(1 / 30);
@@ -154,6 +155,7 @@ void main() {
           seen.add(boss.fight.phase);
           if (i.isEven) await frame();
         }
+        expect(game.camera.viewfinder.zoom, closeTo(.80, .002));
         for (final phase in [
           WalkerPhase.descending,
           WalkerPhase.landing,

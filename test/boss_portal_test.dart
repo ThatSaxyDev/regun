@@ -59,6 +59,11 @@ void main() {
             g.myPlayer.position.setZero();
             g.practiceBoss(kind);
             await g.ready();
+            expect(
+              g.activeBoss!.position.distanceTo(g.myPlayer.position),
+              greaterThanOrEqualTo(700),
+              reason: '${arena.name}/${kind.name} spawn clearance',
+            );
             final before = g.checkpoint();
             expect(
               g.damagePlayer(),
@@ -206,6 +211,4 @@ void main() {
   );
 }
 
-final _legacyBosses = BossKind.active
-    .where((kind) => kind != BossKind.walker)
-    .toList();
+final _legacyBosses = BossKind.legacyActive;

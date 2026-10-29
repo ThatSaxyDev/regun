@@ -323,6 +323,4 @@ void main() {
   );
 }
 
-final _legacyBosses = BossKind.active
-    .where((kind) => kind != BossKind.walker)
-    .toList();
+final _legacyBosses = BossKind.legacyActive;

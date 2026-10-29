@@ -1053,3 +1053,107 @@ Final continuous-flight release built/signed (Xcode30.2s), installed (Apple
 sequence8336) and launched successfully on the iPhone. Fresh app query confirms
 **1.0.0/build28**. No version increment or distribution upload. Physical aggression,
 fairness, comfort and performance remain for creator review in Training.
+
+## Ariet detonation, tactical roles and smaller escorts (2026-10-29)
+
+Creator blocks further boss construction until Ariet physical detonation/tactics
+review. Lodestar plan updated only. Keep1.0.0+28 and Ariet Training-only; full Walker
+remains normal-roster/capable-co-op. Rocket interception/contact/wall/expiry must show
+an above-actor material/flame/smoke burst plus planted floor scorch. No intact rocket
+fade on expiry. Keep shot/expiry harmless, contact blast damage/cover unchanged,
+once-only removal,6-impact budget and active clocks.
+
+Moving escorts use pressure/intercept roles: legal in-range clear firing perch vs
+forward/lateral movement cutoff, smoothed direction/hysteresis,4s role tenure and
+eligible relief. Never use another escort as pursuit target; preserve static flanks,
+cover, predicted teammate lanes, body occupancy and major-attack/recovery exclusions.
+Both now55% scale, replacing67.5%; use shared combatScale for bodies/IK/muzzle/folded
+payload. World intent310/max324/acceleration880 independent of scale,50HP unchanged.
+Existing caller-provided tactics radii remain authoritative. All24 weapon tests,
+moving-target actual hits/angle separation, rocket terminal pixels,55% joints/cargo,
+pause and disposal stay required. See validation/ariet-revisit-2026-10-29 in docs.
+
+## Ariet aircraft course and camera allowance (2026-10-29)
+
+Creator rejected nose-locked pursuit and authorized wider camera/distance for Ariet
+and Walker, with firing cadence balanced alongside distance. Ariet ordinary flight
+holds focus1.2s, target radius520, radial correction≤190, course slew≤1.6rad/s except
+urgent cover correction. Hull faces course; roof guns track independently. Preserve
+committed charge/cargo, real brake, moving recovery and planted floor warnings.
+Rotary observed-motion/turn prediction is pre-release only, capped1.3s/360 units;
+emitted rounds stay straight. Same damage/counts; counter .05s, cannon .30s, seekers
+.28s. Do not shorten major warnings or remove quiet recovery to compensate.
+
+`encounterCameraZoom`: Ariet .74, full Walker .80, other bosses .88, ordinary1.
+Use existing easing/Reduced Motion/clamping; viewport HUD/control geometry unchanged.
+Retain native control position/scale assertions, Walker framing, hull-vs-gun reversal,
+full-bearing orbit actual-hit regressions and all existing rocket/escort tests.
+Keep1.0.0+28 and roster restrictions. Physical balance/aircraft feel still for review.
+
+Final combined Ariet revisit/flight/framing verification: analyzer clean; full
+**918 passed /5 intentional skips**; focused native Walker/Ariet+flight33 pass.
+Same1.0.0+28. Physical acceptance remains open; Lodestar construction stays gated.
+
+Final combined release built/signed (Xcode28.0s), installed (Apple sequence8360)
+and launched on the iPhone. Fresh device query confirms **1.0.0/build28**. No version
+increment or distribution upload. Flight/cadence/tactical/size/framing feel remains
+for creator physical review; Ariet stays Training-only and Lodestar remains a plan.
+
+## Ariet normal Solo admission and spaced support (2026-10-29)
+
+Creator explicitly admits Ariet into normal native Solo for testing, overriding
+Training-only restrictions. BossKind.ariet owns its factory/HUD/air mechanics;
+active native bag now9. Keep it solo; existing Rush8 and online roster unchanged.
+Legacy-art/pair and online fixtures use explicit supported lists, not blanket active.
+Completion/rewards happen once after destruction, including dying Continue. Validated
+Ariet state stores pose/time/random/quota/release/pending drops and owned escort HP/
+positions; normal transient shots/warnings clear on Continue with1.5s grace. Never
+serialize escorts as unknown top-level enemy kinds or reroll/replay reinforcements.
+
+Rotary hits now use shared .5s accepted-contact interval, replacing whole-volley
+one-hit suppression. Keep native protection/Training Take damage. Heavy cannon
+shells burst at committed cover-clipped80–900-unit endpoint, earlier swept contact,
+or fallback life expiry; same blast damage. Stage endpoint marker from the shell.
+Quota variants25% none/45% one/30% up to two: one per cargo pass, second≥20 active
+seconds later and≤25% health or32s since first; legal landing≥420 from prior sites
+and≥340 from live/pending escorts. Warn/fall visibly; no endless replacement waves.
+
+Mini Walkers remain55%/50HP, intent365/max385/accel1050 world units independent of
+scale. Escort-only standing64, stanceWidth1.1, agile transfer.18s/lift12; defaults
+preserve full Walker. Simulation actual displacement faster with at least2 planted
+feet; physical motion/fairness acceptance remains open. Keep1.0.0+28. Latest evidence:
+`docs/validation/ariet-normal-admission-2026-10-29/README.md` (926 pass/5 skip).
+Backend Solo-history compatibility20ca419 passes209 tests/build; pushed after creator
+deployment approval, live verification still pending Dokploy sign-in. No online
+Ariet combat capability is added. Do not treat source push as deployed evidence.
+
+Final device result: signed iOS build (Xcode30.4s), successful installation
+sequence8368, launch confirmed and fresh device app query **1.0.0/build28**.
+Client source remains uncommitted; backend compatibility20ca419 is pushed to main.
+Live backend verification awaits Dokploy authentication, not further deployment
+permission: creator already explicitly approved it. Existing SSH configuration
+references missing id_ed25519_vps; fallback existing key did not connect. Chrome
+Dokploy sign-in tab1031406723 (browser2) is kept for handoff. Resume there after
+sign-in, deploy/verify20ca419 while preserving the existing state volume and online
+policy, and update this evidence; do not equate the source push with live rollout.
+
+
+Server release clarification (29 October2026): creator requested only pushing main
+and testing the API; do not keep requesting Dokploy login/manual rollout. Remote main
+confirmed20ca4190bbac9d1aae8ef03a4e06b1ff7d8f2c99. Live health/features/OIDC200,
+account401 without auth, raw SQL403; onlinePlay:true/no-store verified. API checks
+do not expose deployed revision or prove an authenticated history save. Results in
+`docs/validation/ariet-normal-admission-2026-10-29/api-check.json`.
+
+## Boss arrival clearance and startup policy (2026-10-29)
+
+Release stays1.0.0+28. BossSpawn searches distant sites and rejects post-clamp or
+post-reservation positions below700 player clearance; Walker uses220 stance and
+Ariet230 hull footprint, with solids/body checks and no close fallback. Preserve
+legacy portal arrival. MechanicalArrival owns only Ariet/Walker arrival camera:
+wait for ready assets, advance safe deployment while world/input freezes, pan/hold
+then return at .74/.80 zoom. Pause/background freeze; Reduced Motion stays centered;
+Continue never replays. Dead mechanical actors do not retain encounter zoom or
+trigger corpse focus. OnlineAvailability.ensureFresh shares a30-second in-memory
+startup/Home result; entry/lifecycle/periodic refresh stays authoritative. Never
+block logo/local-play startup on policy. Native physical comfort remains open.

@@ -58,7 +58,7 @@ void main() {
       expect(f.rounds.where((r) => r.seeker).length, enrage ? 6 : 4);
     }
   });
-  test('expired seekers leave a brief harmless visible burnout, not a hidden explosion', () {
+  test('expired seekers visibly burst without adding expiry damage', () {
     var hits = 0;
     final f =
         fight(
@@ -74,7 +74,7 @@ void main() {
     f.advance(.025);
     expect(r.removed, isTrue);
     expect(f.rounds, isEmpty);
-    expect(f.impacts.where((i) => i.rocketHeading != null), hasLength(1));
+    expect(f.impacts.where((i) => i.rocketBlast), hasLength(1));
     final burnout = f.impacts.single;
     final at = burnout.position;
     f.paused = true;
@@ -82,10 +82,11 @@ void main() {
     expect(burnout.position, at);
     f.paused = false;
     f.advance(.1);
-    expect(burnout.position, isNot(at));
+    expect(burnout.position, at);
+    expect(burnout.radius, greaterThanOrEqualTo(70));
     expect(hits, 0);
-    f.advance(.4);
-    expect(f.impacts.where((i) => i.rocketHeading != null), isEmpty);
+    f.advance(.6);
+    expect(f.impacts.where((i) => i.rocketBlast), isEmpty);
   });
   test('entire roof bearing and recoil sweeps clear other receiver/support envelopes', () {
     final r = ArietRig();
@@ -315,7 +316,8 @@ void main() {
         expect(
           hits,
           greaterThan(0),
-          reason: 'orbit must receive actual damage',
+          reason:
+              'orbit must receive actual damage: enrage=$enrage speed=$speed pos=${f.rig.position} nose=${f.totalNose}',
         );
       }
     }

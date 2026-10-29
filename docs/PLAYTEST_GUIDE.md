@@ -1082,3 +1082,58 @@ three-round support during ordinary charge/counter, with no escort firing during
 cargo, cannon/flak/seekers/exhaust or cooling. Check both behind/in front, lane
 crossings, cover, pause and killing one escort. Review aggression, comfort and fairness
 on the phone; automated movement tests cannot establish those judgments.
+
+## Ariet revisit —29 October2026,1.0.0+28
+
+Ariet is Training → Pause → Boss Practice; it is not yet a normal-run boss. Full
+Walker does participate in normal boss rotation. Shoot a seeker, let one hit cover
+or the player, and outrun one: each should visibly burst instead of disappearing.
+Shot interception/expiry are harmless; real contact retains its existing blast.
+
+The two escorts are now55% Walker size. Keep running and reverse direction: one
+should establish firing pressure while its partner moves toward a different ahead/
+side angle, rather than following in a line. They can exchange roles after a few
+seconds when positioned to do so. Check near cover, behind one another, during
+Ariet heavy attacks and after killing one. Review warning/shot visibility, body
+spacing, pressure and frame pacing on the phone. New serpent implementation waits
+for acceptance of these Ariet corrections.
+
+Ariet follow-up: the hull now faces a held, smoothly turning flight course rather
+than keeping its nose on the survivor. Roof guns still acquire independently; wider
+stand-off and modestly tighter volley spacing preserve pressure. Ariet world view
+is .74 zoom, full Walker .80 (other boss views .88); controls retain their geometry.
+Try sudden reversals, broad circles, cover/edges, rear fire and recovery. Judge
+whether it now reads as an aircraft and whether the extra space/cadence feels fair.
+
+## Ariet in normal Solo —29 October2026,1.0.0+28
+
+Ariet can now appear at normal boss milestones in the randomized native rotation.
+It has normal damage, rewards, boss core and Continue support; Training practice
+still exists. In Training, enable Take damage to judge health-loss registration.
+Later rotary hits can now register after the usual protection interval. Heavy
+shells show a committed landing marker and burst at range or earlier contact.
+
+An encounter may deploy no Walker, one, or a later second—one per warned cargo
+pass with separated landing sites. Both are still55% size, but run faster with a
+lower, wider, less bouncy stance. Check one-escort pursuit, delayed reinforcement,
+post-drop crowd space, reload opportunities and actual difficulty in normal play.
+Save/Continue before/after a drop and during crash: no replayed escort or duplicate
+victory/core. Online combat and paired Boss Rush do not gain Ariet in this pass.
+
+## Boss entry clearance and mechanical camera —29 October2026,1.0.0+28
+
+All native bosses now search around1000 units away and reject final positions
+within700 units of the survivor, including at walls/corners. Cover, other bodies
+and the larger Walker stance/Ariet hull must fit; a blocked arrival waits rather
+than falling back beside the player. Test both arenas and Training practice.
+
+Ariet and Walker arrival pans to their deployment, then returns to the survivor
+with the wider view already set. Combat/input waits through the return. Pause and
+background freeze it; Reduced Motion keeps the survivor centered. Continue must
+not replay the camera. Defeat stays where it happens; the camera zoom eases back
+without following the wreck. Check visibility/comfort on the phone.
+
+The online policy check now starts during the existing startup logos. A successful
+fresh result is shared with Home; slow/offline checks must never delay startup or
+block Play. Explicit online entry and subsequent lifecycle/periodic refreshes
+still consult server policy. Review a cold launch with Wi-Fi and airplane mode.

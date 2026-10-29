@@ -1,4 +1,10 @@
 import 'dart:io';
+import 'dart:async';
+
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:regun/services/online_availability.dart';
+
 import 'dart:ui' as ui;
 
 import 'package:flame_splash_screen/flame_splash_screen.dart';
@@ -11,7 +17,23 @@ import 'package:regun/views/flame_splash_view.dart';
 import 'package:regun/views/menu_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<void> start(WidgetTester tester, {bool reduced = false}) async {
+late OnlineAvailability startupPolicy;
+int startupRequests = 0;
+
+Future<void> start(
+  WidgetTester tester, {
+  bool reduced = false,
+  Future<http.Response>? response,
+}) async {
+  startupRequests = 0;
+  startupPolicy = OnlineAvailability(
+    client: () => MockClient((_) async {
+      startupRequests++;
+      return response ??
+          http.Response('{"schemaVersion":1,"onlinePlay":true}', 200);
+    }),
+  );
+  addTearDown(startupPolicy.dispose);
   SharedPreferences.setMockInitialValues({'settings.motion': reduced});
   tester.view.physicalSize = const Size(844, 390);
   tester.view.devicePixelRatio = 1;
@@ -20,8 +42,11 @@ Future<void> start(WidgetTester tester, {bool reduced = false}) async {
   await tester.runAsync(() async {
     await RegunArt.shared.load();
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
+      ProviderScope(
+        overrides: [
+          onlineAvailabilityProvider.overrideWithValue(startupPolicy),
+        ],
+        child: const MaterialApp(
           home: RepaintBoundary(
             key: Key('startup-capture'),
             child: FlameSplashView(),
@@ -53,11 +78,33 @@ Future<void> capture(WidgetTester tester, String name) async {
 
 void main() {
   testWidgets(
+    'stalled early policy never delays the logo sequence or solo Home entry',
+    (tester) async {
+      final response = Completer<http.Response>();
+      await start(tester, response: response.future);
+      expect(startupRequests, 1);
+      await tester.runAsync(() async {
+        await tester.pump(const Duration(milliseconds: 6500));
+        await tester.pump();
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.byType(MenuView), findsOneWidget);
+      expect(find.text('PLAY').hitTestable(), findsOneWidget);
+      expect(find.text('CO-OP / VERSUS'), findsNothing);
+      expect(startupRequests, 1);
+      response.complete(http.Response('offline', 503));
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
     'Flame then godKiishi then Menu; startup route is replaced once',
     (tester) async {
       await start(tester);
       await tester.pump(const Duration(milliseconds: 900));
       expect(find.byKey(const Key('startup-flame')), findsOneWidget);
+      expect(startupRequests, 1);
       expect(find.byType(MenuView), findsNothing);
       await capture(tester, 'flame');
       await tester.pump(const Duration(milliseconds: 2400));
@@ -72,6 +119,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
       expect(find.byType(MenuView), findsOneWidget);
+      expect(startupRequests, 1);
+      expect(find.text('CO-OP / VERSUS'), findsOneWidget);
+      expect(find.text('CHECKING…'), findsNothing);
       expect(find.byType(FlameSplashView), findsNothing);
       expect(
         Navigator.of(tester.element(find.byType(MenuView))).canPop(),

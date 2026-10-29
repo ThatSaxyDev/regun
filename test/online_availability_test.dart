@@ -8,6 +8,30 @@ import 'package:regun/services/online_availability.dart';
 
 void main() {
   test(
+    'startup result is reused at Home; expiry and explicit refresh recheck',
+    () async {
+      var now = DateTime(2026), calls = 0;
+      final policy = OnlineAvailability(
+        now: () => now,
+        client: () => MockClient((_) async {
+          calls++;
+          return http.Response('{"schemaVersion":1,"onlinePlay":true}', 200);
+        }),
+      );
+      addTearDown(policy.dispose);
+      expect(await policy.ensureFresh(), isTrue);
+      now = now.add(const Duration(seconds: 7));
+      expect(await policy.ensureFresh(), isTrue);
+      expect(calls, 1);
+      await policy.refresh();
+      expect(calls, 2);
+      now = now.add(const Duration(seconds: 30));
+      await policy.ensureFresh();
+      expect(calls, 3);
+    },
+  );
+
+  test(
     'unknown starts closed and same installed client follows remote on/off',
     () async {
       var enabled = true;
@@ -82,9 +106,13 @@ void main() {
     },
   );
 
-  testWidgets('a stalled policy request times out without enabling Online', (tester) async {
+  testWidgets('a stalled policy request times out without enabling Online', (
+    tester,
+  ) async {
     final pending = Completer<http.Response>();
-    final policy = OnlineAvailability(client: () => MockClient((_) => pending.future));
+    final policy = OnlineAvailability(
+      client: () => MockClient((_) => pending.future),
+    );
     final request = policy.refresh();
     await tester.pump();
     await tester.pump(const Duration(seconds: 5));

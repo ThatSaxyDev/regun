@@ -122,8 +122,11 @@ void main() {
       final director = EncounterDirector(), rng = RunRandom(61);
       final first = director.chooseBoss(rng);
       final copy = EncounterDirector()..restore(director.toJson());
-      final remaining = [for (var i = 0; i < 7; i++) director.chooseBoss(rng)];
-      expect({first, ...remaining}.length, 8);
+      final remaining = [
+        for (var i = 0; i < BossKind.active.length - 1; i++)
+          director.chooseBoss(rng),
+      ];
+      expect({first, ...remaining}.length, BossKind.active.length);
       expect(copy.chooseBoss(RunRandom(999)), remaining.first);
       final openings = {
         for (var seed = 1; seed <= 100; seed++)
@@ -466,7 +469,7 @@ void main() {
         expect(game.bosses, isEmpty);
         expect(game.gameState.gameplayState, GameplayState.playing);
       }
-      expect(seen, BossKind.active.toSet());
+      expect(seen, BossKind.rushActive.toSet());
       expect(pairs, greaterThan(0));
       expect(game.gameState.pendingCores, 0);
       expect(game.gameState.xP, 0);
@@ -788,27 +791,18 @@ void main() {
         tester,
         loadout: Loadout(training: true, arena: arena),
       );
-      for (var first = 0; first < BossKind.active.length - 1; first++) {
+      for (var first = 0; first < BossKind.legacyActive.length; first++) {
         for (
           var second = first + 1;
-          second < BossKind.active.length - 1;
+          second < BossKind.legacyActive.length;
           second++
         ) {
           await tester.runAsync(() async {
             game.startBossRush();
             game.myPlayer.position.setZero();
-            game.practiceBoss(
-              BossKind.active
-                  .where((k) => k != BossKind.walker)
-                  .toList()[first],
-            );
+            game.practiceBoss(BossKind.legacyActive[first]);
             game.bossRush = true;
-            game.spawnBoss(
-              BossKind.active
-                  .where((k) => k != BossKind.walker)
-                  .toList()[second],
-              companion: true,
-            );
+            game.spawnBoss(BossKind.legacyActive[second], companion: true);
             await game.ready();
             expect(game.bosses.length, 2);
             for (final actor in game.bosses) {
@@ -837,7 +831,7 @@ void main() {
             tester.takeException(),
             isNull,
             reason:
-                '$arena/${BossKind.active.where((k) => k != BossKind.walker).toList()[first]}/${BossKind.active.where((k) => k != BossKind.walker).toList()[second]}',
+                '$arena/${BossKind.legacyActive[first]}/${BossKind.legacyActive[second]}',
           );
         }
       }
@@ -1423,7 +1417,7 @@ void main() {
     (tester) async {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      for (final kind in BossKind.active.where((k) => k != BossKind.walker)) {
+      for (final kind in BossKind.legacyActive) {
         for (final enraged in [false, true]) {
           final game = await mount(tester, loadout: const Loadout());
           late PositionComponent boss;

@@ -1,3 +1,5 @@
+import 'package:regun/systems/mechanical_arrival.dart';
+import 'package:regun/systems/boss_spawn.dart';
 import 'package:regun/systems/ariet_rig.dart';
 import 'package:regun/components/weapons/shootable_ordnance.dart';
 import 'package:regun/components/enemies/ariet_boss.dart';
@@ -136,7 +138,10 @@ class RegunGame extends FlameGame
   final confirmationHolding = ValueNotifier<bool>(false);
   bool get presentationHeld => upgradePresentation.holding;
   bool get inputBlocked =>
-      playerEntrance.active || presentationHeld || bossReveal.active;
+      playerEntrance.active ||
+      presentationHeld ||
+      bossReveal.active ||
+      mechanicalArrival.active;
   void _acceptedUpgrade() {
     final reward = gameNotifier.acceptedUpgrade.value;
     if (reward == null) return;
@@ -1223,6 +1228,7 @@ class RegunGame extends FlameGame
   final damageFeedback = DamageFeedback();
   final bossVictory = BossVictory();
   final bossReveal = BossReveal();
+  final mechanicalArrival = MechanicalArrival();
   int _weaponImpacts = 0;
   bool claimWeaponImpact() => _weaponImpacts++ < 8;
   late final MapComponent map;
@@ -1424,6 +1430,7 @@ class RegunGame extends FlameGame
   void _startRun({bool clearSave = true}) {
     upgradePresentation.cancel();
     bossReveal.reset();
+    mechanicalArrival.reset();
     confirmationHolding.value = false;
     upgradeArt.clear();
     statusArt.clear();
@@ -1448,6 +1455,7 @@ class RegunGame extends FlameGame
     damageFeedback.reset();
     bossVictory.reset();
     bossReveal.reset();
+    mechanicalArrival.reset();
     camera.viewfinder.zoom = 1;
     saveIssue = null;
     if (clearSave && !loadout.training) unawaited(runStore.clear());
@@ -1545,6 +1553,7 @@ class RegunGame extends FlameGame
       return {
         'kind': enemyId(entity),
         if (entity is WalkerBoss) 'walker': entity.checkpointState,
+        if (entity is ArietBoss) 'ariet': entity.checkpointState,
         'combatId': enemy.combatId,
         'freeze': enemy.freezeState.toJson(),
         if (entity is BossEncounter) 'actor': bossEncounter.idOf(entity),
@@ -1604,10 +1613,12 @@ class RegunGame extends FlameGame
       'breachCharged': _breachCharged,
       'bossWasHit': _bossWasHit,
       'enemies': [
-        for (final e in liveEnemies) actor(e),
+        for (final e in liveEnemies)
+          if (e is! ArietEscort) actor(e),
         for (final e in bosses)
           if (!e.isLoaded ||
-              (e is WalkerBoss && e.prepared && e.fight.defeated))
+              (e is WalkerBoss && e.prepared && e.fight.defeated) ||
+              (e is ArietBoss && e.prepared && e.fight.defeated))
             actor(e),
       ],
       'drops': [
@@ -1812,6 +1823,7 @@ class RegunGame extends FlameGame
   bool restoreRun(Map<String, dynamic> snapshot) {
     upgradePresentation.cancel();
     bossReveal.reset();
+    mechanicalArrival.reset();
     confirmationHolding.value = false;
     upgradeArt.clear();
     playerEntrance.cancel();
@@ -1925,6 +1937,11 @@ class RegunGame extends FlameGame
               WeaponType.frostShotgun,
               'freezeImmunity',
             ),
+          );
+        }
+        if (entity is ArietBoss && record['ariet'] is Map) {
+          entity.restoreFight(
+            Map<String, dynamic>.from(record['ariet'] as Map),
           );
         }
         if (entity is WalkerBoss && record['walker'] is Map) {
@@ -2172,18 +2189,18 @@ class RegunGame extends FlameGame
     bool mechanicalComplete = false,
   }) {
     if (enemy.parent != world) return;
-    if (enemy is ArietBoss || enemy is ArietEscort) {
+    if (enemy is ArietEscort) {
       _enemies.remove(enemy);
       crowdOccupancy.forget(enemy);
       return;
     }
-    if (enemy is WalkerBoss && !mechanicalComplete) {
+    if ((enemy is WalkerBoss || enemy is ArietBoss) && !mechanicalComplete) {
       // Keep the encounter registered until its warned mechanical destruction ends.
       _enemies.remove(enemy);
       crowdOccupancy.forget(enemy);
       return;
     }
-    if (enemy is WalkerBoss && loadout.training) {
+    if ((enemy is WalkerBoss || enemy is ArietBoss) && loadout.training) {
       unregisterEnemy(enemy);
       bossEncounter.remove(enemy);
       if (bosses.isEmpty && bossRush) bossRushWait = 2.8;
@@ -2198,7 +2215,7 @@ class RegunGame extends FlameGame
       final bossKind = (enemy as BossEncounter).kind;
       gameNotifier.awardBossHealth();
       bossVictory.show(bossKind);
-      if (enemy is! WalkerBoss) {
+      if (enemy is! WalkerBoss && enemy is! ArietBoss) {
         world.add(
           BossDeparture(
             position: enemy.position + Vector2(0, enemy.size.y * .35),
@@ -2258,6 +2275,8 @@ class RegunGame extends FlameGame
   };
 
   void _retireMechanical() {
+    if (mechanicalArrival.active) confirmationHolding.value = false;
+    mechanicalArrival.reset();
     final ariet = arietCandidate;
     arietCandidate = null;
     ariet?.retire();
@@ -2266,26 +2285,62 @@ class RegunGame extends FlameGame
     mechanicalTrial = null;
   }
 
+  double _bossFootprint(BossKind kind) => kind == BossKind.ariet
+      ? 230
+      : kind == BossKind.walker || kind == BossKind.saint
+      ? 220
+      : max(kind.bodyRadius, kind.spriteSize * .28);
+
+  bool _bossSiteLegal(Vector2 at, double radius) =>
+      map.bounds.interior.deflate(radius).contains(at.toOffset()) &&
+      !geometry.solids.any((r) => r.inflate(radius).contains(at.toOffset())) &&
+      at.distanceTo(myPlayer.position) >= BossSpawn.minimumDistance &&
+      !bosses.any(
+        (b) =>
+            b.position.distanceTo(at) < max(450, radius + crowdRadius(b) + 80),
+      ) &&
+      !liveEnemies
+          .where((e) => e is! BossEncounter)
+          .any((e) => e.position.distanceTo(at) < radius + crowdRadius(e) + 30);
+
+  Vector2? _bossSite(BossKind kind, {bool companion = false}) {
+    final point = BossSpawn.choose(
+      player: myPlayer.position.toOffset(),
+      bounds: map.bounds.interior,
+      footprint: _bossFootprint(kind),
+      companion: companion,
+      legal: (p, r) => _bossSiteLegal(Vector2(p.dx, p.dy), r),
+    );
+    return point == null ? null : Vector2(point.dx, point.dy);
+  }
+
+  void _beginMechanicalArrival(PositionComponent actor) {
+    mechanicalArrival.begin(
+      actor,
+      camera.viewfinder.position,
+      camera.viewfinder.zoom,
+      targetZoom: actor is ArietBoss ? .74 : .80,
+      arrivalDuration: actor is ArietBoss ? 2.60 : 3.05,
+      reducedMotion: preferences.reducedMotion,
+    );
+    resetInput();
+    confirmationHolding.value = true;
+  }
+
   void _placeAriet() {
-    for (final offset in [
-      Vector2(650, -120),
-      Vector2(-650, -120),
-      Vector2(0, -650),
-      Vector2(0, 650),
-    ]) {
-      final at = myPlayer.position + offset;
-      constrainActor(at, 230);
-      if (at.distanceTo(myPlayer.position) < 400) continue;
-      if (geometry.solids.any((r) => r.inflate(230).contains(at.toOffset()))) {
-        continue;
-      }
-      final actor = ArietBoss(position: at);
-      arietCandidate = actor;
-      world.add(actor);
+    final at = _bossSite(BossKind.ariet);
+    if (at == null) {
+      mechanicalTrial = null;
       return;
     }
-    // Keep the run usable if a caller has filled every safe arrival footprint.
-    mechanicalTrial = null;
+    final actor = ArietBoss(
+      position: at,
+      practiceTrial: true,
+      seed: random.nextInt(0x40000000),
+    );
+    arietCandidate = actor;
+    world.add(actor);
+    _beginMechanicalArrival(actor);
   }
 
   void practiceAriet() {
@@ -2299,21 +2354,23 @@ class RegunGame extends FlameGame
   }
 
   void _placeWalker() {
-    for (final offset in [
-      Vector2(520, -100),
-      Vector2(-520, -100),
-      Vector2(0, -520),
-      Vector2(0, 520),
-    ]) {
-      final at = myPlayer.position + offset;
-      constrainActor(at, 220);
-      if (at.distanceTo(myPlayer.position) < 350) continue;
-      final robot = WalkerBoss(position: at, practiceTrial: true);
-      if (reserveEnemySpace(robot, minPlayerDistance: 350)) {
-        walkerCandidate = robot;
-        world.add(robot);
-        break;
-      }
+    final at = _bossSite(BossKind.walker);
+    if (at == null) {
+      walkerTrial = false;
+      return;
+    }
+    final robot = WalkerBoss(position: at, practiceTrial: true);
+    if (reserveEnemySpace(
+          robot,
+          minPlayerDistance: BossSpawn.minimumDistance,
+        ) &&
+        _bossSiteLegal(robot.position, 220)) {
+      walkerCandidate = robot;
+      world.add(robot);
+      _beginMechanicalArrival(robot);
+    } else {
+      crowdOccupancy.forget(robot);
+      walkerTrial = false;
     }
   }
 
@@ -2362,6 +2419,7 @@ class RegunGame extends FlameGame
     }
     bossEncounter.clear();
     bossReveal.reset();
+    mechanicalArrival.reset();
     confirmationHolding.value = false;
     _bossDamageTaken.clear();
     director.bossActive = false;
@@ -2369,11 +2427,22 @@ class RegunGame extends FlameGame
 
   void spawnShadowBoss() => spawnBoss(BossKind.shadow);
 
+  ArietBoss _createAriet(Vector2 position, double health) {
+    final actor = ArietBoss(
+      position: position,
+      maximumHealth: health,
+      seed: random.nextInt(0x40000000),
+    );
+    arietCandidate = actor;
+    return actor;
+  }
+
   PositionComponent _createBoss(
     BossKind kind,
     Vector2 position,
     double health,
   ) => switch (kind) {
+    BossKind.ariet => _createAriet(position, health),
     BossKind.walker ||
     BossKind.saint => WalkerBoss(position: position, maximumHealth: health),
     BossKind.shadow => ShadowBossComponent(
@@ -2394,8 +2463,9 @@ class RegunGame extends FlameGame
 
   void spawnBoss(BossKind kind, {bool companion = false}) {
     if (kind == BossKind.saint) kind = BossKind.walker;
-    if (kind == BossKind.walker && bosses.isNotEmpty ||
-        bosses.any((boss) => boss is WalkerBoss)) {
+    if ((kind == BossKind.walker || kind == BossKind.ariet) &&
+            bosses.isNotEmpty ||
+        bosses.any((boss) => boss is WalkerBoss || boss is ArietBoss)) {
       return;
     }
     if ((!companion && bosses.isNotEmpty) ||
@@ -2403,12 +2473,21 @@ class RegunGame extends FlameGame
         gameState.gameplayState != GameplayState.playing) {
       return;
     }
-    final position = myPlayer.position + Vector2(companion ? -450 : 450, 10);
-    constrainActor(position, 110);
+    final position = _bossSite(kind, companion: companion);
+    if (position == null) return;
     _bossWasHit = false;
     final scaling = bossRush ? 0.0 : 180 * pow(director.cycle - 1, 1.3);
     final actor = _createBoss(kind, position, kind.baseHealth + scaling);
-    if (!reserveEnemySpace(actor, minPlayerDistance: 220)) {
+    if (!reserveEnemySpace(
+          actor,
+          minPlayerDistance: BossSpawn.minimumDistance,
+        ) ||
+        !_bossSiteLegal(actor.position, _bossFootprint(kind))) {
+      crowdOccupancy.forget(actor);
+      if (actor is ArietBoss) {
+        actor.retire();
+        arietCandidate = null;
+      }
       return;
     }
     if (actor is CombatEnemy && actor.combatId == 0) {
@@ -2422,7 +2501,9 @@ class RegunGame extends FlameGame
     unawaited(audio.playMusic('boss'));
     if (!director.bossActive) director.beginBoss();
     world.add(actor);
-    if (actor is! WalkerBoss) {
+    if (actor is WalkerBoss || actor is ArietBoss) {
+      _beginMechanicalArrival(actor);
+    } else {
       bossReveal.begin(
         actor,
         camera.viewfinder.position,
@@ -2507,11 +2588,11 @@ class RegunGame extends FlameGame
   }
 
   BossKind _nextRushBoss({BossKind? excluding}) {
-    if (_rushBag.isEmpty) _rushBag.addAll(BossKind.active);
-    if (_rushBag.length == BossKind.active.length) _rushBag.shuffle(random);
+    if (_rushBag.isEmpty) _rushBag.addAll(BossKind.rushActive);
+    if (_rushBag.length == BossKind.rushActive.length) _rushBag.shuffle(random);
     var index = _rushBag.indexWhere((kind) => kind != excluding);
     if (index < 0) {
-      _rushBag.addAll(BossKind.active.where((kind) => kind != excluding));
+      _rushBag.addAll(BossKind.rushActive.where((kind) => kind != excluding));
       _rushBag.shuffle(random);
       index = _rushBag.indexWhere((kind) => kind != excluding);
     }
@@ -2552,6 +2633,7 @@ class RegunGame extends FlameGame
   Future<bool> changeTrainingWeapon(WeaponType next) async {
     upgradePresentation.cancel();
     bossReveal.reset();
+    mechanicalArrival.reset();
     confirmationHolding.value = false;
     if (disposed ||
         !loadout.training ||
@@ -2859,6 +2941,46 @@ class RegunGame extends FlameGame
       }
       return;
     }
+    if (mechanicalArrival.active &&
+        gameState.gameplayState == GameplayState.playing) {
+      resetInput();
+      processLifecycleEvents();
+      final actor = mechanicalArrival.actor!;
+      final ready =
+          actor.isMounted &&
+          actor.isLoaded &&
+          (actor is ArietBoss
+              ? actor.prepared
+              : actor is WalkerBoss && actor.prepared);
+      if (actor.isRemoving ||
+          actor.isRemoved ||
+          (actor is CombatEnemy && ready && actor.combatHealth.isDead)) {
+        mechanicalArrival.reset();
+        confirmationHolding.value = false;
+        _updateCamera();
+        return;
+      }
+      if (ready) {
+        if (actor is ArietBoss) actor.advanceArrival(dt);
+        if (actor is WalkerBoss) actor.advanceArrival(dt);
+      }
+      final done = mechanicalArrival.advance(dt, ready: ready);
+      camera.viewfinder.zoom = mechanicalArrival.zoom;
+      final extent = camera.viewport.virtualSize / camera.viewfinder.zoom;
+      final player = map.bounds.cameraPosition(myPlayer.position, extent);
+      final root = actor is ArietBoss && actor.prepared
+          ? Vector2(actor.rig.position.dx, actor.rig.position.dy)
+          : actor.position;
+      final focus = map.bounds.cameraPosition(root, extent);
+      camera.viewfinder.position = mechanicalArrival.camera(player, focus);
+      if (done) {
+        mechanicalArrival.reset();
+        confirmationHolding.value = false;
+        _updateCamera();
+      }
+      layoutControls();
+      return;
+    }
     if (bossReveal.active && gameState.gameplayState == GameplayState.playing) {
       resetInput();
       // Mount/load actors without invoking a zero-dt simulation or collisions.
@@ -2887,6 +3009,7 @@ class RegunGame extends FlameGame
       }
       if (done) {
         bossReveal.reset();
+        mechanicalArrival.reset();
         confirmationHolding.value = false;
         camera.viewfinder.zoom = .88;
         _updateCamera();
@@ -3058,7 +3181,7 @@ class RegunGame extends FlameGame
       );
     }
     _syncSupplyArt(supplyDrops.drop != null && !bossRush);
-    final targetZoom = bosses.isNotEmpty || mechanicalTrialActive ? .88 : 1.0;
+    final targetZoom = encounterCameraZoom;
     camera.viewfinder.zoom = preferences.reducedMotion
         ? targetZoom
         : camera.viewfinder.zoom +
@@ -3168,8 +3291,21 @@ class RegunGame extends FlameGame
     }
   }
 
+  /// World framing only: viewport HUD/control geometry remains unchanged.
+  double get encounterCameraZoom {
+    bool alive(PositionComponent? a) =>
+        a != null &&
+        !a.isRemoving &&
+        (!a.isLoaded || a is! CombatEnemy || !a.combatHealth.isDead);
+    if (arietTrial) return alive(arietCandidate) ? .74 : 1;
+    if (walkerTrial) return alive(walkerCandidate) ? .80 : 1;
+    if (bosses.whereType<ArietBoss>().any(alive)) return .74;
+    if (walkerActors.any(alive)) return .80;
+    return bosses.any(alive) ? .88 : 1;
+  }
+
   void _updateCamera() {
-    if (bossReveal.active) return;
+    if (bossReveal.active || mechanicalArrival.active) return;
     camera.viewfinder.position = map.bounds.cameraPosition(
       myPlayer.position,
       camera.viewport.virtualSize / camera.viewfinder.zoom,
@@ -3371,6 +3507,7 @@ class RegunGame extends FlameGame
     statusArt.clear();
     upgradePresentation.cancel();
     bossReveal.reset();
+    mechanicalArrival.reset();
     confirmationHolding.value = false;
     upgradeArt.clear();
     if (_started) supportCombat.clear();

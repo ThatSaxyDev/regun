@@ -28,6 +28,79 @@ void main() {
     },
   );
 
+  test('moving target gets a pressure perch and a forward cutoff, never a partner pursuit target', () {
+    final t = ArietEscortTactics();
+    const bodies = [
+      ArietEscortBody(1, Offset(-330, 150)),
+      ArietEscortBody(2, Offset(-500, -150)),
+    ];
+    t.advance(
+      .2,
+      target: Offset.zero,
+      velocity: const Offset(300, 0),
+      bodies: bodies,
+      legal: (_, __) => true,
+    );
+    expect(t.roleFor(1), ArietEscortRole.pressure);
+    expect(t.roleFor(2), ArietEscortRole.intercept);
+    expect(t.goalFor(1), bodies[0].position);
+    expect(t.goalFor(2)!.dx, greaterThan(100));
+    expect(t.goalFor(2)!.dy.abs(), greaterThan(200));
+    final firstRole = t.roleFor(1);
+    t.advance(
+      .1,
+      target: const Offset(30, 0),
+      velocity: const Offset(-300, 0),
+      bodies: bodies,
+      legal: (_, __) => true,
+    );
+    expect(
+      t.roleFor(1),
+      firstRole,
+      reason: 'reversal must not jitter role ownership',
+    );
+    t.advance(
+      4,
+      target: Offset.zero,
+      velocity: const Offset(300, 0),
+      bodies: const [
+        ArietEscortBody(1, Offset(-330, 150)),
+        ArietEscortBody(2, Offset(250, -250)),
+      ],
+      legal: (_, __) => true,
+    );
+    expect(t.roleFor(2), ArietEscortRole.pressure);
+    expect(t.roleFor(1), ArietEscortRole.intercept);
+    t.advance(
+      .1,
+      target: Offset.zero,
+      velocity: const Offset(300, 0),
+      bodies: [bodies[0]],
+      legal: (_, __) => true,
+    );
+    expect(t.roleFor(1), ArietEscortRole.solo);
+  });
+
+  test('blocked pressure lane cannot park behind a teammate and heavy attacks release the firing perch', () {
+    for (final heavy in [false, true]) {
+      final t = ArietEscortTactics();
+      const bodies = [
+        ArietEscortBody(1, Offset(-330, 0)),
+        ArietEscortBody(2, Offset(-540, 0)),
+      ];
+      t.advance(
+        .2,
+        target: Offset.zero,
+        velocity: const Offset(300, 0),
+        bodies: bodies,
+        legal: (_, __) => true,
+        sight: (_, __, ___) => heavy,
+        mayHoldFirePosition: !heavy,
+      );
+      expect(t.goalFor(1), isNot(bodies[0].position));
+    }
+  });
+
   test('shared positioning prefers exposed firing sectors over a legal perch hidden by cover', () {
     final t = ArietEscortTactics();
     t.advance(

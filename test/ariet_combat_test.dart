@@ -11,6 +11,7 @@ void main() {
   test('hover, cargo release, roof weapons and crash share the visible airborne plane', () {
     final f =
         ArietCombat(
+            reinforcementCount: 2,
             rig: ArietRig(),
             clear: (_, __, ___) => true,
             hurt: (_, __) => true,
@@ -38,7 +39,7 @@ void main() {
         );
       }
     }
-    expect(f.totalDrops, 2);
+    expect(f.totalDrops, 1);
     for (final d in f.drops) {
       expect(
         d.groundOrigin!.dy - d.origin!.dy,
@@ -65,6 +66,7 @@ void main() {
   }) => ArietCombat(
     rig: ArietRig(),
     seed: seed,
+    reinforcementCount: 2,
     clear: clear ?? (_, __, ___) => true,
     landingLegal: legal ?? (_, __) => true,
     deploy: deploy ?? (_) {},
@@ -314,25 +316,23 @@ void main() {
       expect(f.totalNose, 36);
     },
   );
-  test(
-    'one strafe cannot stack accepted hits and arrival/crash never hurt',
-    () {
-      var hits = 0;
-      final f = make(
-        hurt: (_, __) {
-          hits++;
-          return true;
-        },
-      )..player = const Offset(650, 0);
-      f.advance(2.5);
-      expect(hits, 0);
-      f.advance(5);
-      expect(hits, 1);
-      f.beginDestruction();
-      f.advance(5);
-      expect(hits, 1);
-    },
-  );
+  test('rotary hits register again after protection while arrival and crash stay harmless', () {
+    var hits = 0;
+    final f = make(
+      hurt: (_, __) {
+        hits++;
+        return true;
+      },
+    )..player = const Offset(650, 0);
+    f.advance(2.5);
+    expect(hits, 0);
+    f.advance(5);
+    expect(hits, greaterThan(1));
+    final accepted = hits;
+    f.beginDestruction();
+    f.advance(5);
+    expect(hits, accepted);
+  });
   test('every unfolding pose retains fixed real links, including the tight hinge crossing', () {
     for (var i = 0; i <= 100; i++) {
       final t = i / 100, e = t * t * (3 - 2 * t);

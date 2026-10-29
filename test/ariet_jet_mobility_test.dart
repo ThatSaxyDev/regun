@@ -53,19 +53,44 @@ void main() {
     }
   });
 
-  test('ordinary repositioning is fast and turns promptly without needing a charge', () {
+  test('hull flies a broad independent course while roof guns reacquire a reversing target', () {
     final f = makeJet()
       ..phase = ArietPhase.navigate
       ..grace = 50
-      ..player = const Offset(1800, 0);
-    f.rig.yaw = f.rig.desiredYaw = math.pi;
-    f.advance(1.4);
+      ..player = const Offset(650, 0);
+    f.rig.yaw = f.rig.desiredYaw = math.pi / 2;
+    f.advance(.6);
     expect(
       ArietRig.difference(
         f.rig.yaw,
         ArietCombat.heading(f.player - f.rig.bodyPosition),
       ).abs(),
-      lessThan(.08),
+      greaterThan(.8),
+    );
+    final yaw = f.rig.yaw;
+    f.player = const Offset(-650, 0);
+    f.advance(.3);
+    expect(ArietRig.difference(f.rig.yaw, yaw).abs(), lessThan(.6));
+    expect(
+      ArietRig.difference(
+        f.noseYaw.first,
+        ArietCombat.heading(f.player - f.rig.noseSocket(0)),
+      ).abs(),
+      lessThan(.12),
+    );
+    expect(f.rig.velocity.distance, greaterThan(200));
+  });
+
+  test('ordinary repositioning is fast and turns promptly without needing a charge', () {
+    final f = makeJet()
+      ..phase = ArietPhase.navigate
+      ..grace = 50
+      ..player = const Offset(1800, 0);
+    f.rig.yaw = f.rig.desiredYaw = 0;
+    f.advance(1.4);
+    expect(
+      ArietRig.difference(f.rig.yaw, ArietCombat.heading(f.rig.velocity)).abs(),
+      lessThan(.2),
     );
     expect(f.rig.velocity.distance, greaterThan(330));
     f.advance(1.6);
@@ -145,8 +170,8 @@ void main() {
     expect(f.totalNose, 36);
     expect(
       damage,
-      1,
-      reason: 'the whole rotary counter retains one accepted hit, no passive ram damage',
+      greaterThan(1),
+      reason: 'later rotary hits register after the shared protection interval',
     );
   });
 

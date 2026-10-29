@@ -3,6 +3,7 @@ import 'package:regun/presentation/walker_art.dart';
 import 'package:regun/presentation/ariet_battle_art.dart';
 
 import 'dart:io';
+import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -18,6 +19,7 @@ import 'package:regun/data/loadout.dart';
 import 'package:regun/game.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/systems/ariet_combat.dart';
+import 'package:regun/systems/ariet_rig.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/views/base_view.dart';
@@ -97,6 +99,8 @@ void main() {
     'Training selector plays arrival, full roof arsenal, escorts, health loss, recovery and non-damaging fatal cleanup',
     (tester) async {
       final g = await mount(tester);
+      final controlScale = g.reloadButtonComponent.scale.clone();
+      final controlPosition = g.reloadButtonComponent.position.clone();
       g.pauseGame();
       await tester.pump();
       await tester.ensureVisible(find.text('BOSS PRACTICE'));
@@ -155,12 +159,74 @@ void main() {
             .writeAsBytesSync(rocketPng!.buffer.asUint8List());
         rocketImage.dispose();
         rocketPicture.dispose();
+        // Each real rocket exit must produce visible airborne ember pixels,
+        // independently of a subdued floor scorch or an actor covering it.
+        for (final ending in ['intercept', 'contact', 'wall', 'expiry']) {
+          final f =
+              ArietCombat(
+                  rig: ArietRig(),
+                  clear: (a, z, _) => ending != 'wall' || z.dx < 10,
+                  hurt: (_, __) => true,
+                  signal: (_) {},
+                  landingLegal: (_, __) => true,
+                  deploy: (_) {},
+                )
+                ..phase = ArietPhase.recovery
+                ..player = ending == 'contact'
+                    ? const Offset(55, 0)
+                    : const Offset(0, 9000);
+          final rocket = ArietRound(Offset.zero, 0, seeker: true);
+          if (ending == 'expiry') rocket.age = 3.49;
+          f.rounds.add(rocket);
+          if (ending == 'intercept') {
+            f.intercept(rocket);
+          } else {
+            f.advance(.12);
+          }
+          expect(f.impacts.where((i) => i.rocketBlast), hasLength(1));
+          for (final reduced in [false, true]) {
+            final burstRecorder = ui.PictureRecorder();
+            final burstCanvas = Canvas(burstRecorder);
+            final at = f.impacts.single.position;
+            burstCanvas.translate(128 - at.dx, 128 - at.dy);
+            ArietBattleArt(b.assets)
+                .rounds(burstCanvas, f, g.loadout.arena, reduced);
+            final picture = burstRecorder.endRecording(),
+                im = await picture.toImage(256, 256);
+            final bytes = await im.toByteData();
+            var warm = 0;
+            for (var n = 0; n < bytes!.lengthInBytes; n += 4) {
+              if (bytes.getUint8(n + 3) > 40 &&
+                  bytes.getUint8(n) > bytes.getUint8(n + 1) * 1.1) {
+                warm++;
+              }
+            }
+            expect(
+              warm,
+              greaterThan(150),
+              reason: '$ending burst visible, reduced=$reduced',
+            );
+            if (!reduced) {
+              final png = await im.toByteData(format: ui.ImageByteFormat.png);
+              File('build/ariet-fight/burst-$ending.png')
+                  .writeAsBytesSync(png!.buffer.asUint8List());
+            }
+            im.dispose();
+            picture.dispose();
+          }
+        }
         expect(
           b.assets.decodedBytes + RegunArt.shared.decodedBytes,
           lessThan(32 * 1024 * 1024),
         );
-        await advance(g, 2.8);
+        await advance(g, 3.4);
         expect(b.fight.vulnerable, isTrue);
+        expect(g.encounterCameraZoom, .74);
+        expect(g.camera.viewfinder.zoom, closeTo(.74, .002));
+        expect(g.reloadButtonComponent.scale, controlScale);
+        expect(g.reloadButtonComponent.position, controlPosition);
+        b.fight.escortQuota = 2;
+        b.fight.deploymentSpent = false;
         expect(b.takeDamage(81), isTrue);
         Process? encoder;
         Future<String>? captureErrors;
@@ -262,6 +328,14 @@ void main() {
         expect(b.fight.totalFlak, greaterThan(0));
         expect(b.fight.totalSeekers, greaterThan(0));
         expect(b.escorts, hasLength(2));
+        expect(ArietEscort.rigScale, .55);
+        for (final escort in b.escorts) {
+          expect(g.crowdRadius(escort), closeTo(88 * .55, .001));
+          expect(
+            escort.rig.maxSpeed * ArietEscort.rigScale,
+            closeTo(385, .001),
+          );
+        }
         expect(
           b.escorts.every((e) => e.prepared && e.combatHealth.maximum == 50),
           isTrue,
@@ -411,7 +485,7 @@ void main() {
           await g.ready();
           expect(
             firstEscort.position.distanceTo(secondEscort.position),
-            greaterThanOrEqualTo(118.0),
+            greaterThanOrEqualTo(176 * ArietEscort.rigScale - .8),
           );
         }
         final firstGoal = b.escortTactics.goalFor(1)!,
@@ -480,6 +554,8 @@ void main() {
         var movingHits = 0;
         final beforeMoving = b.fight.totalEscort;
         final movingShooters = <int>{};
+        var distinctAngles = 0;
+        final movingRoles = <int, Set<ArietEscortRole>>{};
         for (var i = 0; i < 480; i++) {
           final a = i * .025;
           g.movementJoystick.delta.setValues(
@@ -493,10 +569,28 @@ void main() {
             movingHits++;
             g.gameNotifier.resetHealth();
           }
+          final live = b.escorts.where((e) => !e.isRemoving).toList();
+          if (live.length == 2) {
+            final a = live[0].position - g.myPlayer.position,
+                z = live[1].position - g.myPlayer.position;
+            if (ArietEscortTactics.difference(
+                  math.atan2(a.y, a.x),
+                  math.atan2(z.y, z.x),
+                ).abs() >
+                .9) {
+              distinctAngles++;
+            }
+            for (final e in live) {
+              (movingRoles[e.escortId] ??= {}).add(
+                b.escortTactics.roleFor(e.escortId),
+              );
+            }
+          }
           movingShooters.addAll(
             b.fight.rounds.where((r) => r.owner != 0).map((r) => r.owner),
           );
           expect(b.fight.playerVelocity.distance, greaterThan(200));
+          if (i % 8 == 0 || i % 8 == 3 || i % 8 == 5) await frame();
         }
         g.movementJoystick.delta.setZero();
         g.setTrainingDamage(false);
@@ -505,8 +599,36 @@ void main() {
           greaterThan(0),
           reason: 'real straight escort rounds reach a moving survivor',
         );
+        File('build/ariet-fight/escort-metrics.json').writeAsStringSync(
+          jsonEncode({
+            'seconds': 12,
+            'samples': 480,
+            'differentAngleSamples': distinctAngles,
+            'rounds': b.fight.totalEscort - beforeMoving,
+            'acceptedHits': movingHits,
+            'scale': ArietEscort.rigScale,
+            'worldSpeedLimit': 385,
+            'roles': {
+              for (final entry in movingRoles.entries)
+                entry.key.toString(): entry.value.map((r) => r.name).toList(),
+            },
+          }),
+        );
         expect(b.fight.totalEscort - beforeMoving, greaterThanOrEqualTo(12));
         expect(movingShooters, containsAll([1, 2]));
+        expect(
+          distinctAngles,
+          greaterThan(100),
+          reason: 'real moving pair must not stay single-file',
+        );
+        expect(
+          movingRoles.values.any((r) => r.contains(ArietEscortRole.pressure)),
+          isTrue,
+        );
+        expect(
+          movingRoles.values.any((r) => r.contains(ArietEscortRole.intercept)),
+          isTrue,
+        );
         b.fight.grace = .7;
         b.fight.paused = false;
         // Actual rear-mounted cannon fire must lower native Training health.
@@ -522,10 +644,14 @@ void main() {
         b.fight.clock = 0;
         g.myPlayer.position.setValues(-450, 0);
         final before = g.gameState.health;
-        for (var i = 0; i < 240 && g.gameState.health == before; i++) {
+        for (var i = 0; i < 360 && g.gameState.health == before; i++) {
           await advance(g, 1 / 120);
         }
-        expect(g.gameState.health, lessThan(before));
+        expect(
+          g.gameState.health,
+          lessThan(before),
+          reason: 'rear cannon reaches and damages the survivor after lock and flight',
+        );
         expect(b.fight.totalCannon, greaterThan(0));
         // Shootable seeker is an actual native weapon target, without rewards.
         final seeker = ArietRound(
@@ -675,6 +801,7 @@ void main() {
         expect(replacement.retired, isTrue);
         expect(g.arietCandidate, isNull);
         expect(g.walkerTrial, isTrue);
+        expect(g.encounterCameraZoom, .80);
         g.practiceAriet();
         final pending = g.arietCandidate!;
         g.restartGame();

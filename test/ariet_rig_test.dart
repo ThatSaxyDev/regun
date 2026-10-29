@@ -11,6 +11,42 @@ import 'package:regun/systems/walker_rig.dart';
 import 'package:regun/views/ariet_workshop_view.dart';
 
 void main() {
+  test(
+    'sturdier escort gait actually advances faster with lower planted body',
+    () {
+      WalkerRig rig(bool sturdy) => WalkerRig(
+        maxSpeed: (sturdy ? 385 : 324) / .55,
+        acceleration: (sturdy ? 1050 : 880) / .55,
+        standingHeight: sturdy ? 64 : 88,
+        stanceWidth: sturdy ? 1.1 : 1,
+        agileGait: true,
+        agileStepTime: sturdy ? .18 : .24,
+        agileLift: sturdy ? 12 : 26,
+        bodyBounds: const Rect.fromLTRB(-10000, -10000, 10000, 10000),
+        footBounds: const Rect.fromLTRB(-10000, -10000, 10000, 10000),
+      )..command = Offset((sturdy ? 365 : 310) / .55, 0);
+      final old = rig(false), current = rig(true);
+      var lift = 0.0;
+      for (var i = 0; i < 120 * 5; i++) {
+        old.advance(1 / 120);
+        current.advance(1 / 120);
+        for (final leg in current.legs) {
+          lift = math.max(lift, leg.lift);
+        }
+      }
+      expect(
+        current.position.distance,
+        greaterThan(old.position.distance * 1.12),
+      );
+      expect(current.height, closeTo(64, .01));
+      expect(lift, lessThanOrEqualTo(12));
+      expect(
+        current.legs.where((l) => l.planted).length,
+        greaterThanOrEqualTo(2),
+      );
+    },
+  );
+
   test('live hover stays active without navigation drift, freezes on pause and settles in Reduced Motion', () {
     final r = ArietRig()
       ..hoverMotion = true
@@ -236,7 +272,7 @@ void main() {
   test(
     'escort adapter scales actual IK, feet, target body and muzzle together',
     () {
-      for (final scale in [.65, .675, .7]) {
+      for (final scale in [.55, .65, .675, .7]) {
         final e = ArietEscortStudy(scale: scale);
         for (final leg in e.rig.legs) {
           final p = e.pose(leg);
@@ -257,7 +293,7 @@ void main() {
     },
   );
   test('both folded candidate envelopes fit rails without overlap', () {
-    for (final scale in [.65, .675, .7]) {
+    for (final scale in [.55, .65, .675, .7]) {
       final e = ArietEscortStudy(scale: scale, folded: true);
       final front = e.cargoEnvelope.shift(ArietRig.cargoMounts[1]),
           rear = e.cargoEnvelope.shift(ArietRig.cargoMounts[0]);

@@ -11,7 +11,7 @@ void main() {
     final wins = {for (final b in BossKind.active) b.name: b.index * 3};
     for (var seed = 0; seed < 100; seed++) {
       final d = EncounterDirector(bossWins: wins), r = Random(seed);
-      final bag = List.generate(8, (_) => d.chooseBoss(r));
+      final bag = List.generate(BossKind.active.length, (_) => d.chooseBoss(r));
       expect(bag, BossKind.active);
       expect(d.chooseBoss(r), isNot(bag.last));
     }

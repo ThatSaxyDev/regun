@@ -7,7 +7,7 @@ import 'package:regun/systems/walker_rig.dart';
 /// Every query maps the real Walker rig, not only its painted silhouette.
 /// Production ownership, AI, health, hits and deployment remain a later slice.
 class ArietEscortStudy {
-  ArietEscortStudy({this.scale = .675, this.folded = false})
+  ArietEscortStudy({this.scale = combatScale, this.folded = false})
     : rig = WalkerRig(
         barrelLength: 158,
         foldedReach: folded ? .28 : .72,
@@ -23,6 +23,7 @@ class ArietEscortStudy {
       rig.height = 48;
     }
   }
+  static const combatScale = .55;
   final double scale;
   final bool folded;
   final WalkerRig rig;

@@ -109,7 +109,7 @@ void main() {
         );
         await game.ready();
       });
-      await ticks(tester, game, 3.5);
+      await ticks(tester, game, 3.8);
       final boss = game.activeBoss! as WalkerBoss;
       boss.rig.carryTo(Offset.zero);
       boss.position.setZero();
@@ -209,7 +209,11 @@ void main() {
       expect(game.activeBoss, isNull);
       final score = game.gameState.score;
       await ticks(tester, game, .5);
-      expect(game.gameState.score, score);
+      expect(
+        game.gameState.score - score,
+        lessThanOrEqualTo(3),
+        reason: 'only passive survival score; no repeated victory',
+      );
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
     },

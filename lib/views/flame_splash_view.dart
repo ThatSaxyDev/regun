@@ -1,4 +1,8 @@
 import 'dart:math';
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:regun/services/online_availability.dart';
 
 import 'package:flame_splash_screen/flame_splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -7,14 +11,14 @@ import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/views/menu_view.dart';
 
-class FlameSplashView extends StatefulWidget {
+class FlameSplashView extends ConsumerStatefulWidget {
   const FlameSplashView({super.key});
 
   @override
-  State<FlameSplashView> createState() => _FlameSplashViewState();
+  ConsumerState<FlameSplashView> createState() => _FlameSplashViewState();
 }
 
-class _FlameSplashViewState extends State<FlameSplashView>
+class _FlameSplashViewState extends ConsumerState<FlameSplashView>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   static const _creator = ResizeImage(
     AssetImage('assets/art/branding/godkiishi_wordmark_v1.png'),
@@ -40,14 +44,15 @@ class _FlameSplashViewState extends State<FlameSplashView>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    unawaited(ref.read(onlineAvailabilityProvider).ensureFresh());
     final lifecycle = WidgetsBinding.instance.lifecycleState;
     _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
     WidgetsBinding.instance.addPostFrameCallback((_) => _prepare());
   }
 
   Future<void> _prepare() async {
-    // The existing startup contract stays local: no cloud request or update
-    // check gates these logos. Menu retains ownership of its update flow.
+    // Policy warms concurrently during the existing logos; it never gates
+    // local preparation or extends startup. Menu owns its separate update flow.
     await LocalPreferences.shared.load();
     await AccountController.shared.initialize();
     if (!mounted) return;
