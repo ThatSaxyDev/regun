@@ -21,7 +21,8 @@ class WalkerAssets {
   final Map<String, ui.Rect> rects = {};
   bool _disposed = false;
   bool get disposed => _disposed;
-  bool get ready => !_disposed && parts != null && arsenal != null && floors.length == 2;
+  bool get ready =>
+      !_disposed && parts != null && arsenal != null && floors.length == 2;
   // Floors are borrowed from the non-lazy world cache, not decoded twice.
   int get decodedBytes => [
     parts,
@@ -30,7 +31,11 @@ class WalkerAssets {
   ui.Image? imageFor(String name) =>
       arsenalNames.contains(name) ? arsenal : parts;
 
-  Future<void> load({bool combat = false}) async {
+  Future<void> load({
+    bool combat = false,
+    int? partsWidth,
+    int? arsenalWidth,
+  }) async {
     final meta = jsonDecode(
       await rootBundle.loadString('assets/art/workshop/walker_parts_v01.json'),
     ) as Map;
@@ -45,7 +50,7 @@ class WalkerAssets {
       );
     }
     // Keep part source pixels intact. This small dedicated atlas is ~6MiB.
-    await _loadParts(width: combat ? 1536 : null);
+    await _loadParts(width: partsWidth ?? (combat ? 1536 : null));
     if (_disposed) return;
     final scale = parts!.width / (meta['sourceSize'][0] as num);
     for (final name in rects.keys.toList()) {
@@ -69,7 +74,7 @@ class WalkerAssets {
       if (_disposed) return;
       final codec = await ui.instantiateImageCodec(
         bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
-        targetWidth: extra['decodeWidth'] as int,
+        targetWidth: arsenalWidth ?? extra['decodeWidth'] as int,
       );
       final image = (await codec.getNextFrame()).image;
       codec.dispose();
@@ -222,25 +227,29 @@ class WalkerArt {
     WalkerRig rig, {
     bool debug = false,
     WalkerCombat? combat,
+    bool groundShadows = true,
+    ui.Offset? muzzleOverride,
   }) {
-    for (final leg in rig.legs) {
+    if (groundShadows) {
+      for (final leg in rig.legs) {
+        c.drawOval(
+          ui.Rect.fromCenter(
+            center: leg.foot + const ui.Offset(4, 6),
+            width: 56 - leg.lift,
+            height: 22,
+          ),
+          ui.Paint()..color = _shade.withValues(alpha: leg.planted ? .65 : .3),
+        );
+      }
       c.drawOval(
         ui.Rect.fromCenter(
-          center: leg.foot + const ui.Offset(4, 6),
-          width: 56 - leg.lift,
-          height: 22,
+          center: rig.position + const ui.Offset(0, 9),
+          width: 204,
+          height: 118,
         ),
-        ui.Paint()..color = _shade.withValues(alpha: leg.planted ? .65 : .3),
+        ui.Paint()..color = _shade.withValues(alpha: .45),
       );
     }
-    c.drawOval(
-      ui.Rect.fromCenter(
-        center: rig.position + const ui.Offset(0, 9),
-        width: 204,
-        height: 118,
-      ),
-      ui.Paint()..color = _shade.withValues(alpha: .45),
-    );
     final far = rig.legs.where((leg) => leg.foot.dy < rig.position.dy).toList();
     final near = rig.legs
         .where((leg) => leg.foot.dy >= rig.position.dy)
@@ -261,7 +270,7 @@ class WalkerArt {
     final pivot = rig.turretPivot.projected;
     part(c, 'bearing', pivot, 44, angle: rig.yaw);
     final muzzle = combat == null
-        ? rig.muzzle.projected
+        ? (muzzleOverride ?? rig.muzzle.projected)
         : combat.muzzle(false) - WalkerCombat.visualOffset;
     final d = muzzle - pivot;
     final angle = math.atan2(d.dy, d.dx);

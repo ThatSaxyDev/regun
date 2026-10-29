@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="920" viewBox="0 0 1500 920"><defs><pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#28312b" stroke-width="1"/></pattern><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#d3ba7c"/></marker></defs><rect width="1500" height="920" fill="#161c18"/><rect x="24" y="24" width="1452" height="872" fill="url(#grid)" stroke="#79715b"/><g font-family="Arial, sans-serif">
+<text x="54" y="74" font-size="32" fill="#d4c8ab" font-weight="bold">ARIET / ROOF DECK</text>
+<text x="54" y="106" font-size="17" fill="#d4c8ab" font-weight="normal">Mount layout v02 / design proposal / 28 October 2026</text>
+<rect x="71.0" y="221.0" width="132" height="330" rx="25" fill="#41493b" stroke="#a39870" stroke-width="3"/>
+<rect x="89.0" y="256.0" width="96" height="50" fill="#242c25" stroke="#777c65"/>
+<path d="M99.0 458.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M99.0 470.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M99.0 482.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M99.0 494.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M99.0 506.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M117.0 551.0v17h40v-17" fill="#866748" stroke="#b09160"/>
+<path d="M227.0 386.0H137.0" stroke="#a58c5d" stroke-width="25"/>
+<rect x="497.0" y="221.0" width="132" height="330" rx="25" fill="#41493b" stroke="#a39870" stroke-width="3"/>
+<rect x="515.0" y="256.0" width="96" height="50" fill="#242c25" stroke="#777c65"/>
+<path d="M525.0 458.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M525.0 470.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M525.0 482.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M525.0 494.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M525.0 506.0h76" stroke="#232a23" stroke-width="6"/>
+<path d="M543.0 551.0v17h40v-17" fill="#866748" stroke="#b09160"/>
+<path d="M473.0 386.0H563.0" stroke="#a58c5d" stroke-width="25"/>
+<path d="M250 143H450L473 222V535L388 653H312L227 535V222Z" fill="#535b43" stroke="#c0ad78" stroke-width="3"/>
+<rect x="244" y="195" width="212" height="408" fill="none" stroke="#929685" stroke-dasharray="7 8"/>
+<circle cx="272.0" cy="390.5" r="39" fill="none" stroke="#9fbea8" stroke-dasharray="4 5" opacity=".6"/>
+<circle cx="272.0" cy="390.5" r="26" fill="#272e27" stroke="#9fbea8" stroke-width="5"/>
+<g transform="translate(272.0 390.5) rotate(-102)"><rect x="-10" y="-15" width="28" height="30" fill="#737a5a" stroke="#9fbea8" stroke-width="2"/>
+<path d="M10 -7h75" stroke="#9fbea8" stroke-width="4"/>
+<path d="M10 0h75" stroke="#9fbea8" stroke-width="4"/>
+<path d="M10 7h75" stroke="#9fbea8" stroke-width="4"/>
+</g>
+<text x="265.0" y="397.5" font-size="20" fill="#fff0c7" font-weight="bold">1</text>
+<circle cx="428.0" cy="390.5" r="39" fill="none" stroke="#9fbea8" stroke-dasharray="4 5" opacity=".6"/>
+<circle cx="428.0" cy="390.5" r="26" fill="#272e27" stroke="#9fbea8" stroke-width="5"/>
+<g transform="translate(428.0 390.5) rotate(55)"><rect x="-10" y="-15" width="28" height="30" fill="#737a5a" stroke="#9fbea8" stroke-width="2"/>
+<path d="M10 -7h75" stroke="#9fbea8" stroke-width="4"/>
+<path d="M10 0h75" stroke="#9fbea8" stroke-width="4"/>
+<path d="M10 7h75" stroke="#9fbea8" stroke-width="4"/>
+</g>
+<text x="421.0" y="397.5" font-size="20" fill="#fff0c7" font-weight="bold">2</text>
+<circle cx="350.0" cy="525.5" r="46" fill="none" stroke="#ddbc83" stroke-dasharray="4 5" opacity=".6"/>
+<circle cx="350.0" cy="525.5" r="33" fill="#272e27" stroke="#ddbc83" stroke-width="5"/>
+<g transform="translate(350.0 525.5) rotate(135)"><rect x="-10" y="-15" width="28" height="30" fill="#737a5a" stroke="#ddbc83" stroke-width="2"/>
+<path d="M10 0h110" stroke="#ddbc83" stroke-width="12"/><path d="M15 0h107" stroke="#222a25" stroke-width="3"/>
+</g>
+<text x="343.0" y="532.5" font-size="20" fill="#fff0c7" font-weight="bold">3</text>
+<circle cx="350.0" cy="300.5" r="38" fill="none" stroke="#b0abc7" stroke-dasharray="4 5" opacity=".6"/>
+<circle cx="350.0" cy="300.5" r="25" fill="#272e27" stroke="#b0abc7" stroke-width="5"/>
+<g transform="translate(350.0 300.5) rotate(-42)"><rect x="-10" y="-15" width="28" height="30" fill="#737a5a" stroke="#b0abc7" stroke-width="2"/>
+<path d="M10 -10h43" stroke="#b0abc7" stroke-width="4"/>
+<path d="M10 -3h43" stroke="#b0abc7" stroke-width="4"/>
+<path d="M10 4h43" stroke="#b0abc7" stroke-width="4"/>
+<path d="M10 11h43" stroke="#b0abc7" stroke-width="4"/>
+</g>
+<text x="343.0" y="307.5" font-size="20" fill="#fff0c7" font-weight="bold">4</text>
+<rect x="312.0" y="161.0" width="76" height="54" fill="#323a30" stroke="#b18d6c" stroke-width="3"/>
+<rect x="320.0" y="169.0" width="17" height="17" fill="#5f6550" stroke="#b18d6c"/>
+<rect x="341.0" y="169.0" width="17" height="17" fill="#5f6550" stroke="#b18d6c"/>
+<rect x="362.0" y="169.0" width="17" height="17" fill="#5f6550" stroke="#b18d6c"/>
+<rect x="320.0" y="191.0" width="17" height="17" fill="#5f6550" stroke="#b18d6c"/>
+<rect x="341.0" y="191.0" width="17" height="17" fill="#5f6550" stroke="#b18d6c"/>
+<rect x="362.0" y="191.0" width="17" height="17" fill="#5f6550" stroke="#b18d6c"/>
+<text x="345.0" y="195.0" font-size="18" fill="#fff0c7" font-weight="bold">5</text>
+<path d="M350 682v42" stroke="#d3ba7c" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="316" y="751" font-size="17" fill="#d4c8ab" font-weight="normal">FRONT</text>
+<text x="57" y="803" font-size="17" fill="#d4c8ab" font-weight="normal">1 / 2 face different directions; both sit on the central roof.</text>
+<text x="57" y="833" font-size="17" fill="#d4c8ab" font-weight="normal">Dashed bearing circles mean full mechanical 360-degree traverse.</text>
+<text x="57" y="863" font-size="17" fill="#d4c8ab" font-weight="normal">Nose panel = sensors. No fixed nose guns.</text>
+<text x="720" y="157" font-size="22" fill="#dfc28a" font-weight="bold">FIVE STATIONS / FOUR WEAPON FAMILIES</text>
+<text x="726" y="206" font-size="23" fill="#9fbea8" font-weight="bold">1 + 2</text>
+<text x="815" y="206" font-size="20" fill="#9fbea8" font-weight="bold">ROTARY TURRETS</text>
+<text x="815" y="233" font-size="16" fill="#d4c8ab" font-weight="normal">Independent tracking and bounded bursts.</text>
+<text x="726" y="281" font-size="23" fill="#ddbc83" font-weight="bold">3</text>
+<text x="815" y="281" font-size="20" fill="#ddbc83" font-weight="bold">HEAVY CANNON</text>
+<text x="815" y="308" font-size="16" fill="#d4c8ab" font-weight="normal">Committed shots through a full-traverse mount.</text>
+<text x="726" y="356" font-size="23" fill="#b0abc7" font-weight="bold">4</text>
+<text x="815" y="356" font-size="20" fill="#b0abc7" font-weight="bold">FLAK BATTERY</text>
+<text x="815" y="383" font-size="16" fill="#d4c8ab" font-weight="normal">Short-range, warned fragmentation packets.</text>
+<text x="726" y="431" font-size="23" fill="#b18d6c" font-weight="bold">5</text>
+<text x="815" y="431" font-size="20" fill="#b18d6c" font-weight="bold">SEEKER BANK</text>
+<text x="815" y="458" font-size="16" fill="#d4c8ab" font-weight="normal">Six-cell magazine; two active seekers initially.</text>
+<text x="720" y="541" font-size="22" fill="#dfc28a" font-weight="bold">CLEARANCE CONTRACT</text>
+<text x="726" y="576" font-size="17" fill="#d4c8ab" font-weight="normal">All gun pivots and bearings stay on top of the hull.</text>
+<text x="726" y="605" font-size="17" fill="#d4c8ab" font-weight="normal">Barrels clear pod tops; muzzle, flash and shot share one solve.</text>
+<text x="726" y="634" font-size="17" fill="#d4c8ab" font-weight="normal">Temporary hardware interlocks cannot create a rear safe sector.</text>
+<text x="726" y="663" font-size="17" fill="#d4c8ab" font-weight="normal">Fire control reserves escape space and a real cooling window.</text>
+<text x="720" y="724" font-size="22" fill="#dfc28a" font-weight="bold">CARGO REMAINS BELOW THE DECK</text>
+<text x="726" y="758" font-size="17" fill="#d4c8ab" font-weight="normal">Two folded current Walkers on separate underside rails.</text>
+<text x="726" y="786" font-size="17" fill="#d4c8ab" font-weight="normal">Candidate scale 67.5%; trial health 50 each.</text>
+<text x="726" y="814" font-size="17" fill="#d4c8ab" font-weight="normal">Roof layout must preserve bay volume and downward release.</text>
+<text x="720" y="873" font-size="16" fill="#aaa895" font-weight="normal">Schematic is the layout authority; illustration is a styling draft.</text>
+</g></svg>

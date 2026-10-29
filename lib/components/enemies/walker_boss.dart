@@ -1,3 +1,4 @@
+import 'package:regun/components/weapons/shootable_ordnance.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/components/enemies/boss_encounter.dart';
 
@@ -350,11 +351,13 @@ class _WalkerLayer extends Component {
 }
 
 /// Shootable ordnance is a weapon target, never an enemy/reward/occupancy body.
-class WalkerRocketTarget extends PositionComponent {
-  WalkerRocketTarget(this.owner, this.round)
-    : super(size: Vector2.all(40), anchor: Anchor.center);
+class WalkerRocketTarget extends ShootableOrdnance {
+  WalkerRocketTarget(this.owner, this.round) : super(size: Vector2.all(40));
   final WalkerBoss owner;
   final WalkerRound round;
+  @override
+  double get hitRadius => round.radius;
+  @override
   bool hit(double amount) =>
       amount.isFinite &&
       amount > 0 &&

@@ -472,6 +472,39 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             final bosses = _myGame.bosses
                 .where((boss) => boss.isLoaded && !boss.isRemoving)
                 .toList();
+            final ariet = _myGame.arietCandidate;
+            if (ariet != null && ariet.prepared) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 430),
+                    child: BossHealthStrip(
+                      name: 'ARIET',
+                      fraction: ariet.combatHealth.fraction,
+                      enraged:
+                          ariet.combatHealth.fraction <= .5 &&
+                          !ariet.combatHealth.isDead,
+                    ),
+                  ),
+                  Text(
+                    ariet.fight.label,
+                    style: const TextStyle(
+                      fontFamily: FontFam.orbitron,
+                      fontSize: 11,
+                      color: _brass,
+                    ),
+                  ),
+                  if (ariet.fight.finished)
+                    ClickButton(
+                      text: 'Fight again',
+                      width: 155,
+                      height: 40,
+                      onTap: _myGame.practiceAriet,
+                    ),
+                ],
+              );
+            }
             final walker = _myGame.walkerCandidate;
             if (walker != null && walker.prepared) {
               return Column(
@@ -1100,6 +1133,12 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           MenuCardGrid(
             minColumnWidth: 180,
             children: [
+              ClickButtonM(
+                key: const Key('practice-boss-ariet'),
+                text: 'Ariet',
+                height: 48,
+                onTap: _myGame.practiceAriet,
+              ),
               for (final kind in BossKind.active)
                 ClickButtonM(
                   key: kind == BossKind.walker
@@ -1107,7 +1146,9 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                       : null,
                   text: kind.title,
                   height: 48,
-                  onTap: kind == BossKind.walker ? _myGame.practiceWalker : () => _myGame.practiceBoss(kind),
+                  onTap: kind == BossKind.walker
+                      ? _myGame.practiceWalker
+                      : () => _myGame.practiceBoss(kind),
                 ),
             ],
           ),

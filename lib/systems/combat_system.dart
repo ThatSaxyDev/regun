@@ -388,8 +388,9 @@ class CombatSystem {
     );
     for (final target in game.liveEnemies.toList()) {
       final delta = target.position - origin;
-      if (delta.length > 250 + game.crowdRadius(target) ||
-          game.segmentBlocked(origin, target.position)) {
+      if (game.targetDistance(target, origin, body: game.crowdRadius(target)) >
+              250 ||
+          !game.targetVisible(target, origin)) {
         continue;
       }
       hit(target, 1, primary: false);
@@ -421,8 +422,8 @@ class CombatSystem {
       ),
     );
     for (final target in game.liveEnemies.toList()) {
-      final distance = target.position.distanceTo(position);
       final body = game.crowdRadius(target);
+      final distance = game.targetDistance(target, position, body: body) + body;
       if (grenade &&
           distance > radius + body &&
           distance <= pressureRadius + body &&
@@ -441,8 +442,7 @@ class CombatSystem {
         );
       }
       final reach = radius + body;
-      if (target.position.distanceToSquared(position) <= reach * reach &&
-          !game.segmentBlocked(position, target.position)) {
+      if (distance <= reach && game.targetVisible(target, position)) {
         final delta = target.position - position;
         hit(
           target,

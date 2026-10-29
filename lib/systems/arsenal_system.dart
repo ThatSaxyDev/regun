@@ -1,4 +1,5 @@
 import 'package:regun/systems/rail_lance_timing.dart';
+import 'package:regun/systems/target_shape.dart';
 import 'package:regun/data/weapon_power_balance.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/presentation/endgame_vfx.dart';
@@ -664,18 +665,8 @@ class ArsenalSystem {
     if (weapon != WeaponType.sporeLobber) return end;
     var distance = origin.distanceTo(end);
     for (final target in game.projectileTargets) {
-      final radius = game.enemyRadius(target) + 9;
-      if (BulletComponent.segmentDistanceSquared(
-            target.position,
-            origin,
-            end,
-          ) <=
-          radius * radius) {
-        distance = math.min(
-          distance,
-          BulletComponent.contactDistance(target.position, origin, end, radius),
-        );
-      }
+      final contact = game.targetContact(target, origin, end, 9);
+      if (contact != null) distance = math.min(distance, contact);
     }
     return origin + (end - origin).normalized() * distance;
   }
@@ -757,10 +748,7 @@ class ArsenalSystem {
       weaponHit: primary,
       releaseId: _releaseContexts[attackId ?? nextAttack]?.$1 ?? 0,
       releaseBonus: _releaseContexts[attackId ?? nextAttack]?.$2 ?? 0,
-      travel:
-          travel ??
-          muzzle(direction).distanceTo(target.position) -
-              game.enemyRadius(target),
+      travel: travel ?? game.targetDistance(target, muzzle(direction)),
       direction: direction,
       reaction: reaction,
     );
@@ -790,24 +778,15 @@ class ArsenalSystem {
         end = clip(origin, origin + direction * effectiveRange);
     if (game.segmentBlocked(game.myPlayer.position, origin)) return;
     final targets =
-        game.liveEnemies
-            .where((e) => !game.segmentBlocked(origin, e.position))
-            .toList()
+        game.liveEnemies.where((e) => game.targetVisible(e, origin)).toList()
           ..sort(
             (a, b) => weapon == WeaponType.prismCutter
-                ? BulletComponent.contactDistance(
-                    a.position,
-                    origin,
-                    end,
-                    game.crowdRadius(a) + _b('beamRadius'),
-                  ).compareTo(
-                    BulletComponent.contactDistance(
-                      b.position,
-                      origin,
-                      end,
-                      game.crowdRadius(b) + _b('beamRadius'),
-                    ),
-                  )
+                ? (game.targetContact(a, origin, end, _b('beamRadius')) ??
+                          double.infinity)
+                      .compareTo(
+                        game.targetContact(b, origin, end, _b('beamRadius')) ??
+                            double.infinity,
+                      )
                 : a.position
                       .distanceToSquared(origin)
                       .compareTo(b.position.distanceToSquared(origin)),
@@ -817,6 +796,32 @@ class ArsenalSystem {
     var visibleEnd = end;
     for (final target in targets) {
       final delta = target.position - origin, radius = game.crowdRadius(target);
+      if (target is ShapedTarget) {
+        if (weapon == WeaponType.prismCutter) {
+          final at = game.targetContact(target, origin, end, _b('beamRadius'));
+          if (at == null) continue;
+          visibleEnd = origin + direction * at;
+          _direct(target, amount, direction, travel: at);
+          hits++;
+          break;
+        }
+        if (!game.targetCone(
+          target,
+          origin,
+          direction,
+          flame.front(effectiveRange),
+          _b('coneAngle') * math.pi / 180,
+        )) {
+          continue;
+        }
+        _direct(target, amount, direction);
+        if (target is CombatEnemy && !target.combatHealth.isDead) {
+          target.igniteCinder();
+        }
+        hits++;
+        if (hits >= 8) break;
+        continue;
+      }
       if (weapon == WeaponType.prismCutter) {
         if (BulletComponent.segmentDistanceSquared(
               target.position,
@@ -944,10 +949,14 @@ class ArsenalSystem {
   }
 
   bool _inSpore(PositionComponent target, SporePatch patch) {
-    final reach = balance.sporeRadius + game.crowdRadius(target);
     return patch.remaining > 1e-8 &&
-        target.position.distanceToSquared(patch.position) <= reach * reach &&
-        !game.segmentBlocked(patch.position, target.position);
+        game.targetDistance(
+              target,
+              patch.position,
+              body: game.crowdRadius(target),
+            ) <=
+            balance.sporeRadius &&
+        game.targetVisible(target, patch.position);
   }
 
   Map<PositionComponent, SporePatch> _collectSporeContacts() {
@@ -1069,19 +1078,9 @@ class ArsenalSystem {
     final blocked = after.distanceToSquared(proposed) > 1e-8;
     final targets = game.projectileTargets.toList()
       ..sort(
-        (a, b) =>
-            BulletComponent.contactDistance(
-              a.position,
-              before,
-              after,
-              game.enemyRadius(a) + 9,
-            ).compareTo(
-              BulletComponent.contactDistance(
-                b.position,
-                before,
-                after,
-                game.enemyRadius(b) + 9,
-              ),
+        (a, b) => (game.targetContact(a, before, after, 9) ?? double.infinity)
+            .compareTo(
+              game.targetContact(b, before, after, 9) ?? double.infinity,
             ),
       );
     final ledger = f.returning ? f.returnHits : f.outHits;
@@ -1099,16 +1098,8 @@ class ArsenalSystem {
           ledger.length >= (f.kind == ArsenalFlightKind.disc ? hitLimit : 1)) {
         continue;
       }
-      final radius = game.enemyRadius(target) + 9;
-      if (BulletComponent.segmentDistanceSquared(
-                target.position,
-                before,
-                after,
-              ) >
-              radius * radius ||
-          game.segmentBlocked(before, target.position)) {
-        continue;
-      }
+      final contact = game.targetContact(target, before, after, 9);
+      if (contact == null) continue;
       ledger.add(id);
       _direct(
         target,
@@ -1116,29 +1107,13 @@ class ArsenalSystem {
         f.direction,
         primary: !f.returning,
         attackId: f.id,
-        travel:
-            f.travelled +
-            BulletComponent.contactDistance(
-              target.position,
-              before,
-              after,
-              radius,
-            ),
+        travel: f.travelled + contact,
         reaction: f.returning
             ? WeaponReaction.of(WeaponType.reaperDisc).scaled(.45)
             : null,
       );
       if (f.kind == ArsenalFlightKind.spore) {
-        f.position.setFrom(
-          before +
-              f.direction *
-                  BulletComponent.contactDistance(
-                    target.position,
-                    before,
-                    after,
-                    radius,
-                  ),
-        );
+        f.position.setFrom(before + f.direction * contact);
         _patchAt(f);
         f.spent = true;
         return;

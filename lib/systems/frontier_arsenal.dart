@@ -253,27 +253,17 @@ class FrontierArsenal {
       final crossings = <({CombatEnemy enemy, double distance})>[];
       for (final e in targets) {
         if (e.combatHealth.isDead) continue;
-        final radius =
-            game.crowdRadius(e) +
-            (weapon == WeaponType.houndrack
-                ? 4
-                : balance.behavior(weapon, 'bodyRadius'));
-        final hit = BulletComponent.contactDistance(
-          e.position,
+        final hit = game.targetContact(
+          e,
           before,
           clipped,
-          radius,
+          weapon == WeaponType.houndrack
+              ? 4
+              : balance.behavior(weapon, 'bodyRadius'),
+          body: game.crowdRadius(e),
+          coverToCenter: false,
         );
-        if (!hit.isFinite ||
-            hit > before.distanceTo(clipped) ||
-            BulletComponent.segmentDistanceSquared(
-                  e.position,
-                  before,
-                  clipped,
-                ) >
-                radius * radius) {
-          continue;
-        }
+        if (hit == null) continue;
         if (weapon == WeaponType.stormOrb) {
           if (!f.crossed.contains(e.combatId)) {
             crossings.add((enemy: e, distance: hit));
@@ -337,9 +327,9 @@ class FrontierArsenal {
         for (final e in targets) {
           if (e.combatHealth.isDead ||
               e == contact ||
-              e.position.distanceTo(end) >
-                  balance.rocketSplashRadius + game.crowdRadius(e) ||
-              game.segmentBlocked(end, e.position)) {
+              game.targetDistance(e, end, body: game.crowdRadius(e)) >
+                  balance.rocketSplashRadius ||
+              !game.targetVisible(e, end)) {
             continue;
           }
           game.hitEnemy(
@@ -385,9 +375,13 @@ class FrontierArsenal {
             .where(
               (e) =>
                   !e.combatHealth.isDead &&
-                  e.position.distanceTo(f.position) <=
-                      balance.orbArcRadius + game.crowdRadius(e) &&
-                  !game.segmentBlocked(f.position, e.position),
+                  game.targetDistance(
+                        e,
+                        f.position,
+                        body: game.crowdRadius(e),
+                      ) <=
+                      balance.orbArcRadius &&
+                  game.targetVisible(e, f.position),
             )
             .toList()
           ..sort(
@@ -468,8 +462,46 @@ class FrontierArsenal {
       final before = e.position.distanceTo(oldCenter) - oldRadius;
       final after = e.position.distanceTo(r.center) - r.radius;
       final extent = game.crowdRadius(e) + balance.ringThickness / 2;
-      if (math.min(before, after) > extent ||
-          math.max(before, after) < -extent) {
+      final machineryHit = e is ShapedTarget
+          ? (e as ShapedTarget).targetShape.any((region) {
+              final near =
+                  math.min(
+                    TargetCapsule.distanceToSegment(
+                          oldCenter.toOffset(),
+                          region.a,
+                          region.b,
+                        ) -
+                        oldRadius,
+                    TargetCapsule.distanceToSegment(
+                          r.center.toOffset(),
+                          region.a,
+                          region.b,
+                        ) -
+                        r.radius,
+                  ) -
+                  region.radius;
+              final far =
+                  math.max(
+                    math.max(
+                          (region.a - oldCenter.toOffset()).distance,
+                          (region.b - oldCenter.toOffset()).distance,
+                        ) -
+                        oldRadius,
+                    math.max(
+                          (region.a - r.center.toOffset()).distance,
+                          (region.b - r.center.toOffset()).distance,
+                        ) -
+                        r.radius,
+                  ) +
+                  region.radius;
+              return near <= balance.ringThickness / 2 &&
+                  far >= -balance.ringThickness / 2;
+            })
+          : null;
+      if (machineryHit == false ||
+          (machineryHit == null &&
+              (math.min(before, after) > extent ||
+                  math.max(before, after) < -extent))) {
         continue;
       }
       ledger.add(e.combatId);
@@ -550,9 +582,9 @@ class FrontierArsenal {
       // silently allow the ninth enemy to escape a visually closed trap.
       for (final e in targets) {
         if (!e.combatHealth.isDead &&
-            e.position.distanceTo(r.center) <=
-                r.captureRadius + game.crowdRadius(e) &&
-            !game.segmentBlocked(r.center, e.position)) {
+            game.targetDistance(e, r.center, body: game.crowdRadius(e)) <=
+                r.captureRadius &&
+            game.targetVisible(e, r.center)) {
           r.captured.add(e.combatId);
         }
       }

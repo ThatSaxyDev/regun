@@ -962,3 +962,123 @@ these openings and varied decisions feel fair and purposeful on the phone.
 Put a crowd between yourself and a Skitter. Its warned jump should pass over them and reach the committed landing point; walls and boss bodies still stop it. Sidestepping remains valid because the jump cannot home. After landing it should rejoin ground occupancy without teleporting away from an overlap.
 
 Mummies should walk normally until they reach melee, then raise their strike immediately; there should be no raised-hands pose at a distance. The opening hit should land about .15s after contact and repeat every .6s. Stay outside actual melee reach or move behind cover: a wound-up mummy must not hit at a distance or through a wall. Step out of reach and approach again to confirm a fresh .15s opening strike. Test both solo and co-op, including crowded poison fields and bullet knockback.
+
+## Ariet development rig — creator inspection only (28 October 2026)
+
+Run `flutter run -t tool/ariet_workshop.dart` to inspect the assembly/flight slice.
+This workshop intentionally has no tester-facing game-menu entry. Try Hover,
+Accelerate, Strafe and Turn on both floors, then pause/step, restart, background
+and Reduced Motion. Judge connected pod bearings, purposeful thrust/brake, stable
+stops and phone-size silhouette. Close view is supplementary; use ordinary scale
+first. Cargo exposes two folded67.5% current Walker rig studies and a side section;
+Scale compares65/67.5/70% to the full rig and Rook. The higher loaded hover and tuck
+are fit proposals requiring review. Guns are inactive and nothing deals damage.
+The proposed escort HP is50–60 each, starting50; no escort combat exists yet.
+Evidence: validation/ariet-flight-rig-2026-10-28/README.md. No installation or native
+performance/comfort acceptance is claimed by the generated clips.
+
+## Complete Ariet Training candidate — build29 (28 October 2026)
+
+Choose **Training → Start → Pause → Boss Practice → Ariet**. This supersedes the
+rig-only status above; the development workshop still stays out of game menus.
+Try the strafing run, four individually committed cannon shots and planted engine
+exhaust, then fire during cooling. Use Take damage On for real hits/recovery.
+At half health Ariet can choose one pass dropping TWO67.5% Walkers with50HP EACH.
+They unfold and use short bursts, sharing attack/round budgets and quiet recovery.
+Kill Ariet while support is alive: bullets/escorts/pending drops stop and the final
+crash is harmless. Fight again/restart/switch boss and background mid-attack/drop.
+Test both arenas, all weapons and Reduced Motion. Source, values and reproduction:
+validation/ariet-complete-2026-10-28/README.md. Installed on the connected iPhone;
+physical readability/fairness/audio/performance remain for creator review.
+
+## Ariet redesign status — 2026-10-28
+
+Build +29's rear blind spot was rejected during creator play. The next
+[complete candidate specification](ARIET_GUNSHIP_REDESIGN.md) adds independent
+360-degree roof guns and four weapon families. This is currently a design/source
+art revision, not new installed behavior. Next device review must include camping
+behind, continuous circling, close-underbody crossings, cover, readable pursuit,
+flak gaps and genuinely quiet recovery, alongside all-weapon hull/escort checks.
+
+## Ariet full roof arsenal — build +30
+
+Training → Start → Pause → Boss Practice → Ariet runs the complete redesigned
+candidate: twin360-degree rotaries, heavy cannon, flak and shootable seekers,
+plus exhaust and the smaller Walker pair. Earlier design-only/build+29 notes are
+historical. Keep Ariet in Training until this review is accepted.
+
+- Stand behind, then circle both ways and cross close underneath. Guns must turn
+  independently of the airframe; remaining behind must not disable its weapons.
+- Watch cannon commitment, then dodge. Flak warns before physical shells burst;
+  look for usable gaps. Shoot a seeker during its straight launch or pursuit.
+- Observe genuinely quiet cooling, the half-health pair release and all owners
+  stopping when Ariet dies. Repeat near Foundry cover and with different weapons.
+- Turn Take damage On for actual HP loss and Training recovery. Test pause,
+  background, Reduced Motion, restart and switching to another practice boss.
+
+Record feel, warning readability, difficulty, audio, comfort and sustained native
+performance. The automated proof is in [roof validation](validation/ariet-roof-2026-10-28/README.md).
+
+## Ariet height/exhaust and escort traffic — build +31
+
+Training → Start → Pause → Boss Practice → Ariet. Look for a visibly raised
+carrier, grounded shadow, hot jets from both pod nozzles and short smoke trails.
+Altitude should persist after the Walker pair drops. Walkers should pass beneath
+it; ground escorts should route around each other while retaining body/cover
+collisions. Shoot the visible elevated hull with different weapons. Repeat while
+circling, near Foundry cover, during arrival/drop/fatal landing and with Reduced
+Motion. Pause/background must freeze smoke and mechanism clocks. Review engine
+intensity/visibility, occlusion, comfort and real sustained-device performance.
+[Verification](validation/ariet-airborne-2026-10-28/README.md).
+
+Release identity correction: the creator restored **1.0.0+28** while retaining all
+Ariet fixes described in the historical+29–+31 sections above. Test the updated
+Training → Boss Practice → Ariet; the old candidate labels are not current release
+numbers. Future numbering changes require creator authorization.
+
+## Ariet live hover and seeker salvos — updated release1.0.0+28
+
+At cannon/flak/rocket holds, the ship should visibly hover instead of looking
+paused. Fire should continuously stream straight out of each painted nozzle,
+without swinging sideways. Observe normal/Reduced Motion and pause/background.
+Seekers should show metal bodies, pointed noses and fins, not red dots. Expect
+four rockets normally/six below half health, with staggered launch. They remain
+shootable; timed-out rockets coast/fade with a harmless grey burnout rather than
+instantly vanishing. Contact/interception cues remain distinct. Review difficulty,
+readability/occlusion and comfort on the phone. Training scope and release28 stay.
+
+## Ariet general agility and charge counter — updated1.0.0+28
+
+Normal movement should now be brisk, with sharp acceleration/braking/turning.
+Cannon and seeker attacks should keep flying laterally while the hull faces you.
+Watch a normal rotary attack spool up, charge along its planted route, brake,
+then rapidly swivel guns and start firing before the airframe finishes turning.
+Dodge the committed route and punish the genuine quiet window. The overflight
+itself has no hidden contact hit. Cargo passes are intentionally slower/quiet at
+release. Repeat near Foundry cover, while circling/kiting and with Reduced Motion.
+Hover/thrust flow, rocket silhouettes/burnout, four/six salvos and escort underpass
+should all remain. [Evidence](validation/ariet-jet-agility-2026-10-28/README.md).
+
+## Ariet coordinated Walker pair — updated1.0.0+28
+
+Let the pair deploy, then circle, retreat and reverse direction. They should take
+separate player-relative angles rather than chase in single file. Put one behind
+the other: the rear gun should hold fire and work toward a flank. Watch alternating
+ready bursts and a partner moving across a lane. Near cover, they should seek clear
+perches or leave a spaced rear hold, never fire through the ally or overlap bodies.
+Kill one and verify the survivor stays responsive. Their health/damage/rate are
+unchanged; major gunship attacks and cooling still exclude escort gunfire.
+[Verification](validation/ariet-escort-coordination-2026-10-28/README.md).
+
+
+## Ariet continuous flight and moving-target pressure —1.0.0+28
+
+Keep running circles and reverse direction without releasing movement. Ariet should
+keep circling between attacks, including cooling, and resume flight after its brief
+charge stop/opening countershot. Flak/exhaust still briefly plant committed warnings.
+Walkers should pursue faster, quickly turn their guns and lead a moving survivor;
+straight bullets must remain dodgeable by changing direction. Expect alternating
+three-round support during ordinary charge/counter, with no escort firing during
+cargo, cannon/flak/seekers/exhaust or cooling. Check both behind/in front, lane
+crossings, cover, pause and killing one escort. Review aggression, comfort and fairness
+on the phone; automated movement tests cannot establish those judgments.

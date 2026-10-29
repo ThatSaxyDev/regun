@@ -1,0 +1,6 @@
+28 October 2026
+make verify: analyzer clean; 872 passed, 5 intentional skips.
+Final presentation checks: analyzer clean; 19 Ariet/Walker rig/workshop tests passed.
+Combined decoded art including Rook: 31,890,568 bytes < 33,554,432.
+Optional two-floor 32s capture export: 4 workshop tests passed.
+Physical-device review remains open. No installation/publication performed.

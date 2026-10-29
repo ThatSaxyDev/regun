@@ -60,15 +60,16 @@ class GrenadeComponent extends PositionComponent
               r.inflate(8),
             ),
           ),
-      contact: (a, b) => game.liveEnemies.any((e) {
-        final p = Offset(e.position.x, e.position.y), ab = b - a;
-        final t = ab.distanceSquared <= 1e-9
-            ? 0.0
-            : (((p.dx - a.dx) * ab.dx + (p.dy - a.dy) * ab.dy) /
-                      ab.distanceSquared)
-                  .clamp(0.0, 1.0);
-        return (p - (a + ab * t)).distance <= game.crowdRadius(e) + 8;
-      }),
+      contact: (a, b) => game.liveEnemies.any(
+        (e) =>
+            game.targetContact(
+              e,
+              Vector2(a.dx, a.dy),
+              Vector2(b.dx, b.dy),
+              8,
+            ) !=
+            null,
+      ),
     );
     position.setValues(flight.position.dx, flight.position.dy);
     if (flight.spent) {
@@ -240,12 +241,16 @@ class GrenadeAimPreview extends PositionComponent
             ),
           ),
       contact: (a, b) => game.liveEnemies.any(
-        (e) => grenadeSegmentContact(
-          a,
-          b,
-          e.position.toOffset(),
-          game.crowdRadius(e) + 8,
-        ),
+        (e) =>
+            game.targetContact(
+              e,
+              Vector2(a.dx, a.dy),
+              Vector2(b.dx, b.dy),
+              8,
+              body: game.crowdRadius(e),
+              coverToCenter: false,
+            ) !=
+            null,
       ),
     );
     paintGrenadeTrajectory(

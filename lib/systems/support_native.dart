@@ -7,7 +7,6 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
-import 'package:regun/components/weapons/bullet_component.dart';
 import 'package:regun/game.dart';
 import 'package:regun/systems/arena_geometry.dart';
 import 'package:regun/systems/support_rewards.dart';
@@ -253,6 +252,8 @@ class SupportNative {
       auraHit: (target, damage) {
         final e = actor(target.id);
         if (e != null) {
+          final aura=runtime.units.where((u)=>u.card.family==SupportFamily.aura&&u.phase=='active').firstOrNull;
+          if(aura!=null&&game.targetDistance(e,game.myPlayer.position,body:game.enemyRadius(e))>config.auraRadius(aura.card.tier))return;
           hit(e, damage, 'aura');
         }
       },
@@ -303,40 +304,34 @@ class SupportNative {
           game.projectileTargets
               .where(
                 (t) =>
-                    BulletComponent.segmentDistanceSquared(
-                      t.position,
+                    game.targetContact(
+                      t,
                       before,
                       end,
-                    ) <=
-                    pow(game.enemyRadius(t) + 5, 2),
+                      5,
+                      coverToCenter: false,
+                    ) !=
+                    null,
               )
               .toList()
             ..sort(
-              (a, b) =>
-                  BulletComponent.contactDistance(
-                    a.position,
-                    before,
-                    end,
-                    game.enemyRadius(a) + 5,
-                  ).compareTo(
-                    BulletComponent.contactDistance(
-                      b.position,
+              (a, b) => game
+                  .targetContact(a, before, end, 5, coverToCenter: false)!
+                  .compareTo(
+                    game.targetContact(
+                      b,
                       before,
                       end,
-                      game.enemyRadius(b) + 5,
-                    ),
+                      5,
+                      coverToCenter: false,
+                    )!,
                   ),
             );
       if (hits.isNotEmpty) {
         final hit = hits.first;
         final travel =
             r.travel +
-            BulletComponent.contactDistance(
-              hit.position,
-              before,
-              end,
-              game.enemyRadius(hit) + 5,
-            );
+            game.targetContact(hit, before, end, 5, coverToCenter: false)!;
         final contact =
             before +
             Vector2(r.direction.dx, r.direction.dy) * (travel - r.travel);

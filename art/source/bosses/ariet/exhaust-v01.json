@@ -1,0 +1,45 @@
+{
+  "generator": "built-in imagegen",
+  "prompt": "exhaust-v01-prompt.txt",
+  "sourceSize": [
+    1536,
+    1024
+  ],
+  "sha256": "960fa11dc5ea79a45ffd8eebfc8a06f02b273913e4ad1f1edb30989f6a94e51e",
+  "transparent": true,
+  "runtimeCopy": "assets/art/workshop/ariet_exhaust_v01.png",
+  "decodeWidth": 512,
+  "rects": [
+    [
+      100,
+      150,
+      570,
+      300
+    ],
+    [
+      725,
+      145,
+      790,
+      310
+    ],
+    [
+      90,
+      520,
+      610,
+      430
+    ],
+    [
+      725,
+      490,
+      800,
+      500
+    ]
+  ],
+  "parts": [
+    "short jet +X",
+    "long jet +X",
+    "compact smoke",
+    "diffuse smoke"
+  ],
+  "notes": "Original RGBA copied without bitmap edits; measured runtime source rects. Jet ignition at left. No weapon/damage geometry in this sheet."
+}

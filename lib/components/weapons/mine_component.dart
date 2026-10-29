@@ -27,7 +27,7 @@ class MineComponent extends PositionComponent with HasGameReference<RegunGame> {
     }
     if (age < 0.35 || exploded) return;
     if (game.liveEnemies.any(
-      (e) => e.position.distanceToSquared(position) < 75 * 75,
+      (e) => game.targetDistance(e, position, body: 0) < 75,
     )) {
       exploded = true;
       game.explode(

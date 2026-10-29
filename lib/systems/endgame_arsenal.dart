@@ -112,13 +112,12 @@ class EndgameArsenal {
       direction.clone()..rotate(.24),
     ];
     for (final target in targets) {
-      final id = ownerId(target), radius = game.enemyRadius(target) + 16;
+      final id = ownerId(target);
       if (owners.contains(id) ||
-          game.segmentBlocked(origin, target.position) ||
           !rays.any(
             (d) =>
-                BulletComponent.segmentDistanceSquared(
-                  target.position,
+                game.targetContact(
+                  target,
                   origin,
                   system.clip(
                     origin,
@@ -129,8 +128,9 @@ class EndgameArsenal {
                               'forkRange',
                             ),
                   ),
-                ) <=
-                radius * radius,
+                  16,
+                ) !=
+                null,
           )) {
         continue;
       }
@@ -231,18 +231,8 @@ class EndgameArsenal {
     PositionComponent? direct;
     var distance = before.distanceTo(end);
     for (final target in game.projectileTargets) {
-      final radius = game.enemyRadius(target) + 8;
-      if (BulletComponent.segmentDistanceSquared(target.position, before, end) >
-              radius * radius ||
-          game.segmentBlocked(before, target.position)) {
-        continue;
-      }
-      final at = BulletComponent.contactDistance(
-        target.position,
-        before,
-        end,
-        radius,
-      );
+      final at = game.targetContact(target, before, end, 8);
+      if (at == null) continue;
       if (at <= distance) {
         distance = at;
         direct = target;
@@ -336,25 +326,16 @@ class EndgameArsenal {
     return true;
   }
 
-  bool _insideCone(CommittedArea cone, PositionComponent target) {
-    final delta = target.position - cone.position,
-        radius = game.enemyRadius(target);
-    if (delta.length > cone.range + radius ||
-        game.segmentBlocked(cone.position, target.position)) {
-      return false;
-    }
-    if (delta.isZero()) return true;
-    final angle = math.acos(
-      (delta.normalized().dot(cone.direction)).clamp(-1.0, 1.0),
-    );
-    return angle <=
+  bool _insideCone(CommittedArea cone, PositionComponent target) =>
+      game.targetCone(
+        target,
+        cone.position,
+        cone.direction,
+        cone.range,
         system.balance.behavior(WeaponType.mourningBell, 'coneAngle') *
-                math.pi /
-                180 +
-            math.asin(
-              (radius / math.max(radius, delta.length)).clamp(0.0, 1.0),
-            );
-  }
+            math.pi /
+            180,
+      );
 
   bool fireBell() {
     final direction = system.aim;
@@ -429,8 +410,13 @@ class EndgameArsenal {
                 );
         if (lane.owners.containsKey(id) ||
             lane.owners.length >= 6 ||
-            BulletComponent.segmentDistanceSquared(target.position, from, to) >
-                radius * radius ||
+            game.targetContact(
+                  target,
+                  from,
+                  to,
+                  radius - game.enemyRadius(target),
+                ) ==
+                null ||
             game.segmentBlocked(lane.position, target.position)) {
           continue;
         }

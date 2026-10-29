@@ -50,6 +50,10 @@ class WalkerRig {
     this.turnSpeed = .95,
     this.agileGait = false,
     this.barrelLength = 104,
+    this.foldedReach = .72,
+    this.foldedAnkleZ = 24,
+    this.foldedKneeDown = false,
+    this.foldedPoleAngle = 0,
     this.bodyBounds = const Rect.fromLTRB(-480, -100, 480, 100),
     this.footBounds = floor,
     this.footResolver,
@@ -71,6 +75,11 @@ class WalkerRig {
   final WalkerMoveResolver? moveResolver;
   final WalkerMoveResolver? footResolver;
   final double maxSpeed, barrelLength, acceleration, turnSpeed;
+
+  /// Cargo-study tuck; defaults preserve the live Walker rig and snapshots.
+  final double foldedReach, foldedAnkleZ;
+  final bool foldedKneeDown;
+  final double foldedPoleAngle;
   final bool agileGait;
   final Rect bodyBounds, footBounds;
   late final List<WalkerLeg> legs;
@@ -343,14 +352,23 @@ class WalkerRig {
 
   WalkerLegPose pose(WalkerLeg leg) {
     final hip = point(leg.mount, height);
-    final carried = folded ? ground(leg.rest * .72) : leg.foot;
-    final ankle = WalkerPoint(carried.dx, carried.dy, folded ? 24 : leg.lift);
-    final chord = ankle - hip;
-    final distance = chord.length.clamp(.001, upperLength + lowerLength - .001);
+    final carried = folded ? ground(leg.rest * foldedReach) : leg.foot;
+    final targetAnkle = WalkerPoint(
+      carried.dx,
+      carried.dy,
+      folded ? foldedAnkleZ : leg.lift,
+    );
+    final chord = targetAnkle - hip;
+    final distance = chord.length.clamp(
+      (upperLength - lowerLength).abs() + .001,
+      upperLength + lowerLength - .001,
+    );
     final direction = chord.unit;
     // Use a stable up-vector knee pole. A body-relative outward pole becomes
     // almost parallel to the leg chord during turns and flips the knee plane.
-    const pole = WalkerPoint(0, 0, 1);
+    final pole = folded && foldedKneeDown
+        ? WalkerPoint(0, math.sin(foldedPoleAngle), -math.cos(foldedPoleAngle))
+        : const WalkerPoint(0, 0, 1);
     var bend = pole - direction * pole.dot(direction);
     if (bend.length < .001) {
       final outward = rotate(leg.rest, yaw);
@@ -365,6 +383,10 @@ class WalkerRig {
       math.max(0.0, upperLength * upperLength - along * along),
     );
     final knee = hip + direction * along + bend.unit * perpendicular;
-    return WalkerLegPose(hip, knee, ankle);
+    return WalkerLegPose(
+      hip,
+      knee,
+      distance == chord.length ? targetAnkle : hip + direction * distance,
+    );
   }
 }

@@ -1970,3 +1970,175 @@ Mummy pursuit rises modestly90→95. It keeps its walk pose until the original36
 ## Faster mummy opening — 28 October 2026
 
 The creator still found the first strike slow. Opening delay is now.15s (previously.3s) after melee contact. Preserve the creator’s natural walk until contact, speed95, original36-unit melee reach,1HP damage and.6s repeat interval. Retreat/cover resets the opening wind-up. Native and server timing agree; focused crowd/walk/contact tests and server cadence tests cover the change.
+
+## Ariet development assembly/flight rig — 28 October 2026
+
+Ariet now has matched modular hull/pod/pylon/gun/cradle art and a development-only
+workshop through `tool/ariet_workshop.dart`. Fixed120Hz flight supports stable
+hover, acceleration/braking, strafe/reverse and deliberate turns with articulated
+pods, separate ground/presentation sockets and quiet attached exhaust. Both floors,
+pause/step/restart, Reduced Motion and zoom are available. Carrier/side-section and
+65–70% actual Walker rig studies account for a proposed fore/aft pair; a dedicated
+folded pose and higher loaded clearance remain review candidates. Full Walker
+rig defaults are preserved. No weapons, damage, escorts, encounter or roster/save/
+online admission is implemented. Source/prompts, candidate geometry and visual
+review limits are in ARIET_BOSS_WORKSHOP_PLAN section14 and the flight-rig evidence.
+
+Verification: full `make verify` passes872 tests with5 intentional skips and a
+clean analyzer; final19 rig/workshop checks pass after presentation refinements.
+Decoded art including the Rook reference is30.41MiB within32MiB. Two-floor clips
+and phone-size captures are rendered evidence, not physical-device acceptance.
+
+## Ariet complete Training encounter — 28 October 2026
+
+Creator requested the full fight together, superseding the A/B review stop. Ariet
+now enters normal Training Pause → Boss Practice with mechanical arrival, flight,
+compound hull, strafing, broadside, exhaust, real recovery, an optional half-health
+pass dropping two67.5%/50HP Walker escorts, shared32-round/attack coordination and
+a harmless fatal crash/wreck/replay. No XP/cores/victory/heals from the Training
+boss/escorts. One exclusive MechanicalTrial owner preserves Walker and retires
+old/pending assets on replacement, restart and route disposal. All24 actual weapon
+paths use opt-in machinery geometry; ordinary circles and current balances remain.
+Ariet stays outside BossKind, survival/Rush, normal checkpoints, hosted and admin.
+Full `make verify`: clean analyzer,884 passed/5 intentional skips. Native integrated
+proof includes all attacks, real HP loss/recovery, both escorts, every weapon,
+empty gaps, overlap dedup and replacement/pending restart. Build1.0.0+29 signed,
+installed and launched on the creator's network iPhone. Evidence and open human
+gates: docs/validation/ariet-complete-2026-10-28/README.md.
+
+## Ariet roof-deck design reset — 2026-10-28
+
+Creator device feedback identified a permanent rear blind spot in Training build
++29 and requested a broader gunship arsenal. The
+[redesign](ARIET_GUNSHIP_REDESIGN.md) proposes two roof rotary turrets, heavy cannon,
+flak battery and seeker bank with independent 360-degree gun bearings and shared
+fire control. Exact schematic and draft art are saved; runtime implementation and
+new device verification remain outstanding. Prior 884-test evidence applies to
+the old candidate only. No new installation occurred in this design pass.
+
+## Complete Ariet roof weapon implementation — build +30
+
+Creator authorization superseded the design-only pass. The full Training encounter
+now includes both independent360-degree rotary turrets, heavy cannon, physical
+flak shells/fragments, shootable delayed-homing seekers, exhaust and the real
+Walker pair. Roof/socket/hull geometry, capacity reservations, owned cleanup and
+quiet recovery are integrated. Normal roster admission remains deferred until
+Training approval. [Specification](ARIET_GUNSHIP_REDESIGN.md) and
+[verification/device review](validation/ariet-roof-2026-10-28/README.md).
+
+Roof-arsenal validation: analyzer clean, full892 tests passed/5 intentional skips;
+final focused Ariet34 tests passed with native game-layer capture. Release+30
+built/signed and installed version confirmed by Apple's device app query. Auto
+launch was denied because the iPhone was locked; unlock/open Regun to test. Native
+feel, fairness, audio and sustained performance remain for creator acceptance.
+
+## Ariet flight height, jets/smoke and escort traffic — build +31
+
+Creator phone feedback led to removing cancelled hover projection, keeping160-unit
+flight after cargo release, aligning art/targets/muzzles, an overhead body layer
+and grounded shadows/cargo paths. Ariet never reserves floor occupancy. Escorts
+use sliding/cover routing and consistent traffic handedness; real native underpass
+and head-on regressions exercise both cases. Dedicated small jet/grey smoke atlas
+adds bounded active-clock exhaust with Reduced Motion support. Full Training
+arsenal/recovery/cleanup remains; roster admission is still deferred.
+[Evidence and remaining physical review](validation/ariet-airborne-2026-10-28/README.md).
+
+## Release-number correction — 28 October 2026
+
+Creator rejected automatic Ariet build increments. Restore1.0.0+28 (repository
+HEAD identity), retaining all full gunship/flight/exhaust/traffic fixes. Earlier
++29/+30/+31 labels are local iteration history, not distributed releases. Future
+version/build increments require explicit creator authorization.
+
+## Ariet continuous flight and seeker visibility — release1.0.0+28
+
+Creator feedback corrected frozen holds/static bent plumes and missing seeker
+art. Holding presentation now has bounded active hover and advected nozzle-aligned
+jet texture. The missing Walker arsenal lease is loaded at512px for Ariet, keeping
+full Walker defaults; rockets show64-unit body/nose/fins and harmless burnout
+expiry. Creator requested four seekers normally/six enraged at.3s stagger. Native
+pixel checks verify fire motion with hull/smoke frozen and actual metal rocket
+pixels, alongside all previous gameplay/traffic/rear/disposal contracts.
+[Evidence](validation/ariet-live-hover-seekers-2026-10-28/README.md). No number bump.
+
+## Ariet general jet mobility — release1.0.0+28
+
+Creator clarified general agility. Cruise360/charge820, acceleration1300,
+braking1800 and yaw2.8 now drive normal flight too. Cannon/seeker phases strafe
+while facing the player; independent guns acquire at12. A committed normal charge
+spools, brakes and starts a36-round rotary counter while the hull turns. Braking
+clearance, cover, no passive ram hit, single rotary hit and quiet recovery stay.
+Cargo retains its slower420 release. Dedicated movement/pause/cover and actual
+native attack checks cover the sequence. [Evidence](validation/ariet-jet-agility-2026-10-28/README.md).
+
+Combined Ariet verification: analyzer clean; full904 pass/5 intentional skips;
+focused six-file native-capture46 pass. Final agility/hover/exhaust/rocket/traffic
+implementation rebuilt, installed and launched on the iPhone as **1.0.0+28**,
+confirmed by fresh device app query. No distribution upload or version bump.
+Physical acceptance remains open; Ariet stays in Training.
+
+## Shared Ariet escort tactics — release1.0.0+28
+
+Creator feedback replaced fixed world offsets with shared stable player-relative
+flanks, legal visible perches, angular approach, partner space/lane awareness and
+ready-turn alternation. Actual muzzle checks include predicted teammate crossings;
+blocked shots cancel/reposition. Speed/health/damage/shared pressure budgets and
+main-attack/recovery exclusion remain. Eight portable tests and native both-turn/
+single-file-to-flank/live-lane/collision checks cover the behavior. [Evidence](validation/ariet-escort-coordination-2026-10-28/README.md).
+
+Escort-coordination verification: analyzer clean; full912 pass/5 intentional
+skips; focused tactical/native capture9 pass. Final combined implementation
+built, installed and launched on the iPhone as1.0.0+28, confirmed by app query.
+No release-number bump/upload. Physical tactics/fairness/performance review open.
+
+
+## Ariet flight continuity and moving-player escort pressure (2026-10-28)
+
+Creator rejected frequent stops and passive escorts. Release remains **1.0.0+28**;
+Training only. Supersedes the previous navigation-only/2s escort gate and planted
+counter/cooling behavior. Ariet navigates at300/330 lateral speed, cools in230-speed
+flight and resumes250/290 lateral flight .18s after the actual counter stop. Normal
+charge spool creeps120 along its committed corridor; cargo keeps its authored hold.
+Only brief planted flak/exhaust warnings and the real charge brake deliberately stop.
+Recovery still waits for owned rounds/drops then supplies1.2/1.3s with no new fire.
+Route new moving phases through cover steering; do not shift committed floor geometry.
+
+Escort intent cap310 model units (~209 world), max330, acceleration1100 and hull
+turn2rad/s. Escort-only turret acquisition uses the actual projected pivot at8rad/s
+and850-speed constant-velocity interception, capped .6s/180units. Released shots stay
+straight. Three rounds/.16s retain damage/range; .14s initial windup,1.1s individual
+cooldown and1.15s shared gate. The pair may support ordinary charge/spool/brake/counter,
+but never cargo, heavy attacks or quiet recovery. No new volley after navigation's
+attack deadline: drain current rounds and give the main attack its turn. Preserve
+shared flank planning, ready-shooter alternation, live teammate lane checks before
+every release, cover/occupancy,32-round cap,67.5% scale/50HP and cleanup.
+
+Regression coverage includes both-phase60s actual-velocity mobility (<20% below40
+speed, no stop longer2.3s), bounded straight-shot interception and real native
+continuous joystick movement with at least12 escort rounds and both shooters in12s.
+Physical aggression/fairness/performance approval remains open.
+
+Current evidence: `docs/validation/ariet-continuous-flight-2026-10-28/README.md`.
+
+Continuous-flight verification: analyzer clean; full **915 passed /5 intentional skips**;
+focused native/portable capture **29 passed**, including actual health loss during
+continuous movement. Release identity remains **1.0.0+28**.
+
+Final continuous-flight release built/signed (Xcode30.2s), installed (Apple
+sequence8336) and launched successfully on the iPhone. Fresh app query confirms
+**1.0.0/build28**. No version increment or distribution upload. Physical aggression,
+fairness, comfort and performance remain for creator review in Training.
+
+
+## Lodestar workshop proposal —29 October 2026
+
+Creator requested an independently chosen new boss direction and full workshop
+plan informed by online research. [Lodestar /03](LODESTAR_BOSS_WORKSHOP_PLAN.md)
+proposes a six-body magnetic serpent with constrained couplings, rollers, flywheels,
+iris mechanisms, forged-metal volleys, deployable induction poles, crescent shears
+and a telescoping tail lance. Plan includes cited references, alternatives,
+modular asset/socket contracts, compound occupancy, damage deduplication,
+continuous movement, warning/escape rules, lifecycle/resource budgets and staged
+review through a full Training candidate. Original identity concept and prompt
+provenance live in `art/source/bosses/lodestar`. Planning/art study only: no playable
+Lodestar or runtime assets added; release remains1.0.0+28.

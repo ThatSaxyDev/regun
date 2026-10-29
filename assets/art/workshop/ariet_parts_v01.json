@@ -1,0 +1,218 @@
+{
+  "sourceSize": [
+    1536,
+    1024
+  ],
+  "decodeWidth": 1024,
+  "heading": "+X",
+  "lighting": "neutral overhead",
+  "sourceSHA256": "289f854244ecab88531091a80e488c547da488f1edaef049410c00960faf6692",
+  "parts": {
+    "hull": {
+      "rect": [
+        21,
+        236,
+        505,
+        196
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        340,
+        164
+      ],
+      "layer": "mounted"
+    },
+    "pod": {
+      "rect": [
+        543,
+        234,
+        508,
+        203
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        220,
+        88
+      ],
+      "layer": "mounted"
+    },
+    "pylon": {
+      "rect": [
+        1070,
+        247,
+        444,
+        159
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        94,
+        25
+      ],
+      "layer": "mounted"
+    },
+    "nose": {
+      "rect": [
+        24,
+        703,
+        465,
+        149
+      ],
+      "pivot": [
+        0.15,
+        0.5
+      ],
+      "worldSize": [
+        68,
+        23
+      ],
+      "layer": "mounted"
+    },
+    "cannon": {
+      "rect": [
+        518,
+        658,
+        537,
+        206
+      ],
+      "pivot": [
+        0.1,
+        0.5
+      ],
+      "worldSize": [
+        102,
+        38
+      ],
+      "layer": "mounted"
+    },
+    "cradle": {
+      "rect": [
+        1050,
+        629,
+        471,
+        266
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        320,
+        180
+      ],
+      "layer": "underside"
+    }
+  },
+  "sockets": {
+    "podPivots": [
+      [
+        -8,
+        -142
+      ],
+      [
+        -8,
+        142
+      ]
+    ],
+    "cargo": [
+      [
+        -77,
+        0
+      ],
+      [
+        77,
+        0
+      ]
+    ],
+    "nose": [
+      [
+        -5,
+        -52
+      ],
+      [
+        -5,
+        52
+      ]
+    ],
+    "cannon": [
+      85,
+      0
+    ],
+    "flak": [
+      -65,
+      0
+    ],
+    "launcher": [
+      -140,
+      0
+    ]
+  },
+  "carrier": {
+    "innerBay": [
+      306,
+      136
+    ],
+    "candidateEscortScale": 0.675,
+    "tuckReach": 0.28,
+    "review": "geometry study only, no escort combat/drop implementation",
+    "foldedAnkleHeight": 72,
+    "foldedKneeDown": true,
+    "emptyHover": 34,
+    "loadedHoverStudy": 128
+  },
+  "navigationRadius": 230,
+  "roofDeck": {
+    "revision": 2,
+    "rotaryHeights": [
+      80,
+      96
+    ],
+    "cannonHeight": 60,
+    "flakHeight": 44,
+    "launcherHeight": 24,
+    "gunTraverseDegrees": 360,
+    "supportRadius": 4,
+    "receiverHalfHeight": 8,
+    "render": "Existing modular iron/olive parts on pixel bearing races and six-cell launcher; no baked fixed nose guns"
+  },
+  "flightPresentation": {
+    "combatHeight": 160,
+    "projectedLift": 112,
+    "emptyHeightMatchesLoaded": true,
+    "overheadBodyPriority": 18000,
+    "groundOccupancy": false,
+    "engineSheet": "ariet_exhaust_v01.png",
+    "engineDecodeWidth": 512,
+    "smokeLimit": 18,
+    "smokeLifetime": 0.95,
+    "activeHover": true,
+    "hoverLiftLimit": 7,
+    "hoverSwayLimit": 4.5,
+    "jetFlow": "continuous, nozzle-axis aligned; slower in Reduced Motion",
+    "seekerVolley": [
+      4,
+      6
+    ],
+    "seekerDrawWidth": 64,
+    "arsenalDecodeWidth": 512,
+    "cruiseSpeed": 360,
+    "chargeSpeed": 820,
+    "acceleration": 1300,
+    "braking": 1800,
+    "hullYawRate": 2.8,
+    "roofGunYawRate": 12,
+    "combatOrbitSpeed": [
+      250,
+      290
+    ],
+    "chargeCounter": "spool, committed charge, brake, quick rotary fire while hull turns"
+  }
+}

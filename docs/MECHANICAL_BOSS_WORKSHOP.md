@@ -8,9 +8,13 @@ workshop's development, not current roster restrictions. Use Training → Start 
 Pause → Boss Practice → Walker for the current fight.
 
 **Next workshop proposal:** [Ariet — modular gunship workshop plan](ARIET_BOSS_WORKSHOP_PLAN.md).
-This is a written plan, not an implemented second boss or a declaration that
-Walker is finished. Its first deliverable is the assembly/flight rig, followed by
-individual modules and a separately reviewed Training trial.
+Ariet now has a complete native Training candidate after the creator requested
+testing the whole encounter. Choose Training → Start → Pause → Boss Practice →
+Ariet. Its isolated development rig still runs via `tool/ariet_workshop.dart`,
+without a tester-facing workshop button. Build +30 now implements the full
+[roof-deck arsenal redesign](ARIET_GUNSHIP_REDESIGN.md) after rear-coverage feedback.
+See Ariet sections15–17 and current roof evidence;
+normal survival/hosted admission and physical acceptance remain separate.
 
 
 ## Creator direction
@@ -805,3 +809,13 @@ Grounded chassis participates in ordinary enemy occupancy. Rotary fire kills int
 Normal checkpoints retain rig feet, AI/random state, release schedule, live ordnance and destruction phase. Victory/core/director progression happens once after mechanical destruction completes. Training remains without profile rewards. Online snapshots are server authority; Flutter only interpolates/draws the shared rig, and route-owned assets/audio are cleaned up on leave/restart.
 
 Validation: Flutter analyzer clean; full suite856 passed,5 skipped; focused shared-contract tests7 passed. Server typecheck,208 tests and SpacetimeDB2.12 build pass. Disposable local three-player WebSocket smoke proves capability10, replicated Walker gunfire and the delayed single death blast. Shared native/server snapshot fixtures verify mechanics through30 seconds. Physical readability, performance and difficulty remain for device review.
+
+
+## Third workshop proposal —29 October 2026
+
+[Lodestar /03 — magnetic serpent workshop](LODESTAR_BOSS_WORKSHOP_PLAN.md) is the
+new research-backed proposal requested after Walker and Ariet. It defines six
+connected grounded bodies, four induction/tool weapon families, exact modular
+motion contracts, full-body occupancy, staged workshop gates and a complete future
+Training encounter. Identity art is a review study, not runtime assets. This adds
+planning material only; no boss admission, installation or release-number change.

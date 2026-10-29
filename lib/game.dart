@@ -1,3 +1,8 @@
+import 'package:regun/systems/ariet_rig.dart';
+import 'package:regun/components/weapons/shootable_ordnance.dart';
+import 'package:regun/components/enemies/ariet_boss.dart';
+import 'package:regun/systems/target_shape.dart';
+import 'package:regun/systems/ariet_hull.dart';
 import 'package:regun/systems/walker_combat.dart';
 import 'package:regun/components/enemies/walker_boss.dart';
 import 'package:uuid/uuid.dart';
@@ -109,7 +114,19 @@ class RegunGame extends FlameGame
   final bool startPaused;
   final UpgradeFeelMode upgradeFeelMode;
   final bool reviewControlledSpawns;
-  bool walkerTrial = false;
+  MechanicalTrial? mechanicalTrial;
+  bool get walkerTrial => mechanicalTrial == MechanicalTrial.walker;
+  set walkerTrial(bool value) {
+    if (value) {
+      mechanicalTrial = MechanicalTrial.walker;
+    } else if (walkerTrial) {
+      mechanicalTrial = null;
+    }
+  }
+
+  bool get arietTrial => mechanicalTrial == MechanicalTrial.ariet;
+  bool get mechanicalTrialActive => mechanicalTrial != null;
+  ArietBoss? arietCandidate;
   WalkerBoss? walkerCandidate;
   late final upgradePresentation = UpgradePresentationController(
     mode: upgradeFeelMode,
@@ -222,6 +239,7 @@ class RegunGame extends FlameGame
     for (final robot in walkerActors) {
       yield* robot.rocketTargets;
     }
+    yield* arietCandidate?.rocketTargets ?? const <ShootableOrdnance>[];
     yield* weakPoints.where((p) => !p.isRemoving && !p.combatHealth.isDead);
   }
 
@@ -468,6 +486,12 @@ class RegunGame extends FlameGame
   }
 
   void clearHostileShots(Vector2 origin, double radius) {
+    final ariet = arietCandidate;
+    if (ariet != null && ariet.prepared && !ariet.retired) {
+      ariet.fight.rounds.removeWhere(
+        (r) => (r.position - origin.toOffset()).distance <= radius + r.radius,
+      );
+    }
     for (final walker in walkerActors.where((w) => w.prepared)) {
       walker.fight.rounds.removeWhere(
         (round) =>
@@ -512,6 +536,9 @@ class RegunGame extends FlameGame
     'xp': _coins.length,
     'playerProjectiles': projectileCount,
     'hostileProjectiles':
+        (arietCandidate?.prepared == true && !arietCandidate!.retired
+            ? arietCandidate!.fight.rounds.length
+            : 0) +
         _hostileProjectiles.length +
         walkerActors
             .where((w) => w.prepared)
@@ -541,8 +568,12 @@ class RegunGame extends FlameGame
     }
   }
 
-  double enemyRadius(PositionComponent enemy) => enemy is WalkerRocketTarget
-      ? enemy.round.radius
+  double enemyRadius(PositionComponent enemy) => enemy is ArietBoss
+      ? ArietHull.enclosingRadius
+      : enemy is ArietEscort
+      ? 88 * ArietEscort.rigScale
+      : enemy is ShootableOrdnance
+      ? enemy.hitRadius
       : enemy is WalkerBoss
       ? 88
       : enemy is BossWeakPoint
@@ -550,6 +581,112 @@ class RegunGame extends FlameGame
       : enemy is BossEncounter
       ? (enemy as BossEncounter).kind.bodyRadius
       : min(enemy.size.x, enemy.size.y) * 0.3;
+
+  /// Narrow queries opt in only for compound machinery. One target stays one
+  /// damage/proc owner even when multiple visible regions overlap.
+  double? targetContact(
+    PositionComponent target,
+    Vector2 from,
+    Vector2 to,
+    double padding, {
+    double? body,
+    bool coverToCenter = true,
+  }) {
+    if (target is ShapedTarget) {
+      if (BulletComponent.segmentDistanceSquared(target.position, from, to) >
+          pow(enemyRadius(target) + padding, 2)) {
+        return null;
+      }
+      double? best;
+      for (final region in (target as ShapedTarget).targetShape) {
+        final contact = region.contact(
+          from.toOffset(),
+          to.toOffset(),
+          padding: padding,
+        );
+        if (contact != null && (best == null || contact < best)) best = contact;
+      }
+      if (best != null) {
+        final delta = to - from;
+        final point = delta.isZero() ? from : from + delta.normalized() * best;
+        if (segmentBlocked(from, point)) return null;
+      }
+      return best;
+    }
+    final radius = (body ?? enemyRadius(target)) + padding;
+    return BulletComponent.segmentDistanceSquared(target.position, from, to) <=
+                radius * radius &&
+            (!coverToCenter || !segmentBlocked(from, target.position))
+        ? BulletComponent.contactDistance(target.position, from, to, radius)
+        : null;
+  }
+
+  double targetDistance(
+    PositionComponent target,
+    Vector2 origin, {
+    double? body,
+  }) {
+    if (target is ShapedTarget) {
+      return (target as ShapedTarget).targetShape.fold<double>(
+        double.infinity,
+        (best, r) => min(best, r.distance(origin.toOffset())),
+      );
+    }
+    return max(
+      0,
+      target.position.distanceTo(origin) - (body ?? enemyRadius(target)),
+    );
+  }
+
+  bool targetVisible(PositionComponent target, Vector2 from) {
+    if (target is! ShapedTarget) return !segmentBlocked(from, target.position);
+    return (target as ShapedTarget).targetShape.any(
+      (r) => !segmentBlocked(
+        from,
+        Vector2((r.a.dx + r.b.dx) / 2, (r.a.dy + r.b.dy) / 2),
+      ),
+    );
+  }
+
+  bool targetCone(
+    PositionComponent target,
+    Vector2 origin,
+    Vector2 direction,
+    double range,
+    double halfAngle, {
+    double? body,
+  }) {
+    final regions = target is ShapedTarget
+        ? (target as ShapedTarget).targetShape
+        : [
+            TargetCapsule(
+              target.position.toOffset(),
+              target.position.toOffset(),
+              body ?? enemyRadius(target),
+            ),
+          ];
+    for (final r in regions) {
+      final count = ((r.b - r.a).distance / 16).ceil().clamp(1, 16);
+      for (var i = 0; i <= count; i++) {
+        final point = Offset.lerp(r.a, r.b, i / count)!,
+            delta = Vector2(point.dx - origin.x, point.dy - origin.y);
+        if (delta.length > range + r.radius ||
+            segmentBlocked(origin, Vector2(point.dx, point.dy))) {
+          continue;
+        }
+        if (delta.isZero() ||
+            acos(delta.normalized().dot(direction).clamp(-1.0, 1.0)) <=
+                halfAngle +
+                    asin(
+                      (r.radius / max(r.radius, delta.length)).clamp(0.0, 1.0),
+                    )) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   bool segmentBlocked(Vector2 start, Vector2 end) =>
       geometry.blocked(start, end);
   void constrainActor(
@@ -560,7 +697,11 @@ class RegunGame extends FlameGame
   final enemyTactics = EnemyTactics();
   final _temporaryCoverRouter = ObstacleRouter();
   final crowdOccupancy = CrowdOccupancy();
-  double crowdRadius(PositionComponent actor) => actor is WalkerBoss
+  double crowdRadius(PositionComponent actor) => actor is ArietBoss
+      ? ArietRig.navigationRadius
+      : actor is ArietEscort
+      ? 88 * ArietEscort.rigScale
+      : actor is WalkerBoss
       ? 88
       : actor is BossEncounter
       ? (actor as BossEncounter).kind.bodyRadius
@@ -570,16 +711,25 @@ class RegunGame extends FlameGame
     PositionComponent actor, {
     double minPlayerDistance = 0,
     Rect? excludedArea,
-  }) => crowdOccupancy.place(
-    actor,
-    crowdRadius(actor),
-    (point) => geometry.constrain(point, crowdRadius(actor)),
-    allowed: (point) =>
-        (excludedArea == null || !excludedArea.contains(point.toOffset())) &&
-        (minPlayerDistance == 0 ||
-            point.distanceToSquared(myPlayer.position) >=
-                minPlayerDistance * minPlayerDistance),
-  );
+  }) {
+    // Ariet arrivals validate their solid/bounds footprint in _placeAriet.
+    // An airborne carrier must never reserve floor space, even during mounting.
+    if (actor is ArietBoss) {
+      crowdOccupancy.forget(actor);
+      return true;
+    }
+    return crowdOccupancy.place(
+      actor,
+      crowdRadius(actor),
+      (point) => geometry.constrain(point, crowdRadius(actor)),
+      allowed: (point) =>
+          (excludedArea == null || !excludedArea.contains(point.toOffset())) &&
+          (minPlayerDistance == 0 ||
+              point.distanceToSquared(myPlayer.position) >=
+                  minPlayerDistance * minPlayerDistance),
+    );
+  }
+
   Vector2 enemyIntent(PositionComponent actor, EnemyKind kind) =>
       EnemyTactics.intent(
         kind,
@@ -590,6 +740,7 @@ class RegunGame extends FlameGame
       );
 
   bool isAirborneActor(PositionComponent actor) =>
+      actor is ArietBoss ||
       (actor is ArenaEnemy && actor.airborne) ||
       (actor is WalkerBoss &&
           actor.prepared &&
@@ -616,7 +767,11 @@ class RegunGame extends FlameGame
     }
     if (actor is CombatEnemy && !actor.isBoss && avoidCrowd) {
       final boss = activeBoss;
-      final yielding = boss == null || !boss.isLoaded || boss.isRemoving
+      final yielding =
+          boss == null ||
+              !boss.isLoaded ||
+              boss.isRemoving ||
+              isAirborneActor(boss)
           ? null
           : EnemyTactics.yieldToBoss(
               actor.position,
@@ -729,6 +884,7 @@ class RegunGame extends FlameGame
     Vector2 target,
     double radius, {
     bool crushMinions = false,
+    bool slide = false,
   }) => crowdOccupancy.move(
     actor,
     target - actor.position,
@@ -736,7 +892,7 @@ class RegunGame extends FlameGame
     constrain: (point) {
       _constrainEnemyMove(actor, point, max(radius, crowdRadius(actor)));
     },
-    slide: false,
+    slide: slide,
     reserve: !isAirborneActor(actor),
     blocks: isAirborneActor(actor)
         ? (other) => other is CombatEnemy && other.isBoss
@@ -837,7 +993,7 @@ class RegunGame extends FlameGame
     WeaponReaction? reaction,
     Vector2? direction,
   }) {
-    if (enemy is WalkerRocketTarget) {
+    if (enemy is ShootableOrdnance) {
       if (gameState.gameplayState != GameplayState.playing || inputBlocked) {
         return false;
       }
@@ -1306,6 +1462,7 @@ class RegunGame extends FlameGame
     _spawnWarnings.clear();
     activeBoss = null;
     walkerCandidate = null;
+    arietCandidate = null;
     _bossDamageTaken.clear();
     _bossAttacks.clear();
     weakPoints.clear();
@@ -1376,6 +1533,7 @@ class RegunGame extends FlameGame
     );
     layoutControls();
     if (walkerTrial && loadout.training) _placeWalker();
+    if (arietTrial && loadout.training) _placeAriet();
     revision.value++;
     resumeEngine();
   }
@@ -1914,7 +2072,8 @@ class RegunGame extends FlameGame
   bool registerEnemy(PositionComponent enemy) {
     if (isRetiredActor(enemy) ||
         (loadout.training && bossRush) ||
-        (walkerTrial && enemy is! WalkerBoss)) {
+        (walkerTrial && enemy is! WalkerBoss) ||
+        (arietTrial && enemy is! ArietBoss && enemy is! ArietEscort)) {
       return false;
     }
     if (!_enemies.contains(enemy) && _enemies.length >= maxEnemies) {
@@ -1941,7 +2100,7 @@ class RegunGame extends FlameGame
   }
 
   void _spawnEnemy(PositionComponent enemy) {
-    if (walkerTrial || (loadout.training && bossRush)) return;
+    if (mechanicalTrialActive || (loadout.training && bossRush)) return;
     if (gameState.gameplayState != GameplayState.playing) return;
     _enemies.removeWhere((entity) => entity.isRemoving || entity.isRemoved);
     if (_enemies.length >= maxEnemies) return;
@@ -2013,6 +2172,11 @@ class RegunGame extends FlameGame
     bool mechanicalComplete = false,
   }) {
     if (enemy.parent != world) return;
+    if (enemy is ArietBoss || enemy is ArietEscort) {
+      _enemies.remove(enemy);
+      crowdOccupancy.forget(enemy);
+      return;
+    }
     if (enemy is WalkerBoss && !mechanicalComplete) {
       // Keep the encounter registered until its warned mechanical destruction ends.
       _enemies.remove(enemy);
@@ -2082,6 +2246,8 @@ class RegunGame extends FlameGame
   }
 
   String enemyId(PositionComponent enemy) => switch (enemy) {
+    ArietBoss() => 'ariet',
+    ArietEscort() => 'arietEscort',
     WalkerBoss() => 'walker',
     EnemyComponent() => 'scorpion',
     Enemy2Component() => 'mummy',
@@ -2090,6 +2256,47 @@ class RegunGame extends FlameGame
     BossEncounter() => (enemy as BossEncounter).kind.name,
     _ => 'unknown',
   };
+
+  void _retireMechanical() {
+    final ariet = arietCandidate;
+    arietCandidate = null;
+    ariet?.retire();
+    ariet?.removeFromParent();
+    _retireWalker();
+    mechanicalTrial = null;
+  }
+
+  void _placeAriet() {
+    for (final offset in [
+      Vector2(650, -120),
+      Vector2(-650, -120),
+      Vector2(0, -650),
+      Vector2(0, 650),
+    ]) {
+      final at = myPlayer.position + offset;
+      constrainActor(at, 230);
+      if (at.distanceTo(myPlayer.position) < 400) continue;
+      if (geometry.solids.any((r) => r.inflate(230).contains(at.toOffset()))) {
+        continue;
+      }
+      final actor = ArietBoss(position: at);
+      arietCandidate = actor;
+      world.add(actor);
+      return;
+    }
+    // Keep the run usable if a caller has filled every safe arrival footprint.
+    mechanicalTrial = null;
+  }
+
+  void practiceAriet() {
+    if (!loadout.training) return;
+    startBossRush();
+    bossRush = false;
+    bossRushWait = 0;
+    mechanicalTrial = MechanicalTrial.ariet;
+    _placeAriet();
+    revision.value++;
+  }
 
   void _placeWalker() {
     for (final offset in [
@@ -2135,7 +2342,7 @@ class RegunGame extends FlameGame
 
   void practiceBoss(BossKind kind) {
     if (!loadout.training) return;
-    _retireWalker();
+    _retireMechanical();
     bossRush = false;
     _retirePracticeBosses();
     resumeGame();
@@ -2245,7 +2452,7 @@ class RegunGame extends FlameGame
 
   void startBossRush() {
     if (!loadout.training) return;
-    _retireWalker();
+    _retireMechanical();
     _retirePracticeBosses();
     for (final warning in _spawnWarnings.toList()) {
       warning.cancel();
@@ -2779,7 +2986,7 @@ class RegunGame extends FlameGame
       _advanceRush(dt);
       final reinforce = director.advance(dt);
       if (loadout.training) {
-        if (!bossRush && !reviewControlledSpawns && !walkerTrial) {
+        if (!bossRush && !reviewControlledSpawns && !mechanicalTrialActive) {
           _advanceTrainingCrowd(dt);
         }
       } else if (reinforce && !bossRush) {
@@ -2829,7 +3036,7 @@ class RegunGame extends FlameGame
     if (gameState.gameplayState == GameplayState.playing &&
         loadout.arena == ArenaType.breach &&
         !bossRush &&
-        !walkerTrial &&
+        !mechanicalTrialActive &&
         !_supplyArtLoading) {
       supplyDrops.advance(
         dt,
@@ -2851,7 +3058,7 @@ class RegunGame extends FlameGame
       );
     }
     _syncSupplyArt(supplyDrops.drop != null && !bossRush);
-    final targetZoom = bosses.isNotEmpty || walkerTrial ? .88 : 1.0;
+    final targetZoom = bosses.isNotEmpty || mechanicalTrialActive ? .88 : 1.0;
     camera.viewfinder.zoom = preferences.reducedMotion
         ? targetZoom
         : camera.viewfinder.zoom +
@@ -3115,6 +3322,7 @@ class RegunGame extends FlameGame
     for (final robot in world.children.whereType<WalkerBoss>()) {
       robot.assets.dispose();
     }
+    arietCandidate?.retire();
     // Replace the run world, including components that are still loading and
     // are not yet visible in world.children. They must never enter a new run.
     world = World();
@@ -3194,6 +3402,7 @@ class RegunGame extends FlameGame
     for (final robot in world.children.whereType<WalkerBoss>()) {
       robot.assets.dispose();
     }
+    arietCandidate?.retire();
     _phaseSubscription?.close();
     confirmationHolding.dispose();
     damageFeedback.healthLost.dispose();
@@ -3205,3 +3414,6 @@ class RegunGame extends FlameGame
     super.onRemove();
   }
 }
+
+/// One exclusive development encounter owner in a Training visit.
+enum MechanicalTrial { walker, ariet }

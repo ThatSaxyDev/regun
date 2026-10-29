@@ -1,0 +1,4 @@
+Ariet + ONE shared Walker study atlas: 9087624 RGBA bytes
+Shared world cache INCLUDING leased Rook: 22802944 RGBA bytes
+Combined: 31890568 bytes; envelope 33554432 bytes
+Floors borrowed. Not process/GPU usage or physical-device performance proof.

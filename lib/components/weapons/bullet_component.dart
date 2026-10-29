@@ -175,33 +175,17 @@ class BulletComponent extends PositionComponent
     // Sweep in travel order and stop at walls; callback order must not let a
     // fast round hit a farther body or a target behind a column first.
     _bouncedThisFrame = false;
-    final targets =
-        game.projectileTargets.where((enemy) {
-          if (_hitEnemies.contains(game.projectileOwner(enemy))) return false;
-          final radius = game.enemyRadius(enemy) + bulletRadius;
-          return segmentDistanceSquared(enemy.position, before, position) <=
-                  radius * radius &&
-              !game.segmentBlocked(before, enemy.position);
-        }).toList()..sort(
-          (a, b) =>
-              contactDistance(
-                a.position,
-                before,
-                position,
-                game.enemyRadius(a) + bulletRadius,
-              ).compareTo(
-                contactDistance(
-                  b.position,
-                  before,
-                  position,
-                  game.enemyRadius(b) + bulletRadius,
-                ),
-              ),
-        );
+    final contacts = <PositionComponent, double>{};
+    for (final enemy in game.projectileTargets) {
+      if (_hitEnemies.contains(game.projectileOwner(enemy))) continue;
+      final contact = game.targetContact(enemy, before, position, bulletRadius);
+      if (contact != null) contacts[enemy] = contact;
+    }
+    final targets = contacts.keys.toList()
+      ..sort((a, b) => contacts[a]!.compareTo(contacts[b]!));
     for (final enemy in targets) {
       if (isRemoving) break;
-      final radius = game.enemyRadius(enemy) + bulletRadius;
-      final contact = contactDistance(enemy.position, before, position, radius);
+      final contact = contacts[enemy]!;
       _hit(
         enemy,
         travelled: travelBefore + contact,
