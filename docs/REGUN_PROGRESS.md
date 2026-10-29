@@ -2371,3 +2371,27 @@ retains `onlinePlay:true`, confirming the capability rollout beyond the source p
 All co-op clients need capability11 for Lodestar to enter the bag. No test-only
 stage/hit reducers are shipped. Live authenticated end-to-end play/WAN and physical
 review still belong to creator testing. Client source remains uncommitted.
+
+
+## Minion navigation checkpoint and implementation plan —29 October2026
+
+Creator requested committing the complete current client before an end-to-end
+movement repair. Checkpoint `768f1d9` includes all prior Lodestar admission,
+art/presentation/checkpoint/online changes and the reproducible minion movement
+investigation. Native source remains1.0.0+28. The sibling server is clean at
+`0516da57de14a96e9cb5b7aadc1c7ecd911a94a3`.
+
+Fresh baseline verification: client analyzer clean,973 tests passed/5 intentional
+skips; server typecheck,216 tests and module build passed. Logs/summary:
+`docs/validation/minion-navigation-baseline-2026-10-29/`. No new device test,
+distribution, server publication or physical acceptance is implied by these runs.
+
+`docs/MINION_NAVIGATION_IMPLEMENTATION_PLAN.md` now specifies the full repair:
+shared navigation frames and consistent cover routing, committed crowd bypasses,
+predictive candidate velocities with hard swept occupancy, phase-aware multi-boss
+footprints, role/presentation/save compatibility, and paired native/server
+validation and rollout. It includes Lodestar clipped sections/inert remains,
+Ariet/Walker ground layers, target authority, active-time lifecycles, bounded work,
+explicit failure scenarios and measurable acceptance gates. Proposed thresholds
+are starting engineering targets, not player-approved balance. The navigation
+repair itself is not implemented by this planning pass.

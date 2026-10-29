@@ -143,3 +143,10 @@ flutter analyze --no-pub tool/crowd_movement_probe_test.dart tool/crowd_native_p
 ```
 
 Final combined run: **41 passed**; analyzer reports no issues for both diagnostic tools. Focused native/routing/crowd/escort run: **39 passed**. Shared diagnostic run: **2 passed**, including twelve pursuit scenarios plus the boss boundary case. These diagnostic passes mean execution completed and results were recorded; they do not label the reproduced crowd behavior as correct. Full project verification, server runtime tests and physical-device testing were not run for this read-only movement investigation.
+
+
+## Implementation handoff
+
+The complete proposed repair, checkpoint revisions, ordered tasks and acceptance
+criteria are in [MINION_NAVIGATION_IMPLEMENTATION_PLAN.md](MINION_NAVIGATION_IMPLEMENTATION_PLAN.md).
+The planning pass does not implement or certify the navigation repair.

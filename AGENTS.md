@@ -1231,3 +1231,18 @@ retains `onlinePlay:true`, confirming the capability rollout beyond the source p
 All co-op clients need capability11 for Lodestar to enter the bag. No test-only
 stage/hit reducers are shipped. Live authenticated end-to-end play/WAN and physical
 review still belong to creator testing. Client source remains uncommitted.
+
+
+## Minion navigation repair plan (2026-10-29)
+
+Before changing enemy/crowd/boss avoidance, read
+`docs/MINION_MOVEMENT_INVESTIGATION.md` and
+`docs/MINION_NAVIGATION_IMPLEMENTATION_PLAN.md`. The diagonal mixed-pack problem
+is reproduced with real mummies around one scorpion; old overlap/animation fixes
+do not establish that navigation is repaired. The plan is not yet implemented.
+Checkpoint768f1d9 preserves the full pre-navigation client; server baseline is
+0516da57de14a96e9cb5b7aadc1c7ecd911a94a3. Preserve hard swept occupancy, role
+attack timings, current speeds/population admission and active-time holds. New
+boss avoidance must consume actual grounded shapes/phases, including Lodestar's
+clipped sections and retained inert spine, rather than a root-circle substitute.
+Keep native/authoritative-server contracts paired and physical acceptance explicit.
