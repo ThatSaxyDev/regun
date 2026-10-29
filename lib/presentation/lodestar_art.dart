@@ -9,19 +9,29 @@ import 'package:regun/systems/lodestar/lodestar_rig.dart';
 /// One lease per route/encounter, floors borrowed from RegunArt. Pending decodes
 /// cannot resurrect a disposed owner. One atlas shared by all six carriages.
 class LodestarAssets {
-  ui.Image? sheet, arsenal;
+  ui.Image? sheet, arsenal, excavation, warnings, excavationFoundry;
+  final foundryNames = <String>{};
+  final warningNames = <String>{};
+  final groundNames = <String>{};
   final weaponNames = <String>{};
-  ui.Image? imageFor(String name) =>
-      weaponNames.contains(name) ? arsenal : sheet;
+  ui.Image? imageFor(String name) => foundryNames.contains(name)
+      ? excavationFoundry
+      : warningNames.contains(name)
+      ? warnings
+      : groundNames.contains(name)
+      ? excavation
+      : weaponNames.contains(name)
+      ? arsenal
+      : sheet;
   final Map<String, ui.Rect> rects = {};
   final Map<String, ui.Image> floors = {};
   Future<void>? _pending;
   bool disposed = false;
   bool get ready => !disposed && sheet != null && floors.length == 2;
-  int get decodedBytes => [sheet, arsenal].whereType<ui.Image>().fold(
-    0,
-    (sum, image) => sum + image.width * image.height * 4,
-  );
+  int get decodedBytes =>
+      [sheet, arsenal, excavation, warnings, excavationFoundry]
+          .whereType<ui.Image>()
+          .fold(0, (sum, image) => sum + image.width * image.height * 4);
   Future<void> load({bool combat = false}) => _pending ??= _load(combat);
   Future<void> _load(bool combat) async {
     if (disposed) return;
@@ -101,6 +111,57 @@ class LodestarAssets {
           );
         }
       }
+      if (combat) {
+        for (final atlas in ['excavation', 'warnings', 'excavation_foundry']) {
+          final meta = jsonDecode(
+            await rootBundle.loadString(
+              'assets/art/workshop/lodestar_${atlas}_v01.json',
+            ),
+          ) as Map;
+          final bytes = await rootBundle.load(
+            'assets/art/workshop/lodestar_${atlas}_v01.png',
+          );
+          if (disposed) return;
+          final codec = await ui.instantiateImageCodec(
+            bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
+            targetWidth: 384,
+            allowUpscaling: false,
+          );
+          ui.Image image;
+          try {
+            image = (await codec.getNextFrame()).image;
+          } finally {
+            codec.dispose();
+          }
+          if (disposed) {
+            image.dispose();
+            return;
+          }
+          if (atlas == 'excavation_foundry') {
+            excavationFoundry = image;
+          } else if (atlas == 'excavation') {
+            excavation = image;
+          } else {
+            warnings = image;
+          }
+          final ratio = image.width / (meta['sourceSize'][0] as num);
+          for (final e in (meta['parts'] as Map).entries) {
+            final r = (e.value['rect'] as List).cast<num>();
+            (atlas == 'excavation_foundry'
+                    ? foundryNames
+                    : atlas == 'excavation'
+                    ? groundNames
+                    : warningNames)
+                .add(e.key as String);
+            rects[e.key as String] = ui.Rect.fromLTWH(
+              r[0] * ratio,
+              r[1] * ratio,
+              r[2] * ratio,
+              r[3] * ratio,
+            );
+          }
+        }
+      }
       await RegunArt.shared.load();
       if (disposed) return;
       for (final name in ['breach', 'foundry']) {
@@ -116,6 +177,15 @@ class LodestarAssets {
     disposed = true;
     sheet?.dispose();
     sheet = null;
+    excavationFoundry?.dispose();
+    excavationFoundry = null;
+    foundryNames.clear();
+    warnings?.dispose();
+    warnings = null;
+    warningNames.clear();
+    excavation?.dispose();
+    excavation = null;
+    groundNames.clear();
     arsenal?.dispose();
     arsenal = null;
     weaponNames.clear();

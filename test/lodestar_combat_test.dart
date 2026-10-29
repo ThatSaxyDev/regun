@@ -249,4 +249,92 @@ void main() {
     expect(f.shots, isEmpty);
     expect(f.mines, isEmpty);
   });
+  test('terminal core explosion is visible once, paused by active clock and never damages player', () {
+    final sounds = <String>[];
+    var hits = 0;
+    final f = LodestarCombat(
+      rig: LodestarRig(),
+      bounds: const Rect.fromLTRB(-2000, -1500, 2000, 1500),
+      clear: (_, __, ___) => true,
+      poseLegal: (_) => true,
+      hurt: (_, __) {
+        hits++;
+        return true;
+      },
+      signal: sounds.add,
+    );
+    surface(f);
+    for (final s in [
+      LodestarSection.accelerator,
+      LodestarSection.mortars,
+      LodestarSection.head,
+    ]) {
+      f.localDamage(f.sections.primary(s, 1000, LodestarHitLedger()));
+    }
+    step(f, 1.5);
+    expect(f.bursts.any((b) => b.blast && b.radius == 205), isFalse);
+    f.paused = true;
+    step(f, 2);
+    expect(f.age, closeTo(1.5, .01));
+    f.paused = false;
+    step(f, .2);
+    expect(f.bursts.any((b) => b.blast && b.radius == 205), isTrue);
+    expect(sounds.where((s) => s == 'blast.wav'), hasLength(1));
+    final saved = f.checkpoint();
+    final restored = fight();
+    restored.restore(saved, continueRun: true);
+    step(restored, 3);
+    expect(restored.finished, isTrue);
+    expect(hits, 0);
+    step(f, 3);
+    expect(sounds.where((s) => s == 'blast.wav'), hasLength(1));
+  });
+  test('standing still faces sustained attacks without chasing the boss', () {
+    var hits = 0;
+    final f = fight(
+      hurt: (_, __) {
+        hits++;
+        return true;
+      },
+    );
+    surface(f);
+    f.player = const Offset(200, 250);
+    step(f, 30);
+    expect(
+      f.releases.values.fold<int>(0, (a, b) => a + b),
+      greaterThanOrEqualTo(10),
+    );
+    expect(hits, greaterThanOrEqualTo(3));
+  });
+  test('optional presentation checkpoint values are validated and older saves remain readable', () {
+    final f = fight();
+    surface(f);
+    final raw = f.checkpoint();
+    expect(LodestarCombat.validCheckpoint(raw), isTrue);
+    expect(
+      LodestarCombat.validCheckpoint({
+        ...raw,
+        'releasedAt': {'unknown': 1},
+      }),
+      isFalse,
+    );
+    expect(
+      LodestarCombat.validCheckpoint({
+        ...raw,
+        'deathMouth': [double.nan, 0],
+      }),
+      isFalse,
+    );
+    expect(
+      LodestarCombat.validCheckpoint({...raw, 'shardYaw': double.infinity}),
+      isFalse,
+    );
+    final old = Map<String, dynamic>.of(raw)
+      ..remove('releasedAt')
+      ..remove('deathMouth')
+      ..remove('deathSinking')
+      ..remove('shardYaw');
+    expect(LodestarCombat.validCheckpoint(old), isTrue);
+    fight().restore(old, continueRun: true);
+  });
 }

@@ -1,0 +1,18 @@
+{
+  "flutterTests": 976,
+  "intentionalSkips": 5,
+  "serverTests": 220,
+  "serverCommit": "3530aa1",
+  "release": "1.0.0+28",
+  "physicalAcceptance": false,
+  "assetSha256": {
+    "assets/art/workshop/lodestar_excavation_v01.png": "5fe2e6be319e55c9ba45ad387878f69555bafe971c2229208cae04595ac98d78",
+    "assets/art/workshop/lodestar_excavation_foundry_v01.png": "cc4d9868099a681c5229c48f62968b0d7f93d4c546a797362ad15fb7f7c401c3",
+    "assets/art/workshop/lodestar_warnings_v01.png": "e4f99fbc711dddb3dea3360d47fb14e192a4bf1c5e6db006a1ff07ddc3a5d781",
+    "assets/art/workshop/lodestar_arsenal_v01.png": "e7e6b2a2c0b1c817ca51563aae68b9f115358b16bab04c8544324e47d0c07d7d",
+    "assets/art/workshop/lodestar_parts_v01.png": "3501ae5fe285862ebdadf5ee4adea7951ad2e6e454b538b9417a74728fcfa970"
+  },
+  "iosBuild": "passed",
+  "phoneInstall": "passed: retry after connection/unlock; Apple database sequence8408",
+  "publicCapability12": true
+}

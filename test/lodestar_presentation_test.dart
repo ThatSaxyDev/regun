@@ -22,9 +22,9 @@ void main() {
         final assets = LodestarAssets();
         await assets.load(combat: true);
         try {
-          final dir = Directory('docs/validation/lodestar-training-2026-10-29')
+          final dir = Directory('docs/validation/lodestar-pressure-2026-10-29')
             ..createSync(recursive: true);
-          final f = LodestarCombat(
+          var f = LodestarCombat(
             rig: LodestarRig(head: const Offset(260, 0)),
             bounds: const Rect.fromLTRB(-2000, -1500, 2000, 1500),
             clear: (_, __, ___) => true,
@@ -36,9 +36,14 @@ void main() {
           f.depths.fillRange(0, 6, 0);
           f.player = const Offset(300, 220);
           final art = LodestarBattleArt(assets);
-          Future<void> capture(String name, ArenaType arena) async {
+          Future<void> capture(
+            String name,
+            ArenaType arena, {
+            Offset? focus,
+          }) async {
             final rec = ui.PictureRecorder(),
                 c = Canvas(rec)..translate(750, 350);
+            if (focus != null) c.translate(-focus.dx, -focus.dy);
             final floor = assets.floors[arena.name]!;
             for (var x = -1536.0; x < 1536; x += 768) {
               for (var y = -768.0; y < 768; y += 768) {
@@ -89,13 +94,44 @@ void main() {
             await capture('mortar-flight', arena);
           }
           f.shots.clear();
-          f.phase = LodestarPhase.entry;
-          f.entry = f.rig.poses.first.socket(const Offset(120, 0));
-          f.depths.setAll(0, [.8, .4, .05, 0, 0, 0]);
-          for (final arena in ArenaType.values) {
-            await capture('burrow-mask', arena);
+          expect(f.stage(LodestarMove.burrow), isTrue);
+          while (f.phase != LodestarPhase.entry) {
+            f.advance(1 / 120);
           }
-          f.depths.fillRange(0, 6, 0);
+          for (final t in [.1, .35, .65, 1.0, 1.35]) {
+            while (f.phase == LodestarPhase.entry && f.age < t) {
+              f.advance(1 / 120);
+            }
+            for (final arena in ArenaType.values) {
+              await capture('burrow-entry-$t', arena, focus: f.entry);
+            }
+          }
+          while (f.phase != LodestarPhase.exitWarning) {
+            f.advance(1 / 120);
+          }
+          for (final t in [.1, .5, .9]) {
+            while (f.age < t) {
+              f.advance(1 / 120);
+            }
+            for (final arena in ArenaType.values) {
+              await capture('burrow-warning-$t', arena, focus: f.exit);
+            }
+          }
+          while (f.phase != LodestarPhase.emerging) {
+            f.advance(1 / 120);
+          }
+          for (final t in [.05, .3, .65, 1.0, 1.35]) {
+            while (f.phase == LodestarPhase.emerging && f.age < t) {
+              f.advance(1 / 120);
+            }
+            for (final arena in ArenaType.values) {
+              await capture('burrow-emerge-$t', arena, focus: f.exit);
+            }
+          }
+          while (f.depths.any((d) => d > 0)) {
+            f.advance(1 / 120);
+          }
+          f.rig = LodestarRig(head: const Offset(260, 0));
           f.phase = LodestarPhase.travel;
           f.localDamage(
             f.sections.primary(
@@ -161,8 +197,10 @@ void main() {
           f.localDamage(
             f.sections.primary(LodestarSection.head, 80, LodestarHitLedger()),
           );
-          for (final time in [0.0, .65, 1.6, 3.2, 3.9]) {
-            f.age = time;
+          for (final time in [0.0, .35, .9, 1.8, 2.1, 3.2, 3.9]) {
+            while (f.age + 1e-8 < time) {
+              f.advance(1 / 120);
+            }
             for (final arena in ArenaType.values) {
               await capture('shutdown-$time', arena);
             }

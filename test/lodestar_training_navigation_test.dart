@@ -1,3 +1,4 @@
+import 'package:flame/components.dart';
 import 'package:regun/systems/lodestar/lodestar_combat.dart';
 import 'package:regun/systems/lodestar/lodestar_rig.dart';
 
@@ -109,8 +110,12 @@ void main() {
       await tester.runAsync(() async {
         final b = await ready(g);
         await advance(g, 4.5);
-        var eligible = 0, moving = 0;
+        var eligible = 0, moving = 0, surfaceFrames = 0, nearFrames = 0;
+        var stall = 0.0, maxStall = 0.0;
         final phases = <LodestarPhase>{};
+        final trace = <Map<String, dynamic>>[];
+        final attempts = <String, int>{};
+        var prior = b.fight.phase;
         for (var n = 0; n < 1200; n++) {
           final t = n * .025;
           g.movementJoystick.delta.setValues(
@@ -122,15 +127,82 @@ void main() {
           await g.ready();
           phases.add(b.fight.phase);
           if ([
+                LodestarPhase.travel,
+                LodestarPhase.recovery,
+                LodestarPhase.warning,
+                LodestarPhase.firing,
+              ].contains(b.fight.phase) &&
+              b.fight.move != LodestarMove.burrow) {
+            surfaceFrames++;
+            if (b.fight.rig.poses
+                .take(3)
+                .any(
+                  (p) =>
+                      (p.position - g.myPlayer.position.toOffset()).distance <
+                      500,
+                )) {
+              nearFrames++;
+            }
+          }
+          if (prior != b.fight.phase &&
+              b.fight.phase == LodestarPhase.warning) {
+            attempts.update(b.fight.move.name, (v) => v + 1, ifAbsent: () => 1);
+          }
+          prior = b.fight.phase;
+          if (n % 20 == 0) {
+            trace.add({
+              't': t,
+              'phase': b.fight.phase.name,
+              'legal': b.fight.poseLegal(b.fight.rig.poses),
+              'requested': b.fight.rig.requestedSpeed,
+              'speed': b.fight.rig.speed,
+              'rejects': b.fight.rig.rejectedSteps,
+              'blocked': [
+                for (final shape in b.fight.shapes(b.fight.rig.poses))
+                  if (!b.clear(shape.a, shape.b, shape.radius + .4))
+                    [
+                      shape.a.dx,
+                      shape.a.dy,
+                      shape.b.dx,
+                      shape.b.dy,
+                      shape.radius,
+                    ],
+              ],
+              'move': b.fight.move.name,
+              'p': [g.myPlayer.position.x, g.myPlayer.position.y],
+              'stations': [
+                for (final p in b.fight.rig.poses)
+                  {
+                    'at': [p.position.dx, p.position.dy],
+                    'visible': g.camera.visibleWorldRect
+                        .deflate(50)
+                        .contains(p.position),
+                    'distance':
+                        (p.position - g.myPlayer.position.toOffset()).distance,
+                  },
+              ],
+              'nearFraction': nearFrames / surfaceFrames,
+              'longestStall': maxStall,
+              'attempts': attempts,
+              'releases': b.fight.releases.map((k, v) => MapEntry(k.name, v)),
+            });
+          }
+          if ([
             LodestarPhase.travel,
             LodestarPhase.recovery,
           ].contains(b.fight.phase)) {
             eligible++;
-            if (b.fight.rig.speed > 40) moving++;
+            if (b.fight.rig.speed > 40) {
+              moving++;
+              stall = 0;
+            } else {
+              stall += .025;
+              maxStall = math.max(maxStall, stall);
+            }
           }
           expect(LodestarRig.connected(b.fight.rig.poses), isTrue);
         }
-        final dir = Directory('docs/validation/lodestar-training-2026-10-29')
+        final dir = Directory('docs/validation/lodestar-pressure-2026-10-29')
           ..createSync(recursive: true);
         File('${dir.path}/foundry-pressure.json').writeAsStringSync(
           jsonEncode({
@@ -138,6 +210,9 @@ void main() {
             'eligibleFrames': eligible,
             'movingFrames': moving,
             'movingFraction': moving / eligible,
+            'nearFraction': nearFrames / surfaceFrames,
+            'longestStall': maxStall,
+            'attempts': attempts,
             'releases': {
               for (final entry in b.fight.releases.entries)
                 entry.key.name: entry.value,
@@ -145,7 +220,20 @@ void main() {
             'phases': phases.map((p) => p.name).toList(),
           }),
         );
+        File(
+          '${dir.path}/pressure-trace.json',
+        ).writeAsStringSync(jsonEncode({'attempts': attempts, 'trace': trace}));
         expect(moving / eligible, greaterThan(.85));
+        expect(nearFrames / surfaceFrames, greaterThan(.6));
+        expect(maxStall, lessThan(.5));
+        expect(
+          b.fight.releases[LodestarMove.shards] ?? 0,
+          greaterThanOrEqualTo(4),
+        );
+        expect(
+          b.fight.releases[LodestarMove.mortars] ?? 0,
+          greaterThanOrEqualTo(6),
+        );
         expect(
           b.fight.releases.values.fold<int>(0, (a, b) => a + b),
           greaterThan(5),

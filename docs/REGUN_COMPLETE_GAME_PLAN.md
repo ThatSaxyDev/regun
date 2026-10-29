@@ -645,3 +645,37 @@ The product is complete when the full experience holds together on a phone. The 
 The creator has requested native Apple/Google monetization research and expressed a preference for SpacetimeDB, with multiplayer as a future update. The detailed successor plan is [REGUN_MONETIZATION_AND_BACKEND_PLAN.md](REGUN_MONETIZATION_AND_BACKEND_PLAN.md); its [source record](research/MONETIZATION_SOURCES_2026-10-19.md) distinguishes observed requirements from proposals.
 
 This extends the roadmap; it does not mean billing, accounts or multiplayer are implemented. Keep the existing free earned unlocks, offline solo game and shotgun/slow-motion identity. Prototype Flutter-to-SpacetimeDB compatibility before migrating paid state; build permanent content purchases first, then durable downed/continue handling and optional rewarded ads, followed by authoritative co-op. The current death settlement must be refactored before adding a paid revive. Do not confuse current local Scrap with a verified cash-purchased wallet.
+
+
+## Lodestar pressure, excavation and ending correction —29 October2026
+
+Release remains1.0.0+28. Lodestar now cruises at310/340, keeps280 during mounted
+windups, uses a .25s travel gap and .55/.4s quiet recovery. Short validated forward
+escapes and bounded reverse repair cover pinning; predictive attacks sample actual
+player movement. Mortars commit legal landings, shards honor their visible release
+and mines test useful nearby placements. Feeder shell transfer, charge lights,
+recoil, flashes and the loaded projector make weapon intent visible.
+
+Burrowing uses fixed world-plane openings with opaque, physically clipped sections
+and matching collision/occupancy masks. New original stone and torn-iron excavation
+atlases replace the sliding ember patch; exit dust is excavation rather than fire.
+Entry and emergence run at480 with carried emergence momentum; exits face through
+the committed player route. The entry mound stays planted. New distressed physical
+warning art replaces the old ground treatment.
+
+Fatal head damage still disarms every segment immediately. The cascade now emits
+real cosmetic section blasts, then one radius205 core explosion and spine blasts
+at1.65 active seconds. It cannot harm the player. Once-only rewards, pause, saved
+partial-burial masks, Reduced Motion and4.4s shutdown completion remain. Head80HP
+and the two-weapon armor opening remain. Boss action subtitles remain removed.
+
+Native analysis and976 tests pass (five intentional skips); server220 tests,
+typecheck and build pass. Disposable three-player transport verifies capability12
+and replicated final explosion. Public discovery is `excavation_bosses`; older
+rooms omit Lodestar. Wire-v1/legacy saves remain readable with optional revision2
+fields. Foundry30s trace records98.14% movement on eligible frames,94.65% surface
+frames with a weapon within500, .175s longest travel/recovery stall and13 releases.
+Selected art kit28.67MiB stays below32MiB. Evidence and staged Training review:
+`docs/validation/lodestar-pressure-2026-10-29/`. The review uses protected stationary
+Training and staged lethal hits; it is not physical performance or fairness proof.
+General minion navigation implementation is outside this correction.

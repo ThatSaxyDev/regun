@@ -54,10 +54,15 @@ class LodestarMine {
 }
 
 class LodestarBurst {
-  LodestarBurst(this.position, this.radius, {this.blast = true});
+  LodestarBurst(
+    this.position,
+    this.radius, {
+    this.blast = true,
+    this.excavation = false,
+  });
   final Offset position;
   final double radius;
-  final bool blast;
+  final bool blast, excavation;
   double age = 0;
 }
 
@@ -93,7 +98,8 @@ class LodestarCombat {
   double course = 0, _startTravel = 0, _planClock = 0, _reverseFor = 0;
   int _sequence = 0, _released = 0, _turn = 0;
   bool _eruptionDamage = true, paused = false;
-  bool _withdraw = false;
+  bool _withdraw = false, _deathSinking = false;
+  Offset _deathMouth = Offset.zero;
   double _stalled = 0;
   final depths = List<double>.filled(6, 1);
   final shots = <LodestarShot>[],
@@ -106,6 +112,17 @@ class LodestarCombat {
   final releases = <LodestarMove, int>{};
   double coreOpenedAt = -1000;
   static const shutdownDuration = 4.4;
+  static const terminalExplosionAt = 1.65;
+  final releasedAt = <LodestarMove, double>{};
+  double weaponKick(LodestarMove m) =>
+      (1 - (elapsed - (releasedAt[m] ?? -1000)) / .16).clamp(0, 1);
+  bool muzzleLit(LodestarMove m) => elapsed - (releasedAt[m] ?? -1000) < .09;
+  double get attackSpeed =>
+      move == LodestarMove.bite || move == LodestarMove.tail
+      ? 180
+      : move == LodestarMove.burrow
+      ? 0
+      : 80;
   final _shutdownParts = List<bool>.filled(6, false);
   bool shutdownIntact(LodestarSection s) => _shutdownParts[s.index];
   double collapse(LodestarSection s) =>
@@ -196,9 +213,19 @@ class LodestarCombat {
     if (!targets)
       for (var i = 0; i < 5; i++)
         if (depths[i] < 1 && depths[i + 1] < 1)
-          TargetCapsule(poses[i].rear, poses[i + 1].front, 8),
+          depths[i] > 0 || depths[i + 1] > 0
+              ? ClippedTargetCapsule(
+                  poses[i].rear,
+                  poses[i + 1].front,
+                  8,
+                  origin: mouth,
+                  normal: unit(course) * (sinking ? 1.0 : -1.0),
+                  limit: 0,
+                )
+              : TargetCapsule(poses[i].rear, poses[i + 1].front, 8),
   ];
-  bool get sinking => phase == LodestarPhase.entry || _withdraw;
+  bool get sinking =>
+      defeated ? _deathSinking : phase == LodestarPhase.entry || _withdraw;
   double maskCut(double depth) =>
       (sinking ? 1 - 2 * depth : 2 * depth - 1) * 120;
   Iterable<TargetCapsule> partShapes(LodestarPose p) sync* {
@@ -216,10 +243,9 @@ class LodestarCombat {
         yield shape;
         continue;
       }
-      final normal = unit(p.yaw) * (sinking ? 1.0 : -1.0),
-          cut = maskCut(depth) * (sinking ? 1.0 : -1.0);
+      final normal = unit(course) * (sinking ? 1.0 : -1.0), cut = 0.0;
       double projection(Offset q) =>
-          (q - p.position).dx * normal.dx + (q - p.position).dy * normal.dy;
+          (q - mouth).dx * normal.dx + (q - mouth).dy * normal.dy;
       if (math.min(projection(shape.a), projection(shape.b)) - shape.radius >
           cut) {
         continue;
@@ -228,7 +254,7 @@ class LodestarCombat {
         shape.a,
         shape.b,
         shape.radius,
-        origin: p.position,
+        origin: mouth,
         normal: normal,
         limit: cut,
       );
@@ -263,9 +289,22 @@ class LodestarCombat {
       for (final s in LodestarSection.values) {
         final start = s.index * .22;
         if (age - dt <= start && age >= start && depths[s.index] < 1) {
-          _burst(rig.poses[s.index].position, 55, blast: false);
+          _burst(rig.poses[s.index].position, 72);
           if (s.index > 0) signal('supply_break.wav');
         }
+      }
+      if (age - dt < terminalExplosionAt && age >= terminalExplosionAt) {
+        final head = rig.poses.first.position;
+        final mouth =
+            exit != Offset.zero &&
+                (head - exit).distance < (head - entry).distance
+            ? exit
+            : entry;
+        _burst(depths.first > .7 ? mouth : head, 205);
+        for (final i in [2, 4]) {
+          if (depths[i] < .7) _burst(rig.poses[i].position, 150);
+        }
+        signal('blast.wav');
       }
       if (age >= shutdownDuration) _phase(LodestarPhase.finished);
       return;
@@ -307,10 +346,12 @@ class LodestarCombat {
           heading: course,
           acceptPose: rig.acceptPose,
         );
+        rig.maximumSpeed = 480;
+        rig.primeSpeed(480);
         _startTravel = rig.signedTravel;
         depths.fillRange(0, 6, 1);
         signal('supply_land.wav');
-        _burst(exit, 150);
+        _burst(exit, 150, blast: false, excavation: true);
         if (_eruptionDamage &&
             (player - exit).distance < 150 + 26 &&
             clear(exit, player, 0)) {
@@ -321,8 +362,8 @@ class LodestarCombat {
       return;
     }
     if (phase == LodestarPhase.entry || phase == LodestarPhase.emerging) {
-      rig.maximumSpeed = 300;
-      rig.requestedSpeed = 300;
+      rig.maximumSpeed = 480;
+      rig.requestedSpeed = 480;
       rig.desiredHeading = course;
       final beforeTravel = rig.signedTravel;
       if (_withdraw) rig.requestedSpeed = -180;
@@ -334,7 +375,7 @@ class LodestarCombat {
       if (_withdraw && rig.signedTravel <= _startTravel + .5) {
         depths.fillRange(0, 6, 0);
         _withdraw = false;
-        _cooldown[LodestarMove.burrow] = 12;
+        _cooldown[LodestarMove.burrow] = 18;
         _recover();
         return;
       }
@@ -348,7 +389,7 @@ class LodestarCombat {
           _phase(LodestarPhase.underground);
         } else {
           depths.fillRange(0, 6, 0);
-          _cooldown[LodestarMove.burrow] = 12;
+          _cooldown[LodestarMove.burrow] = 18;
           _recover();
         }
       }
@@ -362,8 +403,12 @@ class LodestarCombat {
     }
     if (phase == LodestarPhase.travel || phase == LodestarPhase.recovery) {
       _navigate(dt);
+    } else if (move == LodestarMove.shards ||
+        move == LodestarMove.mortars ||
+        move == LodestarMove.mines) {
+      _navigate(dt, speed: 280);
     } else {
-      rig.requestedSpeed = 180;
+      rig.requestedSpeed = attackSpeed;
       rig.desiredHeading = course;
     }
     if (move == LodestarMove.tail && phase == LodestarPhase.firing) {
@@ -376,18 +421,19 @@ class LodestarCombat {
     rig.advance(dt);
     _contact(old);
     if (phase == LodestarPhase.recovery) {
-      if (shots.isEmpty && !mines.any((m) => m.trigger >= 0 && !m.removed)) {
+      if (!shots.any((s) => s.shell) &&
+          !mines.any((m) => m.trigger >= 0 && !m.removed)) {
         _quiet += dt;
       } else {
         _quiet = 0;
       }
-      if (_quiet >= .8) {
+      if (_quiet >= (enraged ? .4 : .55)) {
         _phase(LodestarPhase.travel);
       }
       return;
     }
     if (phase == LodestarPhase.travel) {
-      if (age > 1.2) {
+      if (age > .25) {
         _select();
       }
       return;
@@ -417,13 +463,21 @@ class LodestarCombat {
     }
   }
 
+  Offset get mouth => defeated
+      ? _deathMouth
+      : phase == LodestarPhase.arrival || sinking
+      ? entry
+      : exit;
+  double mouthProjection(Offset p) {
+    final d = p - mouth, axis = unit(course);
+    return d.dx * axis.dx + d.dy * axis.dy;
+  }
+
   void _depth(bool sinking) {
-    final distance = phase == LodestarPhase.arrival
-        ? rig.signedTravel
-        : rig.signedTravel - _startTravel;
-    for (var i = 0; i < 6; i++) {
-      final p = ((distance - i * 104) / 240).clamp(0.0, 1.0);
-      depths[i] = sinking ? p : 1 - p;
+    for (final p in rig.poses) {
+      final projection = mouthProjection(p.position);
+      depths[p.section.index] =
+          ((sinking ? projection + 120 : 120 - projection) / 240).clamp(0, 1);
     }
   }
 
@@ -440,37 +494,46 @@ class LodestarCombat {
     _phase(LodestarPhase.recovery);
   }
 
-  void _navigate(double dt) {
-    rig.maximumSpeed = enraged ? 300 : 260;
-    rig.requestedSpeed = phase == LodestarPhase.recovery
-        ? 180
-        : rig.maximumSpeed;
+  void _navigate(double dt, {double? speed}) {
+    rig.maximumSpeed = enraged ? 340 : 310;
+    rig.requestedSpeed = speed ?? rig.maximumSpeed;
     if (_reverseFor > 0) {
-      _reverseFor -= dt;
-      rig.requestedSpeed = -180;
-      return;
+      final reverse = rig.copy()..requestedSpeed = -180;
+      reverse.advance(.1);
+      if (reverse.rejectedSteps == 0) {
+        _reverseFor -= dt;
+        rig.requestedSpeed = -180;
+        return;
+      }
+      // A trailing carriage can already be beside a cover corner. Do not spend
+      // two seconds trying the same blocked reverse while forward space is free.
+      _reverseFor = 0;
+      _planClock = 0;
     }
     _planClock -= dt;
     if (_planClock > 0) return;
     _planClock = .15;
     final head = rig.poses.first;
     final radial = head.position - player;
-    final goal = playerVelocity.distance > 40
-        ? player +
-              unit(heading(playerVelocity)) * 480 +
-              unit(heading(playerVelocity) + math.pi / 2) * 120
-        : player + unit(heading(radial) + .7) * 280;
+    final lead = limit(playerVelocity * .55, 160);
+    final flank = unit(heading(radial) + math.pi / 2) * 190;
+    final goal = radial.distance > 430
+        ? player + lead + flank
+        : player + unit(heading(radial) + .6) * 260;
     final desired = heading(goal - head.position);
     var score = double.infinity;
     double? best;
     for (final offset in [0.0, .45, -.45, .9, -.9, 1.5, -1.5, math.pi]) {
       final candidate = desired + offset;
-      final probe = rig.copy(validate: false)
+      var probe = rig.copy()
         ..desiredHeading = candidate
         ..requestedSpeed = rig.requestedSpeed;
       final before = probe.signedTravel;
+      probe.advance(.1);
+      if (probe.rejectedSteps > 0) continue;
+      probe = probe.copy(validate: false);
       var legal = true;
-      for (var t = 0; t < 24; t++) {
+      for (var t = 0; t < 14; t++) {
         probe.advance(1 / 15);
         if (probe.rejectedSteps > 0 || !poseLegal(probe.poses)) {
           legal = false;
@@ -491,8 +554,28 @@ class LodestarCombat {
     if (best != null) {
       rig.desiredHeading = best;
     } else {
-      _reverseFor = 2.0;
-      rig.requestedSpeed = -180;
+      // Bounded swept forward progress clears a tight corner before asking for
+      // another long route. Every body and coupling still has to fit.
+      for (final turn in [0.0, .6, -.6, 1.2, -1.2]) {
+        final probe = rig.copy()
+          ..desiredHeading = head.yaw + turn
+          ..requestedSpeed = 180;
+        final start = probe.signedTravel;
+        probe.advance(.25);
+        if (probe.rejectedSteps == 0 && probe.signedTravel - start > 12) {
+          rig.desiredHeading = head.yaw + turn;
+          rig.requestedSpeed = 180;
+          return;
+        }
+      }
+      final reverse = rig.copy()..requestedSpeed = -180;
+      reverse.advance(.2);
+      if (reverse.rejectedSteps == 0) {
+        _reverseFor = .6;
+        rig.requestedSpeed = -180;
+      } else {
+        rig.requestedSpeed = 0;
+      }
       rig.desiredHeading = head.yaw;
     }
   }
@@ -572,10 +655,16 @@ class LodestarCombat {
     }
     if (next == LodestarMove.shards) {
       final from = rig.poses[1].position + unit(shardYaw) * 65;
-      if (!_escape([
-        for (var n = 0; n < 5; n++)
-          TargetCapsule(from, from + unit(shardYaw + (n - 2) * .13) * 760, 6),
-      ], .9)) {
+      if ((aim - from).distance > 700 ||
+          !_ownClear(from, aim, section) ||
+          !_escape([
+            for (var n = 0; n < 5; n++)
+              TargetCapsule(
+                from,
+                from + unit(shardYaw + (n - 2) * .13) * 760,
+                6,
+              ),
+          ], .9)) {
         return false;
       }
     }
@@ -603,9 +692,14 @@ class LodestarCombat {
     ];
     for (var i = 0; i < values.length; i++) {
       final next = values[_turn++ % values.length];
+      if (next == LodestarMove.burrow &&
+          elapsed < 12 &&
+          releases.values.fold<int>(0, (a, b) => a + b) < 2) {
+        continue;
+      }
       if (_stage(next)) return;
     }
-    age = .8;
+    age = 0;
   }
 
   bool _escape(List<TargetCapsule> hazards, double warning) {
@@ -644,10 +738,8 @@ class LodestarCombat {
 
   void _release() {
     final p = rig.poses[owner(move).index];
-    if (!visible(p.position)) {
-      _recover();
-      return;
-    }
+    // A visible, committed wind-up owns its release. Slow mounted fire keeps
+    // the mechanism nearby; crossing the viewport edge does not erase the shot.
     switch (move) {
       case LodestarMove.shards:
         if (_released < 2 && age >= _released * .22) {
@@ -676,8 +768,22 @@ class LodestarCombat {
         if (_released < count && age >= fallback + _released * .35) {
           aim = player + limit(playerVelocity * 1.15, 280);
           final tube = _released.isEven ? 0 : 1, from = mortarSocket(tube);
-          final target =
+          var target =
               aim + unit(course + math.pi / 2) * ((_released - 1) * 75.0);
+          final safe = bounds.deflate(112);
+          target = Offset(
+            target.dx.clamp(safe.left, safe.right),
+            target.dy.clamp(safe.top, safe.bottom),
+          );
+          if (!clear(from, target, 5)) {
+            for (final t in [.75, .5, .25, 0.0]) {
+              final candidate = Offset.lerp(player, target, t)!;
+              if (clear(from, candidate, 5)) {
+                target = candidate;
+                break;
+              }
+            }
+          }
           if (clear(from, target, 5) &&
               _escape([TargetCapsule(target, target, 110)], .95)) {
             shots.add(
@@ -693,27 +799,12 @@ class LodestarCombat {
         if (_released >= count && age > fallback + count * .35) _finish(5.5);
       case LodestarMove.mines:
         if (_released == 0 && mines.length < 2) {
-          final from = p.position + unit(heading(aim - p.position)) * 63;
-          var target =
-              player +
-              unit(
-                    heading(
-                      playerVelocity.distance > 20
-                          ? playerVelocity
-                          : player - from,
-                    ),
-                  ) *
-                  220;
-          final d = target - from;
-          target = from + limit(d, 540);
-          if (clear(target, target, 165) &&
-              clear(from, target, 12) &&
-              _ownClear(from, target, LodestarSection.mines) &&
-              shapes(rig.poses).every((s) => s.distance(target) > 80) &&
-              mines.every((m) => (m.landing - target).distance > 300) &&
-              (target - player).distance > 165 &&
-              _escape([TargetCapsule(target, target, 145)], .85)) {
-            mines.add(LodestarMine(from, target, _sequence));
+          final deployment = _mineThrow();
+          if (deployment != null) {
+            aim = deployment.target;
+            mines.add(
+              LodestarMine(deployment.from, deployment.target, _sequence),
+            );
             _noteRelease();
             signal('walker_rocket_launch.wav');
           }
@@ -749,6 +840,34 @@ class LodestarCombat {
     }
   }
 
+  ({Offset from, Offset target})? _mineThrow() {
+    final base = rig.poses[LodestarSection.mines.index].position;
+    final direction = unit(
+      heading(playerVelocity.distance > 20 ? playerVelocity : player - base),
+    );
+    final side = Offset(-direction.dy, direction.dx);
+    for (final desired in [
+      player + direction * 220,
+      player + side * 300,
+      player - side * 300,
+      player + side * 260 - direction * 140,
+      player - side * 260 - direction * 140,
+    ]) {
+      final from = base + unit(heading(desired - base)) * 63;
+      final target = from + limit(desired - from, 680);
+      if (clear(target, target, 165) &&
+          clear(from, target, 12) &&
+          _ownClear(from, target, LodestarSection.mines) &&
+          shapes(rig.poses).every((s) => s.distance(target) > 80) &&
+          mines.every((m) => (m.landing - target).distance > 300) &&
+          (target - player).distance > 165 &&
+          _escape([TargetCapsule(target, target, 145)], .85)) {
+        return (from: from, target: target);
+      }
+    }
+    return null;
+  }
+
   bool _ownClear(Offset a, Offset b, LodestarSection own) => rig.poses.every(
     (p) =>
         p.section == own ||
@@ -764,6 +883,7 @@ class LodestarCombat {
   }
 
   void _noteRelease() {
+    releasedAt[move] = elapsed;
     releases[move] = (releases[move] ?? 0) + 1;
   }
 
@@ -894,9 +1014,14 @@ class LodestarCombat {
     return true;
   }
 
-  void _burst(Offset p, double r, {bool blast = true}) {
+  void _burst(
+    Offset p,
+    double r, {
+    bool blast = true,
+    bool excavation = false,
+  }) {
     if (bursts.length >= 8) bursts.removeAt(0);
-    bursts.add(LodestarBurst(p, r, blast: blast));
+    bursts.add(LodestarBurst(p, r, blast: blast, excavation: excavation));
   }
 
   void localDamage(List<LodestarDamage> result) {
@@ -918,6 +1043,8 @@ class LodestarCombat {
 
   void destroy() {
     if (defeated) return;
+    _deathMouth = mouth;
+    _deathSinking = sinking;
     for (final s in LodestarSection.values) {
       _shutdownParts[s.index] = sections.integrity(s) > 0;
     }
@@ -930,12 +1057,13 @@ class LodestarCombat {
     rig.requestedSpeed = 0;
     // No damaging underground exit; visible finite collapse at committed tunnel.
     if (depths.every((d) => d >= .72)) {
-      _burst(exit == Offset.zero ? entry : exit, 140, blast: false);
+      _burst(_deathMouth, 140, blast: false, excavation: true);
     }
   }
 
   Map<String, dynamic> checkpoint() => {
     'v': 1,
+    'releasedAt': {for (final e in releasedAt.entries) e.key.name: e.value},
     'rig': rig.checkpoint(),
     'sections': sections.checkpoint(),
     'phase': phase.name,
@@ -947,6 +1075,7 @@ class LodestarCombat {
     'exit': [exit.dx, exit.dy],
     'aim': [aim.dx, aim.dy],
     'course': course,
+    'shardYaw': shardYaw,
     'startTravel': _startTravel,
     'sequence': _sequence,
     'turn': _turn,
@@ -955,6 +1084,8 @@ class LodestarCombat {
     'eruption': _eruptionDamage,
     'coreOpenedAt': coreOpenedAt,
     'shutdownParts': [..._shutdownParts],
+    'deathMouth': [_deathMouth.dx, _deathMouth.dy],
+    'deathSinking': _deathSinking,
     'cooldown': {for (final e in _cooldown.entries) e.key.name: e.value},
   };
 
@@ -1034,6 +1165,28 @@ class LodestarCombat {
           !(raw['shutdownParts'] as List).every((v) => v is bool)) {
         return false;
       }
+      if (raw.containsKey('deathMouth') &&
+          !tuple(raw['deathMouth'], 2, 1000000)) {
+        return false;
+      }
+      if (raw.containsKey('deathSinking') && raw['deathSinking'] is! bool) {
+        return false;
+      }
+      if (raw.containsKey('shardYaw') && !n(raw['shardYaw'], -1e9, 1e9)) {
+        return false;
+      }
+      if (raw.containsKey('releasedAt')) {
+        final releases = raw['releasedAt'];
+        if (releases is! Map ||
+            releases.length > 6 ||
+            !releases.entries.every(
+              (e) =>
+                  LodestarMove.values.any((m) => m.name == e.key) &&
+                  n(e.value, -1000, (raw['elapsed'] as num).toDouble()),
+            )) {
+          return false;
+        }
+      }
       final cooldown = raw['cooldown'] as Map;
       return cooldown.entries.every(
         (e) =>
@@ -1058,6 +1211,7 @@ class LodestarCombat {
     elapsed = n('elapsed');
     age = n('age');
     course = n('course');
+    shardYaw = n('shardYaw');
     _startTravel = n('startTravel');
     entry = p('entry');
     exit = p('exit');
@@ -1068,11 +1222,18 @@ class LodestarCombat {
     _turn = raw['turn'] as int? ?? 0;
     _released = raw['released'] as int? ?? 0;
     _withdraw = raw['withdraw'] == true;
+    _deathSinking = raw['deathSinking'] == true;
+    _deathMouth = raw['deathMouth'] is List ? p('deathMouth') : entry;
     _eruptionDamage = raw['eruption'] == true;
     _shutdownParts.setAll(0, (raw['shutdownParts'] as List).cast<bool>());
     _cooldown.clear();
     for (final e in (raw['cooldown'] as Map).entries) {
       _cooldown[LodestarMove.values.byName(e.key as String)] = (e.value as num)
+          .toDouble();
+    }
+    releasedAt.clear();
+    for (final e in (raw['releasedAt'] as Map? ?? {}).entries) {
+      releasedAt[LodestarMove.values.byName(e.key as String)] = (e.value as num)
           .toDouble();
     }
     shots.clear();
@@ -1085,7 +1246,13 @@ class LodestarCombat {
       _contactGate = 1.5;
       _quiet = 1.5;
       if (depths.any((d) => d > 0)) {
-        _withdraw = _withdraw || [LodestarPhase.entry, LodestarPhase.underground, LodestarPhase.exitWarning].contains(phase);
+        _withdraw =
+            _withdraw ||
+            [
+              LodestarPhase.entry,
+              LodestarPhase.underground,
+              LodestarPhase.exitWarning,
+            ].contains(phase);
         _eruptionDamage = false;
         phase = LodestarPhase.emerging;
       } else {
@@ -1100,9 +1267,7 @@ class LodestarCombat {
     for (var n = 0; n < 24; n++) {
       final a = n * 2.399963229728653;
       final at = origin + unit(a) * 400;
-      final yaw = playerVelocity.distance > 40
-          ? heading(playerVelocity)
-          : a + math.pi / 2;
+      final yaw = heading(origin - at);
       final probe = LodestarRig(head: at, heading: yaw);
       final all = [
         ...probe.poses,

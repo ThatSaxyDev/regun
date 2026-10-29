@@ -94,6 +94,7 @@ class OnlineLodestars {
               p(b['position']),
               (b['radius'] as num).toDouble(),
               blast: b['blast'] == true,
+              excavation: b['excavation'] == true,
             )..age = (b['age'] as num).toDouble(),
           );
         }

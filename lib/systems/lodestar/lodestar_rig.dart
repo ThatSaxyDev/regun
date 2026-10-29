@@ -63,6 +63,12 @@ class LodestarRig {
   int rejectedSteps = 0;
   Offset velocity = Offset.zero;
   double get speed => velocity.distance;
+  void primeSpeed(double value) {
+    if (!value.isFinite) return;
+    _speed = value.clamp(-maximumSpeed, maximumSpeed);
+    requestedSpeed = _speed;
+  }
+
   int get historySamples => _path.length;
   List<LodestarCoupling> get couplings => [
     for (var i = 0; i < 5; i++)
@@ -271,7 +277,13 @@ class LodestarRig {
         return;
       }
       final d = _sample(_path, nextCursor) - _sample(_path, nextCursor - 3);
-      nextYaw = math.atan2(d.dy, d.dx);
+      final tangent = math.atan2(d.dy, d.dx);
+      // Reverse starts at very small travel after braking. Do not snap the
+      // head to a sampled tangent and sweep its long nose into nearby cover.
+      nextYaw += difference(
+        tangent,
+        _yaw,
+      ).clamp(-travel.abs() / turnRadius, travel.abs() / turnRadius);
     } else {
       // Reverse retraces accepted ground. A new forward turn branches from the
       // current head while retaining the whole follower path behind it.

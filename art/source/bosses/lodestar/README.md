@@ -69,3 +69,16 @@ Audio reuses the cleared packaged Walker/sentry/reload/ordnance cues through SoL
 blast, local break and disarm. No additional music/motion-loop voice is created.
 Shared AttackVfx supplies material floor warnings, dust and visible impact cores.
 The full encounter still needs creator phone visual/listening/fairness approval.
+
+
+## Excavation and warning replacement —29 October2026
+
+Three original images generated with OpenAI ImageGen in this session, copied
+unchanged to source and runtime PNGs; no external artwork. Prompt specifications
+are recorded in `excavation-v01-prompts.md` (summaries, not verbatim transcripts).
+`excavation-v01.png`: transparent2×2 stone mouth/mound/exit/dust.
+`excavation-foundry-v01.png`: corresponding torn riveted iron/graphite treatment.
+`warnings-v01.png`: transparent distressed iron-rose impact corners and physical
+metal scuff path. Runtime JSON defines source cells; all three decode at384px.
+These supersede the former Lodestar ground warnings and sliding ember patch.
+Existing carriage/arsenal sheets remain at768px. Native selected kit is28.67MiB.

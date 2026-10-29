@@ -57,7 +57,7 @@ class LodestarBoss extends PositionComponent
   bool prepared = false, retired = false;
   final layers = <Component>[];
   final _mineTargets = <LodestarMine, LodestarMineTarget>{};
-  Offset? _queryPoint;
+  Offset? _queryPoint, _observedPlayer;
   LodestarSection? lastSection;
   @override
   bool get isBoss => true;
@@ -334,8 +334,14 @@ class LodestarBoss extends PositionComponent
     super.update(dt);
     if (!fight.defeated) {
       fight.player = game.myPlayer.position.toOffset();
-      fight.playerVelocity =
-          (game.movementJoystick.relativeDelta * game.playerWalkSpeed).toOffset();
+      final previous = _observedPlayer;
+      final observed = previous == null || dt <= 0
+          ? Offset.zero
+          : (fight.player - previous) / dt;
+      fight.playerVelocity = observed.distance <= game.playerWalkSpeed * 1.6
+          ? observed
+          : Offset.zero;
+      _observedPlayer = fight.player;
     }
     final previous = fight.phase;
     fight.advance(dt);

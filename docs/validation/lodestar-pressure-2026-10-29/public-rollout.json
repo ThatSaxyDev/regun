@@ -1,0 +1,8 @@
+{
+  "excavationBossesLive": true,
+  "features": {
+    "schemaVersion": 1,
+    "onlinePlay": true
+  },
+  "serverCommit": "3530aa101992091ec1ebf3b14d853ec7eabf0a3a"
+}

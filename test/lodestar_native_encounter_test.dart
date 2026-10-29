@@ -166,7 +166,7 @@ void main() {
           allowFragments: false,
         );
         expect(prior - b.combatHealth.current, closeTo(8 * 5 / 6, 1e-6));
-        final dir = Directory('docs/validation/lodestar-training-2026-10-29')
+        final dir = Directory('docs/validation/lodestar-pressure-2026-10-29')
           ..createSync(recursive: true);
         File('${dir.path}/art-budget.json').writeAsStringSync(
           jsonEncode({

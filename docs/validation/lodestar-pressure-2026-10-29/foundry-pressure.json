@@ -1,0 +1,1 @@
+{"activeSeconds":30,"eligibleFrames":591,"movingFrames":580,"movingFraction":0.9813874788494078,"nearFraction":0.9465408805031447,"longestStall":0.175,"attempts":{"shards":4,"burrow":1,"mortars":2,"mines":1},"releases":{"shards":6,"mortars":6,"mines":1},"phases":["travel","warning","recovery","firing","entry","underground","exitWarning","emerging"]}

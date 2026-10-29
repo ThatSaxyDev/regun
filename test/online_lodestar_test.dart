@@ -10,9 +10,14 @@ import 'package:regun/presentation/regun_art.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  final rows = jsonDecode(
-    File('test/fixtures/lodestar-hosted-v1.json').readAsStringSync(),
-  ) as List;
+  final rows = <dynamic>[
+    ...jsonDecode(
+      File('test/fixtures/lodestar-hosted-v1.json').readAsStringSync(),
+    ) as List,
+    ...jsonDecode(
+      File('test/fixtures/lodestar-hosted-v2.json').readAsStringSync(),
+    ) as List,
+  ];
   OnlineEntity entity(Map raw) => OnlineEntity('boss', 'enemy', {
     'kind': 'lodestar',
     'boss': true,

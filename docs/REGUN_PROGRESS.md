@@ -2395,3 +2395,45 @@ Ariet/Walker ground layers, target authority, active-time lifecycles, bounded wo
 explicit failure scenarios and measurable acceptance gates. Proposed thresholds
 are starting engineering targets, not player-approved balance. The navigation
 repair itself is not implemented by this planning pass.
+
+
+## Lodestar pressure, excavation and ending correction —29 October2026
+
+Release remains1.0.0+28. Lodestar now cruises at310/340, keeps280 during mounted
+windups, uses a .25s travel gap and .55/.4s quiet recovery. Short validated forward
+escapes and bounded reverse repair cover pinning; predictive attacks sample actual
+player movement. Mortars commit legal landings, shards honor their visible release
+and mines test useful nearby placements. Feeder shell transfer, charge lights,
+recoil, flashes and the loaded projector make weapon intent visible.
+
+Burrowing uses fixed world-plane openings with opaque, physically clipped sections
+and matching collision/occupancy masks. New original stone and torn-iron excavation
+atlases replace the sliding ember patch; exit dust is excavation rather than fire.
+Entry and emergence run at480 with carried emergence momentum; exits face through
+the committed player route. The entry mound stays planted. New distressed physical
+warning art replaces the old ground treatment.
+
+Fatal head damage still disarms every segment immediately. The cascade now emits
+real cosmetic section blasts, then one radius205 core explosion and spine blasts
+at1.65 active seconds. It cannot harm the player. Once-only rewards, pause, saved
+partial-burial masks, Reduced Motion and4.4s shutdown completion remain. Head80HP
+and the two-weapon armor opening remain. Boss action subtitles remain removed.
+
+Native analysis and976 tests pass (five intentional skips); server220 tests,
+typecheck and build pass. Disposable three-player transport verifies capability12
+and replicated final explosion. Public discovery is `excavation_bosses`; older
+rooms omit Lodestar. Wire-v1/legacy saves remain readable with optional revision2
+fields. Foundry30s trace records98.14% movement on eligible frames,94.65% surface
+frames with a weapon within500, .175s longest travel/recovery stall and13 releases.
+Selected art kit28.67MiB stays below32MiB. Evidence and staged Training review:
+`docs/validation/lodestar-pressure-2026-10-29/`. The review uses protected stationary
+Training and staged lethal hits; it is not physical performance or fairness proof.
+General minion navigation implementation is outside this correction.
+
+Signed iOS28 build passed. Installation attempt failed with CoreDevice4016;
+the iPhone is unavailable to the Mac. This revision is not installed on the phone.
+Backend3530aa1 is pushed; public capability12 is confirmed live.
+
+Phone installation retry succeeded after connection/unlock: updated1.0.0+28,
+bundle dev.kiishi.regun, Apple database sequence8408. This supersedes the earlier
+unavailable-device failure. Physical playtest acceptance remains open.

@@ -1212,3 +1212,17 @@ reconnect and one victory after shutdown. Old/mixed client rooms must retain the
 previous roster. A local three-player transport pass does not establish public
 server rollout or WAN/physical acceptance; check the latest validation record.
 Release identity stays1.0.0+28.
+
+
+## Lodestar correction review (1.0.0+28,29 October)
+
+In Training, test both Breach and Foundry. Stand still briefly: weapons should
+reach and attack you rather than circling out of reach. Check feeder shell loading,
+accelerator charge/release and visible projector mine. Move around Foundry cover
+and verify the head escapes corners. Watch entry and emergence: the opening must
+stay planted, machinery clips into it and Foundry exposes torn iron rather than
+stone. Destroy two offensive weapons, then the head: immediate disarm, cascading
+blasts, a large core explosion around1.65s, settled remains and one reward. Repeat
+while partly buried, with pause/resume and Reduced Motion. Test normal solo and
+updated co-op encounter admission (all clients capability12). Ground art, weapon
+readability, aggression, sound and device comfort still need creator approval.

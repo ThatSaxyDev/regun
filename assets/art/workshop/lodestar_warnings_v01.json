@@ -1,0 +1,26 @@
+{
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "decodeWidth": 384,
+  "sourceSHA256": "e4f99fbc711dddb3dea3360d47fb14e192a4bf1c5e6db006a1ff07ddc3a5d781",
+  "parts": {
+    "impactMark": {
+      "rect": [
+        0,
+        0,
+        887,
+        887
+      ]
+    },
+    "metalScuff": {
+      "rect": [
+        887,
+        0,
+        887,
+        887
+      ]
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "decodeWidth": 384,
+  "sourceSHA256": "5fe2e6be319e55c9ba45ad387878f69555bafe971c2229208cae04595ac98d78",
+  "parts": {
+    "burrowMouth": {
+      "rect": [
+        0,
+        0,
+        627,
+        627
+      ]
+    },
+    "burrowMound": {
+      "rect": [
+        627,
+        0,
+        627,
+        627
+      ]
+    },
+    "burrowExit": {
+      "rect": [
+        0,
+        627,
+        627,
+        627
+      ]
+    },
+    "burrowDust": {
+      "rect": [
+        627,
+        627,
+        627,
+        627
+      ]
+    }
+  }
+}

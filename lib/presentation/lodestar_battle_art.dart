@@ -12,114 +12,107 @@ import 'package:regun/systems/lodestar/lodestar_sections.dart';
 class LodestarBattleArt {
   const LodestarBattleArt(this.assets);
   final LodestarAssets assets;
+  String _ground(String name, ArenaType arena) =>
+      arena == ArenaType.foundry ? '${name}Foundry' : name;
   void floor(Canvas c, LodestarCombat f, ArenaType arena, bool reduced) {
-    final grade = BossArt.ambient(arena);
+    final grade = BossArt.ambient(arena), art = LodestarArt(assets);
     if (f.phase == LodestarPhase.warning) {
-      for (final s in f.warnedSweep) {
-        AttackVfx.ribbon(
+      final stride = math.max(1, (f.warnedSweep.length / 6).ceil());
+      for (var i = 0; i < f.warnedSweep.length; i += stride) {
+        final shape = f.warnedSweep[i];
+        art.part(
           c,
-          s.a,
-          s.b,
-          s.radius * 2,
-          warning: true,
-          progress: f.age / f.warning(f.move),
-          material: AttackMaterial.stone,
-        );
-        AttackVfx.disk(
-          c,
-          s.b,
-          s.radius,
-          warning: true,
-          progress: f.age / f.warning(f.move),
-          ambient: grade,
-        );
-      }
-      if (f.move == LodestarMove.burrow) {
-        AttackVfx.disk(
-          c,
-          f.rig.poses.first.front,
-          100,
-          warning: true,
-          progress: f.age / .8,
-          ambient: grade,
-        );
-      }
-      if (f.move == LodestarMove.shards) {
-        final p = f.rig.poses[1].position;
-        AttackVfx.lungeWarning(
-          c,
-          p + LodestarCombat.unit(f.shardYaw) * 68,
-          p + LodestarCombat.unit(f.shardYaw) * 390,
-          progress: f.age / .9,
-          ambient: grade,
-        );
-      }
-      if (f.move == LodestarMove.mortars) {
-        // Mechanism is the preparation tell; planted footprints begin at shell
-        // release, exactly when their committed targets become authoritative.
-        AttackVfx.groundMaterial(
-          c,
-          1,
-          f.rig.poses[2].position,
-          100,
-          height: 48,
-          alpha: .35,
-          ambient: grade,
+          'metalScuff',
+          (shape.a + shape.b) / 2,
+          Size(
+            (shape.b - shape.a).distance + shape.radius * 2,
+            shape.radius * 4,
+          ),
+          LodestarCombat.heading(shape.b - shape.a),
+          alpha: .55 + .3 * f.age / f.warning(f.move),
         );
       }
     }
-    if (f.phase == LodestarPhase.entry || f.phase == LodestarPhase.arrival) {
-      final at = f.entry;
-      AttackVfx.disk(c, at, 95, warning: false, progress: .1, ambient: grade);
-      AttackVfx.dashDust(
+    if ([
+      LodestarPhase.underground,
+      LodestarPhase.exitWarning,
+      LodestarPhase.emerging,
+    ].contains(f.phase)) {
+      final closed = f.phase == LodestarPhase.emerging;
+      art.part(
         c,
-        at,
-        at + const Offset(30, 0),
-        progress: .35,
-        ambient: grade,
+        closed ? _ground('burrowMound', arena) : _ground('burrowMouth', arena),
+        f.entry,
+        const Size(315, 280),
+        0,
+        alpha: closed ? (1 - f.age / 1.0).clamp(0.0, 1.0) : 1,
       );
     }
-    if (f.phase == LodestarPhase.underground ||
-        f.phase == LodestarPhase.exitWarning) {
-      final p = Offset.lerp(f.entry, f.exit, (f.age / .95).clamp(0, 1))!;
-      AttackVfx.groundMaterial(
+    if ([
+          LodestarPhase.arrival,
+          LodestarPhase.entry,
+          LodestarPhase.emerging,
+        ].contains(f.phase) ||
+        (f.defeated && f.depths.any((d) => d > 0))) {
+      final forming = f.phase == LodestarPhase.entry
+          ? (f.age / .32).clamp(0.0, 1.0)
+          : 1.0;
+      art.part(
         c,
-        1,
-        p,
-        140,
-        height: 60,
-        alpha: .65,
-        ambient: grade,
+        f.sinking || f.phase == LodestarPhase.arrival
+            ? _ground('burrowMouth', arena)
+            : _ground('burrowExit', arena),
+        f.mouth,
+        const Size(315, 280),
+        0,
+        alpha: forming * f.wreckOpacity,
       );
+      final crossing = f.rig.poses.any(
+        (p) => f.depths[p.section.index] > 0 && f.depths[p.section.index] < 1,
+      );
+      if (crossing && !f.defeated) {
+        art.part(
+          c,
+          _ground('burrowDust', arena),
+          f.mouth,
+          const Size(250, 210),
+          0,
+          alpha: reduced ? .18 : .33,
+        );
+      }
     }
     if (f.phase == LodestarPhase.exitWarning) {
-      AttackVfx.disk(
+      // A planted mound lifts where the committed head will break through.
+      // No decal translates across the map and no hot cracks imply lava.
+      final progress = (f.age / .95).clamp(0.0, 1.0);
+      art.part(
         c,
+        _ground('burrowMound', arena),
         f.exit,
-        150,
-        warning: true,
-        progress: f.age / .95,
-        ambient: grade,
+        Size(
+          280 + (reduced ? 0 : progress * 18),
+          245 + (reduced ? 0 : progress * 12),
+        ),
+        0,
+        alpha: .65 + .35 * progress,
       );
-      AttackVfx.ribbon(
+      art.part(
         c,
+        _ground('burrowDust', arena),
         f.exit,
-        f.exit + LodestarCombat.unit(f.course) * 680,
-        170,
-        warning: true,
-        progress: f.age / .95,
-        material: AttackMaterial.stone,
+        const Size(300, 255),
+        0,
+        alpha: progress * .25,
       );
     }
     for (final s in f.shots.where((s) => s.shell)) {
-      AttackVfx.disk(
+      art.part(
         c,
+        'impactMark',
         s.target,
-        110,
-        warning: true,
-        progress: s.age / s.duration,
-        material: AttackMaterial.ember,
-        ambient: grade,
+        const Size(280, 280),
+        0,
+        alpha: .65 + .35 * (s.age / s.duration).clamp(0.0, 1.0),
       );
       c.drawOval(
         Rect.fromCenter(center: s.position, width: 25, height: 12),
@@ -129,14 +122,13 @@ class LodestarBattleArt {
     for (final m in f.mines) {
       if (m.removed) continue;
       if (m.trigger >= 0) {
-        AttackVfx.disk(
+        art.part(
           c,
+          'impactMark',
           m.position,
-          145,
-          warning: true,
-          progress: m.trigger / .85,
-          material: AttackMaterial.ember,
-          ambient: grade,
+          const Size(365, 365),
+          0,
+          alpha: .65 + .35 * (m.trigger / .85).clamp(0.0, 1.0),
         );
       }
       if (!m.flying) {
@@ -161,7 +153,7 @@ class LodestarBattleArt {
       }
     }
     for (final b in f.bursts) {
-      if (b.blast) {
+      if (b.blast && !b.excavation) {
         AttackVfx.explosion(
           c,
           b.position,
@@ -171,18 +163,16 @@ class LodestarBattleArt {
           reducedMotion: reduced,
         );
       } else {
-        AttackVfx.groundMaterial(
+        art.part(
           c,
-          1,
+          _ground('burrowDust', arena),
           b.position,
-          b.radius * 2,
-          height: b.radius,
-          alpha: (1 - b.age / 1.1) * .6,
-          ambient: grade,
+          Size(b.radius * 2, b.radius * 1.7),
+          0,
+          alpha: (1 - b.age / 1.1) * .65,
         );
       }
     }
-    final art = LodestarArt(assets);
     for (final p in f.rig.poses) {
       final at = f.hits[p.section];
       if (!f.defeated &&
@@ -206,11 +196,22 @@ class LodestarBattleArt {
     if (f.finished) return;
     for (var i = 0; i < 5; i++) {
       if (section != null && i != section) continue;
-      final alpha =
-          (1 - math.min(f.depths[i], f.depths[i + 1]).toDouble()) *
-          f.wreckOpacity;
+      final alpha = f.depths[i] >= 1 && f.depths[i + 1] >= 1
+          ? 0.0
+          : f.wreckOpacity;
       if (alpha <= 0) continue;
       c.saveLayer(null, Paint()..color = Color.fromRGBO(255, 255, 255, alpha));
+      if (f.depths[i] > 0 || f.depths[i + 1] > 0) {
+        c.translate(f.mouth.dx, f.mouth.dy);
+        c.rotate(f.course);
+        c.clipRect(
+          f.sinking
+              ? const Rect.fromLTRB(-10000, -10000, 0, 10000)
+              : const Rect.fromLTRB(0, -10000, 10000, 10000),
+        );
+        c.rotate(-f.course);
+        c.translate(-f.mouth.dx, -f.mouth.dy);
+      }
       art.coupling(c, f.rig.couplings[i]);
       c.restore();
     }
@@ -231,27 +232,15 @@ class LodestarBattleArt {
         );
       }
       if (depth > 0) {
-        // Head-led ground mask: progressive clipping, no invisible damage body.
-        final cut = f.maskCut(depth);
-        c.translate(p.position.dx, p.position.dy);
-        c.rotate(p.yaw);
+        c.translate(f.mouth.dx, f.mouth.dy);
+        c.rotate(f.course);
         c.clipRect(
           f.sinking
-              ? Rect.fromLTRB(-160, -160, cut, 160)
-              : Rect.fromLTRB(cut, -160, 160, 160),
+              ? const Rect.fromLTRB(-10000, -10000, 0, 10000)
+              : const Rect.fromLTRB(0, -10000, 10000, 10000),
         );
-        c.rotate(-p.yaw);
-        c.translate(-p.position.dx, -p.position.dy);
-        c.saveLayer(
-          null,
-          Paint()
-            ..color = Color.fromRGBO(
-              255,
-              255,
-              255,
-              (1 - depth * .65).clamp(0, 1),
-            ),
-        );
+        c.rotate(-f.course);
+        c.translate(-f.mouth.dx, -f.mouth.dy);
       }
       final collapse = f.collapse(p.section);
       final live = !f.defeated
@@ -295,9 +284,7 @@ class LodestarBattleArt {
             f.phase == LodestarPhase.firing && f.owner(f.move) == p.section;
         final warning =
             f.phase == LodestarPhase.warning && f.owner(f.move) == p.section;
-        final double recoil = firing
-            ? (1 - ((f.age % .35) / .16).clamp(0, 1)) * 9
-            : 0.0;
+        final double recoil = f.weaponKick(f.move) * 9;
         switch (p.section) {
           case LodestarSection.head:
             if (f.sections.coreExposed) {
@@ -351,6 +338,7 @@ class LodestarBattleArt {
             final boring =
                 f.phase == LodestarPhase.entry ||
                 f.phase == LodestarPhase.underground ||
+                (f.phase == LodestarPhase.emerging && depth > 0) ||
                 (warning && f.move == LodestarMove.burrow);
             if (boring) {
               art.part(
@@ -403,6 +391,32 @@ class LodestarBattleArt {
               const Size(100, 62),
               yaw.toDouble(),
             );
+            if (warning) {
+              final charge = (f.age / f.warning(f.move)).clamp(0.0, 1.0);
+              for (var n = 0; n < 3; n++) {
+                AttackVfx.chip(
+                  c,
+                  p.position + LodestarCombat.unit(yaw) * (n * 12 - 15),
+                  4,
+                  Color.lerp(
+                    const Color(0xff4B4C3C),
+                    const Color(0xffD4BA83),
+                    charge,
+                  )!,
+                );
+              }
+            }
+            if (f.muzzleLit(LodestarMove.shards)) {
+              AttackVfx.stamp(
+                c,
+                18,
+                p.position + LodestarCombat.unit(yaw) * 69,
+                40,
+                alpha: .85,
+                material: AttackMaterial.ember,
+                anchor: Anchor.center,
+              );
+            }
           case LodestarSection.mortars:
             final yaw = LodestarCombat.heading(
               (warning || firing ? f.aim : f.player) - p.position,
@@ -422,8 +436,39 @@ class LodestarBattleArt {
                 Size(82 * math.cos(f.mortarElevation), 33),
                 yaw,
               );
+              if (f.elapsed -
+                      (f.mortarRecoil(tube) > 0
+                          ? f.elapsed - .16 * (1 - f.mortarRecoil(tube) / 9)
+                          : -1000) <
+                  .09) {
+                AttackVfx.stamp(
+                  c,
+                  18,
+                  f.mortarSocket(tube),
+                  46,
+                  alpha: .85,
+                  material: AttackMaterial.ember,
+                  anchor: Anchor.center,
+                );
+              }
             }
           case LodestarSection.feeder:
+            if (f.sections.living(LodestarSection.mortars) &&
+                f.move == LodestarMove.mortars &&
+                [
+                  LodestarPhase.warning,
+                  LodestarPhase.firing,
+                ].contains(f.phase)) {
+              final to = f.rig.poses[2].position;
+              final progress = f.feederProgress;
+              art.part(
+                c,
+                'shell',
+                Offset.lerp(p.position, to, progress)!,
+                const Size(28, 12),
+                LodestarCombat.heading(to - p.position),
+              );
+            }
             break;
           case LodestarSection.mines:
             art.part(
@@ -431,8 +476,20 @@ class LodestarBattleArt {
               'projector',
               p.position,
               const Size(105, 66),
-              LodestarCombat.heading(f.player - p.position),
+              LodestarCombat.heading(
+                (warning || firing ? f.aim : f.player) - p.position,
+              ),
             );
+            if (warning) {
+              final yaw = LodestarCombat.heading(f.aim - p.position);
+              art.part(
+                c,
+                'mine',
+                p.position + LodestarCombat.unit(yaw) * 38,
+                const Size(30, 26),
+                yaw,
+              );
+            }
           case LodestarSection.tail:
             art.part(
               c,
@@ -447,7 +504,6 @@ class LodestarBattleArt {
         if (f.defeated) c.restore();
         c.restore();
       }
-      if (depth > 0) c.restore();
       if (f.defeated) c.restore();
       c.restore();
       if (!f.defeated && stamp != null && f.elapsed - stamp < .7) {
@@ -474,6 +530,40 @@ class LodestarBattleArt {
 
   void ordnance(Canvas c, LodestarCombat f, ArenaType arena, bool reduced) {
     final art = LodestarArt(assets), grade = BossArt.ambient(arena);
+    if ([
+      LodestarPhase.arrival,
+      LodestarPhase.entry,
+      LodestarPhase.emerging,
+    ].contains(f.phase)) {
+      // The near stone lip occludes the machinery at the real mouth, providing
+      // depth without making an exposed, damaging section transparent.
+      c.save();
+      c.translate(f.mouth.dx, f.mouth.dy);
+      c.rotate(f.course);
+      c.clipRect(const Rect.fromLTRB(-180, -160, -90, 160));
+      c.rotate(-f.course);
+      art.part(
+        c,
+        f.sinking || f.phase == LodestarPhase.arrival
+            ? _ground('burrowMouth', arena)
+            : _ground('burrowExit', arena),
+        Offset.zero,
+        const Size(315, 280),
+        0,
+      );
+      c.restore();
+    }
+    for (final b in f.bursts.where((b) => b.excavation && b.age < .5)) {
+      final t = (b.age / .5).clamp(0.0, 1.0);
+      art.part(
+        c,
+        _ground('burrowDust', arena),
+        b.position,
+        Size(b.radius * (reduced ? 1.8 : 1.5 + t * .5), b.radius * 1.5),
+        0,
+        alpha: (1 - t) * .4,
+      );
+    }
     for (final s in f.shots) {
       final height = s.shell
           ? math.sin(math.pi * (s.age / s.duration).clamp(0, 1)) * 115
@@ -497,7 +587,9 @@ class LodestarBattleArt {
         reduced ? 0 : m.age * 3,
       );
     }
-    for (final b in f.bursts.where((b) => b.blast && b.age < .45)) {
+    for (final b in f.bursts.where(
+      (b) => b.blast && !b.excavation && b.age < .45,
+    )) {
       // Visible above-actor hot core; planted dust/scorch lives in floor().
       AttackVfx.stamp(
         c,
