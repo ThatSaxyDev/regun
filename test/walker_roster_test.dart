@@ -25,7 +25,7 @@ void main() {
   test('active roster replaces Mirror Saint with Walker and migrates retired identity', () {
     expect(BossKind.active, contains(BossKind.walker));
     expect(BossKind.active, isNot(contains(BossKind.saint)));
-    expect(BossKind.active.length, 9);
+    expect(BossKind.active.length, 10);
     expect(BossKind.active, contains(BossKind.ariet));
     expect(BossKind.read('saint'), BossKind.walker);
   });

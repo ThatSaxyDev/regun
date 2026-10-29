@@ -1,0 +1,46 @@
+{
+  "error" : {
+    "code" : 4000,
+    "domain" : "com.apple.dt.CoreDeviceError",
+    "userInfo" : {
+      "DeviceIdentifier" : {
+        "string" : "B1CB7226-4861-530C-943A-84DC9B0D0E12"
+      },
+      "NSLocalizedDescription" : {
+        "string" : "The tunnel was interrupted while establishing connectivity to coredevice-393."
+      },
+      "NSUnderlyingError" : {
+        "error" : {
+          "code" : 60,
+          "domain" : "Network.NWError",
+          "userInfo" : {
+            "NSDescription" : {
+              "string" : "Operation timed out"
+            }
+          }
+        }
+      }
+    }
+  },
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "info",
+      "apps",
+      "--device",
+      "00008101-000248EC1450001E",
+      "--bundle-id",
+      "dev.kiishi.regun",
+      "--json-output",
+      "docs/validation/lodestar-admission-2026-10-29/device-app.json"
+    ],
+    "commandType" : "devicectl.device.info.apps",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "failed",
+    "version" : "642.16"
+  }
+}

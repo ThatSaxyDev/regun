@@ -89,13 +89,12 @@ class BossPortalArt {
     required bool reducedMotion,
     double time = 0,
   }) {
-    if (open <= 0 || fade <= 0) return;
+    if (open <= 0 || fade <= 0 || kind.mechanical) return;
     canvas.save();
     canvas.translate(at.dx, at.dy);
     canvas.scale(1, .52);
     final radius = kind.bodyRadius + 100;
     final r = radius * (reducedMotion ? 1 : .7 + .3 * open);
-    if (kind == BossKind.walker || kind == BossKind.ariet) return;
     final c = colors[kind.index];
     final visibility = fade * open * open * (3 - 2 * open);
     void line(List<Offset> ps, {double width = 3, double alpha = 1}) {
@@ -149,7 +148,7 @@ class BossPortalArt {
       BossKind.bellkeeper => 8,
       BossKind.magistrate => 7,
       BossKind.saint => 4,
-      BossKind.walker || BossKind.ariet => 4,
+      BossKind.walker || BossKind.ariet || BossKind.lodestar => 4,
       BossKind.sovereign => 4,
       BossKind.marshal => 6,
     };
@@ -206,6 +205,7 @@ class BossPortalArt {
             p - d * 14,
           ], width: 3);
           line([p + d * 15, p + d * 28], width: 4);
+        case BossKind.lodestar:
         case BossKind.ariet:
         case BossKind.walker:
           break;

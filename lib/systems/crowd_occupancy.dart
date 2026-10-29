@@ -1,3 +1,5 @@
+import 'package:regun/systems/target_shape.dart';
+
 import 'dart:math' as math;
 
 import 'package:flame/components.dart';
@@ -8,6 +10,7 @@ class CrowdOccupancy {
   static const _cellSize = 160.0;
   final _cells = <(int, int), Set<PositionComponent>>{};
   final _radii = <PositionComponent, double>{};
+  final _compound = <PositionComponent, CompoundGroundActor>{};
   final _keys = <PositionComponent, (int, int)>{};
 
   (int, int) _key(Vector2 p) =>
@@ -16,12 +19,14 @@ class CrowdOccupancy {
   void clear() {
     _cells.clear();
     _radii.clear();
+    _compound.clear();
     _keys.clear();
   }
 
   void forget(PositionComponent actor) {
     _cells[_keys.remove(actor)]?.remove(actor);
     _radii.remove(actor);
+    _compound.remove(actor);
   }
 
   void _index(PositionComponent actor) {
@@ -42,6 +47,10 @@ class CrowdOccupancy {
     clear();
     for (final actor in actors) {
       if (actor.isRemoving || actor.isRemoved) continue;
+      if (actor is CompoundGroundActor) {
+        _compound[actor] = actor as CompoundGroundActor;
+        continue;
+      }
       _radii[actor] = radiusOf(actor);
       _index(actor);
     }
@@ -57,6 +66,18 @@ class CrowdOccupancy {
   }
 
   bool _free(PositionComponent actor, Vector2 point, double radius) {
+    for (final entry in _compound.entries) {
+      if (identical(entry.key, actor) ||
+          entry.key.isRemoving ||
+          entry.key.isRemoved) {
+        continue;
+      }
+      if (entry.value.groundShape.any(
+        (s) => s.distance(point.toOffset()) < radius + 4,
+      )) {
+        return false;
+      }
+    }
     for (final other in _near(point)) {
       if (identical(actor, other) || other.isRemoving || other.isRemoved) {
         continue;
@@ -108,6 +129,29 @@ class CrowdOccupancy {
     double radius,
     bool Function(PositionComponent)? blocks,
   ) {
+    for (final entry in _compound.entries) {
+      final other = entry.key;
+      if (identical(actor, other) ||
+          other.isRemoving ||
+          other.isRemoved ||
+          (blocks != null && !blocks(other))) {
+        continue;
+      }
+      for (final shape in entry.value.groundShape) {
+        final start = shape.distance(from.toOffset());
+        if (start < radius + 4 && shape.distance(to.toOffset()) >= start) {
+          continue;
+        }
+        if (shape.contact(
+              from.toOffset(),
+              to.toOffset(),
+              padding: radius + 4,
+            ) !=
+            null) {
+          return other;
+        }
+      }
+    }
     final delta = to - from;
     final length2 = delta.length2;
     for (final other in _near(from)) {

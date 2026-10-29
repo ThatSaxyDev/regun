@@ -1,0 +1,273 @@
+{
+  "sourceSize": [
+    1536,
+    1024
+  ],
+  "decodeWidth": 1024,
+  "sourceSHA256": "e7e6b2a2c0b1c817ca51563aae68b9f115358b16bab04c8544324e47d0c07d7d",
+  "heading": "+X",
+  "lighting": "neutral overhead",
+  "parts": {
+    "head": {
+      "rect": [
+        22,
+        101,
+        385,
+        215
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "jaw": {
+      "rect": [
+        428,
+        154,
+        315,
+        141
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "cutter": {
+      "rect": [
+        772,
+        110,
+        351,
+        198
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "shards": {
+      "rect": [
+        1142,
+        101,
+        376,
+        218
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "mortarBase": {
+      "rect": [
+        23,
+        405,
+        354,
+        220
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "mortarTube": {
+      "rect": [
+        417,
+        433,
+        354,
+        189
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "projector": {
+      "rect": [
+        802,
+        414,
+        396,
+        212
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "mine": {
+      "rect": [
+        1255,
+        400,
+        267,
+        242
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "tail": {
+      "rect": [
+        20,
+        731,
+        391,
+        214
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "headWreck": {
+      "rect": [
+        432,
+        730,
+        347,
+        238
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "weaponWreck": {
+      "rect": [
+        805,
+        727,
+        385,
+        243
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    "shell": {
+      "rect": [
+        1218,
+        770,
+        303,
+        160
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    }
+  },
+  "worldGeometry": {
+    "head": [
+      144,
+      120
+    ],
+    "jaws": {
+      "pivot": [
+        32,
+        0
+      ],
+      "rearPivotFraction": 0.1,
+      "size": [
+        79,
+        32
+      ],
+      "openingRadians": 0.35
+    },
+    "cutter": [
+      70,
+      40
+    ],
+    "shards": {
+      "mount": [
+        0,
+        0
+      ],
+      "size": [
+        100,
+        62
+      ],
+      "socket": [
+        65,
+        0
+      ],
+      "recoilAxis": [
+        -1,
+        0
+      ]
+    },
+    "mortars": {
+      "mount": [
+        0,
+        0
+      ],
+      "baseSize": [
+        88,
+        74
+      ],
+      "tubeMounts": [
+        [
+          0,
+          -20
+        ],
+        [
+          0,
+          20
+        ]
+      ],
+      "tubeSize": [
+        82,
+        33
+      ],
+      "muzzle": [
+        52,
+        0
+      ],
+      "recoil": 9,
+      "height": 28
+    },
+    "projector": {
+      "size": [
+        105,
+        66
+      ],
+      "socket": [
+        63,
+        0
+      ]
+    },
+    "mine": {
+      "size": [
+        38,
+        34
+      ],
+      "footprintRadius": 12
+    },
+    "tail": {
+      "size": [
+        142,
+        76
+      ],
+      "mount": [
+        -24,
+        0
+      ],
+      "sourceRotation": 180,
+      "jointLimitDegrees": 28
+    },
+    "shell": {
+      "size": [
+        36,
+        18
+      ],
+      "flightHeight": 115
+    }
+  },
+  "drawOrder": [
+    "couplings",
+    "bogies",
+    "housing",
+    "cutter",
+    "jaws",
+    "cradles",
+    "tubes",
+    "shells"
+  ],
+  "combatDecodeWidth": 768
+}

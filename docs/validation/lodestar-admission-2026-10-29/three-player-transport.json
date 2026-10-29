@@ -1,0 +1,11 @@
+{
+  "players": 3,
+  "capability": 11,
+  "replicated": true,
+  "armoredHead": true,
+  "twoWeaponUnlock": true,
+  "headHP": 80,
+  "immediateDisarm": true,
+  "connectedShutdown": true,
+  "onceOnlyVictory": true
+}

@@ -1,3 +1,6 @@
+import 'package:regun/components/enemies/lodestar_boss.dart';
+import 'package:regun/systems/lodestar/lodestar_combat.dart';
+import 'package:regun/systems/lodestar/lodestar_rig.dart';
 import 'package:regun/systems/mechanical_arrival.dart';
 import 'package:regun/systems/boss_spawn.dart';
 import 'package:regun/systems/ariet_rig.dart';
@@ -128,6 +131,8 @@ class RegunGame extends FlameGame
 
   bool get arietTrial => mechanicalTrial == MechanicalTrial.ariet;
   bool get mechanicalTrialActive => mechanicalTrial != null;
+  bool get lodestarTrial => mechanicalTrial == MechanicalTrial.lodestar;
+  LodestarBoss? lodestarCandidate;
   ArietBoss? arietCandidate;
   WalkerBoss? walkerCandidate;
   late final upgradePresentation = UpgradePresentationController(
@@ -245,6 +250,7 @@ class RegunGame extends FlameGame
       yield* robot.rocketTargets;
     }
     yield* arietCandidate?.rocketTargets ?? const <ShootableOrdnance>[];
+    yield* lodestarCandidate?.mineTargets ?? const <ShootableOrdnance>[];
     yield* weakPoints.where((p) => !p.isRemoving && !p.combatHealth.isDead);
   }
 
@@ -491,6 +497,12 @@ class RegunGame extends FlameGame
   }
 
   void clearHostileShots(Vector2 origin, double radius) {
+    final lodestar = lodestarCandidate;
+    if (lodestar != null && lodestar.prepared && !lodestar.retired) {
+      lodestar.fight.shots.removeWhere(
+        (s) => (s.position - origin.toOffset()).distance <= radius + 6,
+      );
+    }
     final ariet = arietCandidate;
     if (ariet != null && ariet.prepared && !ariet.retired) {
       ariet.fight.rounds.removeWhere(
@@ -573,7 +585,9 @@ class RegunGame extends FlameGame
     }
   }
 
-  double enemyRadius(PositionComponent enemy) => enemy is ArietBoss
+  double enemyRadius(PositionComponent enemy) => enemy is LodestarBoss
+      ? 500
+      : enemy is ArietBoss
       ? ArietHull.enclosingRadius
       : enemy is ArietEscort
       ? 88 * ArietEscort.rigScale
@@ -615,6 +629,9 @@ class RegunGame extends FlameGame
         final delta = to - from;
         final point = delta.isZero() ? from : from + delta.normalized() * best;
         if (segmentBlocked(from, point)) return null;
+        if (target is LocalDamageTarget) {
+          (target as LocalDamageTarget).noteDamageContact(point.toOffset());
+        }
       }
       return best;
     }
@@ -632,7 +649,17 @@ class RegunGame extends FlameGame
     double? body,
   }) {
     if (target is ShapedTarget) {
-      return (target as ShapedTarget).targetShape.fold<double>(
+      final regions = (target as ShapedTarget).targetShape.toList();
+      if (target is LocalDamageTarget && regions.isNotEmpty) {
+        regions.sort(
+          (a, b) => a
+              .distance(origin.toOffset())
+              .compareTo(b.distance(origin.toOffset())),
+        );
+        final r = regions.first;
+        (target as LocalDamageTarget).noteDamageContact((r.a + r.b) / 2);
+      }
+      return regions.fold<double>(
         double.infinity,
         (best, r) => min(best, r.distance(origin.toOffset())),
       );
@@ -685,6 +712,9 @@ class RegunGame extends FlameGame
                     asin(
                       (r.radius / max(r.radius, delta.length)).clamp(0.0, 1.0),
                     )) {
+          if (target is LocalDamageTarget) {
+            (target as LocalDamageTarget).noteDamageContact(point);
+          }
           return true;
         }
       }
@@ -719,7 +749,7 @@ class RegunGame extends FlameGame
   }) {
     // Ariet arrivals validate their solid/bounds footprint in _placeAriet.
     // An airborne carrier must never reserve floor space, even during mounting.
-    if (actor is ArietBoss) {
+    if (actor is ArietBoss || actor is CompoundGroundActor) {
       crowdOccupancy.forget(actor);
       return true;
     }
@@ -997,6 +1027,7 @@ class RegunGame extends FlameGame
     double? travel,
     WeaponReaction? reaction,
     Vector2? direction,
+    Vector2? hitPoint,
   }) {
     if (enemy is ShootableOrdnance) {
       if (gameState.gameplayState != GameplayState.playing || inputBlocked) {
@@ -1016,6 +1047,7 @@ class RegunGame extends FlameGame
       releaseBonus: releaseBonus,
       travel: travel,
       reaction: reaction,
+      hitPoint: hitPoint?.toOffset(),
     );
   }
 
@@ -1471,6 +1503,7 @@ class RegunGame extends FlameGame
     activeBoss = null;
     walkerCandidate = null;
     arietCandidate = null;
+    lodestarCandidate = null;
     _bossDamageTaken.clear();
     _bossAttacks.clear();
     weakPoints.clear();
@@ -1542,6 +1575,7 @@ class RegunGame extends FlameGame
     layoutControls();
     if (walkerTrial && loadout.training) _placeWalker();
     if (arietTrial && loadout.training) _placeAriet();
+    if (lodestarTrial && loadout.training) _placeLodestar();
     revision.value++;
     resumeEngine();
   }
@@ -1554,6 +1588,7 @@ class RegunGame extends FlameGame
         'kind': enemyId(entity),
         if (entity is WalkerBoss) 'walker': entity.checkpointState,
         if (entity is ArietBoss) 'ariet': entity.checkpointState,
+        if (entity is LodestarBoss) 'lodestar': entity.checkpointState,
         'combatId': enemy.combatId,
         'freeze': enemy.freezeState.toJson(),
         if (entity is BossEncounter) 'actor': bossEncounter.idOf(entity),
@@ -1618,7 +1653,8 @@ class RegunGame extends FlameGame
         for (final e in bosses)
           if (!e.isLoaded ||
               (e is WalkerBoss && e.prepared && e.fight.defeated) ||
-              (e is ArietBoss && e.prepared && e.fight.defeated))
+              (e is ArietBoss && e.prepared && e.fight.defeated) ||
+              (e is LodestarBoss && e.prepared && e.fight.defeated))
             actor(e),
       ],
       'drops': [
@@ -1854,6 +1890,18 @@ class RegunGame extends FlameGame
           !['offered', 'requested', 'ended'].contains(recovery.stage)) {
         throw const FormatException('Finished run');
       }
+      // Retire the fresh run's pending actors before restoring IDs. Their late
+      // mounts must not register beside checkpoint actors with the same IDs.
+      _retireMechanical();
+      _retirePracticeBosses();
+      for (final old in _enemies.toList()) {
+        _retirePracticeActor(old);
+      }
+      for (final warning in _spawnWarnings.toList()) {
+        warning.cancel();
+      }
+      _spawnWarnings.clear();
+      _enemies.clear();
       final records = (snapshot['enemies'] as List).cast<Map>();
       if (records.length > maxEnemies + 1 ||
           (snapshot['drops'] as List).length > maxCoins) {
@@ -1937,6 +1985,11 @@ class RegunGame extends FlameGame
               WeaponType.frostShotgun,
               'freezeImmunity',
             ),
+          );
+        }
+        if (entity is LodestarBoss && record['lodestar'] is Map) {
+          entity.restoreFight(
+            Map<String, dynamic>.from(record['lodestar'] as Map),
           );
         }
         if (entity is ArietBoss && record['ariet'] is Map) {
@@ -2089,6 +2142,7 @@ class RegunGame extends FlameGame
   bool registerEnemy(PositionComponent enemy) {
     if (isRetiredActor(enemy) ||
         (loadout.training && bossRush) ||
+        (lodestarTrial && enemy is! LodestarBoss) ||
         (walkerTrial && enemy is! WalkerBoss) ||
         (arietTrial && enemy is! ArietBoss && enemy is! ArietEscort)) {
       return false;
@@ -2194,13 +2248,15 @@ class RegunGame extends FlameGame
       crowdOccupancy.forget(enemy);
       return;
     }
-    if ((enemy is WalkerBoss || enemy is ArietBoss) && !mechanicalComplete) {
+    if ((enemy is WalkerBoss || enemy is ArietBoss || enemy is LodestarBoss) &&
+        !mechanicalComplete) {
       // Keep the encounter registered until its warned mechanical destruction ends.
       _enemies.remove(enemy);
       crowdOccupancy.forget(enemy);
       return;
     }
-    if ((enemy is WalkerBoss || enemy is ArietBoss) && loadout.training) {
+    if ((enemy is WalkerBoss || enemy is ArietBoss || enemy is LodestarBoss) &&
+        loadout.training) {
       unregisterEnemy(enemy);
       bossEncounter.remove(enemy);
       if (bosses.isEmpty && bossRush) bossRushWait = 2.8;
@@ -2215,7 +2271,9 @@ class RegunGame extends FlameGame
       final bossKind = (enemy as BossEncounter).kind;
       gameNotifier.awardBossHealth();
       bossVictory.show(bossKind);
-      if (enemy is! WalkerBoss && enemy is! ArietBoss) {
+      if (enemy is! WalkerBoss &&
+          enemy is! ArietBoss &&
+          enemy is! LodestarBoss) {
         world.add(
           BossDeparture(
             position: enemy.position + Vector2(0, enemy.size.y * .35),
@@ -2263,6 +2321,7 @@ class RegunGame extends FlameGame
   }
 
   String enemyId(PositionComponent enemy) => switch (enemy) {
+    LodestarBoss() => 'lodestar',
     ArietBoss() => 'ariet',
     ArietEscort() => 'arietEscort',
     WalkerBoss() => 'walker',
@@ -2282,10 +2341,16 @@ class RegunGame extends FlameGame
     ariet?.retire();
     ariet?.removeFromParent();
     _retireWalker();
+    final lodestar = lodestarCandidate;
+    lodestarCandidate = null;
+    lodestar?.retire();
+    lodestar?.removeFromParent();
     mechanicalTrial = null;
   }
 
-  double _bossFootprint(BossKind kind) => kind == BossKind.ariet
+  double _bossFootprint(BossKind kind) => kind == BossKind.lodestar
+      ? 120
+      : kind == BossKind.ariet
       ? 230
       : kind == BossKind.walker || kind == BossKind.saint
       ? 220
@@ -2319,8 +2384,16 @@ class RegunGame extends FlameGame
       actor,
       camera.viewfinder.position,
       camera.viewfinder.zoom,
-      targetZoom: actor is ArietBoss ? .74 : .80,
-      arrivalDuration: actor is ArietBoss ? 2.60 : 3.05,
+      targetZoom: actor is ArietBoss
+          ? .74
+          : actor is LodestarBoss
+          ? 1
+          : .80,
+      arrivalDuration: actor is ArietBoss
+          ? 2.60
+          : actor is LodestarBoss
+          ? 3.2
+          : 3.05,
       reducedMotion: preferences.reducedMotion,
     );
     resetInput();
@@ -2341,6 +2414,87 @@ class RegunGame extends FlameGame
     arietCandidate = actor;
     world.add(actor);
     _beginMechanicalArrival(actor);
+  }
+
+  ({Vector2 position, double heading})? _lodestarSite() {
+    // Validate the complete incoming spine and forward arrival corridor.
+    for (var n = 0; n < 32; n++) {
+      final yaw = n * 2.399963229728653;
+      final at =
+          myPlayer.position.toOffset() + Offset(cos(yaw), sin(yaw)) * 1520;
+      final heading = yaw + pi;
+      final rig = LodestarRig(head: at, heading: heading);
+      bool legal = true;
+      for (final p in rig.poses) {
+        final to = p.position + Offset(cos(heading), sin(heading)) * 830;
+        if (!map.bounds.interior.deflate(120).contains(p.position) ||
+            !map.bounds.interior.deflate(120).contains(to) ||
+            geometry.solids.any(
+              (r) => ArenaGeometry.crosses(
+                Vector2(p.position.dx, p.position.dy),
+                Vector2(to.dx, to.dy),
+                r.inflate(120),
+              ),
+            ) ||
+            (p.position - myPlayer.position.toOffset()).distance < 700 ||
+            liveEnemies.any(
+              (e) =>
+                  !e.isRemoving &&
+                  TargetCapsule(
+                        p.position,
+                        to,
+                        120,
+                      ).distance(e.position.toOffset()) <
+                      crowdRadius(e) + 3,
+            )) {
+          legal = false;
+          break;
+        }
+      }
+      if (!legal) continue;
+      return (position: Vector2(at.dx, at.dy), heading: heading);
+    }
+    return null;
+  }
+
+  void _placeLodestar() {
+    final site = _lodestarSite();
+    if (site == null) {
+      mechanicalTrial = null;
+      return;
+    }
+    final actor = LodestarBoss(
+      position: site.position,
+      heading: site.heading,
+      practiceTrial: true,
+    );
+    lodestarCandidate = actor;
+    world.add(actor);
+    _beginMechanicalArrival(actor);
+  }
+
+  void practiceLodestar() {
+    if (!loadout.training) return;
+    startBossRush();
+    bossRush = false;
+    bossRushWait = 0;
+    mechanicalTrial = MechanicalTrial.lodestar;
+    _placeLodestar();
+    revision.value++;
+  }
+
+  void practiceLodestarMove(LodestarMove? move) {
+    final actor = lodestarCandidate;
+    if (!loadout.training ||
+        actor == null ||
+        !actor.prepared ||
+        actor.fight.defeated) {
+      return;
+    }
+    actor.fight.forcedMove = move;
+    resumeGame();
+    resetInput();
+    revision.value++;
   }
 
   void practiceAriet() {
@@ -2437,11 +2591,31 @@ class RegunGame extends FlameGame
     return actor;
   }
 
+  LodestarBoss _createLodestar(
+    Vector2 position,
+    double health, {
+    double? heading,
+  }) {
+    final actor = LodestarBoss(
+      position: position,
+      heading:
+          heading ??
+          atan2(
+            myPlayer.position.y - position.y,
+            myPlayer.position.x - position.x,
+          ),
+      maximumHealth: health,
+    );
+    lodestarCandidate = actor;
+    return actor;
+  }
+
   PositionComponent _createBoss(
     BossKind kind,
     Vector2 position,
     double health,
   ) => switch (kind) {
+    BossKind.lodestar => _createLodestar(position, health),
     BossKind.ariet => _createAriet(position, health),
     BossKind.walker ||
     BossKind.saint => WalkerBoss(position: position, maximumHealth: health),
@@ -2463,9 +2637,11 @@ class RegunGame extends FlameGame
 
   void spawnBoss(BossKind kind, {bool companion = false}) {
     if (kind == BossKind.saint) kind = BossKind.walker;
-    if ((kind == BossKind.walker || kind == BossKind.ariet) &&
-            bosses.isNotEmpty ||
-        bosses.any((boss) => boss is WalkerBoss || boss is ArietBoss)) {
+    if ((kind.mechanical) && bosses.isNotEmpty ||
+        bosses.any(
+          (boss) =>
+              boss is WalkerBoss || boss is ArietBoss || boss is LodestarBoss,
+        )) {
       return;
     }
     if ((!companion && bosses.isNotEmpty) ||
@@ -2473,17 +2649,30 @@ class RegunGame extends FlameGame
         gameState.gameplayState != GameplayState.playing) {
       return;
     }
-    final position = _bossSite(kind, companion: companion);
+    final lodestarSite = kind == BossKind.lodestar ? _lodestarSite() : null;
+    final position = kind == BossKind.lodestar
+        ? lodestarSite?.position
+        : _bossSite(kind, companion: companion);
     if (position == null) return;
     _bossWasHit = false;
     final scaling = bossRush ? 0.0 : 180 * pow(director.cycle - 1, 1.3);
-    final actor = _createBoss(kind, position, kind.baseHealth + scaling);
+    final actor = kind == BossKind.lodestar
+        ? _createLodestar(
+            position,
+            kind.baseHealth + scaling,
+            heading: lodestarSite!.heading,
+          )
+        : _createBoss(kind, position, kind.baseHealth + scaling);
     if (!reserveEnemySpace(
           actor,
           minPlayerDistance: BossSpawn.minimumDistance,
         ) ||
         !_bossSiteLegal(actor.position, _bossFootprint(kind))) {
       crowdOccupancy.forget(actor);
+      if (actor is LodestarBoss) {
+        actor.retire();
+        lodestarCandidate = null;
+      }
       if (actor is ArietBoss) {
         actor.retire();
         arietCandidate = null;
@@ -2501,7 +2690,7 @@ class RegunGame extends FlameGame
     unawaited(audio.playMusic('boss'));
     if (!director.bossActive) director.beginBoss();
     world.add(actor);
-    if (actor is WalkerBoss || actor is ArietBoss) {
+    if (actor is WalkerBoss || actor is ArietBoss || actor is LodestarBoss) {
       _beginMechanicalArrival(actor);
     } else {
       bossReveal.begin(
@@ -2607,15 +2796,19 @@ class RegunGame extends FlameGame
     gameNotifier.refillPractice();
     final first = _nextRushBoss();
     spawnBoss(first);
-    if (first != BossKind.walker && random.nextDouble() < .4) {
+    if (!first.mechanical && random.nextDouble() < .4) {
       final second = _nextRushBoss(excluding: first);
-      if (second != BossKind.walker) {
+      if (!second.mechanical) {
         spawnBoss(second, companion: true);
       } else {
-        _rushBag.add(second);
+        _rushBag.insert(0, second);
       }
     }
-    if (bosses.isEmpty) bossRushWait = 1;
+    if (bosses.isEmpty) {
+      _rushBag.insert(0, first);
+      bossRushRound--;
+      bossRushWait = 1;
+    }
     revision.value++;
   }
 
@@ -2951,6 +3144,8 @@ class RegunGame extends FlameGame
           actor.isLoaded &&
           (actor is ArietBoss
               ? actor.prepared
+              : actor is LodestarBoss
+              ? actor.prepared
               : actor is WalkerBoss && actor.prepared);
       if (actor.isRemoving ||
           actor.isRemoved ||
@@ -2963,6 +3158,7 @@ class RegunGame extends FlameGame
       if (ready) {
         if (actor is ArietBoss) actor.advanceArrival(dt);
         if (actor is WalkerBoss) actor.advanceArrival(dt);
+        if (actor is LodestarBoss) actor.advanceArrival(dt);
       }
       final done = mechanicalArrival.advance(dt, ready: ready);
       camera.viewfinder.zoom = mechanicalArrival.zoom;
@@ -3297,6 +3493,7 @@ class RegunGame extends FlameGame
         a != null &&
         !a.isRemoving &&
         (!a.isLoaded || a is! CombatEnemy || !a.combatHealth.isDead);
+    if (alive(lodestarCandidate)) return 1;
     if (arietTrial) return alive(arietCandidate) ? .74 : 1;
     if (walkerTrial) return alive(walkerCandidate) ? .80 : 1;
     if (bosses.whereType<ArietBoss>().any(alive)) return .74;
@@ -3459,6 +3656,7 @@ class RegunGame extends FlameGame
       robot.assets.dispose();
     }
     arietCandidate?.retire();
+    lodestarCandidate?.retire();
     // Replace the run world, including components that are still loading and
     // are not yet visible in world.children. They must never enter a new run.
     world = World();
@@ -3540,6 +3738,7 @@ class RegunGame extends FlameGame
       robot.assets.dispose();
     }
     arietCandidate?.retire();
+    lodestarCandidate?.retire();
     _phaseSubscription?.close();
     confirmationHolding.dispose();
     damageFeedback.healthLost.dispose();
@@ -3553,4 +3752,4 @@ class RegunGame extends FlameGame
 }
 
 /// One exclusive development encounter owner in a Training visit.
-enum MechanicalTrial { walker, ariet }
+enum MechanicalTrial { walker, ariet, lodestar }

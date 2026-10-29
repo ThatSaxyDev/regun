@@ -1,0 +1,257 @@
+{
+  "revision": 1,
+  "sourceSize": [
+    1536,
+    1024
+  ],
+  "decodeWidth": 1024,
+  "sourceSHA256": "3501ae5fe285862ebdadf5ee4adea7951ad2e6e454b538b9417a74728fcfa970",
+  "heading": "+X after sourceRotation",
+  "lighting": "neutral overhead, iron/olive/copper",
+  "scope": "gate 1 carriage/feeder construction; no offensive mechanism art",
+  "parts": {
+    "carriage": {
+      "rect": [
+        28,
+        82,
+        416,
+        442
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceRotation": -90,
+      "worldSize": [
+        88,
+        116
+      ],
+      "front": [
+        40.5,
+        0
+      ],
+      "rear": [
+        -40.5,
+        0
+      ],
+      "height": 0,
+      "drawOrder": 2,
+      "sourcePinCenters": {
+        "front": [
+          236,
+          507
+        ],
+        "rear": [
+          236,
+          99
+        ]
+      }
+    },
+    "brokenShell": {
+      "rect": [
+        557,
+        82,
+        416,
+        442
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceRotation": -90,
+      "worldSize": [
+        108,
+        116
+      ],
+      "drawOrder": "floor aftermath only; not mounted"
+    },
+    "spine": {
+      "rect": [
+        723,
+        84,
+        88,
+        438
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "sourceRotation": -90,
+      "worldSize": [
+        108,
+        22
+      ],
+      "drawOrder": 2
+    },
+    "coupling": {
+      "rect": [
+        1025,
+        249,
+        490,
+        120
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        "solved reach *490/446",
+        13
+      ],
+      "reachMax": 32,
+      "jointDegrees": 28,
+      "drawOrder": 0,
+      "sourcePinCenters": [
+        [
+          1047,
+          309
+        ],
+        [
+          1493,
+          309
+        ]
+      ]
+    },
+    "bogie": {
+      "rect": [
+        33,
+        653,
+        406,
+        218
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        72,
+        26
+      ],
+      "mounts": [
+        [
+          0,
+          -42
+        ],
+        [
+          0,
+          42
+        ]
+      ],
+      "recoilAxis": null,
+      "drawOrder": 1
+    },
+    "feeder": {
+      "rect": [
+        494,
+        645,
+        338,
+        234
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        87.4,
+        61
+      ],
+      "indexAxis": [
+        1,
+        0
+      ],
+      "indexTravel": 0,
+      "toolEdge": null,
+      "releaseSocket": null,
+      "drawOrder": 3,
+      "mount": [
+        -20.3,
+        0
+      ]
+    },
+    "brokenFeeder": {
+      "rect": [
+        1025,
+        645,
+        493,
+        234
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        128,
+        61
+      ],
+      "drawOrder": "source review only; spine remains at runtime"
+    },
+    "feederArm": {
+      "rect": [
+        820,
+        669,
+        169,
+        151
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "worldSize": [
+        43.7,
+        39.1
+      ],
+      "mount": [
+        42.2,
+        0
+      ],
+      "indexAxis": [
+        1,
+        0
+      ],
+      "indexTravel": 6,
+      "drawOrder": 4,
+      "releaseSocket": null,
+      "recoilAxis": null,
+      "height": 0
+    }
+  },
+  "geometry": {
+    "liveCapsule": {
+      "a": [
+        0,
+        -12
+      ],
+      "b": [
+        0,
+        12
+      ],
+      "radius": 42
+    },
+    "wreckCapsule": {
+      "a": [
+        -42,
+        0
+      ],
+      "b": [
+        42,
+        0
+      ],
+      "radius": 11
+    },
+    "centerSpacing": 104,
+    "couplingSockets": [
+      [
+        40.5,
+        0
+      ],
+      [
+        -40.5,
+        0
+      ]
+    ],
+    "minimumTurnRadius": 220,
+    "jointLimitDegrees": 28,
+    "revisionNote": "Narrow 88-unit shell leaves visible coupling space; plan dimensions were provisional."
+  },
+  "combatDecodeWidth": 768
+}

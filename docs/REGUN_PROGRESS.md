@@ -2235,3 +2235,139 @@ API evidence saved under `validation/boss-arrivals-2026-10-29/`.
 Final phone result: signed release installed (sequence8376), launched, fresh device
 query confirms1.0.0/build28. Live API health/features200, unauthenticated account401;
 features remains onlinePlay:true/no-store. Source push is not live-revision proof.
+
+## Lodestar isolated construction foundation —29 October2026
+
+Creator explicitly requested starting Lodestar in a new session, overriding its
+former Ariet prerequisite without asserting Ariet physical acceptance. The new
+`tool/lodestar_workshop.dart` launches an isolated carriage/coupling/feeder and
+permanent spine-wreck inspector. Original modular source art, exact ImageGen
+prompt, measured manifest and one owner-held small atlas are saved; historical
+identity art is untouched. Housing stays planted while its separate arm indexes.
+Floors are borrowed; late asset decoding cannot resurrect a disposed route.
+
+Six local integrity records, first-swept-living-section queries, per-release boss
+ownership, one-total-budget blast splitting, feeder/mortar cancellation generations
+and offensive-only completion are model foundations. They are not yet connected
+to the24 native weapon paths/procs/rewards. The bare six-section rig follows an
+accepted arc-length path at120Hz, constrains couplings, reverses validated history,
+uses actual signed travel for rollers and rejects whole-body/self/cover/body
+crossings atomically. Workshop narrow-phase occupancy is not production
+CrowdOccupancy admission or a pursuit/escape planner. A narrower88-unit shell
+preserves visible joint space at104-unit spacing; initial dimensions were candidates.
+
+Gate1 construction is reviewable; gate2 remains partial. No offensive section art,
+attacks, burrow, complete Training encounter, normal BossKind/Rush, online/server
+admission or profile changes are implemented. Keep1.0.0+28. Evidence and validation:
+`docs/validation/lodestar-foundation-2026-10-29/README.md`. Physical articulation,
+readability, comfort and sustained performance acceptance remain open.
+
+Final Lodestar foundation validation: clean analyzer; `make verify` **955 passed /
+5 intentional skips**; final focused20 passed, including arm-only pixel motion and
+byte-identical held wreck checks. New atlas2.66MiB, shared world+workshop23.63MiB
+within32MiB; source/runtime hashes and measured rectangles match. Evidence is
+Flutter painter/widget output, not physical-device acceptance. No installation or
+roster admission occurred.
+
+
+## Complete Lodestar Training candidate —29 October2026
+
+Creator clarified the intended deliverable: enter normal Training and fight
+Lodestar. The carriage-only workshop was insufficient. Native Training → Start →
+Pause → Boss Practice now has Lodestar, with full six-section machinery, 200 local
+integrity, disable-on-break equipment/contact, feeder-dependent mortar loading,
+shared-owner primary/proc/blast accounting, articulated body occupancy, jaw attack,
+shards, twin mortar salvos, physical proximity mines, tail sweep, sequential boring/
+fixed warned eruption, mechanical arrival, finite destruction and Fight again.
+Training death recovers the player without resetting the encounter. Restart,
+practice replacement, Rush and pending-load disposal retire the whole owner.
+
+The real Foundry moving-player test exposed offscreen pursuit and a short reverse
+loop; route lookahead, a new valid forward branch after reversing, bounded forward
+interception and attack selection corrected those rather than raising base speed.
+Ordinary/enraged260/300 remain. Body parts depth sort individually, floors stay
+below actors, and the ground mask shares its half-plane with damage queries.
+Mortar tubes use separate recoil clocks and their actual elevated muzzle sockets;
+released target points stay planted. Safe withdrawal replaces interrupted entry.
+
+All24 actual player weapon releases hit local sections; blasts share one total
+boss budget. New opt-in LocalDamageTarget/CompoundGroundActor contracts preserve
+existing ordinary circular targets and existing machinery. Two768px combat sheets
+share one lease per encounter, keeping the selected native kit under32MiB. The
+original historical silhouette remains unused as runtime art. Existing material
+VFX/audio paths, volume/mute, controls, reloads and release1.0.0+28 are preserved.
+
+Normal Solo, randomized Rush and online admission remain deferred until creator
+Training feedback. No server changes or profile rewards are introduced. Evidence:
+`docs/validation/lodestar-training-2026-10-29/README.md`. Final verification and
+iPhone result are recorded there; physical acceptance remains open.
+
+Complete Lodestar final automated validation: clean analyzer, **968 passed /5
+intentional skips**. All24 native weapon releases, real Training recovery/replay,
+Foundry movement with actual mortar/jaw releases, and both-floor impact/mask pixels
+pass. New textures3MiB; measured native kit27.26MiB combined decoded art. The
+startup helper's concurrent image-I/O race was replaced by explicit ready-logo
+waiting; startup policy still never gates local entry. Device result follows in
+the Training validation folder.
+
+Lodestar Training phone result: normal main-entry signed iOS release built
+(Xcode30.9s), installed successfully (Apple sequence8392), fresh app query confirms
+**1.0.0/build28**. Automatic launch was denied because the iPhone is locked after
+a transient wireless disconnect. Unlock/open Regun to test. No distribution
+upload or normal/online admission occurred; physical acceptance remains open.
+
+
+## Lodestar core, shutdown and full admission —29 October2026
+
+Creator approved an armored head with an80HP exposed core, unlocked by breaking
+two weapon sections (accelerator/mortars/projector/tail). Feeder remains auxiliary.
+Local section HP totals240; later-cycle scaling preserves those proportions. An
+armored primary consumes its encounter owner hit; a blast absorbs the head share,
+never reallocates it into extra damage or unlocks/kills the core in one release.
+Visible split plating/core and brief ARMORED impact feedback explain the rule.
+All boss action-description text beneath HUD health strips is removed.
+
+Head death disarms every attack/contact immediately. The body brakes and remaining
+modules shut down head-to-tail, leaving a connected wreck, holding then fading
+over4.4 active seconds. Pause/background freeze it; Reduced Motion retains the
+cascade/fade without physical sag. Partial burrow masks stay planted at death.
+Normal completion/rewards happen once after shutdown; Training practice has none.
+
+Creator explicitly admits Lodestar to normal Solo, randomized Training Boss Rush
+and authoritative online co-op. It remains a solo mechanical encounter, never a
+random pair. Counts: Solo10, Rush9, co-op9; Ariet's existing online/Rush exclusion
+and Mirror Saint retirement remain unchanged. Native checkpoints retain local
+HP, head armor state, path/depth, cooldowns and destruction progress. Continue
+clears transient ordnance, preserves dismantling, grants existing grace and never
+replays arrival/committed damage. Resume also retires fresh pending enemies before
+restoring combat IDs, fixing duplicate late registrations.
+
+Server Lodestar owns120Hz anatomy/attacks, local swept primary contact, one-blast
+budget, mines, committed warnings and all-player hit ceilings. Compact public
+snapshots omit private path history; native online art reads snapshots without
+running local combat. Membership-authenticated segmented_bosses discovery and
+attach capability11 admit it only when every room client supports presentation.
+Older/mixed rooms retain their roster. Normal auth/epochs/sequences/capacities and
+Versus mode rules stay authoritative; no bosses are injected into modes that do
+not schedule bosses. Live online rollout needs the matching backend module.
+
+Evidence: docs/validation/lodestar-admission-2026-10-29/README.md. Physical
+readability, comfort, balance, audio and sustained performance remain for review.
+
+
+Final admitted candidate verification: analyzer clean; `make verify` **973 passed /
+5 intentional skips**. Server typecheck, **216 tests** and module build pass. The
+disposable three-player transport checks replicated armor/open core, immediate
+fatal disarm, retained connected shutdown and exactly one victory.
+
+Signed normal iOS release built (Xcode33.4s), installed successfully on the iPhone
+(Apple sequence8400); built Info.plist confirms **1.0.0/build28**. Subsequent device
+query/launch attempts timed out establishing the wireless tunnel; automatic launch
+is unconfirmed. Open Regun manually. This is installation, not physical acceptance.
+
+Matching backend **0516da57de14a96e9cb5b7aadc1c7ecd911a94a3** was pushed to main;
+remote ref verified. Public schema now exposes **segmented_bosses** and `/features`
+retains `onlinePlay:true`, confirming the capability rollout beyond the source push.
+All co-op clients need capability11 for Lodestar to enter the bag. No test-only
+stage/hit reducers are shipped. Live authenticated end-to-end play/WAN and physical
+review still belong to creator testing. Client source remains uncommitted.

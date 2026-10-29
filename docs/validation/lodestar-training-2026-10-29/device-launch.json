@@ -1,0 +1,35 @@
+{
+  "error" : {
+    "code" : 4000,
+    "domain" : "com.apple.dt.CoreDeviceError",
+    "userInfo" : {
+      "DeviceIdentifier" : {
+        "string" : "B1CB7226-4861-530C-943A-84DC9B0D0E12"
+      },
+      "NSLocalizedDescription" : {
+        "string" : "The device disconnected immediately after connecting."
+      }
+    }
+  },
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "process",
+      "launch",
+      "--device",
+      "00008101-000248EC1450001E",
+      "--terminate-existing",
+      "--json-output",
+      "docs/validation/lodestar-training-2026-10-29/device-launch.json",
+      "dev.kiishi.regun"
+    ],
+    "commandType" : "devicectl.device.process.launch",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 5,
+    "outcome" : "failed",
+    "version" : "642.16"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "release": "1.0.0+28",
+  "flutter": {
+    "analyzer": "clean",
+    "passed": 973,
+    "intentionalSkips": 5,
+    "command": "make verify"
+  },
+  "server": {
+    "commit": "0516da57de14a96e9cb5b7aadc1c7ecd911a94a3",
+    "passed": 216,
+    "typecheck": "pass",
+    "moduleBuild": "pass",
+    "threePlayerTransport": "pass",
+    "publicCapability11": true,
+    "onlinePlay": true
+  },
+  "ios": {
+    "build": "pass",
+    "xcodeSeconds": 33.4,
+    "installed": true,
+    "installationSequence": 8400,
+    "automaticLaunch": "device tunnel timed out"
+  },
+  "physicalAcceptance": false,
+  "sha256": {
+    "lib/components/enemies/lodestar_boss.dart": "07d9ccf1c77bbe9c95062f1809b89fe3db4ee01b0dabf92b5f42989d05e65784",
+    "lib/systems/lodestar/lodestar_sections.dart": "0fc4cb9f529da5555de29873d6053a791482e5d0181c4c2e80b741f3df9521fb",
+    "lib/systems/lodestar/lodestar_combat.dart": "7d36906f20030b94bf9286b846cf62300a0cca6cef82d0b141bb4f53d4f17242",
+    "lib/systems/lodestar/lodestar_rig.dart": "013bc887d9b476453d79203027031fc624c8fcd93bd41033a5378b88ffe42b51",
+    "lib/presentation/lodestar_battle_art.dart": "31d8a7866d8fa929396a99c238ca98ee785aea7cebab1c28a9a51ab92c4eca9c",
+    "lib/presentation/online_lodestar.dart": "2806674b707a45a65387bf40213179fe821cab24301a2791bd86b7b86b1da9a8",
+    "lib/game.dart": "505b140d419827dc8e212e59bdb154e51c77f5336a6d385f5212c9556de79586",
+    "lib/models/run_checkpoint.dart": "9e2fa2070acefcd7d299acbe3d10b0159ff54c1eff588a14ea9d813be1995ff8",
+    "lib/views/base_view.dart": "c4d284a2dc8bc7b29e780a9f85d6d83c3697f903011ed86dc73b82fe081d83be",
+    "lib/data/enemies.dart": "8cc78c6c84377762bc4dce4f4218e1be901a440d94f070cd3e7e76c994c31ce8"
+  }
+}

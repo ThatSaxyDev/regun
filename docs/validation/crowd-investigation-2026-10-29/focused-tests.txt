@@ -1,0 +1,42 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +9: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +10: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +11: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +12: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +13: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +14: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +15: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +16: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +17: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +18: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +19: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +20: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +21: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +22: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +23: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +24: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +25: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:00 +26: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:01 +27: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:01 +28: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:01 +29: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:01 +30: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+Mixed native pack: 0.0s nearest=104.79 blocked=0 melee=0; 5.0s nearest=94.39 blocked=0 melee=0; 10.0s nearest=94.51 blocked=0 melee=0; 15.0s nearest=94.27 blocked=0 melee=0; 20.0s nearest=94.27 blocked=11 melee=1; 25.0s nearest=94.19 blocked=16 melee=1; 30.0s nearest=94.11 blocked=35 melee=1
+00:01 +31: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:01 +32: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_native_probe_test.dart: record real mummy pack around one scorpion
+00:01 +33: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/mummy_crowd_test.dart: stationary Training crowd has living blocked poses without mirror jitter
+00:01 +34: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/mummy_crowd_test.dart: stationary Training crowd has living blocked poses without mirror jitter
+00:01 +35: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/temporary_cover_navigation_test.dart: a tight crowd touching the sentry can escape toward the survivor
+00:01 +36: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/temporary_cover_navigation_test.dart: pursuer chooses another side when living bodies block a sentry corner
+00:01 +37: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/temporary_cover_navigation_test.dart: flanking direction is checked even when the player sightline is clear
+00:01 +38: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/temporary_cover_navigation_test.dart: all approach angles keep moving or reach melee range
+00:02 +39: All tests passed!

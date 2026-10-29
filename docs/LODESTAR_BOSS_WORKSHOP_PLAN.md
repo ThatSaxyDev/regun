@@ -1,10 +1,10 @@
 # Lodestar /03 — articulated war-serpent workshop
 
-**Revised29 October2026 · Creator discussion incorporated · Proposal, not implemented content**
+**Revised29 October2026 · Current design authority · Complete native Training candidate; physical review open**
 
 Lodestar is a purpose-built, continuously moving war serpent. Six connected sections carry boring jaws, direct-fire shards, heavy siege artillery, an artillery feeder, tactical proximity mines and a physical tail sweep. Each section can be damaged and permanently disabled. The structural spine keeps damaged sections connected; target choice changes the remaining fight.
 
-**This revision supersedes the original shared-health / harmless-body / electrical-anchor / saw-disc / swivelling-tail-lance proposal.** It also corrects the proposed rear boring unit: actual excavation machinery is at the head. Current release identity remains **1.0.0+28**. Lodestar remains planning material, with isolated workshop → complete Training candidate → later roster admission as the implementation path.
+**This revision supersedes the original shared-health / harmless-body / electrical-anchor / saw-disc / swivelling-tail-lance proposal.** It also corrects the proposed rear boring unit: actual excavation machinery is at the head. Current release identity remains **1.0.0+28**. The complete encounter is now available in native Training → Start → Pause → Boss Practice → Lodestar. The creator now authorizes normal Solo, random Boss Rush and online co-op admission. Online requires unanimous capability11 and the matching server module; older/mixed rooms retain the supported roster.
 
 ![Original silhouette study — equipment requires revision](../art/source/bosses/lodestar/identity-v01.png)
 
@@ -14,7 +14,7 @@ The existing board supports the six-part silhouette and connected industrial mac
 
 | # | Section | Mechanism and purpose | Consequence of destruction |
 |---|---|---|---|
-| 1 | Boring head | Armored jaws close around rotating cutting teeth for excavation; open for a warned bite | No new burrow, eruption or bite attacks |
+| 1 | Boring head | Armored jaws close around rotating cutting teeth for excavation; open for a warned bite | Whole-machine shutdown; all attacks cease |
 | 2 | Shard accelerator | Swivelling feed/induction assembly fires visible metal flechettes on committed paths | Stops direct-fire volleys |
 | 3 | Twin siege mortars | Independent cradle tracks a moving player; tubes elevate, recoil and bombard a predicted route | Stops bombardment |
 | 4 | Ammunition feeder | Armored magazine, indexing conveyor and loading arms physically supply the adjacent mortars | Reduces mortar volleys from three shells to one; no invisible full-magazine supply |
@@ -27,12 +27,12 @@ Live armored bodies have visible cutting/raking edges and damage on real contact
 
 ## 2. Segment health and dismantling
 
-One encounter owner, six stable section IDs, six local integrity values. Initial test allocation: head40, accelerator30, mortars40, feeder25, mines30, tail35:200 total. Values are provisional, not approved balance. One boss bar aggregates section integrity; the targeted section gets a compact local damage indication. Avoid six permanent competing HUD bars.
+One encounter owner, six stable section IDs, six local integrity values. Initial test allocation: head80, accelerator30, mortars40, feeder25, mines30, tail35:240 total. Values are provisional, not approved balance. One boss bar aggregates section integrity; the targeted section gets a compact local damage indication. Avoid six permanent competing HUD bars.
 
-- Damage lands on the actual struck section. Breaking the head alone does not instantly kill the rest; redundant local controllers keep surviving modules and locomotion operating.
+- Damage lands on the actual struck section. The head begins armored: its share of primary/blast damage is absorbed with visible feedback. Break two of accelerator/mortars/mine projector/tail to open the plating and expose the80HP core; feeder loss does not count. The unlocking blast cannot also damage the previously armored core.
 - Destroy the housing and machinery, retaining load-bearing spine/couplings. No independent split snakes, detached active tail or growing replacement segments in the first candidate.
 - Destruction immediately cancels that section's unreleased attacks. Emitted rounds and planted mines already exist physically and finish their finite warned lifetimes; destroying the whole boss disarms all remaining hazards. Feeder destruction trims any unreleased extra mortar shells; shells already in flight retain their committed landing warnings.
-- Killing every offensive section ends the fight; any surviving auxiliary feeder shuts down with the spine. Never require an otherwise harmless ammunition carriage as a final health sponge. Remaining auxiliary integrity clears as part of that single completion.
+- Head destruction ends the whole encounter. All attacks, shots, mines and contact stop immediately. The rig brakes; remaining sections collapse head-to-tail at.22-second offsets over.45s each. Keep the connected wreck until3.4s, fade through4.4s, then complete/reward once. Destroying all four weapons leaves the exposed head as the clear final target; the feeder is never mandatory.
 - Destroyed sections do not absorb player ammunition or generate XP/procs repeatedly. Their damaged art exposes the remaining spine so shots passing through collapsed armor remain visually credible. They retain only their actual structural occupancy.
 - No healing, weapon regrowth or instant replacement attack. Limited phase-two mobility changes must not erase the player's successful dismantling.
 
@@ -117,7 +117,7 @@ Quiet recovery is.8s of no **new** releases while moving, after moving major rou
 
 Use per-family cooldowns above, separate from the shared recovery. If a mount is blocked, choose another legal move/reposition promptly. Already destroyed families cannot be picked. Optional support cannot continually reset a deadline and starve a major attack. Ordinary targeting must work against continuous player movement.
 
-**Dismantling:** phase two begins near50% aggregate integrity, with300 surface speed and shorter between-attack waits, retaining full warning minima. It never restores broken equipment or grants a surprise new attack. Reduce available choices as the player destroys sections; do not punish a successful weapon removal with arbitrary instant retaliation. Before all offensive sections fail, one remaining weapon still uses deliberate movement and its own readable cycle.
+**Dismantling:** phase two begins near50% aggregate integrity, with300 surface speed and shorter between-attack waits, retaining full warning minima. It never restores broken equipment or grants a surprise new attack. Reduce available choices as the player destroys sections; do not punish a successful weapon removal with arbitrary instant retaliation. Remaining weapons retain their own readable cycles until the exposed core is destroyed.
 
 ## 8. Arrival, defeat and complete Training candidate
 
@@ -149,10 +149,20 @@ Reuse carriage textures with distinct weapon caps; do not duplicate atlas decode
 
 ## 10. Workshop sequence and acceptance gates
 
-**Current prerequisite:** Ariet is now admitted to normal Solo for creator testing; this is not physical acceptance. Creator review of Ariet's rocket detonation, escort
-coordination and reduced escort size takes priority. Do not begin Lodestar runtime
-construction while those foundational Ariet concerns remain unaccepted. Updating
-this blueprint does not bypass that gate.
+**Creator authorization,29 October2026:** the creator explicitly requested a new
+session and starting Lodestar now. This overrides the former Ariet prerequisite
+for Lodestar construction; it does not assert physical acceptance of Ariet.
+
+**Current implementation, creator correction29 October2026:** the creator wanted
+a fight accessible inside Training, not a development launcher. The full native
+Training candidate now includes the six modules, local destruction, compound
+occupancy, committed attacks/mines, head-led burrow, arrival, destruction, recovery,
+replay and practice selectors. All24 real player weapon paths are checked. The
+standalone carriage inspector remains optional developer tooling, not a required
+player workflow. Gates1–7 have implementation/automated evidence; physical visual,
+fairness, comfort, listening and sustained performance acceptance remain open.
+Creator approval now opens gate8: Solo/Rush admission and capability11 co-op are implemented and verified; physical review remains open.
+See [Training evidence](validation/lodestar-training-2026-10-29/README.md).
 
 | Gate | Build | Proof before proceeding |
 |---|---|---|
@@ -164,15 +174,15 @@ this blueprint does not bypass that gate.
 | 5 | Tactical mines | Actual flight, strategic placement, two-device capacity, arm/trigger/warning/disarm/expiry, escape routes |
 | 6 | Complete burrow/eruption | Sequential depth, fixed exit/corridor, damage availability, interrupted entry/death, no invisible contact |
 | 7 | Full Training encounter | Arrival, all surviving-weapon combinations, phase change, defeat, recovery, restart, settings and real rendered proofs |
-| 8 | Later admission | Choose roster slot, rewards, save/capability/native-server parity after Training acceptance |
+| 8 | Later admission | Creator-approved Solo/Rush/co-op admission, once-only rewards, local section/checkpoint preservation and capability11 transport |
 
-Each module is end to end: art → attachment → moving mechanism → warning → release → swept damage → recovery → local destruction → cleanup. No module-only debug screen may be presented as the full boss. Isolated harness remains a planned `tool/lodestar_workshop.dart`, not an existing runnable command.
+Each module is end to end: art → attachment → moving mechanism → warning → release → swept damage → recovery → local destruction → cleanup. No module-only debug screen may be presented as the full boss. The optional `tool/lodestar_workshop.dart` inspects the carriage foundation; the actual fight is in ordinary Training Boss Practice.
 
 ## 11. Verification and risks
 
 Portable checks: fixed120Hz rig sampled at30/60/120Hz; coupling/reach/socket continuity; full-body cover/self-occupancy; reverse/wall and depth transitions; distinct section integrity and one-primary/one-blast total budgets; loader/mortar break propagation; no restored weapons; shared contact/eruption hit ceilings; mine targeting/capacity/arming/proximity/expiry; every pause/owner invalidation stage.
 
-Native checks: all24 loadouts; continuously moving targets and committed-path evasion; body/tail/head contacts; individual section targeting and every offensive section as last survivor; feeder-first versus mortar-first outcomes; meaningful hazard-free reload opportunities; burrow warning/geometry at center and cover/edges; full/partial underground destruction; actual projectile/impact pixels; fresh/pending-load restart/disposal; memory and Reduced Motion.
+Native checks: all24 loadouts; continuously moving targets and committed-path evasion; body/tail/head contacts; individual section targeting, armored-head rejection, two-weapon opening and core-last completion; feeder-first versus mortar-first outcomes; meaningful hazard-free reload opportunities; burrow warning/geometry at center and cover/edges; full/partial underground destruction; actual projectile/impact pixels; fresh/pending-load restart/disposal; memory and Reduced Motion.
 
 Physical review on both floors at normal HUD scale: readability of launcher/mine/cutter state, convincing connected anatomy and descent/emergence, fair live-body contact, deliberate target priority, pressure without unavoidable bombardment, sustained frame pacing/heat, muted audio and mirrored controls. Installation or headless simulation cannot establish these results.
 
@@ -201,4 +211,4 @@ These are reference facts; all proposed timings, counts and acceptance targets b
 | Resonance engine with acoustic horns | Non-military weapons and strong sound identity | Less distinct from existing bell/resonance imagery; harder to communicate fairly when sound is muted |
 
 
-The research describes useful principles, not approval of the superseded equipment. The current recommendation is the six-section **war-serpent** layout above, with targeted dismantling and head-led burrowing. No playable Lodestar, new enum, balance change, build-number change or installation is implied by updating this document.
+The research describes useful principles, not approval of the superseded equipment. The current recommendation is the six-section **war-serpent** layout above, with targeted dismantling and head-led burrowing. The admitted candidate retains1.0.0+28. Normal Solo and Rush use BossKind.lodestar; online co-op uses matching server capability11. Mechanical encounters stay single actors, outside random pairs. Physical acceptance remains for creator review.

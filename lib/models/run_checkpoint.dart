@@ -1,3 +1,4 @@
+import 'package:regun/systems/lodestar/lodestar_combat.dart';
 import 'package:regun/systems/ariet_combat.dart';
 import 'package:regun/systems/walker_combat.dart';
 import 'package:regun/models/run_statistics.dart';
@@ -255,6 +256,7 @@ class RunCheckpoint {
       if (enemies.length > 122 || drops.length > 80) return false;
       var bosses = 0;
       var hasAriet = false;
+      var hasLodestar = false;
       for (final raw in enemies) {
         final enemy = raw as Map;
         final id = enemy['kind'];
@@ -263,6 +265,7 @@ class RunCheckpoint {
           return false;
         }
         if (BossKind.values.any((e) => e.name == id)) bosses++;
+        if (id == 'lodestar') hasLodestar = true;
         if (id == 'ariet') {
           hasAriet = true;
           final ariet = enemy['ariet'];
@@ -286,13 +289,24 @@ class RunCheckpoint {
             }
           }
         }
+        if (id == 'lodestar' &&
+            !LodestarCombat.validCheckpoint(enemy['lodestar'])) {
+          return false;
+        }
         if (id == 'walker' && !WalkerCombat.validState(enemy['walker'])) {
           return false;
         }
         if (!point([enemy['x'], enemy['y']]) ||
             !number(enemy['health'], 1e6) ||
             ((enemy['health'] as num) <= 0 &&
-                !((id == 'ariet' &&
+                !((id == 'lodestar' &&
+                        enemy['lodestar'] is Map &&
+                        LodestarCombat.validCheckpoint(enemy['lodestar']) &&
+                        [
+                          'destruction',
+                          'finished',
+                        ].contains(enemy['lodestar']['phase'])) ||
+                    (id == 'ariet' &&
                         enemy['ariet'] is Map &&
                         ArietCombat.validCheckpoint(enemy['ariet']['fight']) &&
                         ArietPhase.values
@@ -313,7 +327,8 @@ class RunCheckpoint {
           return false;
         }
       }
-      if ((hasAriet && bosses > 1) || bosses > (map['schema'] == 2 ? 2 : 1)) {
+      if (((hasAriet || hasLodestar) && bosses > 1) ||
+          bosses > (map['schema'] == 2 ? 2 : 1)) {
         return false;
       }
       for (final raw in drops) {

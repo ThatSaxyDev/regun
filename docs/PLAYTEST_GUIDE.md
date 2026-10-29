@@ -1137,3 +1137,78 @@ The online policy check now starts during the existing startup logos. A successf
 fresh result is shared with Home; slow/offline checks must never delay startup or
 block Play. Explicit online entry and subsequent lifecycle/periodic refreshes
 still consult server policy. Review a cold launch with Wi-Fi and airplane mode.
+
+## Lodestar carriage and rig foundation —29 October2026
+
+Development launcher only: `flutter run -t tool/lodestar_workshop.dart`, then
+Lodestar construction. There is no normal Training menu/roster entry yet.
+Carriage shows the adjacent bare mortar station and feeder: toggle Load, tap a
+station to select it, and Hit10 until it breaks. The housing must stay planted
+while the physical arm strokes/holds; after breaking, only an inert connected
+spine remains. Restart restores the isolated study, not a normal run/build.
+
+Orbit/Eight/Reverse/Wall show six BARE carriages with real coupling sockets.
+These are anatomy/clearance probes, not the completed war serpent. Inspect both
+floors, Close/Sockets, stopped/reversed rollers, pause/single-step, background,
+Reduced Motion and early Back/re-entry. A wall rejection must stop the whole rig,
+never stretch a coupling or move only its head. Eight may expose route rejection;
+there is no production routing or player escape solver yet. Do not accept this
+as the full gate2 navigation/occupancy proof or all24 weapon compatibility.
+
+The creator authorized beginning this work beyond the former Ariet prerequisite;
+Ariet physical acceptance remains open. Lodestar attacks, burrow, full Training
+fight and roster admission remain later gates. Release stays1.0.0+28.
+
+
+## Complete Lodestar fight in Training —29 October2026
+
+This supersedes the carriage-only instructions above. Use normal Home → Training,
+choose your kit, Start, Pause → Boss Practice → **Lodestar**. It deploys as one
+connected six-section serpent. Use the normal sticks, dash, reload and grenade aim.
+Training Take damage defaults Off; enable it under Survival practice to test hits.
+There are no normal enemies, reward cores, XP or profile victories in this trial.
+
+Destroy each section deliberately: head stops bite/burrow; accelerator stops
+shards; mortars stop shells; feeder reduces later/unreleased salvos to one;
+projector stops new mines; tail stops its sweep. The narrow structural spine stays
+connected and harmless. All offensive sections down ends the fight even with a
+living feeder. Already released shells/mines finish their finite lifetimes after
+local breaks; whole-boss defeat disarms everything. Shooting mines disarms them.
+
+Keep moving through the mortar warning/flight and committed burrow exit. The
+head cuts down first, other sections follow the same opening, and emergence is
+sequential. During entry, breaking the exposed head causes safe visible withdrawal.
+Pause, background and upgrade holds freeze the encounter. Training death redeploys
+you while retaining the boss/build. Fight again and Pause → Restart replay it.
+Choosing another boss or Rush must clear owned attacks, mines and pending art.
+
+While Lodestar is active, Boss Practice offers All attacks and individual attack
+families for focused testing. Normal runs/random Rush/online do not include it yet.
+Test both floors, your preferred weapon, mirrored controls, Reduced Motion,
+readability, audio and sustained phone performance. Automated tests and installation
+are preparation for your review, not physical acceptance. Release stays1.0.0+28.
+
+
+## Lodestar head and admitted encounters —29 October2026
+
+This supersedes the independent-head/Training-only rules above. Start Training →
+Pause → Boss Practice → Lodestar. Shoot the head first: it must show ARMORED and
+keep80HP. Destroy any two of accelerator/mortars/projector/tail; feeder does not
+count. Inspect the opened head plating and exposed warm core. Destroying every
+weapon still leaves that core as the final target. Head death stops all attacks
+immediately, brakes the rig and collapses remaining sections down the spine.
+The connected wreck holds then fades over4.4 active seconds. Check both floors,
+Reduced Motion and pause/background mid-cascade. No action descriptions remain
+beneath any boss health strip.
+
+Normal Solo can now draw Lodestar from the ten-boss bag. Boss Rush includes it
+among nine, always alone. Save/Continue after one or two disabled weapons and
+during shutdown: no regrowth, replayed ordnance/arrival or duplicate rewards.
+After completion, the normal director resumes; Training grants no profile reward.
+
+Matching capability11 server/client builds admit Lodestar into online co-op's
+nine-boss roster. Check the same armor/section/attack states across all players,
+reconnect and one victory after shutdown. Old/mixed client rooms must retain the
+previous roster. A local three-player transport pass does not establish public
+server rollout or WAN/physical acceptance; check the latest validation record.
+Release identity stays1.0.0+28.

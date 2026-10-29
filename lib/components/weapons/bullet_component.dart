@@ -247,6 +247,7 @@ class BulletComponent extends PositionComponent
           releaseId: releaseId,
           releaseBonus: releaseBonus,
           travel: distance,
+          hitPoint: contactPoint,
           direction: direction,
           armorPiercing: weapon == WeaponType.longwatchSniper,
           reaction: pair > 1

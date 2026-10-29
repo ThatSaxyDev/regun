@@ -56,8 +56,17 @@ Future<void> start(
     );
     await tester.pump();
     // Complete genuine asset/preference I/O before advancing the fake ticker.
-    await Future<void>.delayed(const Duration(milliseconds: 100));
-    await tester.pump();
+    // Decoding can exceed100ms while other renderer tests run concurrently.
+    // The logo exists only after _prepare finishes; policy must not gate it.
+    for (
+      var i = 0;
+      i < 200 && find.byKey(const Key('startup-flame')).evaluate().isEmpty;
+      i++
+    ) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await tester.pump();
+    }
+    expect(find.byKey(const Key('startup-flame')), findsOneWidget);
   });
   await tester.pump();
 }

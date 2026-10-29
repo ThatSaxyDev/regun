@@ -1,0 +1,58 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart
+00:00 +0: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +1: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +2: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +3: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +4: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +5: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +6: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +7: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +8: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +9: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +10: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +11: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +12: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +13: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +14: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +15: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +16: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +17: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +18: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +19: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +20: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +21: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +22: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +23: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +24: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +25: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:00 +26: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:01 +27: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:01 +28: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+Shell: Mixed native pack: 0.0s nearest=104.79 blocked=0 melee=0; 5.0s nearest=94.39 blocked=0 melee=0; 10.0s nearest=94.51 blocked=0 melee=0; 15.0s nearest=94.27 blocked=0 melee=0; 20.0s nearest=94.27 blocked=11 melee=1; 25.0s nearest=94.19 blocked=16 melee=1; 30.0s nearest=94.11 blocked=35 melee=1
+00:01 +29: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:01 +30: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:01 +31: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:01 +32: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:01 +33: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:02 +34: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:02 +35: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:02 +36: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:02 +37: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+00:02 +38: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart: record shared crowd formation diagnostics
+Shell: Crowd diagnostic written to build/diagnostics/crowd-movement-probe-2026-10-29.json
+Shell: mummy seed=7 n=12 nearest=94.7 sixfold=0.138 alignment=0.906
+Shell: mummy seed=7 n=48 nearest=94.4 sixfold=0.497 alignment=0.885
+Shell: mummy seed=19 n=12 nearest=95.4 sixfold=0.843 alignment=0.906
+Shell: mummy seed=19 n=48 nearest=94.6 sixfold=0.298 alignment=0.871
+Shell: mummy seed=43 n=12 nearest=94.7 sixfold=0.456 alignment=0.903
+Shell: mummy seed=43 n=48 nearest=94.7 sixfold=0.312 alignment=0.919
+Shell: scorpion seed=7 n=12 nearest=84.9 sixfold=0.340 alignment=0.970
+Shell: scorpion seed=7 n=48 nearest=81.7 sixfold=0.327 alignment=0.968
+Shell: scorpion seed=19 n=12 nearest=80.9 sixfold=0.320 alignment=0.961
+Shell: scorpion seed=19 n=48 nearest=81.5 sixfold=0.271 alignment=0.962
+Shell: scorpion seed=43 n=12 nearest=86.3 sixfold=0.128 alignment=0.984
+Shell: scorpion seed=43 n=48 nearest=81.2 sixfold=0.087 alignment=0.964
+00:02 +39: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/temporary_cover_navigation_test.dart: all approach angles keep moving or reach melee range
+Shell: Fixed-boss yield: {seconds: 5, bossStationary: true, start: [100, 125], end: [476.1868896484375, 111.38087463378906], yieldFrames: 54, yieldPursuitSwitches: 101, unconstrainedTravel: 475}
+00:02 +40: /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/test/temporary_cover_navigation_test.dart: all approach angles keep moving or reach melee range
+00:02 +41: All tests passed!

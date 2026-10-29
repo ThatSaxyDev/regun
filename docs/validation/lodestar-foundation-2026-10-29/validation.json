@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-29",
+  "version": "1.0.0+28",
+  "checks": [
+    {
+      "command": "make verify",
+      "analyzer": "clean",
+      "passed": 955,
+      "skipped": 5
+    },
+    {
+      "command": "flutter test --no-pub --reporter expanded test/lodestar_sections_test.dart test/lodestar_rig_test.dart test/lodestar_workshop_test.dart",
+      "passed": 20,
+      "note": "Final focused run includes stronger rendered-pixel/combined-budget assertions."
+    },
+    {
+      "command": "flutter analyze --no-pub",
+      "result": "No issues found"
+    },
+    {
+      "command": "git diff --check",
+      "result": "clean"
+    }
+  ],
+  "implementationSha256": {
+    "lib/systems/lodestar/lodestar_sections.dart": "a456c8acce017ebfe856c24b82931d9bb87d185551318f408788d52007ceea20",
+    "lib/systems/lodestar/lodestar_rig.dart": "f0aa5802f9c9f0b3cdeed11c75c143fa9d443d7d97670b6de429505bb9137f9f",
+    "lib/systems/lodestar/lodestar_target.dart": "cc2c98c53ddadb8d4db1805ab3e311e0a4f451a75230ad145bc1a8a4b9aa0585",
+    "lib/presentation/lodestar_art.dart": "a82f2afecb8fdb5658c6d2f7c1b28281b3240ca327c227f0d24581941c424302",
+    "lib/views/lodestar_workshop_view.dart": "09c8b88bf61bfb50d335ca7f2aca484b1fb640c41c50bfaaadc1ba733190e6d0",
+    "tool/lodestar_workshop.dart": "7bf24d2923c5668b528f82babb8c5f6864bddab19f573518bf60d1654688aaf3"
+  },
+  "notValidated": [
+    "Complete gate2 navigation/occupancy/escape acceptance",
+    "Full combat Training encounter and all24 weapon integration",
+    "Physical comfort/fairness/performance",
+    "Normal/online admission"
+  ]
+}

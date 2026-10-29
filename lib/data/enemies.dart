@@ -46,6 +46,7 @@ enum BossKind {
     'Walker',
     'Read the guns. Evade the thruster rush and its landing blast.',
   ),
+  lodestar('Lodestar', 'Break two weapons to expose the armored head.'),
   ariet(
     'Ariet',
     'Watch the flight passes, roof guns and warned reinforcements.',
@@ -61,23 +62,29 @@ enum BossKind {
       active.where((kind) => kind != ariet).toList(growable: false);
   static List<BossKind> get onlineActive =>
       active.where((kind) => kind != ariet).toList(growable: false);
-  bool get mechanical => this == walker || this == ariet;
+  bool get mechanical => this == walker || this == ariet || this == lodestar;
   static BossKind read(String id) => id == 'saint' ? walker : values.byName(id);
   bool get expansion =>
-      this != walker && this != ariet && index >= BossKind.bellkeeper.index;
+      this != walker &&
+      this != ariet &&
+      this != lodestar &&
+      index >= BossKind.bellkeeper.index;
 
   /// Render footprint grows with its authoritative body, not a root transform
   /// that would also scale attack geometry and movement distances.
   double get spriteSize => switch (this) {
     walker => 206,
     ariet => 326,
+    lodestar => 200,
     shadow => 310,
     demon => 360,
     queen => 370,
     sovereign => 410,
     _ => 340,
   };
-  double get bodyRadius => this == ariet
+  double get bodyRadius => this == lodestar
+      ? 500
+      : this == ariet
       ? 230
       : this == walker
       ? 88
@@ -93,6 +100,7 @@ enum BossKind {
     saint => 300,
     walker => 190,
     ariet => 160,
+    lodestar => 240,
     sovereign => 340,
     marshal => 270,
   };

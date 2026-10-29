@@ -1,0 +1,542 @@
+[
+  {
+    "kind": "mummy",
+    "seed": 7,
+    "count": 12,
+    "hardGap": 94.0,
+    "speed": 95.0,
+    "targetVelocity": [
+      -68.4000015258789,
+      -17.100000381469727
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 97.11219843149351,
+        "sixfoldBondOrder": 0.24447409860731356,
+        "bonds": 28,
+        "target": [
+          -684.00537109375,
+          -171.0013427734375
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 94.56235101513933,
+        "sixfoldBondOrder": 0.22279383433733013,
+        "bonds": 36,
+        "target": [
+          -1368.01416015625,
+          -342.0035400390625
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 94.67125304781662,
+        "sixfoldBondOrder": 0.13784849556333495,
+        "bonds": 40,
+        "target": [
+          -2735.9580078125,
+          -683.989501953125
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.9055539941500155,
+    "last10sStoppedFraction": 0.04138888888888889
+  },
+  {
+    "kind": "mummy",
+    "seed": 7,
+    "count": 48,
+    "hardGap": 94.0,
+    "speed": 95.0,
+    "targetVelocity": [
+      -68.4000015258789,
+      -17.100000381469727
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 94.66480464858786,
+        "sixfoldBondOrder": 0.41752404865665804,
+        "bonds": 200,
+        "target": [
+          -684.00537109375,
+          -171.0013427734375
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 94.57831075139703,
+        "sixfoldBondOrder": 0.10610772144426202,
+        "bonds": 190,
+        "target": [
+          -1368.01416015625,
+          -342.0035400390625
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 94.41891028366153,
+        "sixfoldBondOrder": 0.49662144637610095,
+        "bonds": 200,
+        "target": [
+          -2735.9580078125,
+          -683.989501953125
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.8848761837969975,
+    "last10sStoppedFraction": 0.05722222222222222
+  },
+  {
+    "kind": "mummy",
+    "seed": 19,
+    "count": 12,
+    "hardGap": 94.0,
+    "speed": 95.0,
+    "targetVelocity": [
+      -68.4000015258789,
+      -17.100000381469727
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 95.4426709358634,
+        "sixfoldBondOrder": 0.10690918417489857,
+        "bonds": 26,
+        "target": [
+          -684.00537109375,
+          -171.0013427734375
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 94.47095518950623,
+        "sixfoldBondOrder": 0.515433957461773,
+        "bonds": 36,
+        "target": [
+          -1368.01416015625,
+          -342.0035400390625
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 95.36453598166429,
+        "sixfoldBondOrder": 0.8432741321277825,
+        "bonds": 44,
+        "target": [
+          -2735.9580078125,
+          -683.989501953125
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.9063405739917592,
+    "last10sStoppedFraction": 0.035694444444444445
+  },
+  {
+    "kind": "mummy",
+    "seed": 19,
+    "count": 48,
+    "hardGap": 94.0,
+    "speed": 95.0,
+    "targetVelocity": [
+      -68.4000015258789,
+      -17.100000381469727
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 94.88076307881786,
+        "sixfoldBondOrder": 0.6402545195826728,
+        "bonds": 208,
+        "target": [
+          -684.00537109375,
+          -171.0013427734375
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 94.37225444683506,
+        "sixfoldBondOrder": 0.39777607371584617,
+        "bonds": 194,
+        "target": [
+          -1368.01416015625,
+          -342.0035400390625
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 94.55767478613333,
+        "sixfoldBondOrder": 0.2981923475398049,
+        "bonds": 180,
+        "target": [
+          -2735.9580078125,
+          -683.989501953125
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.8713327924758821,
+    "last10sStoppedFraction": 0.07680555555555556
+  },
+  {
+    "kind": "mummy",
+    "seed": 43,
+    "count": 12,
+    "hardGap": 94.0,
+    "speed": 95.0,
+    "targetVelocity": [
+      -68.4000015258789,
+      -17.100000381469727
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 95.31095014753713,
+        "sixfoldBondOrder": 0.4111269158535354,
+        "bonds": 30,
+        "target": [
+          -684.00537109375,
+          -171.0013427734375
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 94.39819790899247,
+        "sixfoldBondOrder": 0.28068172452033974,
+        "bonds": 32,
+        "target": [
+          -1368.01416015625,
+          -342.0035400390625
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 94.67145621666249,
+        "sixfoldBondOrder": 0.4557789355892719,
+        "bonds": 38,
+        "target": [
+          -2735.9580078125,
+          -683.989501953125
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.9034201271263009,
+    "last10sStoppedFraction": 0.050694444444444445
+  },
+  {
+    "kind": "mummy",
+    "seed": 43,
+    "count": 48,
+    "hardGap": 94.0,
+    "speed": 95.0,
+    "targetVelocity": [
+      -68.4000015258789,
+      -17.100000381469727
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 94.49744782112137,
+        "sixfoldBondOrder": 0.45547572039031037,
+        "bonds": 202,
+        "target": [
+          -684.00537109375,
+          -171.0013427734375
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 94.42978297470823,
+        "sixfoldBondOrder": 0.2578668227613017,
+        "bonds": 196,
+        "target": [
+          -1368.01416015625,
+          -342.0035400390625
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 94.6666308713795,
+        "sixfoldBondOrder": 0.311899389573298,
+        "bonds": 190,
+        "target": [
+          -2735.9580078125,
+          -683.989501953125
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.9187851964621666,
+    "last10sStoppedFraction": 0.059340277777777777
+  },
+  {
+    "kind": "scorpion",
+    "seed": 7,
+    "count": 12,
+    "hardGap": 80.5,
+    "speed": 60.0,
+    "targetVelocity": [
+      -43.20000076293945,
+      -10.800000190734863
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 93.21286399741264,
+        "sixfoldBondOrder": 0.48469370610831425,
+        "bonds": 8,
+        "target": [
+          -432.0006408691406,
+          -108.00016021728516
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 91.0402762652944,
+        "sixfoldBondOrder": 0.1740201015987071,
+        "bonds": 12,
+        "target": [
+          -863.9864501953125,
+          -215.99661254882812
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 84.86589467415386,
+        "sixfoldBondOrder": 0.3398466274602705,
+        "bonds": 18,
+        "target": [
+          -1727.9512939453125,
+          -431.9878234863281
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.9695587720253152,
+    "last10sStoppedFraction": 0.0011111111111111111
+  },
+  {
+    "kind": "scorpion",
+    "seed": 7,
+    "count": 48,
+    "hardGap": 80.5,
+    "speed": 60.0,
+    "targetVelocity": [
+      -43.20000076293945,
+      -10.800000190734863
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 83.48538396933736,
+        "sixfoldBondOrder": 0.01889402093444144,
+        "bonds": 106,
+        "target": [
+          -432.0006408691406,
+          -108.00016021728516
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 88.00623874459887,
+        "sixfoldBondOrder": 0.2422141789253241,
+        "bonds": 64,
+        "target": [
+          -863.9864501953125,
+          -215.99661254882812
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 81.73128186575633,
+        "sixfoldBondOrder": 0.3272138805861751,
+        "bonds": 124,
+        "target": [
+          -1727.9512939453125,
+          -431.9878234863281
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.967782225106999,
+    "last10sStoppedFraction": 0.010451388888888889
+  },
+  {
+    "kind": "scorpion",
+    "seed": 19,
+    "count": 12,
+    "hardGap": 80.5,
+    "speed": 60.0,
+    "targetVelocity": [
+      -43.20000076293945,
+      -10.800000190734863
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 126.5232184727192,
+        "sixfoldBondOrder": 1.0,
+        "bonds": 2,
+        "target": [
+          -432.0006408691406,
+          -108.00016021728516
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 109.340215260731,
+        "sixfoldBondOrder": 0.3636931663825554,
+        "bonds": 6,
+        "target": [
+          -863.9864501953125,
+          -215.99661254882812
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 80.90906022262465,
+        "sixfoldBondOrder": 0.3202535885948969,
+        "bonds": 18,
+        "target": [
+          -1727.9512939453125,
+          -431.9878234863281
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.9607471062706636,
+    "last10sStoppedFraction": 0.0043055555555555555
+  },
+  {
+    "kind": "scorpion",
+    "seed": 19,
+    "count": 48,
+    "hardGap": 80.5,
+    "speed": 60.0,
+    "targetVelocity": [
+      -43.20000076293945,
+      -10.800000190734863
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 81.39133537514626,
+        "sixfoldBondOrder": 0.2709773563456201,
+        "bonds": 110,
+        "target": [
+          -432.0006408691406,
+          -108.00016021728516
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 83.99148334111958,
+        "sixfoldBondOrder": 0.0719876224318725,
+        "bonds": 78,
+        "target": [
+          -863.9864501953125,
+          -215.99661254882812
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 81.50152288479481,
+        "sixfoldBondOrder": 0.2711437676466892,
+        "bonds": 124,
+        "target": [
+          -1727.9512939453125,
+          -431.9878234863281
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.9618252026969834,
+    "last10sStoppedFraction": 0.017743055555555557
+  },
+  {
+    "kind": "scorpion",
+    "seed": 43,
+    "count": 12,
+    "hardGap": 80.5,
+    "speed": 60.0,
+    "targetVelocity": [
+      -43.20000076293945,
+      -10.800000190734863
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 136.15598666969774,
+        "sixfoldBondOrder": 0.9996095909934144,
+        "bonds": 4,
+        "target": [
+          -432.0006408691406,
+          -108.00016021728516
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 83.72630571758246,
+        "sixfoldBondOrder": 0.5259178148745699,
+        "bonds": 10,
+        "target": [
+          -863.9864501953125,
+          -215.99661254882812
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 86.33039447062531,
+        "sixfoldBondOrder": 0.1283474746697951,
+        "bonds": 14,
+        "target": [
+          -1727.9512939453125,
+          -431.9878234863281
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.983991622402891,
+    "last10sStoppedFraction": 0.004861111111111111
+  },
+  {
+    "kind": "scorpion",
+    "seed": 43,
+    "count": 48,
+    "hardGap": 80.5,
+    "speed": 60.0,
+    "targetVelocity": [
+      -43.20000076293945,
+      -10.800000190734863
+    ],
+    "samples": [
+      {
+        "seconds": 10.0,
+        "nearestMedian": 81.1375994269305,
+        "sixfoldBondOrder": 0.21070330960440353,
+        "bonds": 94,
+        "target": [
+          -432.0006408691406,
+          -108.00016021728516
+        ]
+      },
+      {
+        "seconds": 20.0,
+        "nearestMedian": 82.30990375909623,
+        "sixfoldBondOrder": 0.24029188221485664,
+        "bonds": 94,
+        "target": [
+          -863.9864501953125,
+          -215.99661254882812
+        ]
+      },
+      {
+        "seconds": 40.0,
+        "nearestMedian": 81.23814679673502,
+        "sixfoldBondOrder": 0.08658497378400692,
+        "bonds": 124,
+        "target": [
+          -1727.9512939453125,
+          -431.9878234863281
+        ]
+      }
+    ],
+    "last10sHeadingAlignment": 0.9639952417673643,
+    "last10sStoppedFraction": 0.009305555555555555
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-29",
+  "clientParent": "61ce9852b4e0a647e16e0dbe7f93a3fda4a91de8",
+  "serverCommit": "0516da57de14a96e9cb5b7aadc1c7ecd911a94a3",
+  "sourceVersion": "1.0.0+28",
+  "client": {
+    "command": "make verify",
+    "analyzer": "passed",
+    "testsPassed": 973,
+    "intentionalSkips": 5
+  },
+  "server": {
+    "command": "npm run verify",
+    "typecheck": "passed",
+    "testsPassed": 216,
+    "build": "passed",
+    "workingTree": "clean"
+  },
+  "scope": "Pre-navigation checkpoint includes current Lodestar admission and crowd investigation; no navigation repair implemented.",
+  "physicalAcceptance": "Not performed by these verification runs",
+  "distributionRecord": "build29-distribution-2026-10-29.json is independent of source identity"
+}

@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-29",
+  "version": "1.0.0+28",
+  "commands": [
+    {
+      "command": "make verify",
+      "analyzer": "clean",
+      "passed": 968,
+      "intentionalSkips": 5
+    },
+    {
+      "command": "flutter test --no-pub --reporter expanded test/startup_test.dart",
+      "passed": 6,
+      "note": "Earlier full run hit the fixed100ms image-I/O assumption. Startup helper now awaits actual logo readiness; final full suite passed."
+    }
+  ],
+  "weapons": "all24 actual native release paths checked",
+  "sourceSha256": {
+    "lib/systems/lodestar/lodestar_combat.dart": "efd39d07db475a88d61257d9eb312beced1077af9a7f58b74997108cc33539e0",
+    "lib/systems/lodestar/lodestar_sections.dart": "a456c8acce017ebfe856c24b82931d9bb87d185551318f408788d52007ceea20",
+    "lib/systems/lodestar/lodestar_rig.dart": "d240661166c5391b21b08a50d84c643c2ab4ace749bb61a0374fb8eac1f5eeda",
+    "lib/systems/lodestar/lodestar_target.dart": "cc2c98c53ddadb8d4db1805ab3e311e0a4f451a75230ad145bc1a8a4b9aa0585",
+    "lib/components/enemies/lodestar_boss.dart": "32137b793424ec1c96afd2a1b8b8c5f52c3e9ce600459d2d9008e563ae7341ea",
+    "lib/presentation/lodestar_art.dart": "8998dbea7ab8294172f3cdc8d74ebe7d213c1ea6b23e09f9912f3d299a9a7c83",
+    "lib/presentation/lodestar_battle_art.dart": "8b798dbb6fbc506f93eb9d670c005680f1b9d9f1fedaa5e0a027324160728ed6",
+    "lib/game.dart": "d4d3c9790c630d2f871d68f00df31fd5130efc6ef5691efe7abb43ce08645d27",
+    "lib/systems/combat_system.dart": "68985ead9c8c1f8b49579263e34750a957ee9904add31bbfdc508e3e502dfd7f",
+    "lib/systems/crowd_occupancy.dart": "da6375bf6aacc69f8493e07429976cfe9a978e4181cf2d50734d7df2c80954ce",
+    "lib/systems/target_shape.dart": "86d231f88326412b0e59f0951015e17d4ec06275b5444d1200eb6c4820f32a3d",
+    "lib/components/weapons/bullet_component.dart": "827e9e2620556c12efa3b660abafbef8fba9589d41f50c4020bf5e68af73dc72",
+    "lib/views/base_view.dart": "0da62066782798f6430cbfa0607f3391a718647ebce7c855df5620f212585948"
+  },
+  "notClaimed": [
+    "physical comfort/fairness/performance/listening acceptance",
+    "normal Solo/random Rush admission",
+    "online/server admission"
+  ],
+  "device": {
+    "build": "signed iOS release; Xcode30.9s;202.5MB",
+    "installation": "success",
+    "installationSequence": 8392,
+    "freshAppQuery": {
+      "version": "1.0.0",
+      "build": "28"
+    },
+    "automaticLaunch": "denied because iPhone locked after a transient disconnect",
+    "nextAction": "unlock phone and open Regun; Training \u2192 Start \u2192 Pause \u2192 Boss Practice \u2192 Lodestar"
+  }
+}

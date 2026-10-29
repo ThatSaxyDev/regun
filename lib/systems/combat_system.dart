@@ -1,3 +1,4 @@
+import 'package:regun/systems/target_shape.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/systems/weapon_reaction.dart';
@@ -77,6 +78,9 @@ class CombatSystem {
     String source = 'secondary',
     WeaponReaction? reaction,
     Vector2? direction,
+    Offset? hitPoint,
+    Offset? blastCenter,
+    double? blastRadius,
   }) {
     final character = game.loadout.character;
     final owner = enemy is BossWeakPoint ? enemy.owner : enemy;
@@ -143,7 +147,14 @@ class CombatSystem {
     enemy.incomingSupportBallistic = supportBallistic;
     bool accepted;
     try {
-      accepted = enemy.takeDamage(amount);
+      accepted = enemy is LocalDamageTarget
+          ? (enemy as LocalDamageTarget).receiveLocalDamage(
+              amount,
+              point: hitPoint,
+              blastCenter: blastCenter,
+              blastRadius: blastRadius,
+            )
+          : enemy.takeDamage(amount);
     } finally {
       enemy.incomingSupportBallistic = false;
     }
@@ -449,6 +460,8 @@ class CombatSystem {
           damage,
           primary: false,
           source: grenade ? 'grenade' : 'secondary',
+          blastCenter: position.toOffset(),
+          blastRadius: radius,
           weaponHit: releaseId > 0,
           releaseId: releaseId,
           releaseBonus: releaseBonus,

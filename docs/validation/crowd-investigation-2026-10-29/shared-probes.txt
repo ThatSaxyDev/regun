@@ -1,0 +1,18 @@
+00:00 +0: loading /Users/kiishidavid/Documents/Dev/Projects/MINE/regun/tool/crowd_movement_probe_test.dart
+00:00 +0: record shared crowd formation diagnostics
+Crowd diagnostic written to build/diagnostics/crowd-movement-probe-2026-10-29.json
+mummy seed=7 n=12 nearest=94.7 sixfold=0.138 alignment=0.906
+mummy seed=7 n=48 nearest=94.4 sixfold=0.497 alignment=0.885
+mummy seed=19 n=12 nearest=95.4 sixfold=0.843 alignment=0.906
+mummy seed=19 n=48 nearest=94.6 sixfold=0.298 alignment=0.871
+mummy seed=43 n=12 nearest=94.7 sixfold=0.456 alignment=0.903
+mummy seed=43 n=48 nearest=94.7 sixfold=0.312 alignment=0.919
+scorpion seed=7 n=12 nearest=84.9 sixfold=0.340 alignment=0.970
+scorpion seed=7 n=48 nearest=81.7 sixfold=0.327 alignment=0.968
+scorpion seed=19 n=12 nearest=80.9 sixfold=0.320 alignment=0.961
+scorpion seed=19 n=48 nearest=81.5 sixfold=0.271 alignment=0.962
+scorpion seed=43 n=12 nearest=86.3 sixfold=0.128 alignment=0.984
+scorpion seed=43 n=48 nearest=81.2 sixfold=0.087 alignment=0.964
+00:01 +1: record fixed-boss yield boundary behavior
+Fixed-boss yield: {seconds: 5, bossStationary: true, start: [100, 125], end: [476.1868896484375, 111.38087463378906], yieldFrames: 54, yieldPursuitSwitches: 101, unconstrainedTravel: 475}
+00:01 +2: All tests passed!

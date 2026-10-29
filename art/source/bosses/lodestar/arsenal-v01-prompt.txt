@@ -1,0 +1,17 @@
+Use case: stylized-concept. Production transparent game sprite parts sheet for Regun Lodestar war serpent. Match the worn dark olive/iron/copper pixel machinery of the reference carriage sheet. This is a NEW sheet of weapon anatomy, not another carriage sheet. Strict 4 columns by 3 rows, 12 separate parts, 1536x1024, exactly one isolated sprite per cell, centered with at least 30px transparent padding in every cell, no labels/text/grid/background/shadows cast on background. Direct orthographic overhead view; +X RIGHT is FORWARD for every part. Neutral overhead light, crisp grounded pixel-art detail, no glossy toy look.
+Row1 left to right:
+1 armored boring HEAD housing, horizontal tapered right-facing armored reptilian skull with a central open dark mouth slot, cheek jaw pivots, exposed steel center spine and rugged head excavation bracing. No jaws attached.
+2 ONE armored jaw blade, horizontal +X right, coarse saw cutting teeth on its lower edge, real rear pivot eye at LEFT. Fits head mouth; not a saw disc.
+3 rotary excavation CUTTER barrel, horizontal axis facing right, long chunky cylinder, multiple exposed toothed rings and dark steel flutes, copper axle collar at left, used in head mouth.
+4 swivelling SHARD ACCELERATOR mount, horizontal +X, a thick iron cradle with induction rings around a rectangular metal flechette feed slot and short twin barrel lips at right, no muzzle flash.
+Row2:
+1 TWIN MORTAR base cradle, horizontal +X, central rotating metal bearing with two empty trunnion rails and armored recoil slides, no tubes.
+2 ONE SIEGE MORTAR tube, thick heavy short cylindrical barrel, rear breech at LEFT, open dark muzzle at RIGHT, side elevation trunnion and visible recoil collars. Entire tube separate.
+3 MINE PROJECTOR cap, horizontal +X, squat armored swivelling throwing cradle with loading fork, copper hinges and a short deployment ramp pointing right.
+4 ONE folded compact metal proximity MINE, overhead olive armored disk with four folded mechanical legs, subdued brass trigger, NO glow.
+Row3:
+1 ARMORED TAIL cutting edge, horizontal tapered right-facing tail tip attached at LEFT thick spine, asymmetrical hooked rake teeth, real joint socket at left; not a telescope/lance.
+2 BROKEN head, damaged version of row1 head housing with crushed jaw pivot, stopped fractured excavation parts and exposed central spine; no smoke/fire.
+3 BROKEN weapon machinery, wrecked olive/iron cradle with bent ruptured barrel and exposed bearing; no smoke/fire.
+4 ONE substantial physical MORTAR SHELL, horizontal +X, copper band at rear LEFT, olive-steel body and pointed armored nose RIGHT. NOT a tiny glowing dot.
+No electric poles, anchors, saw discs, telescopic lance, complete snake, arena, explosion, foreign typography or additional objects. Real transparent alpha. All parts remain inside their exact grid cells.

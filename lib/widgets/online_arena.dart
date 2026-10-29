@@ -1,3 +1,4 @@
+import 'package:regun/presentation/online_lodestar.dart';
 import 'package:regun/presentation/online_walker.dart';
 import 'package:regun/presentation/online_boss_presentation.dart';
 import 'package:regun/presentation/boss_portal.dart';
@@ -68,6 +69,10 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   late final walkers = OnlineWalkers(() {
     if (mounted) setState(() {});
   });
+  late final lodestars = OnlineLodestars(() {
+    if (mounted) setState(() {});
+  });
+  final _lodestarCues = <String, int>{};
   final _walkerCues = <String, int>{};
   String? _walkerCueScope;
   final mummyWalks = <String, MummyWalk>{};
@@ -102,6 +107,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     final scope = '${session.room?.id}:${session.match?.data['matchId']}';
     if (_walkerCueScope != scope) {
       _walkerCues.clear();
+      _lodestarCues.clear();
       _walkerCueScope = scope;
     }
     final liveMummies = <String>{};
@@ -132,8 +138,23 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       final kind = BossKind.values.byName(e.data['kind'] as String);
       if (_warmed.add('boss_${kind.name}')) {
         unawaited(
-          kind == BossKind.walker ? audio.warmWalker() : audio.warmBoss(kind),
+          (kind == BossKind.walker || kind == BossKind.lodestar)
+              ? audio.warmWalker()
+              : audio.warmBoss(kind),
         );
+      }
+      if (kind == BossKind.lodestar && e.data['lodestar'] is Map) {
+        final state = e.data['lodestar'] as Map;
+        final serial = (state['cueSerial'] as num?)?.toInt() ?? 0;
+        final previous = _lodestarCues[e.key];
+        _lodestarCues[e.key] = serial;
+        if (previous != null &&
+            serial > previous &&
+            session.connected &&
+            !session.suspended) {
+          final sound = state['cue'];
+          if (sound is String && sound.isNotEmpty) audio.play(sound);
+        }
       }
       if (kind == BossKind.walker && e.data['walker'] is Map) {
         final state = e.data['walker'] as Map;
@@ -400,6 +421,10 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           }
         }
       }
+      lodestars.sync(
+        session.scene,
+        scope: '${session.room?.id}:${session.match?.data['matchId']}',
+      );
       walkers.sync(
         session.scene,
         dt,
@@ -606,6 +631,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     ticker.dispose();
     leases.dispose();
     walkers.dispose();
+    lodestars.dispose();
     clear();
     unawaited(audio.playMusic('menu'));
     super.dispose();
@@ -777,6 +803,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         restingAim: restingAim,
                         mummyWalks: mummyWalks,
                         walkers: walkers,
+                        lodestars: lodestars,
                         guardFeedback: guardFeedback,
                         mechanicFeedback: mechanicFeedback,
                       ),
@@ -1061,6 +1088,7 @@ class _ArenaPainter extends CustomPainter {
     required this.restingAim,
     required this.mummyWalks,
     required this.walkers,
+    required this.lodestars,
     required this.guardFeedback,
     required this.mechanicFeedback,
   });
@@ -1070,6 +1098,7 @@ class _ArenaPainter extends CustomPainter {
   final Map<String, Offset> restingAim;
   final Map<String, MummyWalk> mummyWalks;
   final OnlineWalkers walkers;
+  final OnlineLodestars lodestars;
   final Map<String, GuardFeedback> guardFeedback;
   final Map<String, MechanicFeedback> mechanicFeedback;
   final Map<String, Offset> positions;
@@ -1203,6 +1232,17 @@ class _ArenaPainter extends CustomPainter {
     }
     if (artReady) {
       for (final enemy in session.scene.where((e) => e.kind == 'enemy')) {
+        if (enemy.data['kind'] == 'lodestar') {
+          lodestars.floor(
+            canvas,
+            enemy.key,
+            session.room?.mapId == 'foundry'
+                ? ArenaType.foundry
+                : ArenaType.breach,
+            LocalPreferences.shared.reducedMotion,
+          );
+          continue;
+        }
         if (enemy.data['kind'] == 'walker') {
           walkers.floor(
             canvas,
@@ -1388,7 +1428,9 @@ class _ArenaPainter extends CustomPainter {
             .where(
               (e) =>
                   e.kind == 'enemy' &&
-                      (e.number('health') > 0 || e.data['kind'] == 'walker') ||
+                      (e.number('health') > 0 ||
+                          e.data['kind'] == 'walker' ||
+                          e.data['kind'] == 'lodestar') ||
                   e.kind == 'supply' && e.data['phase'] != 'warning' ||
                   e.kind == 'support',
             )
@@ -1446,6 +1488,15 @@ class _ArenaPainter extends CustomPainter {
           Paint()
             ..color = Color.fromRGBO(255, 255, 255, bossPresentation.opacity),
         );
+      }
+      if (enemy.data['kind'] == 'lodestar') {
+        lodestars.body(
+          canvas,
+          enemy.key,
+          LocalPreferences.shared.reducedMotion,
+        );
+        if (revealing) canvas.restore();
+        return;
       }
       if (enemy.data['kind'] == 'walker') {
         walkers.body(canvas, enemy.key, LocalPreferences.shared.reducedMotion);
@@ -1843,6 +1894,11 @@ class _ArenaPainter extends CustomPainter {
         reducedMotion: LocalPreferences.shared.reducedMotion,
       );
     }
+    lodestars.ordnance(
+      canvas,
+      session.room?.mapId == 'foundry' ? ArenaType.foundry : ArenaType.breach,
+      LocalPreferences.shared.reducedMotion,
+    );
     walkers.ordnance(
       canvas,
       session.room?.mapId == 'foundry' ? ArenaType.foundry : ArenaType.breach,

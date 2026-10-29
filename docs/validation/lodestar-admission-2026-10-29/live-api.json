@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-29T17:55:40.662153+00:00",
+  "backendCommit": "0516da57de14a96e9cb5b7aadc1c7ecd911a94a3",
+  "remoteMainVerified": true,
+  "schema": {
+    "status": 200,
+    "segmentedBosses": true
+  },
+  "features": {
+    "schemaVersion": 1,
+    "onlinePlay": true
+  },
+  "health": {
+    "status": 200,
+    "body": ""
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "seconds": 5,
+  "bossStationary": true,
+  "start": [
+    100,
+    125
+  ],
+  "end": [
+    476.1868896484375,
+    111.38087463378906
+  ],
+  "yieldFrames": 54,
+  "yieldPursuitSwitches": 101,
+  "unconstrainedTravel": 475
+}

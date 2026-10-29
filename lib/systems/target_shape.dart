@@ -70,3 +70,51 @@ class TargetCapsule {
     return best;
   }
 }
+
+/// One damage/proc owner with locally destructible armor. Query hints are only
+/// a fallback; swept bullets and blasts supply their authoritative hit geometry.
+abstract interface class LocalDamageTarget {
+  void noteDamageContact(Offset point);
+  bool receiveLocalDamage(
+    double amount, {
+    Offset? point,
+    Offset? blastCenter,
+    double? blastRadius,
+  });
+}
+
+/// Full ground footprint under a single occupancy owner, including inert spine.
+abstract interface class CompoundGroundActor {
+  Iterable<TargetCapsule> get groundShape;
+}
+
+/// Capsule intersected with the section's ground-mask half-plane. The renderer
+/// clips to this same plane while a connected section enters/emerges.
+class ClippedTargetCapsule extends TargetCapsule {
+  const ClippedTargetCapsule(
+    super.a,
+    super.b,
+    super.radius, {
+    required this.origin,
+    required this.normal,
+    required this.limit,
+  });
+  final Offset origin, normal;
+  final double limit;
+  double side(Offset p) =>
+      (p - origin).dx * normal.dx + (p - origin).dy * normal.dy - limit;
+  @override
+  double distance(Offset p) =>
+      math.max(super.distance(p), math.max(0, side(p)));
+  @override
+  double? contact(Offset from, Offset to, {double padding = 0}) {
+    final start = side(from) - padding, end = side(to) - padding;
+    if (start > 0 && end > 0) return null;
+    final length = (to - from).distance;
+    final lo = start > 0 ? start / (start - end) : 0.0;
+    final hi = end > 0 ? start / (start - end) : 1.0;
+    final a = Offset.lerp(from, to, lo)!, b = Offset.lerp(from, to, hi)!;
+    final hit = super.contact(a, b, padding: padding);
+    return hit == null ? null : lo * length + hit;
+  }
+}

@@ -1,3 +1,6 @@
+import 'package:regun/components/enemies/lodestar_boss.dart';
+import 'package:regun/systems/lodestar/lodestar_sections.dart';
+
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -427,7 +430,7 @@ void main() {
   );
 
   testWidgets(
-    'random Boss Rush draws all eight, waits for both deaths and preserves builds',
+    'random Boss Rush draws full admitted roster, waits for deaths and preserves builds',
     (tester) async {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -436,7 +439,7 @@ void main() {
       game.startBossRush();
       final seen = <BossKind>{};
       var pairs = 0;
-      for (var round = 0; round < 12; round++) {
+      for (var round = 0; round < 20; round++) {
         await tick(tester, game, 210);
         final actors = game.bosses.toList();
         expect(actors.length, inInclusiveRange(1, 2));
@@ -453,7 +456,21 @@ void main() {
           RegunArt.shared.decodedBytes,
           lessThanOrEqualTo(32 * 1024 * 1024),
         );
-        (actors.first as CombatEnemy).takeDamage(100000);
+        if (actors.first is LodestarBoss) {
+          final l = actors.first as LodestarBoss;
+          for (final s in [
+            LodestarSection.accelerator,
+            LodestarSection.mortars,
+            LodestarSection.head,
+          ]) {
+            l.receiveLocalDamage(
+              100000,
+              point: l.fight.rig.poses[s.index].position,
+            );
+          }
+        } else {
+          (actors.first as CombatEnemy).takeDamage(100000);
+        }
         if (actors.length == 2) {
           pairs++;
           expect(game.bosses.single, actors.last);
@@ -461,10 +478,8 @@ void main() {
           expect(game.bossRushRound, roundBefore);
           (actors.last as CombatEnemy).takeDamage(100000);
         }
-        if (actors.any(
-          (actor) => (actor as BossEncounter).kind == BossKind.walker,
-        )) {
-          await tick(tester, game, 330);
+        if (actors.any((actor) => (actor as BossEncounter).kind.mechanical)) {
+          await tick(tester, game, 360);
         }
         expect(game.bosses, isEmpty);
         expect(game.gameState.gameplayState, GameplayState.playing);
