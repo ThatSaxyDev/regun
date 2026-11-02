@@ -2,6 +2,12 @@
 
 29 October 2026. **Execution specification; navigation changes are not implemented by this document.**
 
+**2 November recheck:** primary game/engine research and the current checkout audit
+are recorded in [MINION_NAVIGATION_REFERENCES.md](MINION_NAVIGATION_REFERENCES.md).
+Client HEAD remains `0c083af`; backend HEAD `03218af` explicitly reverted its
+navigation candidate. Re-establish and validate the paired baseline before
+resuming implementation. Historical candidate results are not current passes.
+
 ## 1. Objective and starting point
 
 Repair the reproduced diagonal packing, mixed-speed deadlocks and collective boss-yield motion across native Solo/Training and authoritative online co-op. Minions should maintain their distinct combat roles, find usable approaches around slower bodies and bosses, and remain threatening without filling every accessible lane.
@@ -11,6 +17,7 @@ This is a navigation correction, not a weapon/health/speed rebalance. It include
 Starting references:
 
 - [Investigation, role inventory and reproductions](MINION_MOVEMENT_INVESTIGATION.md).
+- [External developer references, design implications and renewed baseline](MINION_NAVIGATION_REFERENCES.md).
 - Client checkpoint: **768f1d9b13178018fb6a334cedfd6e5575ceaf1c**; parent `61ce9852b4e0a647e16e0dbe7f93a3fda4a91de8`.
 - Server baseline: `0516da57de14a96e9cb5b7aadc1c7ecd911a94a3`; sibling `../regun-server`, clean at planning time.
 - Source release is **1.0.0+28**. A build-29 distribution record is not a source-version change or permission to overwrite release identity.
