@@ -62,7 +62,10 @@ attack holds separately from avoidable stalls; do not relabel jams as holds to
 pass. Profile the full admitted crowd and compound bosses on devices; laptop
 microbenchmarks cannot establish a phone frame-time budget.
 
-## Checkout audit on 2 November 2026
+## Historical checkout audit on 2 November 2026
+
+The candidate was recovered and retested on 3 November. See the
+[candidate record](validation/minion-navigation-2026-11-03/README.md).
 
 - Client HEAD is `0c083af` (Lodestar correction). The plan and original
   investigation exist; `lib/systems/minion_navigation.dart` and the replacement

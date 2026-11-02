@@ -1239,7 +1239,10 @@ Before changing enemy/crowd/boss avoidance, read
 `docs/MINION_MOVEMENT_INVESTIGATION.md` and
 `docs/MINION_NAVIGATION_IMPLEMENTATION_PLAN.md`. The diagonal mixed-pack problem
 is reproduced with real mummies around one scorpion; old overlap/animation fixes
-do not establish that navigation is repaired. The plan is not yet implemented.
+do not establish that navigation is repaired. The recovered 3 November candidate
+uses `MinionNavigation` for ordinary movement. See
+`docs/validation/minion-navigation-2026-11-03/README.md` for the paired server
+revision, verified scenarios and open acceptance gates.
 Checkpoint768f1d9 preserves the full pre-navigation client; server baseline is
 0516da57de14a96e9cb5b7aadc1c7ecd911a94a3. Preserve hard swept occupancy, role
 attack timings, current speeds/population admission and active-time holds. New

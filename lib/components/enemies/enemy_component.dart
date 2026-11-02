@@ -1,3 +1,4 @@
+import 'package:regun/presentation/travel_gait.dart';
 import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
@@ -13,6 +14,15 @@ class EnemyComponent extends SpriteAnimationComponent
   EnemyComponent({super.position})
     : super(size: Vector2.all(enemySize), anchor: Anchor.center);
   bool isDying = false;
+  late TravelGait gait;
+  @override
+  void onMount() {
+    super.onMount();
+    gait = TravelGait(phase: combatId % 4)
+      ..sample(position.toOffset(), statusClock);
+    playing = false;
+  }
+
   static const enemySize = 85.0;
   late SpriteAnimation moveLeftAnimation;
   late SpriteAnimation moveRightAnimation;
@@ -45,6 +55,7 @@ class EnemyComponent extends SpriteAnimationComponent
 
   @override
   void update(double dt) {
+    if (game.skipManagedMinion(this)) return;
     super.update(dt);
     if (isDying || freezeHeld || impactHeld) return;
     final facingLeft = game.myPlayer.position.x < position.x;
@@ -59,6 +70,9 @@ class EnemyComponent extends SpriteAnimationComponent
     //! MOVE ENEMY TOWARDS PLAYER
     const speed = 60;
     game.moveActor(this, direction, speed.toDouble(), dt);
+    gait.sample(position.toOffset(), statusClock);
+    playing = false;
+    animationTicker?.currentIndex = gait.frame;
     const contact = 25.5 + PlayerHurtGeometry.radius;
     if (position.distanceToSquared(playerPosition) <= contact * contact &&
         !game.segmentBlocked(position, playerPosition)) {

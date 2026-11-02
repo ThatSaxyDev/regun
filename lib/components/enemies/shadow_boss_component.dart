@@ -1,3 +1,4 @@
+import 'package:regun/systems/minion_navigation.dart';
 import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/systems/boss_attack_shape.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
@@ -34,7 +35,26 @@ enum ShadowPhase {
 
 class ShadowBossComponent extends PositionComponent
     with HasGameReference<RegunGame>, CombatEnemy
-    implements BossEncounter {
+    implements BossEncounter, NavigationMotionSource {
+  @override
+  NavigationMotion? get navigationMotion {
+    if (phase == ShadowPhase.dashWarning) {
+      return NavigationMotion(
+        _dashEnd.toOffset(),
+        (.9 - _phaseTime).clamp(0.0, .9),
+        .48,
+      );
+    }
+    if (phase == ShadowPhase.dash) {
+      return NavigationMotion(
+        _dashEnd.toOffset(),
+        0,
+        (.48 - _phaseTime).clamp(.001, .48),
+      );
+    }
+    return null;
+  }
+
   ShadowBossComponent({super.position, this.maximumHealth = 140})
     : super(size: Vector2.all(160), anchor: Anchor.center, priority: 5);
 

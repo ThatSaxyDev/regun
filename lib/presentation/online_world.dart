@@ -1,3 +1,4 @@
+import 'package:regun/presentation/travel_gait.dart';
 import 'package:regun/presentation/boss_portal.dart';
 import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/mechanic_vfx.dart';
@@ -433,6 +434,7 @@ class OnlineWorldArt {
     required bool foundry,
     required bool reducedMotion,
     MummyWalk? mummyWalk,
+    TravelGait? scorpionGait,
     Offset? laserAim,
     Offset? laserOrigin,
   }) {
@@ -464,6 +466,8 @@ class OnlineWorldArt {
           ? 0
           : (4 + (clock * 7).floor() % 4);
       if (kind == 'marshal' && bphase == 'active') frame = 10;
+    } else if (kind == 'scorpion' && scorpionGait != null) {
+      frame = scorpionGait.frame;
     } else if (kind == 'mummy' && phase == 1) {
       final strikeAt = d['mummyStrikeAt'];
       frame = strikeAt is num

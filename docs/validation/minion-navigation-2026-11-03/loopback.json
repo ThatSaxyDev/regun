@@ -1,0 +1,13 @@
+{
+  "players": 3,
+  "capability": 12,
+  "identities": "disposable account shim; real membership/generation checks",
+  "actualLogin": false,
+  "crowd": 37,
+  "mixedSpeedPursuit": true,
+  "bodyClearance": true,
+  "privateNavigationHidden": true,
+  "choiceFreezes": true,
+  "resumes": true,
+  "sampleCount": 26
+}

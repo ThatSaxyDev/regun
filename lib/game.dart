@@ -1,3 +1,4 @@
+import 'package:regun/systems/minion_navigation.dart';
 import 'package:regun/components/enemies/lodestar_boss.dart';
 import 'package:regun/systems/lodestar/lodestar_combat.dart';
 import 'package:regun/systems/lodestar/lodestar_rig.dart';
@@ -730,6 +731,140 @@ class RegunGame extends FlameGame
     double? bottomExtent,
   }) => geometry.constrain(position, radius, bottomExtent: bottomExtent);
   final enemyTactics = EnemyTactics();
+  final minionNavigation = MinionNavigation();
+  final _navigationPositions = <int, Offset>{};
+  final _navigationOwners = <int, PositionComponent>{};
+  final _steppedMinions = <PositionComponent>{};
+  Offset? _navigationPlayerPosition;
+  Offset _navigationPlayerVelocity = Offset.zero;
+  double _navigationLastDt = 0;
+  bool _advancingMinions = false;
+  bool skipManagedMinion(PositionComponent actor) =>
+      _steppedMinions.contains(actor);
+
+  bool _ordinaryMinion(PositionComponent e) =>
+      e is EnemyComponent ||
+      e is Enemy2Component ||
+      e is Enemy3Component ||
+      e is ArenaEnemy;
+
+  void _rebuildNavigation(double dt) {
+    final bodies = <NavigationBody>[];
+    final activeIds = <int>{};
+    for (final e in {..._enemies, ...bosses}) {
+      if (e.isRemoving || e.isRemoved || e is! CombatEnemy) continue;
+      if (e.combatId == 0) e.combatId = _nextCombatId++;
+      activeIds.add(e.combatId);
+      _navigationOwners[e.combatId] = e;
+      final at = e.position.toOffset();
+      final before = _navigationPositions[e.combatId];
+      var velocity = before == null || _navigationLastDt <= 0
+          ? Offset.zero
+          : (at - before) / _navigationLastDt;
+      if ((at - (before ?? at)).distance > 120 || velocity.distance > 2200) {
+        velocity = Offset.zero;
+      }
+      if ((e is ShadowBossComponent &&
+              e.phase != ShadowPhase.pursuit &&
+              e.phase != ShadowPhase.dash) ||
+          (e is PatternBoss &&
+              e.phase != PatternBossPhase.approach &&
+              e.phase != PatternBossPhase.active) ||
+          (e is ExpansionBoss && e.phase != ExpansionPhase.approach)) {
+        velocity = Offset.zero;
+      }
+      if ((e is Enemy2Component && e.isAttacking) ||
+          (e is Enemy3Component && e.isAttacking) ||
+          (e is ArenaEnemy && e.phase != 0) ||
+          e.freezeHeld ||
+          e.impactHeld) {
+        final memory = minionNavigation.memories[e.combatId];
+        if (memory != null) {
+          memory.waiting = 0;
+          memory.progressAge = 0;
+          memory.anchor = at;
+        }
+      }
+      _navigationPositions[e.combatId] = at;
+      if (isAirborneActor(e)) continue;
+      final compound = e is CompoundGroundActor
+          ? (e as CompoundGroundActor).groundShape.toList()
+          : null;
+      if (compound != null && compound.isEmpty) continue;
+      bodies.add(
+        NavigationBody(
+          id: e.combatId,
+          position: at,
+          radius: crowdRadius(e),
+          velocity: velocity,
+          contact:
+              e is Enemy2Component ||
+              e is EnemyComponent ||
+              (e is ArenaEnemy &&
+                  e.kind != EnemyKind.ranged &&
+                  e.kind != EnemyKind.nest &&
+                  e.kind != EnemyKind.sentinel),
+          boss: e.isBoss,
+          motion: e is NavigationMotionSource
+              ? (e as NavigationMotionSource).navigationMotion
+              : null,
+          shapes: compound ?? const [],
+        ),
+      );
+    }
+    _navigationPositions.removeWhere((id, _) => !activeIds.contains(id));
+    _navigationOwners.removeWhere((id, _) => !activeIds.contains(id));
+    minionNavigation.rebuild(bodies);
+    final player = myPlayer.position.toOffset();
+    final before = _navigationPlayerPosition;
+    _navigationPlayerVelocity =
+        before == null ||
+            _navigationLastDt <= 0 ||
+            (player - before).distance > 120
+        ? Offset.zero
+        : (player - before) / _navigationLastDt;
+    _navigationPlayerPosition = player;
+    _navigationLastDt = dt;
+  }
+
+  bool _navigationClear(Offset from, Offset to, double radius) {
+    final p = Vector2(to.dx, to.dy);
+    geometry.constrain(p, radius);
+    return (p.toOffset() - to).distance < .01 &&
+        !geometry.solids.any(
+          (r) => ArenaGeometry.crosses(
+            Vector2(from.dx, from.dy),
+            Vector2(to.dx, to.dy),
+            r.inflate(radius - .01),
+          ),
+        );
+  }
+
+  void _advanceOrdinaryMinions(double dt) {
+    if (gameState.gameplayState != GameplayState.playing || dt <= 0) return;
+    _rebuildNavigation(dt);
+    final actors = liveEnemies.where(_ordinaryMinion).toList();
+    actors.sort((a, b) {
+      final ai = (a as CombatEnemy).combatId, bi = (b as CombatEnemy).combatId;
+      final aw = minionNavigation.memories[ai]?.waiting ?? 0;
+      final bw = minionNavigation.memories[bi]?.waiting ?? 0;
+      final waiting = bw.compareTo(aw);
+      return waiting != 0 ? waiting : ai.compareTo(bi);
+    });
+    _advancingMinions = true;
+    try {
+      for (final actor in actors) {
+        if (actor.isRemoving || (actor as CombatEnemy).combatHealth.isDead) {
+          continue;
+        }
+        actor.update(dt);
+        _steppedMinions.add(actor);
+      }
+    } finally {
+      _advancingMinions = false;
+    }
+  }
+
   final _temporaryCoverRouter = ObstacleRouter();
   final crowdOccupancy = CrowdOccupancy();
   double crowdRadius(PositionComponent actor) => actor is ArietBoss
@@ -770,8 +905,8 @@ class RegunGame extends FlameGame
         kind,
         actor.position,
         myPlayer.position,
-        movementJoystick.relativeDelta * gameState.movementSpeed,
-        enemyTactics.side(actor),
+        Vector2(_navigationPlayerVelocity.dx, _navigationPlayerVelocity.dy),
+        MinionNavigation.sideFor(actor is CombatEnemy ? actor.combatId : 0),
       );
 
   bool isAirborneActor(PositionComponent actor) =>
@@ -801,35 +936,26 @@ class RegunGame extends FlameGame
       speed *= min(actor.impactStride, fieldStride);
     }
     if (actor is CombatEnemy && !actor.isBoss && avoidCrowd) {
-      final boss = activeBoss;
-      final yielding =
-          boss == null ||
-              !boss.isLoaded ||
-              boss.isRemoving ||
-              isAirborneActor(boss)
-          ? null
-          : EnemyTactics.yieldToBoss(
-              actor.position,
-              boss.position,
-              myPlayer.position,
-              enemyTactics.side(actor),
-            );
-      direction = yielding ?? direction;
-      if (yielding == null &&
-          (geometry.dynamicObstacles?.call().isNotEmpty ?? false)) {
-        direction = _temporaryCoverRouter.steer(
-          actor,
-          direction,
-          myPlayer.position,
-          geometry,
-          radius: max(radius, crowdRadius(actor)),
-          side: enemyTactics.side(actor),
-          dt: dt,
-        );
-      }
-      // Separation must act on the detour, not be discarded when a route
-      // replaces the intent. Otherwise a pack converges on the same corner.
-      direction = enemyTactics.spaced(actor, direction);
+      if (!_advancingMinions) _rebuildNavigation(dt);
+      direction = _temporaryCoverRouter.steer(
+        actor,
+        direction,
+        myPlayer.position,
+        geometry,
+        radius: max(radius, crowdRadius(actor)),
+        side: MinionNavigation.sideFor(actor.combatId),
+        dt: dt,
+      );
+      final steered = minionNavigation.steer(
+        actor.combatId,
+        actor.position.toOffset(),
+        direction.toOffset(),
+        speed,
+        dt,
+        target: myPlayer.position.toOffset(),
+        clear: _navigationClear,
+      );
+      direction = Vector2(steered.dx, steered.dy);
     }
     if (actor is CombatEnemy) {
       crowdOccupancy.move(
@@ -1518,6 +1644,14 @@ class RegunGame extends FlameGame
     _enemy3Unlocked = false;
     _enemies.clear();
     enemyTactics.clear();
+    minionNavigation.clear();
+    _navigationPositions.clear();
+    _navigationOwners.clear();
+    _navigationPlayerPosition = null;
+    _navigationPlayerVelocity = Offset.zero;
+    _navigationLastDt = 0;
+    _steppedMinions.clear();
+    _temporaryCoverRouter.clear();
     crowdOccupancy.clear();
     _coins.clear();
     _projectiles.clear();
@@ -1591,6 +1725,8 @@ class RegunGame extends FlameGame
         if (entity is LodestarBoss) 'lodestar': entity.checkpointState,
         'combatId': enemy.combatId,
         'freeze': enemy.freezeState.toJson(),
+        if (minionNavigation.memories[enemy.combatId] case final memory?)
+          'navigation': memory.toJson(),
         if (entity is BossEncounter) 'actor': bossEncounter.idOf(entity),
         if (entity is BossEncounter)
           'bossHit': _bossDamageTaken[entity] ?? _bossWasHit,
@@ -1902,6 +2038,12 @@ class RegunGame extends FlameGame
       }
       _spawnWarnings.clear();
       _enemies.clear();
+      minionNavigation.clear();
+      _navigationPositions.clear();
+      _navigationOwners.clear();
+      _navigationPlayerPosition = null;
+      _navigationLastDt = 0;
+      _temporaryCoverRouter.clear();
       final records = (snapshot['enemies'] as List).cast<Map>();
       if (records.length > maxEnemies + 1 ||
           (snapshot['drops'] as List).length > maxCoins) {
@@ -1970,6 +2112,11 @@ class RegunGame extends FlameGame
         final enemy = entity as CombatEnemy;
         enemy.combatId = record['combatId'] as int? ?? _nextCombatId++;
         _nextCombatId = max(_nextCombatId, enemy.combatId + 1);
+        _navigationOwners[enemy.combatId] = entity;
+        final navigation = NavigationMemory.read(record['navigation']);
+        if (navigation != null) {
+          minionNavigation.memories[enemy.combatId] = navigation;
+        }
         if (record['freeze'] case final Map raw) {
           enemy.freezeState.restore(
             Map<String, dynamic>.from(raw),
@@ -2154,6 +2301,7 @@ class RegunGame extends FlameGame
       enemy.combatId = _nextCombatId++;
     }
     _enemies.add(enemy);
+    if (enemy is CombatEnemy) _navigationOwners[enemy.combatId] = enemy;
     encounteredEnemies.add(enemyId(enemy));
     return true;
   }
@@ -2164,6 +2312,12 @@ class RegunGame extends FlameGame
     }
     _enemies.remove(enemy);
     crowdOccupancy.forget(enemy);
+    if (enemy is CombatEnemy &&
+        identical(_navigationOwners[enemy.combatId], enemy)) {
+      _navigationOwners.remove(enemy.combatId);
+      minionNavigation.forget(enemy.combatId);
+      _navigationPositions.remove(enemy.combatId);
+    }
     if (enemy is BossEncounter) {
       bossEncounter.remove(enemy);
       _bossDamageTaken.remove(enemy);
@@ -3070,6 +3224,7 @@ class RegunGame extends FlameGame
 
   @override
   void update(double dt) {
+    _steppedMinions.clear();
     if (!_started) return;
     if (!applicationActive) return;
     if (gameState.gameplayState == GameplayState.gameOver) {
@@ -3095,6 +3250,8 @@ class RegunGame extends FlameGame
       upgradePresentation.advanceActive(dt);
     }
     if (playerEntrance.active) {
+      _navigationPlayerPosition = null;
+      _navigationLastDt = 0;
       if (gameState.gameplayState == GameplayState.paused) return;
       resetInput();
       final before = playerEntrance.elapsed;
@@ -3294,7 +3451,12 @@ class RegunGame extends FlameGame
       [..._enemies, ...bosses].where((e) => !isAirborneActor(e)),
       crowdRadius,
     );
-    super.update(dt);
+    _advanceOrdinaryMinions(dt);
+    try {
+      super.update(dt);
+    } finally {
+      _steppedMinions.clear();
+    }
     final state = gameState;
     if (state.gameplayState == GameplayState.playing) {
       _checkpointElapsed += dt;
@@ -3702,6 +3864,11 @@ class RegunGame extends FlameGame
   @override
   void onRemove() {
     disposed = true;
+    minionNavigation.clear();
+    _navigationPositions.clear();
+    _navigationOwners.clear();
+    _steppedMinions.clear();
+    _temporaryCoverRouter.clear();
     statusArt.clear();
     upgradePresentation.cancel();
     bossReveal.reset();

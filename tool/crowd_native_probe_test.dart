@@ -111,6 +111,25 @@ void main() {
             'nearestMedian': nearest[nearest.length ~/ 2],
             'blockedMummies': mummies.where((a) => a.walk.blocked).length,
             'meleeMummies': mummies.where((a) => a.isAttacking).length,
+            'navigation': [
+              for (final a in mummies)
+                {
+                  'id': a.combatId,
+                  'mode': game.minionNavigation.memories[a.combatId]?.mode,
+                  'waiting':
+                      game.minionNavigation.memories[a.combatId]?.waiting,
+                  'remainingGoal':
+                      game.minionNavigation.memories[a.combatId]?.approach ==
+                          null
+                      ? null
+                      : (a.position.toOffset() -
+                                game
+                                    .minionNavigation
+                                    .memories[a.combatId]!
+                                    .approach!)
+                            .distance,
+                },
+            ],
           });
         }
         game.update(1 / 60);

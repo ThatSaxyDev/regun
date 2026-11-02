@@ -1,4 +1,8 @@
+import 'package:regun/models/player_profile.dart';
+import 'package:regun/services/local_preferences.dart';
+
 import 'dart:math' as math;
+
 import 'package:flame/components.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
@@ -34,58 +38,88 @@ class _DiscardStore extends RunStore {
 void main() {
   const enabled = bool.fromEnvironment('REGUN_SOAK');
   for (final minutes in [30, 60]) {
-    testWidgets('$minutes minute developed-build component soak',
-        (tester) async {
-      SharedPreferences.setMockInitialValues({});
-      tester.view.physicalSize = const Size(844, 390);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      late RegunGame game;
-      await tester.runAsync(() async {
-        await tester.pumpWidget(ProviderScope(
-            overrides: [soloudPlayProvider.overrideWithValue(_SilentAudio())],
-            child: MaterialApp(
+    testWidgets(
+      '$minutes minute developed-build component soak',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        tester.view.physicalSize = const Size(844, 390);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        late RegunGame game;
+        await tester.runAsync(() async {
+          await LocalPreferences.shared.load();
+          LocalPreferences.shared.profile = PlayerProfile(
+            challenges: {'training', 'revolver', 'arcCaster', 'burstRifle'},
+            totalBossVictories: 100,
+            ownedWeapons: WeaponType.values.map((w) => w.name).toSet(),
+          );
+          await LocalPreferences.shared.saveProfile();
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [soloudPlayProvider.overrideWithValue(_SilentAudio())],
+              child: MaterialApp(
                 home: BaseView(
-                    runStore: _DiscardStore(),
-                    loadout: Loadout(
-                        arena: ArenaType.foundry,
-                        character: CharacterType.scrapper,
-                        weapon: minutes == 30
-                            ? WeaponType.arcCaster
-                            : WeaponType.shotgun)))));
-        game = tester
-            .widget<RiverpodAwareGameWidget>(
-                find.byType(RiverpodAwareGameWidget))
-            .game! as RegunGame;
-        await game.loaded;
-        await tester.pump();
-        await game.ready();
-        game.update(2); // Finish deployment before exercising combat.
-      });
-      final specials = minutes == 30
-          ? [
-              PowerUp.staticCharge,
-              PowerUp.conductiveCore,
-              PowerUp.ricochet,
-              PowerUp.bankShot,
-              PowerUp.orbitDrone,
-              PowerUp.targetingLink
-            ]
-          : [
-              PowerUp.hotShot,
-              PowerUp.accelerant,
-              PowerUp.sprintMine,
-              PowerUp.fragmentation,
-              PowerUp.orbitDrone,
-              PowerUp.targetingLink
-            ];
-      final ranks = {
-        for (final p in powerUps.where((p) => p.group != UpgradeGroup.special))
-          p: p.maxRank,
-        for (final p in specials) p: 8
-      };
-      final state = game.gameState.copyWith(
+                  runStore: _DiscardStore(),
+                  loadout: Loadout(
+                    arena: ArenaType.foundry,
+                    character: CharacterType.scrapper,
+                    weapon: minutes == 30
+                        ? WeaponType.arcCaster
+                        : WeaponType.shotgun,
+                  ),
+                ),
+              ),
+            ),
+          );
+          // BaseView now prepares preferences/assets asynchronously. Wait for the
+          // real game rather than treating its startup placeholder as a game.
+          for (
+            var attempt = 0;
+            attempt < 200 &&
+                find.byType(RiverpodAwareGameWidget).evaluate().isEmpty;
+            attempt++
+          ) {
+            await Future<void>.delayed(const Duration(milliseconds: 10));
+            await tester.pump();
+          }
+          game =
+              tester
+                      .widget<RiverpodAwareGameWidget>(
+                        find.byType(RiverpodAwareGameWidget),
+                      )
+                      .game!
+                  as RegunGame;
+          await game.loaded;
+          await tester.pump();
+          await game.ready();
+          game.update(2); // Finish deployment before exercising combat.
+        });
+        final specials = minutes == 30
+            ? [
+                PowerUp.staticCharge,
+                PowerUp.conductiveCore,
+                PowerUp.ricochet,
+                PowerUp.bankShot,
+                PowerUp.orbitDrone,
+                PowerUp.targetingLink,
+              ]
+            : [
+                PowerUp.hotShot,
+                PowerUp.accelerant,
+                PowerUp.sprintMine,
+                PowerUp.fragmentation,
+                PowerUp.orbitDrone,
+                PowerUp.targetingLink,
+              ];
+        final ranks = {
+          for (final p in powerUps.where(
+            (p) => p.group != UpgradeGroup.special,
+          ))
+            p: p.maxRank,
+          for (final p in specials) p: 8,
+        };
+        final state = game.gameState.copyWith(
           ranks: ranks,
           evolutions: minutes == 30
               ? {'stormCircuit', 'pinball'}
@@ -103,81 +137,95 @@ void main() {
           fastReloadTime: 850,
           movementSpeed: 510,
           sprintInvincibility: true,
-          bulletsPhaseThrough: true);
-      game.gameNotifier.restoreCheckpoint(
-          {...game.gameNotifier.checkpoint(), 'state': state.toJson()});
-      game.resumeGame();
-      final peak = <String, int>{};
-      var peakChildren = 0;
-      final clock = Stopwatch()..start();
-      await tester.runAsync(() async {
-        for (var frame = 0; frame < minutes * 60 * 60; frame++) {
-          final seconds = frame / 60;
-          game.myPlayer.position.setValues(
-              math.cos(seconds * 0.18) * 850, math.sin(seconds * 0.18) * 850);
-          final target = game.nearestEnemy(game.myPlayer.position);
-          final direction = target == null
-              ? Vector2(1, 0)
-              : (target.position - game.myPlayer.position).normalized();
-          game.weaponJoystick.delta.setFrom(direction * 80);
-          if (frame % 60 == 0) {
-            game.gameNotifier.heal(
-                100); // Keep the density test alive; this is not a balance claim.
-          }
-          if (frame % (3 * 60) == 0) {
-            game.myPlayer.dashDirection.setFrom(direction);
-            game.combat.onDash();
-          }
-          if (frame % (30 * 60) == 0) {
-            for (var i = 0; i < 40; i++) {
-              game.spawnAdd(
+          bulletsPhaseThrough: true,
+        );
+        game.gameNotifier.restoreCheckpoint({
+          ...game.gameNotifier.checkpoint(),
+          'state': state.toJson(),
+        });
+        game.resumeGame();
+        final peak = <String, int>{};
+        var peakChildren = 0;
+        final clock = Stopwatch()..start();
+        await tester.runAsync(() async {
+          for (var frame = 0; frame < minutes * 60 * 60; frame++) {
+            final seconds = frame / 60;
+            game.myPlayer.position.setValues(
+              math.cos(seconds * 0.18) * 850,
+              math.sin(seconds * 0.18) * 850,
+            );
+            final target = game.nearestEnemy(game.myPlayer.position);
+            final direction = target == null
+                ? Vector2(1, 0)
+                : (target.position - game.myPlayer.position).normalized();
+            game.weaponJoystick.delta.setFrom(direction * 80);
+            if (frame % 60 == 0) {
+              game.gameNotifier.heal(
+                100,
+              ); // Keep the density test alive; this is not a balance claim.
+            }
+            if (frame % (3 * 60) == 0) {
+              game.myPlayer.dashDirection.setFrom(direction);
+              game.combat.onDash();
+            }
+            if (frame % (30 * 60) == 0) {
+              for (var i = 0; i < 40; i++) {
+                game.spawnAdd(
                   [
                     EnemyKind.runner,
                     EnemyKind.shield,
                     EnemyKind.burster,
                     EnemyKind.nest,
-                    EnemyKind.sentinel
+                    EnemyKind.sentinel,
                   ][i % 5],
                   game.myPlayer.position +
-                      Vector2(math.cos(i), math.sin(i)) * 600);
+                      Vector2(math.cos(i), math.sin(i)) * 600,
+                );
+              }
             }
-          }
-          while (game.gameState.gameplayState == GameplayState.powerup) {
-            if (game.gameState.evolutionChoices.isNotEmpty) {
-              game.gameNotifier.fuse(game.gameState.evolutionChoices.first,
-                  offerId: game.gameState.offerId);
-            } else {
-              game.gameNotifier.applyPowerUp(
+            while (game.gameState.gameplayState == GameplayState.powerup) {
+              if (game.gameState.evolutionChoices.isNotEmpty) {
+                game.gameNotifier.fuse(
+                  game.gameState.evolutionChoices.first,
+                  offerId: game.gameState.offerId,
+                );
+              } else {
+                game.gameNotifier.applyPowerUp(
                   game.gameState.powerUpChoices.first,
-                  offerId: game.gameState.offerId);
+                  offerId: game.gameState.offerId,
+                );
+              }
+            }
+            game.update(1 / 60);
+            if (frame % 60 == 0) {
+              await game.ready();
+              for (final entry in game.runtimeCounts.entries) {
+                peak[entry.key] = math.max(peak[entry.key] ?? 0, entry.value);
+              }
+              peakChildren = math.max(peakChildren, game.world.children.length);
             }
           }
-          game.update(1 / 60);
-          if (frame % 60 == 0) {
-            await game.ready();
-            for (final entry in game.runtimeCounts.entries) {
-              peak[entry.key] = math.max(peak[entry.key] ?? 0, entry.value);
-            }
-            peakChildren = math.max(peakChildren, game.world.children.length);
-          }
-        }
-      });
-      expect(game.gameState.gameplayState, isNot(GameplayState.gameOver));
-      expect(game.gameState.bosses, greaterThan(0));
-      expect(peak['enemies'], lessThanOrEqualTo(120));
-      expect(peak['xp'], lessThanOrEqualTo(80));
-      expect(peak['playerProjectiles'], lessThanOrEqualTo(256));
-      expect(peak['hostileProjectiles'], lessThanOrEqualTo(128));
-      expect(peak['effects'], lessThanOrEqualTo(40));
-      expect(peak['mines'], lessThanOrEqualTo(12));
-      expect(peak['fire'], lessThanOrEqualTo(12));
-      expect(peak['hazards'], lessThanOrEqualTo(8));
-      expect(peak['particles'], lessThanOrEqualTo(256));
-      expect(peakChildren, lessThan(900));
-      debugPrint(
-          'SOAK minutes=$minutes wallMs=${clock.elapsedMilliseconds} bosses=${game.gameState.bosses} kills=${game.gameState.kills} peaks=$peak peakChildren=$peakChildren retained=${game.world.children.length}');
-      await tester.pumpWidget(const SizedBox.shrink());
-      expect(tester.takeException(), isNull);
-    }, skip: !enabled, timeout: const Timeout(Duration(minutes: 12)));
+        });
+        expect(game.gameState.gameplayState, isNot(GameplayState.gameOver));
+        expect(game.gameState.bosses, greaterThan(0));
+        expect(peak['enemies'], lessThanOrEqualTo(120));
+        expect(peak['xp'], lessThanOrEqualTo(80));
+        expect(peak['playerProjectiles'], lessThanOrEqualTo(256));
+        expect(peak['hostileProjectiles'], lessThanOrEqualTo(128));
+        expect(peak['effects'], lessThanOrEqualTo(40));
+        expect(peak['mines'], lessThanOrEqualTo(12));
+        expect(peak['fire'], lessThanOrEqualTo(12));
+        expect(peak['hazards'], lessThanOrEqualTo(8));
+        expect(peak['particles'], lessThanOrEqualTo(256));
+        expect(peakChildren, lessThan(900));
+        debugPrint(
+          'SOAK minutes=$minutes wallMs=${clock.elapsedMilliseconds} bosses=${game.gameState.bosses} kills=${game.gameState.kills} peaks=$peak peakChildren=$peakChildren retained=${game.world.children.length}',
+        );
+        await tester.pumpWidget(const SizedBox.shrink());
+        expect(tester.takeException(), isNull);
+      },
+      skip: !enabled,
+      timeout: const Timeout(Duration(minutes: 12)),
+    );
   }
 }

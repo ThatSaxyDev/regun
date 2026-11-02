@@ -1,12 +1,13 @@
 # Minion navigation repair — implementation plan
 
-29 October 2026. **Execution specification; navigation changes are not implemented by this document.**
+29 October 2026. Updated 3 November 2026.
 
-**2 November recheck:** primary game/engine research and the current checkout audit
-are recorded in [MINION_NAVIGATION_REFERENCES.md](MINION_NAVIGATION_REFERENCES.md).
-Client HEAD remains `0c083af`; backend HEAD `03218af` explicitly reverted its
-navigation candidate. Re-establish and validate the paired baseline before
-resuming implementation. Historical candidate results are not current passes.
+**3 November recovery:** the client candidate and shared fixtures were recovered
+from Git objects. The paired server revision is `8fe6fa5`. See the
+[candidate record](validation/minion-navigation-2026-11-03/README.md) for the
+implementation, fresh results and open release gates. The checklist below records
+the original scope. The candidate record distinguishes verified cases from open
+acceptance items.
 
 ## 1. Objective and starting point
 

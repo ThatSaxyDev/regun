@@ -6,8 +6,12 @@ import 'package:regun/systems/arena_geometry.dart';
 /// Small, committed corner routes around registered temporary solids. Ordinary
 /// pursuit uses this before occupancy movement; committed attacks never do.
 class ObstacleRouter {
-  final _routes = Expando<_CornerRoute>();
-  final _progress = Expando<_RouteProgress>();
+  var _routes = Expando<_CornerRoute>();
+  var _progress = Expando<_RouteProgress>();
+  void clear() {
+    _routes = Expando<_CornerRoute>();
+    _progress = Expando<_RouteProgress>();
+  }
 
   Vector2 steer(
     PositionComponent actor,

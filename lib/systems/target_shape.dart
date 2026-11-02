@@ -18,7 +18,18 @@ class TargetCapsule {
     return (p - a - d * t.clamp(0.0, 1.0)).distance;
   }
 
-  double distance(Offset p) => math.max(0, distanceToSegment(p, a, b) - radius);
+  double signedDistance(Offset p) => distanceToSegment(p, a, b) - radius;
+  double distance(Offset p) => math.max(0, signedDistance(p));
+  Offset outwardAt(Offset p) {
+    final axis = b - a;
+    final t = axis.distanceSquared < 1e-12
+        ? 0.0
+        : (((p - a).dx * axis.dx + (p - a).dy * axis.dy) / axis.distanceSquared)
+              .clamp(0.0, 1.0);
+    final delta = p - a - axis * t;
+    return delta.distance < 1e-9 ? const Offset(1, 0) : delta / delta.distance;
+  }
+
   double? contact(Offset from, Offset to, {double padding = 0}) {
     final r = radius + padding, delta = to - from, length = delta.distance;
     if (distanceToSegment(from, a, b) <= r) return 0;
@@ -104,8 +115,12 @@ class ClippedTargetCapsule extends TargetCapsule {
   double side(Offset p) =>
       (p - origin).dx * normal.dx + (p - origin).dy * normal.dy - limit;
   @override
-  double distance(Offset p) =>
-      math.max(super.distance(p), math.max(0, side(p)));
+  double signedDistance(Offset p) => math.max(super.signedDistance(p), side(p));
+  @override
+  Offset outwardAt(Offset p) =>
+      normal.distance > 1e-9 && side(p) >= super.signedDistance(p)
+      ? normal / normal.distance
+      : super.outwardAt(p);
   @override
   double? contact(Offset from, Offset to, {double padding = 0}) {
     final start = side(from) - padding, end = side(to) - padding;

@@ -77,6 +77,7 @@ class Enemy3Component extends SpriteAnimationComponent
 
   @override
   void update(double dt) {
+    if (game.skipManagedMinion(this)) return;
     super.update(dt);
     if (game.gameState.gameplayState != GameplayState.playing) return;
 

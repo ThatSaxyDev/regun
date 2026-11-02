@@ -99,6 +99,7 @@ class ArenaEnemy extends PositionComponent
 
   @override
   void update(double dt) {
+    if (game.skipManagedMinion(this)) return;
     super.update(dt);
     if (combatHealth.isDead ||
         (freezeHeld || impactHeld) ||

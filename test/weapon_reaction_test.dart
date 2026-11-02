@@ -279,13 +279,15 @@ void main() {
         expect(enemy.playing, isFalse);
         enemy.update(.21);
         expect(enemy.impactHeld, isFalse);
-        expect(enemy.playing, isTrue);
+        expect(enemy.gait.moving, isTrue);
+        expect(enemy.animationTicker?.currentIndex, enemy.gait.frame);
         enemy.freeze();
         enemy.update(.01);
         expect(enemy.playing, isFalse);
         enemy.update(.81);
         expect(enemy.freezeHeld, isFalse);
-        expect(enemy.playing, isTrue);
+        expect(enemy.gait.moving, isTrue);
+        expect(enemy.animationTicker?.currentIndex, enemy.gait.frame);
         enemy.freezeState.remaining = 0;
         enemy.freezeState.recovery = 0;
         enemy.freezeState.immunity = 0;

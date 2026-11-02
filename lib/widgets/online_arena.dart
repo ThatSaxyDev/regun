@@ -1,3 +1,4 @@
+import 'package:regun/presentation/travel_gait.dart';
 import 'package:regun/presentation/online_lodestar.dart';
 import 'package:regun/presentation/online_walker.dart';
 import 'package:regun/presentation/online_boss_presentation.dart';
@@ -76,6 +77,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   final _walkerCues = <String, int>{};
   String? _walkerCueScope;
   final mummyWalks = <String, MummyWalk>{};
+  final scorpionGaits = <String, TravelGait>{};
   final weaponHeadings = <String, WeaponHeading>{};
   final restingAim = <String, Offset>{};
   final grenadeAim = GrenadeAim();
@@ -110,6 +112,22 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       _lodestarCues.clear();
       _walkerCueScope = scope;
     }
+    final liveScorpions = <String>{};
+    for (final entity in session.scene.where(
+      (e) =>
+          e.kind == 'enemy' &&
+          e.data['kind'] == 'scorpion' &&
+          e.number('health') > 0,
+    )) {
+      liveScorpions.add(entity.key);
+      scorpionGaits
+          .putIfAbsent(
+            entity.key,
+            () => TravelGait(phase: TravelGait.phaseFor(entity.key)),
+          )
+          .sample(Offset(entity.x, entity.y), entity.number('age'));
+    }
+    scorpionGaits.removeWhere((key, _) => !liveScorpions.contains(key));
     final liveMummies = <String>{};
     for (final entity in session.scene.where(
       (e) =>
@@ -484,6 +502,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       weaponHeadings.clear();
       _worldCues.clear();
       mummyWalks.clear();
+      scorpionGaits.clear();
       _offerCue = null;
       _shots.clear();
       _reloads.clear();
@@ -802,6 +821,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         grenadeAim: grenadeAim,
                         restingAim: restingAim,
                         mummyWalks: mummyWalks,
+                        scorpionGaits: scorpionGaits,
                         walkers: walkers,
                         lodestars: lodestars,
                         guardFeedback: guardFeedback,
@@ -1087,6 +1107,7 @@ class _ArenaPainter extends CustomPainter {
     required this.grenadeAim,
     required this.restingAim,
     required this.mummyWalks,
+    required this.scorpionGaits,
     required this.walkers,
     required this.lodestars,
     required this.guardFeedback,
@@ -1097,6 +1118,7 @@ class _ArenaPainter extends CustomPainter {
   final GrenadeAim grenadeAim;
   final Map<String, Offset> restingAim;
   final Map<String, MummyWalk> mummyWalks;
+  final Map<String, TravelGait> scorpionGaits;
   final OnlineWalkers walkers;
   final OnlineLodestars lodestars;
   final Map<String, GuardFeedback> guardFeedback;
@@ -1507,6 +1529,7 @@ class _ArenaPainter extends CustomPainter {
         canvas,
         enemy,
         mummyWalk: mummyWalks[enemy.key],
+        scorpionGait: scorpionGaits[enemy.key],
         laserAim: aim,
         laserOrigin: beams.isEmpty
             ? null

@@ -1,0 +1,730 @@
+{
+  "version": 1,
+  "units": "world units; seconds",
+  "cases": [
+    {
+      "name": "isolated",
+      "actor": 1,
+      "at": [
+        0,
+        0
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        }
+      ],
+      "clear": true,
+      "avoid": false,
+      "expected": [
+        1,
+        0
+      ]
+    },
+    {
+      "name": "zero intent",
+      "actor": 1,
+      "at": [
+        0,
+        0
+      ],
+      "desired": [
+        0,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        }
+      ],
+      "clear": true,
+      "avoid": false,
+      "expected": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "slow scorpion ahead",
+      "actor": 1,
+      "at": [
+        0,
+        0
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            125,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 38.25,
+          "boss": false,
+          "shapes": []
+        }
+      ],
+      "clear": false,
+      "avoid": true,
+      "expected": [
+        0.722028008743,
+        0.691863826624
+      ]
+    },
+    {
+      "name": "head-on traffic",
+      "actor": 1,
+      "at": [
+        0,
+        0
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            160,
+            0
+          ],
+          "velocity": [
+            -95,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        }
+      ],
+      "clear": false,
+      "avoid": true,
+      "expected": [
+        0.120502769367,
+        0.992712991038
+      ]
+    },
+    {
+      "name": "same speed ahead",
+      "actor": 1,
+      "at": [
+        0,
+        0
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            130,
+            0
+          ],
+          "velocity": [
+            95,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        }
+      ],
+      "clear": true,
+      "avoid": false,
+      "expected": [
+        1,
+        0
+      ]
+    },
+    {
+      "name": "stationary boss outside old corridor",
+      "actor": 1,
+      "at": [
+        100,
+        125
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            100,
+            125
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 68,
+          "boss": true,
+          "shapes": []
+        }
+      ],
+      "clear": true,
+      "avoid": false,
+      "expected": [
+        1,
+        0
+      ]
+    },
+    {
+      "name": "second boss in approach",
+      "actor": 1,
+      "at": [
+        0,
+        0
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            -800,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 68,
+          "boss": true,
+          "shapes": []
+        },
+        {
+          "id": 3,
+          "position": [
+            130,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 80,
+          "boss": true,
+          "shapes": []
+        }
+      ],
+      "clear": false,
+      "avoid": true,
+      "expected": [
+        0.056546103634,
+        0.998399989064
+      ]
+    },
+    {
+      "name": "boss crossing from side",
+      "actor": 1,
+      "at": [
+        0,
+        0
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            65,
+            -130
+          ],
+          "velocity": [
+            0,
+            260
+          ],
+          "radius": 80,
+          "boss": true,
+          "shapes": []
+        }
+      ],
+      "clear": false,
+      "avoid": true,
+      "expected": [
+        -0.620351765044,
+        0.78432371353
+      ]
+    },
+    {
+      "name": "compound root far but section ahead",
+      "actor": 1,
+      "at": [
+        0,
+        0
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            900,
+            900
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 500,
+          "boss": true,
+          "shapes": [
+            {
+              "a": [
+                80,
+                -120
+              ],
+              "b": [
+                80,
+                120
+              ],
+              "radius": 15
+            }
+          ]
+        }
+      ],
+      "clear": false,
+      "avoid": true,
+      "expected": [
+        0.270151152934,
+        0.420735492404
+      ]
+    },
+    {
+      "name": "buried compound section does not block",
+      "actor": 1,
+      "at": [
+        0,
+        0
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        0
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            900,
+            900
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 500,
+          "boss": true,
+          "shapes": [
+            {
+              "a": [
+                80,
+                -120
+              ],
+              "b": [
+                80,
+                120
+              ],
+              "radius": 15,
+              "origin": [
+                200,
+                -200
+              ],
+              "normal": [
+                -1,
+                0
+              ],
+              "limit": 0
+            }
+          ]
+        }
+      ],
+      "clear": true,
+      "avoid": false,
+      "expected": [
+        1,
+        0
+      ]
+    },
+    {
+      "name": "negative world translation",
+      "actor": 1,
+      "at": [
+        -500,
+        -500
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        300,
+        -500
+      ],
+      "speed": 95,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            -500,
+            -500
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            -375,
+            -500
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 38.25,
+          "boss": false,
+          "shapes": []
+        }
+      ],
+      "clear": false,
+      "avoid": true,
+      "expected": [
+        0.722028008743,
+        0.691863826624
+      ]
+    },
+    {
+      "name": "committed boss crossing",
+      "actor": 1,
+      "at": [
+        0,
+        125
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        125
+      ],
+      "speed": 95,
+      "avoid": true,
+      "clear": false,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            125
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            -300,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 80,
+          "boss": true,
+          "shapes": [],
+          "motion": {
+            "end": [
+              900,
+              0
+            ],
+            "delay": 0.1,
+            "duration": 0.48
+          }
+        }
+      ],
+      "expected": [
+        0.955336489126,
+        0.295520206661
+      ]
+    },
+    {
+      "name": "boss warning not yet moving",
+      "actor": 1,
+      "at": [
+        0,
+        125
+      ],
+      "desired": [
+        1,
+        0
+      ],
+      "target": [
+        800,
+        125
+      ],
+      "speed": 95,
+      "avoid": false,
+      "clear": true,
+      "bodies": [
+        {
+          "id": 1,
+          "position": [
+            0,
+            125
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 45,
+          "boss": false,
+          "shapes": []
+        },
+        {
+          "id": 2,
+          "position": [
+            -300,
+            0
+          ],
+          "velocity": [
+            0,
+            0
+          ],
+          "radius": 80,
+          "boss": true,
+          "shapes": [],
+          "motion": {
+            "end": [
+              900,
+              0
+            ],
+            "delay": 0.8,
+            "duration": 0.48
+          }
+        }
+      ],
+      "expected": [
+        1,
+        0
+      ]
+    }
+  ]
+}

@@ -12,6 +12,7 @@ class CrowdOccupancy {
   final _radii = <PositionComponent, double>{};
   final _compound = <PositionComponent, CompoundGroundActor>{};
   final _keys = <PositionComponent, (int, int)>{};
+  double _maximumRadius = 0;
 
   (int, int) _key(Vector2 p) =>
       ((p.x / _cellSize).floor(), (p.y / _cellSize).floor());
@@ -21,6 +22,7 @@ class CrowdOccupancy {
     _radii.clear();
     _compound.clear();
     _keys.clear();
+    _maximumRadius = 0;
   }
 
   void forget(PositionComponent actor) {
@@ -52,14 +54,19 @@ class CrowdOccupancy {
         continue;
       }
       _radii[actor] = radiusOf(actor);
+      _maximumRadius = math.max(_maximumRadius, _radii[actor]!);
       _index(actor);
     }
   }
 
-  Iterable<PositionComponent> _near(Vector2 point) sync* {
+  Iterable<PositionComponent> _near(Vector2 point, [double radius = 0]) sync* {
     final (x, y) = _key(point);
-    for (var dx = -1; dx <= 1; dx++) {
-      for (var dy = -1; dy <= 1; dy++) {
+    final reach = ((radius + _maximumRadius + 16) / _cellSize).ceil().clamp(
+      1,
+      16,
+    );
+    for (var dx = -reach; dx <= reach; dx++) {
+      for (var dy = -reach; dy <= reach; dy++) {
         yield* _cells[(x + dx, y + dy)] ?? const <PositionComponent>{};
       }
     }
@@ -78,7 +85,7 @@ class CrowdOccupancy {
         return false;
       }
     }
-    for (final other in _near(point)) {
+    for (final other in _near(point, radius)) {
       if (identical(actor, other) || other.isRemoving || other.isRemoved) {
         continue;
       }
@@ -116,19 +123,33 @@ class CrowdOccupancy {
       if (!_free(actor, point, radius)) continue;
       actor.position.setFrom(point);
       _radii[actor] = radius;
+      _maximumRadius = math.max(_maximumRadius, radius);
       _index(actor);
       return true;
     }
     return false;
   }
 
-  PositionComponent? _blocker(
+  _CrowdContact? _blocker(
     PositionComponent actor,
     Vector2 from,
     Vector2 to,
     double radius,
     bool Function(PositionComponent)? blocks,
   ) {
+    _CrowdContact? best;
+    void accept(PositionComponent other, Vector2 normal, double travel) {
+      if (normal.isZero()) normal = Vector2(1, 0);
+      normal.normalize();
+      if (best == null || travel < best!.travel - .00001) {
+        best = _CrowdContact(other, normal, travel);
+      } else if ((travel - best!.travel).abs() < .00001 &&
+          best!.normals.length < 8 &&
+          !best!.normals.any((n) => n.dot(normal) > .999)) {
+        best!.normals.add(normal);
+      }
+    }
+
     for (final entry in _compound.entries) {
       final other = entry.key;
       if (identical(actor, other) ||
@@ -138,23 +159,41 @@ class CrowdOccupancy {
         continue;
       }
       for (final shape in entry.value.groundShape) {
-        final start = shape.distance(from.toOffset());
-        if (start < radius + 4 && shape.distance(to.toOffset()) >= start) {
+        final start = shape.signedDistance(from.toOffset());
+        final delta = to.toOffset() - from.toOffset(),
+            normal = shape.outwardAt(from.toOffset());
+        if (start < radius + 4 &&
+            shape.signedDistance(to.toOffset()) >= start &&
+            delta.dx * normal.dx + delta.dy * normal.dy >= 0) {
           continue;
         }
-        if (shape.contact(
-              from.toOffset(),
-              to.toOffset(),
-              padding: radius + 4,
-            ) !=
-            null) {
-          return other;
+        final contact = shape.contact(
+          from.toOffset(),
+          to.toOffset(),
+          padding: radius + 4,
+        );
+        if (contact != null) {
+          final delta = to - from;
+          final at =
+              from +
+              (delta.isZero() ? Vector2.zero() : delta.normalized() * contact);
+          final axis = shape.b - shape.a, p = at.toOffset() - shape.a;
+          final t = axis.distanceSquared < 1e-9
+              ? 0.0
+              : ((p.dx * axis.dx + p.dy * axis.dy) / axis.distanceSquared)
+                    .clamp(0.0, 1.0);
+          final closest = shape.a + axis * t;
+          var normal = at - Vector2(closest.dx, closest.dy);
+          if (shape is ClippedTargetCapsule && shape.side(at.toOffset()) > 0) {
+            normal = Vector2(shape.normal.dx, shape.normal.dy);
+          }
+          accept(other, normal, contact);
         }
       }
     }
     final delta = to - from;
     final length2 = delta.length2;
-    for (final other in _near(from)) {
+    for (final other in _near(from, radius)) {
       if (identical(actor, other) || other.isRemoving || other.isRemoved) {
         continue;
       }
@@ -172,10 +211,22 @@ class CrowdOccupancy {
           : ((other.position - from).dot(delta) / length2).clamp(0.0, 1.0);
       final nearest = from + delta * t;
       if (nearest.distanceToSquared(other.position) < gap * gap - .001) {
-        return other;
+        final capsule = TargetCapsule(
+          other.position.toOffset(),
+          other.position.toOffset(),
+          gap,
+        );
+        final travel = capsule.contact(from.toOffset(), to.toOffset()) ?? 0;
+        final at =
+            from +
+            (delta.isZero() ? Vector2.zero() : delta.normalized() * travel);
+        accept(other, at - other.position, travel);
       }
     }
-    return null;
+    best?.normals.sort(
+      (a, b) => a.x != b.x ? a.x.compareTo(b.x) : a.y.compareTo(b.y),
+    );
+    return best;
   }
 
   /// Substeps prevent fast actors crossing a body. Committed attacks stop at
@@ -209,10 +260,15 @@ class CrowdOccupancy {
       final blocker = _blocker(actor, from, next, radius, blocks);
       if (blocker != null) {
         if (!slide) break;
-        var normal = from - blocker.position;
+        var normal = blocker.normal.clone();
         if (normal.isZero()) normal = Vector2(side, 0);
         normal.normalize();
-        var tangent = step - normal * math.min(0.0, step.dot(normal));
+        var tangent = step.clone();
+        for (var pass = 0; pass < 2; pass++) {
+          for (final contact in blocker.normals) {
+            tangent -= contact * math.min(0.0, tangent.dot(contact));
+          }
+        }
         if (tangent.length2 < step.length2 * .04) {
           tangent = Vector2(-normal.y, normal.x) * (step.length * side);
         }
@@ -231,4 +287,12 @@ class CrowdOccupancy {
     }
     if (reserve) _index(actor);
   }
+}
+
+class _CrowdContact {
+  _CrowdContact(this.actor, Vector2 normal, this.travel) : normals = [normal];
+  final PositionComponent actor;
+  final List<Vector2> normals;
+  Vector2 get normal => normals.first;
+  final double travel;
 }

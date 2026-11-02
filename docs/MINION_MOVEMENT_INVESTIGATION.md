@@ -149,4 +149,5 @@ Final combined run: **41 passed**; analyzer reports no issues for both diagnosti
 
 The complete proposed repair, checkpoint revisions, ordered tasks and acceptance
 criteria are in [MINION_NAVIGATION_IMPLEMENTATION_PLAN.md](MINION_NAVIGATION_IMPLEMENTATION_PLAN.md).
-The planning pass does not implement or certify the navigation repair.
+The recovered client/server candidate and its fresh verification are recorded in
+[the 3 November validation notes](validation/minion-navigation-2026-11-03/README.md).

@@ -1,3 +1,4 @@
+import 'package:regun/systems/minion_navigation.dart';
 import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
 import 'package:regun/presentation/boss_vfx.dart';
@@ -22,7 +23,27 @@ enum PatternBossPhase { arrival, approach, warning, active, recovery }
 
 class PatternBoss extends PositionComponent
     with HasGameReference<RegunGame>, CombatEnemy
-    implements BossEncounter {
+    implements BossEncounter, NavigationMotionSource {
+  @override
+  NavigationMotion? get navigationMotion {
+    if (!_charge) return null;
+    if (phase == PatternBossPhase.warning) {
+      return NavigationMotion(
+        _target.toOffset(),
+        (warningDuration - clock).clamp(0.0, warningDuration),
+        activeDuration,
+      );
+    }
+    if (phase == PatternBossPhase.active) {
+      return NavigationMotion(
+        _target.toOffset(),
+        0,
+        (activeDuration - clock).clamp(.001, activeDuration),
+      );
+    }
+    return null;
+  }
+
   PatternBoss(this.kind, {super.position, this.maximumHealth = 230})
     : super(size: Vector2.all(200), anchor: Anchor.center, priority: 5);
   @override
