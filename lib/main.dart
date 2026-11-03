@@ -88,7 +88,11 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    final binding = WidgetsBinding.instance;
+    binding.addObserver(this);
+    final state = binding.lifecycleState;
+    _foreground = state == null || state == AppLifecycleState.resumed;
+    _syncAudioVolume();
     _presence = Timer.periodic(const Duration(seconds: 30), (_) {
       if (_foreground) _reportPresence();
     });
@@ -99,7 +103,7 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
   }
 
   Future<void> _resumeAudioOutput() async {
-    if (!SoLoud.instance.isInitialized) return;
+    if (!_foreground || !SoLoud.instance.isInitialized) return;
     try {
       // Restart the device without reinitializing or discarding loaded sounds.
       await SoLoud.instance.startAudioDevice();
@@ -108,9 +112,17 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
     }
   }
 
+  void _syncAudioVolume() {
+    final audio = SoLoud.instance;
+    if (audio.isInitialized) audio.setGlobalVolume(_foreground ? 1 : 0);
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed;
+    // Mute the engine itself so all routes and late-loading voices are covered.
+    // Route pause states and the player's music/SFX levels are independent.
+    _syncAudioVolume();
     _reportPresence();
     if (state == AppLifecycleState.resumed) {
       unawaited(_resumeAudioOutput());

@@ -1,6 +1,11 @@
 # Audio runtime and SDK migration
 
-Regun uses Flutter 3.47.7 / Dart 3.13.5 and pins `flutter_soloud` 5.2.1. The previous runtime resolved 3.5.4 from a `^3.4.4` constraint. SoLoud 5.x builds its native engine through Dart hooks; its `native_toolchain_c` dependency requires meta 1.19, which conflicts with Flutter 3.44.8's exact meta pin. The SDK was upgraded rather than overriding SDK package constraints. Wrapper plugins still use CocoaPods on iOS.
+Regun uses Flutter 3.47.7 / Dart 3.13.5 and pins `flutter_soloud` 5.2.1. The previous runtime resolved 3.5.4 from a `^3.4.4` constraint. The application also mutes the SoLoud mixer whenever Flutter leaves the resumed
+state. This covers menu, solo and online audio, including a sound that finishes
+loading after backgrounding. On resume, the mixer gate opens without changing
+the user's music/SFX settings or unpausing a paused solo run.
+
+SoLoud 5.x builds its native engine through Dart hooks; its `native_toolchain_c` dependency requires meta 1.19, which conflicts with Flutter 3.44.8's exact meta pin. The SDK was upgraded rather than overriding SDK package constraints. Wrapper plugins still use CocoaPods on iOS.
 
 ## Session and device ownership
 

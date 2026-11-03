@@ -9,12 +9,40 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:regun/data/loadout.dart';
+import 'package:regun/main.dart' show GameApp;
 import 'package:regun/utils/soloud_play.dart';
 
 /// Runs on a native device: tests the real decoder/mixer, not mocked play calls.
 /// Mixer output cannot prove speaker routing or subjective listening quality.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('background gates native audio across app routes', (
+    tester,
+  ) async {
+    final engine = SoLoud.instance;
+    await tester.runAsync(() => engine.init());
+    await tester.pumpWidget(
+      const GameApp(reviewHome: Scaffold(body: Text('Audio lifecycle'))),
+    );
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    expect(engine.getGlobalVolume(), closeTo(1, .001));
+
+    for (final state in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+      expect(engine.getGlobalVolume(), lessThan(.0001));
+    }
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    expect(engine.getGlobalVolume(), lessThan(.0001));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    expect(engine.getGlobalVolume(), closeTo(1, .001));
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   testWidgets('bundled music and every weapon produce native mixed audio', (
     tester,
