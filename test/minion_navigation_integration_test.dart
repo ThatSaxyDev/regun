@@ -79,6 +79,35 @@ void main() {
     return game;
   }
 
+  testWidgets('loaded arrivals mount before their first navigation update', (
+    tester,
+  ) async {
+    final game = await mount(tester);
+    await tester.runAsync(() async {
+      final scorpion = EnemyComponent(
+        position: game.myPlayer.position + Vector2(400, 0),
+      );
+      // Director arrivals reserve a place before Flame finishes mounting them.
+      expect(game.registerEnemy(scorpion), isTrue);
+      await game.world.add(scorpion);
+      expect(scorpion.isLoaded, isTrue);
+      expect(scorpion.isMounted, isFalse);
+
+      final start = game.myPlayer.position.x;
+      game.movementJoystick.delta.setValues(60, 0);
+      game.update(1 / 60);
+      expect(scorpion.isMounted, isTrue);
+      expect(scorpion.statusClock, closeTo(1 / 60, 1e-8));
+      final next = game.myPlayer.position.x;
+      expect(next, greaterThan(start));
+      game.movementJoystick.delta.setValues(60, 0);
+      game.update(1 / 60);
+      expect(scorpion.statusClock, closeTo(2 / 60, 1e-8));
+      expect(game.myPlayer.position.x, greaterThan(next));
+    });
+    await tester.pumpWidget(const SizedBox());
+  });
+
   for (final seed in [7, 19, 43]) {
     testWidgets(
       'mixed pack $seed preserves melee pressure, spread, pause and live body clearance',

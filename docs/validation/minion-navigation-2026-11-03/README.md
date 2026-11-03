@@ -45,6 +45,13 @@ The native integration test emits the actual frame to
 Android APK and signed iOS release builds succeeded using the workspace's existing
 1.0.0+30 release identity. The iOS candidate installed on the paired iPhone 12.
 
+The initial device candidate could freeze when a Scorpion finished loading
+between frames. The navigation pass updated it before Flame mounted it, so the
+gait field initialized in `onMount` was unavailable. The fix keeps pending
+arrivals in occupancy and limits the manual update pass to mounted actors.
+The regression reproduces the original exception and verifies player movement
+on the arrival frame and the next frame, with one enemy update per frame.
+
 Physical frame pacing and difficulty, the full scenario matrix, authenticated
 WAN sessions and live backend rollout remain open. For device review, kite a
 mixed pack and then stop and turn back across its path. Check that rear attackers

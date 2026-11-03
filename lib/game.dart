@@ -843,7 +843,11 @@ class RegunGame extends FlameGame
   void _advanceOrdinaryMinions(double dt) {
     if (gameState.gameplayState != GameplayState.playing || dt <= 0) return;
     _rebuildNavigation(dt);
-    final actors = liveEnemies.where(_ordinaryMinion).toList();
+    // Loaded arrivals still reserve space, but Flame must mount them before
+    // their first update so onMount state (such as Scorpion gait) exists.
+    final actors = liveEnemies
+        .where((actor) => actor.isMounted && _ordinaryMinion(actor))
+        .toList();
     actors.sort((a, b) {
       final ai = (a as CombatEnemy).combatId, bi = (b as CombatEnemy).combatId;
       final aw = minionNavigation.memories[ai]?.waiting ?? 0;
