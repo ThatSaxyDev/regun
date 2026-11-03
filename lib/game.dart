@@ -1,3 +1,6 @@
+import 'package:regun/systems/arena_machine.dart';
+import 'package:regun/components/map/foundry_cart_view.dart';
+import 'package:regun/systems/foundry_rail.dart';
 import 'package:regun/systems/minion_navigation.dart';
 import 'package:regun/components/enemies/lodestar_boss.dart';
 import 'package:regun/systems/lodestar/lodestar_combat.dart';
@@ -920,6 +923,20 @@ class RegunGame extends FlameGame
           actor.prepared &&
           [WalkerPhase.charge, WalkerPhase.brake].contains(actor.fight.phase));
 
+  double _crowdCueCooldown = 0;
+  PositionComponent? _crowdCueActor;
+  double _crowdCueDistanceSquared = 0;
+
+  void playEnemyMovement(String asset, Vector2 origin, double range) {
+    unawaited(
+      audio.playEnemyMovement(
+        asset,
+        (origin - myPlayer.position).toOffset(),
+        range,
+      ),
+    );
+  }
+
   void moveActor(
     PositionComponent actor,
     Vector2 direction,
@@ -962,6 +979,12 @@ class RegunGame extends FlameGame
       direction = Vector2(steered.dx, steered.dy);
     }
     if (actor is CombatEnemy) {
+      final listen =
+          _crowdCueCooldown <= 0 &&
+          actor is EnemyComponent &&
+          avoidCrowd &&
+          !airborne;
+      final beforeX = actor.position.x, beforeY = actor.position.y;
       crowdOccupancy.move(
         actor,
         direction * (speed * dt),
@@ -976,6 +999,17 @@ class RegunGame extends FlameGame
             : null,
         side: enemyTactics.side(actor),
       );
+      if (listen &&
+          ((actor.position.x - beforeX).abs() > .4 ||
+              (actor.position.y - beforeY).abs() > .4)) {
+        final distance = actor.position.distanceToSquared(myPlayer.position);
+        if (distance < 360 * 360 &&
+            (_crowdCueActor == null || distance < _crowdCueDistanceSquared) &&
+            !segmentBlocked(actor.position, myPlayer.position)) {
+          _crowdCueActor = actor;
+          _crowdCueDistanceSquared = distance;
+        }
+      }
       return;
     }
     final previous = actor.position.clone();
@@ -1676,7 +1710,68 @@ class RegunGame extends FlameGame
 
   bool _legacyArena = false;
 
+  List<ArenaMachine> arenaMachines = const [];
+
+  List<ArenaMachine> _createArenaMachines() {
+    if (_legacyArena) return const [];
+    switch (loadout.arena) {
+      case ArenaType.breach:
+        return const [];
+      case ArenaType.foundry:
+        return [
+          for (final body in map.regions('foundry_obstacles'))
+            ArenaMachine(
+              ArenaMachineKind.press,
+              body,
+              Rect.fromLTWH(body.center.dx - 77, body.bottom, 154, 88),
+            ),
+        ];
+      case ArenaType.floodworks:
+        final body = map.regions('floodworks_gate').firstOrNull;
+        final channel = map.regions('floodworks_landmarks').firstOrNull;
+        if (body == null || channel == null) return const [];
+        return [
+          ArenaMachine(
+            ArenaMachineKind.sluice,
+            body,
+            Rect.fromLTRB(
+              channel.left,
+              body.bottom,
+              channel.right,
+              channel.bottom,
+            ),
+          ),
+        ];
+      case ArenaType.relayGraveyard:
+        return [
+          for (final body in map.regions('relayGraveyard_obstacles'))
+            ArenaMachine(
+              ArenaMachineKind.relay,
+              body,
+              Rect.fromLTWH(body.center.dx - 43, body.bottom, 86, 430),
+            ),
+        ];
+    }
+  }
+
+  List<FoundryRail> foundryRails = const [];
+  bool get foundryRailActive {
+    final lodestar = lodestarCandidate;
+    return !bossRush &&
+        !(lodestar != null &&
+            lodestar.readyForFight &&
+            !lodestar.fight.finished);
+  }
+
+  SoloudPlay? _arenaAudio;
+
   void _configureArenaGeometry() {
+    foundryRails = loadout.arena == ArenaType.foundry && !_legacyArena
+        ? [
+            for (final (index, track) in map.foundryTracks.indexed)
+              FoundryRail(track, offset: index * FoundryRail.stagger),
+          ]
+        : const [];
     geometry = ArenaGeometry(
       map.bounds,
       obstacles: map.obstacles(loadout.arena, legacy: _legacyArena),
@@ -1684,11 +1779,18 @@ class RegunGame extends FlameGame
         final drop = supplyDrops.drop;
         if (!_landingSupply && drop != null && drop.solid) yield drop.footprint;
         yield* supportCombat.solids;
+        if (foundryRailActive) {
+          for (final rail in foundryRails) {
+            yield rail.bodyAt(director.elapsed);
+          }
+        }
       },
     );
   }
 
   void _startRun({bool clearSave = true}) {
+    _arenaAudio?.syncFoundryRail(null);
+    _arenaAudio?.stopMachines();
     _fireKickTime = 0;
     _groundKickTime = 0;
     upgradePresentation.cancel();
@@ -1779,6 +1881,7 @@ class RegunGame extends FlameGame
     _fireCooldown = 0;
     burstFire.reset();
     _ventClock = 0;
+    arenaMachines = _createArenaMachines();
     supplyDrops.reset(random.state ^ 0x51a7);
     _syncSupplyArt(false);
     defeatedBosses.clear();
@@ -1803,6 +1906,7 @@ class RegunGame extends FlameGame
       SupportBodyView(),
       SupportRoundsView(),
       ArenaScenery(),
+      for (final rail in foundryRails) FoundryCartView(rail),
       if (loadout.arena == ArenaType.breach) ...[
         SupplyDropField(),
         SupplyDropBody(),
@@ -1873,6 +1977,10 @@ class RegunGame extends FlameGame
       'dash': boostButtonComponent.checkpoint(),
       'droneClock': combat.droneClock,
       'ventClock': _ventClock,
+      if (arenaMachines.isNotEmpty)
+        'arenaMachines': [
+          for (final machine in arenaMachines) machine.toJson(),
+        ],
       'arenaHazards': [
         for (final hazard in _hazards)
           if (!hazard.isRemoving &&
@@ -2315,6 +2423,13 @@ class RegunGame extends FlameGame
       assisted = snapshot['assisted'] == true;
       combat.droneClock = (snapshot['droneClock'] as num?)?.toDouble() ?? 0;
       _ventClock = (snapshot['ventClock'] as num?)?.toDouble() ?? 0;
+      final savedMachines = snapshot['arenaMachines'];
+      if (savedMachines is List &&
+          savedMachines.length == arenaMachines.length) {
+        for (var i = 0; i < arenaMachines.length; i++) {
+          arenaMachines[i].restore(savedMachines[i]);
+        }
+      }
       _restoreArenaHazard(snapshot['arenaHazards']);
       boostButtonComponent.restoreCheckpoint(
         Map<String, dynamic>.from(snapshot['dash'] as Map? ?? {}),
@@ -3572,11 +3687,46 @@ class RegunGame extends FlameGame
       combat.update(dt);
       if (!bossRush) supportCombat.advance(dt);
     }
+    _crowdCueActor = null;
+    if (gameState.gameplayState == GameplayState.playing) {
+      _crowdCueCooldown = max(0, _crowdCueCooldown - dt);
+    }
     enemyTactics.rebuild(liveEnemies.where((e) => !isAirborneActor(e)));
     crowdOccupancy.rebuild(
       [..._enemies, ...bosses].where((e) => !isAirborneActor(e)),
       crowdRadius,
     );
+    var railSweeps = const <(Rect, Rect)>[];
+    if (foundryRails.isNotEmpty &&
+        foundryRailActive &&
+        gameState.gameplayState == GameplayState.playing) {
+      railSweeps = [];
+      for (final rail in foundryRails) {
+        final before = rail.bodyAt(director.elapsed);
+        final after = rail.bodyAt(director.elapsed + dt);
+        if (before != after) railSweeps.add((before, after));
+      }
+    }
+    final railPlayerBefore = railSweeps.isEmpty
+        ? null
+        : myPlayer.position.clone();
+    var railTargets = const <CombatEnemy, Vector2>{};
+    if (railSweeps.isNotEmpty) {
+      railTargets = {};
+      final nearby = [
+        for (final (before, after) in railSweeps)
+          before.expandToInclude(after).inflate(180),
+      ];
+      for (final enemy in _enemies) {
+        if (enemy is CombatEnemy &&
+            enemy.isLoaded &&
+            !enemy.combatHealth.isDead &&
+            !enemy.isBoss &&
+            nearby.any((rect) => rect.contains(enemy.position.toOffset()))) {
+          railTargets[enemy] = enemy.position.clone();
+        }
+      }
+    }
     _advanceOrdinaryMinions(dt);
     try {
       super.update(dt);
@@ -3585,6 +3735,11 @@ class RegunGame extends FlameGame
     }
     final state = gameState;
     if (state.gameplayState == GameplayState.playing) {
+      final nearby = _crowdCueActor;
+      if (nearby != null && !(nearby as CombatEnemy).combatHealth.isDead) {
+        playEnemyMovement('enemy_scuttle.wav', nearby.position, 360);
+        _crowdCueCooldown = 1.1;
+      }
       _checkpointElapsed += dt;
       if (_checkpointElapsed >= 15) {
         _checkpointElapsed = 0;
@@ -3592,6 +3747,47 @@ class RegunGame extends FlameGame
       }
       _advanceRush(dt);
       final reinforce = director.advance(dt);
+      if (foundryRails.isNotEmpty) {
+        final rolling = !foundryRailActive
+            ? null
+            : foundryRails
+                  .where((rail) => rail.moving(director.elapsed))
+                  .firstOrNull;
+        (_arenaAudio ??= audio).syncFoundryRail(
+          rolling == null
+              ? null
+              : rolling.bodyAt(director.elapsed).center -
+                    myPlayer.position.toOffset(),
+        );
+      }
+      for (final (railBefore, railAfter) in railSweeps) {
+        var impacted = false;
+        for (final entry in railTargets.entries) {
+          final enemy = entry.key;
+          if (FoundryRail.strikes(
+            railBefore,
+            railAfter,
+            entry.value,
+            enemy.position,
+            enemyRadius(enemy),
+          )) {
+            impacted = enemy.crushByArena() || impacted;
+          }
+        }
+        if (FoundryRail.strikes(
+          railBefore,
+          railAfter,
+          railPlayerBefore!,
+          myPlayer.position,
+          PlayerComponent.collisionRadius,
+        )) {
+          impacted =
+              damagePlayer(amount: 2, cause: 'Foundry rail cart') || impacted;
+        }
+        if (impacted) {
+          showGroundImpact(railAfter.center, strength: 8, attenuate: true);
+        }
+      }
       if (loadout.training) {
         if (!bossRush && !reviewControlledSpawns && !mechanicalTrialActive) {
           _advanceTrainingCrowd(dt);
@@ -3602,6 +3798,7 @@ class RegunGame extends FlameGame
       if (director.bossDue && !loadout.training) {
         spawnBoss(director.chooseBoss(random));
       }
+      _advanceArenaMachines(dt);
       _advanceArenaHazard(dt);
     }
     if (loadout.training) {
@@ -3661,9 +3858,123 @@ class RegunGame extends FlameGame
     gameNotifier.offerSupportPractice(family);
   }
 
+  void _advanceArenaMachines(double dt) {
+    if (bossRush ||
+        arenaMachines.isEmpty ||
+        inputBlocked ||
+        gameState.gameplayState != GameplayState.playing) {
+      return;
+    }
+    final player = myPlayer.position.toOffset();
+    for (final machine in arenaMachines) {
+      final area = machine.area;
+      final trigger = machine.trigger;
+      final wasWarning = machine.warning;
+      final occupied =
+          activeBoss == null &&
+          (machine.kind == ArenaMachineKind.sluice
+              ? director.elapsed >= 7 && area.inflate(350).contains(player)
+              : trigger.contains(player) ||
+                    _enemies.any(
+                      (actor) =>
+                          actor is CombatEnemy &&
+                          !actor.isBoss &&
+                          actor.isLoaded &&
+                          !actor.isRemoving &&
+                          !actor.combatHealth.isDead &&
+                          !isAirborneActor(actor) &&
+                          trigger.contains(actor.position.toOffset()),
+                    ));
+      final struck = machine.advance(dt, occupied: occupied);
+      if (!wasWarning && machine.warning) {
+        unawaited(
+          (_arenaAudio ??= audio).playMachine(
+            'machine_${machine.kind.name}_charge.wav',
+            machine.body.center - player,
+          ),
+        );
+      }
+      if (struck) {
+        unawaited(
+          (_arenaAudio ??= audio).playMachine(
+            switch (machine.kind) {
+              ArenaMachineKind.press => 'machine_press_hit.wav',
+              ArenaMachineKind.sluice => 'machine_sluice_flow.wav',
+              ArenaMachineKind.relay => 'machine_relay_pulse.wav',
+            },
+            (machine.kind == ArenaMachineKind.sluice
+                    ? Offset(
+                        area.center.dx,
+                        player.dy.clamp(area.top, area.bottom),
+                      )
+                    : area.center) -
+                player,
+          ),
+        );
+        if (machine.kind == ArenaMachineKind.press) {
+          showGroundImpact(area.center, strength: 10, attenuate: true);
+        }
+        if (machine.kind != ArenaMachineKind.sluice) {
+          for (final actor in _enemies.toList()) {
+            if (actor is! CombatEnemy ||
+                actor.isBoss ||
+                !actor.isLoaded ||
+                actor.isRemoving ||
+                actor.combatHealth.isDead ||
+                !area.contains(actor.position.toOffset())) {
+              continue;
+            }
+            if (machine.kind == ArenaMachineKind.press) {
+              actor.crushByArena(source: 'Foundry press');
+            } else {
+              actor.staggerByArena(.27);
+            }
+          }
+          if (area.contains(player)) {
+            damagePlayer(
+              amount: machine.kind == ArenaMachineKind.press ? 2 : 1,
+              cause: machine.kind == ArenaMachineKind.press
+                  ? 'Foundry press'
+                  : 'Relay discharge',
+            );
+          }
+        }
+      }
+      if (machine.kind == ArenaMachineKind.sluice && machine.active) {
+        final downstream = Vector2(0, 1);
+        if (area.contains(player)) {
+          moveActor(
+            myPlayer,
+            downstream,
+            155,
+            dt,
+            radius: PlayerComponent.collisionRadius,
+          );
+        }
+        for (final actor in _enemies.toList()) {
+          if (actor is CombatEnemy &&
+              !actor.isBoss &&
+              actor.isLoaded &&
+              !actor.isRemoving &&
+              !actor.combatHealth.isDead &&
+              !isAirborneActor(actor) &&
+              area.contains(actor.position.toOffset())) {
+            moveTo(
+              actor,
+              actor.position + downstream * (155 * dt),
+              enemyRadius(actor),
+              slide: true,
+            );
+          }
+        }
+      }
+    }
+  }
+
   void _advanceArenaHazard(double dt) {
     final flood = loadout.arena == ArenaType.floodworks;
-    if ((!flood && loadout.arena != ArenaType.foundry) ||
+    if ((flood && !_legacyArena) ||
+        (!flood && loadout.arena != ArenaType.foundry) ||
         bossRush ||
         activeBoss != null ||
         (_legacyArena && director.bossesDefeated == 0)) {
@@ -3696,7 +4007,8 @@ class RegunGame extends FlameGame
   );
 
   void _restoreArenaHazard(Object? raw) {
-    if ((loadout.arena != ArenaType.foundry &&
+    if ((loadout.arena == ArenaType.floodworks && !_legacyArena) ||
+        (loadout.arena != ArenaType.foundry &&
             loadout.arena != ArenaType.floodworks) ||
         raw is! List ||
         raw.length != 1) {
@@ -3975,6 +4287,9 @@ class RegunGame extends FlameGame
   void gameOver() => gameNotifier.gameOver();
 
   void resetInput() {
+    _arenaAudio?.syncFoundryRail(null);
+    _arenaAudio?.stopMachines();
+    if (_started) myPlayer.resetMovementAudio();
     burstFire.cancelIntent();
     arsenal?.cancelIntent();
     grenadeButtonComponent.cancelAim();
@@ -4052,6 +4367,8 @@ class RegunGame extends FlameGame
 
   @override
   void onRemove() {
+    _arenaAudio?.syncFoundryRail(null);
+    _arenaAudio?.stopMachines();
     disposed = true;
     minionNavigation.clear();
     _navigationPositions.clear();

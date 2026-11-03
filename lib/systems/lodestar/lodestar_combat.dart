@@ -100,7 +100,8 @@ class LodestarCombat {
   bool _eruptionDamage = true, paused = false;
   bool _withdraw = false, _deathSinking = false;
   Offset _deathMouth = Offset.zero;
-  double _stalled = 0;
+  double _stalled = 0, _surfaceStall = 0;
+  bool _repositioning = false;
   final depths = List<double>.filled(6, 1);
   final shots = <LodestarShot>[],
       mines = <LodestarMine>[],
@@ -336,7 +337,15 @@ class LodestarCombat {
           heading: course,
         );
         if (!proposed.poses.every((p) => clear(p.position, p.position, 110)) ||
-            !clear(exit - unit(course) * 760, exit + unit(course) * 760, 110)) {
+            !clear(exit - unit(course) * 760, exit + unit(course) * 760, 110) ||
+            (_repositioning && !_recoveryLaneClear(exit, course))) {
+          if (_repositioning) {
+            // A new blocker can enter after warning. Commit a new safe warning
+            // before emerging, instead of reusing the original blocked route.
+            _recoveryExit();
+            _phase(LodestarPhase.exitWarning);
+            return;
+          }
           exit = entry;
           course = rig.poses.first.yaw;
           _eruptionDamage = false;
@@ -349,6 +358,7 @@ class LodestarCombat {
         rig.maximumSpeed = 480;
         rig.primeSpeed(480);
         _startTravel = rig.signedTravel;
+        _stalled = 0;
         depths.fillRange(0, 6, 1);
         signal('supply_land.wav');
         _burst(exit, 150, blast: false, excavation: true);
@@ -383,6 +393,7 @@ class LodestarCombat {
         _safeWithdrawal();
         return;
       }
+      if (_stalled > 1 && _beginWallRecovery()) return;
       if (!_withdraw && rig.signedTravel - _startTravel >= 760) {
         if (phase == LodestarPhase.entry) {
           depths.fillRange(0, 6, 1);
@@ -390,6 +401,7 @@ class LodestarCombat {
         } else {
           depths.fillRange(0, 6, 0);
           _cooldown[LodestarMove.burrow] = 18;
+          _repositioning = false;
           _recover();
         }
       }
@@ -418,7 +430,12 @@ class LodestarCombat {
     } else {
       rig.tailCurl = 0;
     }
+    final beforeTravel = rig.signedTravel;
     rig.advance(dt);
+    _surfaceStall = (rig.signedTravel - beforeTravel).abs() < .01
+        ? _surfaceStall + dt
+        : 0;
+    if (_surfaceStall > 1.2 && _beginWallRecovery()) return;
     _contact(old);
     if (phase == LodestarPhase.recovery) {
       if (!shots.any((s) => s.shell) &&
@@ -578,6 +595,65 @@ class LodestarCombat {
       }
       rig.desiredHeading = head.yaw;
     }
+  }
+
+  bool _beginWallRecovery() {
+    if (!_recoveryExit()) {
+      // Keep retry costs bounded if the player and cover block every corridor.
+      _surfaceStall = 1.0;
+      _stalled = .8;
+      return false;
+    }
+    _surfaceStall = _stalled = 0;
+    _reverseFor = _planClock = 0;
+    _withdraw = false;
+    _repositioning = true;
+    _eruptionDamage = false;
+    warnedSweep.clear();
+    for (final pose in rig.poses) {
+      if (depths[pose.section.index] < .7) {
+        _burst(pose.position, 72, blast: false, excavation: true);
+      }
+    }
+    depths.fillRange(0, 6, 1);
+    move = LodestarMove.burrow;
+    _phase(LodestarPhase.exitWarning);
+    signal('supply_incoming.wav');
+    return true;
+  }
+
+  bool _recoveryExit() {
+    for (final y in [.5, .26, .74]) {
+      for (final x in [.5, .26, .74]) {
+        final at = Offset(
+          bounds.left + bounds.width * x,
+          bounds.top + bounds.height * y,
+        );
+        for (final angle in [
+          0.0,
+          math.pi / 2,
+          math.pi,
+          -math.pi / 2,
+          math.pi / 4,
+          -math.pi / 4,
+        ]) {
+          if (!_recoveryLaneClear(at, angle)) {
+            continue;
+          }
+          exit = at;
+          course = angle;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool _recoveryLaneClear(Offset at, double angle) {
+    final axis = unit(angle);
+    final start = at - axis * 760, end = at + axis * 760;
+    return TargetCapsule.distanceToSegment(player, start, end) >= 180 &&
+        clear(start, end, 110);
   }
 
   bool _stage(LodestarMove next) {
@@ -1081,6 +1157,7 @@ class LodestarCombat {
     'turn': _turn,
     'released': _released,
     'withdraw': _withdraw,
+    if (_repositioning) 'repositioning': true,
     'eruption': _eruptionDamage,
     'coreOpenedAt': coreOpenedAt,
     'shutdownParts': [..._shutdownParts],
@@ -1090,7 +1167,11 @@ class LodestarCombat {
   };
 
   static bool validCheckpoint(dynamic raw) {
-    if (raw is! Map || raw['v'] != 1) return false;
+    if (raw is! Map ||
+        raw['v'] != 1 ||
+        (raw.containsKey('repositioning') && raw['repositioning'] is! bool)) {
+      return false;
+    }
     bool n(dynamic v, double lo, double hi) =>
         v is num && v.isFinite && v >= lo && v <= hi;
     bool tuple(dynamic v, int count, double limit) =>
@@ -1222,6 +1303,7 @@ class LodestarCombat {
     _turn = raw['turn'] as int? ?? 0;
     _released = raw['released'] as int? ?? 0;
     _withdraw = raw['withdraw'] == true;
+    _repositioning = raw['repositioning'] == true;
     _deathSinking = raw['deathSinking'] == true;
     _deathMouth = raw['deathMouth'] is List ? p('deathMouth') : entry;
     _eruptionDamage = raw['eruption'] == true;
@@ -1245,6 +1327,12 @@ class LodestarCombat {
     if (continueRun && !defeated) {
       _contactGate = 1.5;
       _quiet = 1.5;
+      if (_repositioning) {
+        _withdraw = false;
+        _eruptionDamage = false;
+        if (phase == LodestarPhase.exitWarning) age = 0;
+        return;
+      }
       if (depths.any((d) => d > 0)) {
         _withdraw =
             _withdraw ||

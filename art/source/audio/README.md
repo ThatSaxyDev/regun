@@ -130,3 +130,25 @@ The creator clarified that the repeated coin/XP cue sounded too low/muted and re
 `level.wav` and `fusion.wav` now use two short filtered contacts from the attributed CC0 `shotgun_pump_springyspringo.wav`, without an ascending chord or ringing tail. They keep runtime gain.5, bounded peaks and energy below their preceding cues. Archived chimes, refined masters and hashes live in pickup-clarity-2026-10-27. The generic UI generator invokes this focused generator, preventing accidental chime restoration. The separate accepted-upgrade force pulse is restored to its prior.35gain after the creator clarified the requested pickup sound. All player SFX/mute controls remain effective. Actual speaker clarity and preference require listening.
 
 Level presence follow-up: the first contact-only level cue was too faint. Its revised generator soft-limits narrow spikes and adds a short340Hz damped body, retaining290ms duration and no note sequence. Level gain is.6, and waveform energy is capped at22% of the rejected chime. Coin/fusion hashes remain unchanged; manifest and preview reflect actual gain.
+
+### Player movement Foley
+
+The CC0 recordings in `movement/` are Freesound's HQ previews. The generator
+extracts individual steps and softens sharp highs while retaining each surface's
+natural tail. Run `python3 tool/generate_movement_audio.py` with FFmpeg installed.
+
+- `stone.mp3` — [Hiking Boot Footsteps on Stone, Fission9](https://freesound.org/people/Fission9/sounds/521590/). Also supplies the dash landing.
+- `metal.mp3` — [Footsteps On Metal, IENBA](https://freesound.org/people/IENBA/sounds/834029/).
+- `wet.mp3` — [Wet footsteps, Bia12](https://freesound.org/people/Bia12/sounds/583756/).
+- `gravel.mp3` — [Hiking Boot Footsteps on Gravel, Fission9](https://freesound.org/people/Fission9/sounds/521588/). The loose-gravel tail supplies the scorpion's scuttle.
+- `claw.mp3` — [Dragging a Cinderblock Across Concrete, PostProdDog](https://freesound.org/people/PostProdDog/sounds/578488/). A continuous scrape supplies the Skitter's windup.
+- `rail_wheels.mp3` — [Train Wheels Ringing Around Bend, JotrainG](https://freesound.org/people/JotrainG/sounds/700035/) (CC0). Filtered and crossfaded into the Foundry cart roll by `tool/generate_foundry_rail_audio.py`.
+
+### Arena machinery
+
+`tool/generate_movement_audio.py` cuts and filters these CC0 recordings for the
+machine warning and release phases.
+
+- `press.mp3` — [Kettlebell on concrete, rsellick](https://freesound.org/people/rsellick/sounds/545544/), recorded metal drag and contact.
+- `sluice.mp3` — [Sluice of the Canal du Midi, LPA134](https://freesound.org/people/LPA134/sounds/547231/), recorded water rushing through a working sluice.
+- `relay.mp3` — [Electrical Buzz, Craig Smith](https://freesound.org/people/craigsmith/sounds/438501/), a recorded electrical hum and hiss.

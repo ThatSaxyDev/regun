@@ -1,4 +1,5 @@
 import 'package:regun/systems/training_pressure.dart';
+import 'package:regun/systems/xp_progression.dart';
 
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -216,6 +217,41 @@ void main() {
         }
         await tester.pumpWidget(const SizedBox.shrink());
       }
+    },
+  );
+
+  testWidgets(
+    'a funded level-up displays a temporary support card in Upgrade',
+    (tester) async {
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final game = await mount(tester, training: false);
+      final notifier = game.gameNotifier;
+      final snapshot = notifier.checkpoint();
+      snapshot['offerRandom'] = 0;
+      snapshot['state'] = game.gameState
+          .copyWith(
+            currentLevel: 3,
+            noOfCoinsToUpgrade: XPProgression.cost(3).toDouble(),
+          )
+          .toJson();
+      notifier.restoreCheckpoint(snapshot);
+      game.resumeGame();
+      notifier.increaseXP(XPProgression.cost(3));
+      await tester.pump();
+
+      final card = find.byKey(const ValueKey('upgrade-card-Aura Salad I'));
+      expect(find.text('UPGRADE'), findsOneWidget);
+      expect(find.text('SUPPORT / TEMPORARY'), findsOneWidget);
+      expect(find.textContaining('AIRDROP ONLY'), findsNothing);
+      await tester.ensureVisible(card);
+      await tester.tap(card);
+      expect(notifier.support.tiers['aura'], 1);
+      expect(game.gameState.currentLevel, 4);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
     },
   );
 

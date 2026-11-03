@@ -50,7 +50,17 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   final _impactDirection = Vector2.zero();
   double _impactDistance = 0, _impactSlow = .8;
   double _staggerRemaining = 0, _staggerRecovery = 0;
-  bool get impactHeld => _staggerRemaining > 1e-8 && impactResponse >= .6;
+  double _arenaStagger = 0;
+  bool get impactHeld =>
+      _arenaStagger > 1e-8 ||
+      (_staggerRemaining > 1e-8 && impactResponse >= .6);
+
+  void staggerByArena(double duration) {
+    if (!isBoss && !combatHealth.isDead && !isRemoving) {
+      _arenaStagger = duration;
+    }
+  }
+
   double _pulseRemaining = 0, _pulseDistance = 0;
   final _pulseDirection = Vector2.zero();
   void receiveUpgradePulse(Vector2 direction, double distance) {
@@ -254,6 +264,13 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     return _applyDamage(combatHealth.current, bossCollateral: true);
   }
 
+  /// The cart crushes ordinary enemies through the normal reward path.
+  bool crushByArena({String source = 'Foundry rail cart'}) {
+    if (isBoss || !isLoaded || combatHealth.isDead) return false;
+    lastDamageSource = source;
+    return _applyDamage(combatHealth.current);
+  }
+
   bool _applyDamage(double amount, {bool bossCollateral = false}) {
     if (isRemoving || game.gameState.gameplayState != GameplayState.playing) {
       return false;
@@ -307,6 +324,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
           'freezeImmunity',
         ),
       );
+      _arenaStagger = (_arenaStagger - dt).clamp(0.0, .3);
       _staggerRemaining = (_staggerRemaining - dt).clamp(0.0, .3);
       _staggerRecovery = (_staggerRecovery - dt).clamp(0.0, .65);
     }

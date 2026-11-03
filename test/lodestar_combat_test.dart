@@ -2,6 +2,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flame/components.dart' show Vector2;
+import 'package:regun/systems/arena_geometry.dart';
 import 'package:regun/systems/lodestar/lodestar_combat.dart';
 import 'package:regun/systems/lodestar/lodestar_sections.dart';
 import 'package:regun/systems/lodestar/lodestar_rig.dart';
@@ -29,6 +31,64 @@ void surface(LodestarCombat f) {
 }
 
 void main() {
+  test('a diagonal wall jam recovers through a clear, harmless exit', () {
+    const bounds = Rect.fromLTRB(-2000, -1500, 2000, 1500);
+    const angle = math.pi / 4;
+    final axis = LodestarCombat.unit(angle);
+    final nose = axis * 70;
+    final tail = axis * -605;
+    final walls = [
+      Rect.fromLTWH(nose.dx + 38.45, nose.dy - 160, 110, 320),
+      Rect.fromLTWH(tail.dx - 24.45 - 110, tail.dy - 160, 110, 320),
+    ];
+    bool clear(Offset a, Offset b, double radius) =>
+        bounds.deflate(radius).contains(a) &&
+        bounds.deflate(radius).contains(b) &&
+        !walls.any(
+          (wall) => ArenaGeometry.crosses(
+            Vector2(a.dx, a.dy),
+            Vector2(b.dx, b.dy),
+            wall.inflate(radius),
+          ),
+        );
+    late LodestarCombat f;
+    bool legal(List<LodestarPose> poses) =>
+        f.shapes(poses).every((s) => clear(s.a, s.b, s.radius + .4));
+    final hurts = <String>[];
+    f = LodestarCombat(
+      rig: LodestarRig(
+        heading: angle,
+        acceptPose: (from, to) => legal(from) && legal(to),
+      ),
+      bounds: bounds,
+      clear: clear,
+      poseLegal: legal,
+      hurt: (_, cause) {
+        hurts.add(cause);
+        return true;
+      },
+      signal: (_) {},
+    );
+    surface(f);
+    f.player = const Offset(570, 650);
+    final original = f.rig.poses.first.position;
+    expect(legal(f.rig.poses), isTrue);
+    step(f, 1.6);
+    expect(f.phase, LodestarPhase.exitWarning);
+    expect((f.rig.poses.first.position - original).distance, lessThan(2));
+    expect(f.depths, everyElement(1));
+    expect(f.checkpoint()['eruption'], isFalse);
+    final checkpoint = f.checkpoint();
+    expect(LodestarCombat.validCheckpoint(checkpoint), isTrue);
+    f.restore(checkpoint, continueRun: true);
+    expect(f.phase, LodestarPhase.exitWarning);
+    step(f, 2.6);
+    expect(f.depths, everyElement(0));
+    expect((f.rig.poses.first.position - original).distance, greaterThan(250));
+    expect(legal(f.rig.poses), isTrue);
+    expect(hurts, isEmpty);
+  });
+
   test('every offensive mechanism completes a finite moving sequence', () {
     for (final m in LodestarMove.values) {
       final f = fight();

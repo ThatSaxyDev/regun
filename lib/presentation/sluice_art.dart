@@ -44,6 +44,43 @@ class SluiceArt {
     );
   }
 
+  static void machineFlow(
+    Canvas canvas,
+    Rect bed, {
+    required bool warning,
+    required double progress,
+    required double strength,
+    required bool reducedMotion,
+  }) {
+    final flow = reducedMotion ? 0.0 : progress * (warning ? 45 : 700);
+    final opacity = (warning ? .28 + .20 * progress : .83) * strength;
+    final material = Paint()
+      ..shader = _water(bed, flow)
+      ..filterQuality = FilterQuality.none
+      ..color = Color.fromRGBO(255, 255, 255, opacity)
+      ..colorFilter = ColorFilter.mode(
+        warning ? const Color(0xffa6b7a5) : const Color(0xffd3e3d5),
+        BlendMode.modulate,
+      );
+    canvas.drawRect(bed, material);
+    canvas.save();
+    canvas.clipRect(bed);
+    final foam = Paint()..isAntiAlias = false;
+    for (var row = 0; row < (bed.height / 87).ceil() + 1; row++) {
+      final y = bed.top + (row * 87 + flow) % bed.height;
+      for (var i = 0; i < 6; i++) {
+        final x = bed.left + 11 + (row * 23 + i * 41) % (bed.width - 22);
+        foam.color = const Color(0xffb6d9ca)
+            .withValues(alpha: opacity * (.20 + .11 * (i % 3)));
+        canvas.drawRect(
+          Rect.fromLTWH(x, y + i % 3 * 4, 7 + i % 4 * 4, 3),
+          foam,
+        );
+      }
+    }
+    canvas.restore();
+  }
+
   static void surge(
     Canvas canvas,
     Offset center,

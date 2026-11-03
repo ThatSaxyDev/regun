@@ -506,12 +506,12 @@ enum ArenaType {
   breach('The Breach', 'Open dungeon. Space to learn the horde.'),
   foundry(
     'The Foundry',
-    'Break line of sight behind presses. Watch the vents.',
+    'Bait enemies onto the press plates. Watch the rail carts.',
   ),
   floodworks('Floodworks', 'Time the sluice crossing or take the dry route.'),
   relayGraveyard(
     'Relay Graveyard',
-    'Switch firing angles as the horde rotates.',
+    'Trip the relay and lure enemies onto the charged cable.',
   );
 
   const ArenaType(this.title, this.description);

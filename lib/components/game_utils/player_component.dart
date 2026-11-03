@@ -1,3 +1,4 @@
+import 'package:regun/presentation/footstep_cadence.dart';
 import 'package:regun/presentation/weapon_art_spec.dart';
 import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/guard_feedback.dart';
@@ -56,6 +57,12 @@ class PlayerComponent extends SpriteAnimationComponent
 
   double _trailClock = 0, _dashDustClock = 0;
   bool _wasDashing = false;
+  final _footsteps = FootstepCadence();
+
+  void resetMovementAudio() {
+    _footsteps.reset();
+    _wasDashing = false;
+  }
 
   final guardFeedback = GuardFeedback();
   final mechanicFeedback = MechanicFeedback();
@@ -117,6 +124,7 @@ class PlayerComponent extends SpriteAnimationComponent
     }
     priority = 10000 + (position.y + size.y * .38).round();
     if (game.playerEntrance.active) {
+      resetMovementAudio();
       animation = game.playerEntrance.landing
           ? _brace[_facingRow]
           : _idle[_facingRow];
@@ -190,6 +198,7 @@ class PlayerComponent extends SpriteAnimationComponent
     }
 
     final upgradePosition = position.clone();
+    final dashLanded = _wasDashing && !game.boostButtonComponent.tapped;
     if (game.boostButtonComponent.tapped) {
       _dashDustClock += dt;
       if (!_wasDashing ||
@@ -242,6 +251,22 @@ class PlayerComponent extends SpriteAnimationComponent
       collisionRadius,
       bottomExtent: boundaryFootExtent,
     );
+    if (_wasDashing || dashLanded) {
+      _footsteps.reset();
+      if (dashLanded) game.audio.playMovement('dash_land.wav');
+    } else {
+      final variant = _footsteps.advance(
+        moving ? position.distanceTo(upgradePosition) : 0,
+      );
+      if (variant != null) {
+        final surface = game.map.footstepSurface(
+          game.loadout.arena,
+          Offset(position.x, position.y + size.y * .3),
+          legacy: game.legacyArena,
+        );
+        game.audio.playMovement('step_${surface}_$variant.wav');
+      }
+    }
   }
 
   @override

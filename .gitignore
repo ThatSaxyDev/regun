@@ -50,3 +50,6 @@ app.*.map.json
 /config/telling.local.json
 
 /config/release.local.json
+
+# Generated store artwork archive
+/store-artboards/Regun-Store-Artwork.zip

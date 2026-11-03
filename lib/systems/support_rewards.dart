@@ -1,6 +1,6 @@
 import 'dart:math';
 
-/// Supply-only identities; deliberately outside permanent PowerUp ranks/slots.
+/// Temporary deployment identities; deliberately outside permanent PowerUp ranks/slots.
 enum SupportFamily { sentry, aura }
 
 const supportMaxTier = 8;
@@ -127,7 +127,20 @@ class SupportConfig {
   );
   double get tick => n('aura', 'tick', .25);
   int get targets => n('aura', 'targets', 12).toInt();
-  double weight(SupportFamily f) => n(f.name, 'weight', 1);
+  double weight(SupportFamily f, {int? xpLevel}) => xpLevel == null
+      ? n(f.name, 'weight', 1)
+      : xpLevel >= xpMinLevel(f)
+      ? xpWeight(f)
+      : 0;
+  double xpWeight(SupportFamily f) => n(f.name, 'xpWeight', 0);
+  int xpMinLevel(SupportFamily f) => n(f.name, 'xpMinLevel', 2).toInt();
+
+  Map<String, num> offerPolicy(SupportFamily f) => {
+    'enabled': enabled(f) ? 1 : 0,
+    'airdropWeight': weight(f),
+    'xpWeight': xpWeight(f),
+    'xpMinLevel': xpMinLevel(f),
+  };
   static void validate(Map<String, num> values) {
     if (!values.containsKey('support.sentry.enabled')) return;
     final c = SupportConfig(values);
@@ -156,29 +169,35 @@ class SupportProgress {
   SupportCard? offer;
   final List<SupportCard> pending = [];
   final Set<String> busy = {};
-  SupportCard? roll(SupportConfig config, double Function() random) {
+  SupportCard? roll(
+    SupportConfig config,
+    double Function() random, {
+    int? xpLevel,
+  }) {
+    double weight(SupportFamily family) =>
+        config.weight(family, xpLevel: xpLevel);
     final pool = SupportFamily.values
         .where(
           (f) =>
               config.enabled(f) &&
               !banned.contains(f.name) &&
               !busy.contains(f.name) &&
-              config.weight(f) > 0,
+              weight(f) > 0,
         )
         .toList();
     if (pool.isEmpty) return offer = null;
     // An ordinary-only hand competes at weight 2; enablement is not a guarantee.
-    final total = pool.fold<double>(0, (s, f) => s + config.weight(f));
+    final total = pool.fold<double>(0, (s, f) => s + weight(f));
     if (random() >= total / (total + 2)) return offer = null;
     var pick =
         random() *
         pool.fold<double>(
           0,
-          (s, f) => s + config.weight(f) * (recent.contains(f.name) ? .35 : 1),
+          (s, f) => s + weight(f) * (recent.contains(f.name) ? .35 : 1),
         );
     var chosen = pool.last;
     for (final f in pool) {
-      pick -= config.weight(f) * (recent.contains(f.name) ? .35 : 1);
+      pick -= weight(f) * (recent.contains(f.name) ? .35 : 1);
       if (pick <= 0) {
         chosen = f;
         break;

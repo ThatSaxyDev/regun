@@ -1,3 +1,4 @@
+import 'package:regun/presentation/footstep_cadence.dart';
 import 'package:regun/presentation/weapon_art_spec.dart';
 import 'package:regun/components/map/arena_scenery.dart';
 import 'package:regun/components/map/map_component.dart';
@@ -104,6 +105,9 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   final Map<String, bool> _wasReloading = {}, _wasDashing = {};
   final Map<String, double> _damageTotals = {};
   double lostHp = 0, damageAt = -10;
+  final _footsteps = FootstepCadence();
+  Offset? _lastFootstepPosition;
+  bool _localWasDashing = false;
   final Map<String, String> _worldCues = {};
   String? _music;
   int? _offerCue;
@@ -318,6 +322,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           } else if (d['interrupted'] == true) {
             unawaited(audio.play('boss_${kind!.name}_break.wav'));
           }
+        } else if (d['kind'] == 'runner' &&
+            d['phase'] == 1 &&
+            !old.startsWith('1:')) {
+          final offset = Offset(entity.x - me.x, entity.y - me.y);
+          unawaited(
+            audio.playEnemyMovement('enemy_skitter_warn.wav', offset, 850),
+          );
         } else if (d['kind'] == 'ranged' &&
             d['phase'] == 0 &&
             old.startsWith('1:')) {
@@ -477,6 +488,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                 reducedMotion: LocalPreferences.shared.reducedMotion,
               );
       }
+      _localMovementAudio();
       weaponHeadings.removeWhere(
         (key, _) => !session.members.any((m) => m.identity.toHexString == key),
       );
@@ -488,6 +500,53 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       );
       if (mounted) setState(() {});
     })..start();
+  }
+
+  void _localMovementAudio() {
+    final at = displayed[session.identity];
+    final member = session.me;
+    final fighter = session.fighters[session.identity];
+    if (at == null ||
+        member == null ||
+        !session.controlsEnabled ||
+        fighter == null ||
+        fighter.health <= 0) {
+      _lastFootstepPosition = null;
+      _localWasDashing = false;
+      _footsteps.reset();
+      return;
+    }
+    final previous = _lastFootstepPosition;
+    _lastFootstepPosition = at;
+    final dashing = session.predictionAvailable
+        ? (session.movementPrediction.body?.dashRemaining ??
+                  member.dashRemaining) >
+              0
+        : member.dashRemaining > 0;
+    final landed = _localWasDashing && !dashing;
+    _localWasDashing = dashing;
+    if (dashing || landed) {
+      _footsteps.reset();
+      if (landed) unawaited(audio.playMovement('dash_land.wav'));
+      return;
+    }
+    final distance = previous == null ? 0.0 : (at - previous).distance;
+    final moving = session.moveX != 0 || session.moveY != 0;
+    final variant = _footsteps.advance(moving && distance < 75 ? distance : 0);
+    if (variant == null) return;
+    final arena =
+        ArenaType.values
+            .where((a) => a.name == session.room?.mapId)
+            .firstOrNull ??
+        ArenaType.breach;
+    final surface =
+        districtMap?.footstepSurface(
+          arena,
+          at + const Offset(0, 30),
+          legacy: false,
+        ) ??
+        'stone';
+    unawaited(audio.playMovement('step_${surface}_$variant.wav'));
   }
 
   void _combatCues() {
@@ -508,6 +567,9 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       restingAim.clear();
       weaponHeadings.clear();
       _worldCues.clear();
+      _lastFootstepPosition = null;
+      _localWasDashing = false;
+      _footsteps.reset();
       mummyWalks.clear();
       scorpionGaits.clear();
       _offerCue = null;
@@ -1217,10 +1279,12 @@ class _ArenaPainter extends CustomPainter {
             transform.storage,
           )
           ..filterQuality = FilterQuality.none
-          ..colorFilter = const ColorFilter.mode(
-            Color(0xff6B7770),
-            BlendMode.modulate,
-          ),
+          ..colorFilter = switch (session.room?.mapId) {
+            'foundry' ||
+            'floodworks' ||
+            'relayGraveyard' => MapComponent.floorGrade,
+            _ => MapComponent.breachGrade,
+          },
       );
     }
     if (artReady && districtMap != null && session.room?.mode == 'coop') {

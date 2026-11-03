@@ -1,0 +1,362 @@
+[
+  {
+    "file": "exports/01-App-Store-iPhone-2556x1179/01-survival.png",
+    "width": 2556,
+    "height": 1179,
+    "source": "sources/iphone/01-survival.png",
+    "alt": "Rook fires a pump shotgun as scorpions and other enemies close in across the Breach.",
+    "bytes": 3465458,
+    "sha256": "0835fde74dfe6d19381a446bdfcf3b62b9bc3fcc29b8f2230c27a3b9df9da52b"
+  },
+  {
+    "file": "exports/01-App-Store-iPhone-2556x1179/02-weapons.png",
+    "width": 2556,
+    "height": 1179,
+    "source": "sources/iphone/02-weapons.png",
+    "alt": "The Arc Caster chains electricity through three enemies in the Foundry.",
+    "bytes": 3737276,
+    "sha256": "30ba01104c637fb24a7cb2061d5536922199e76328528be318aa4d8c7f85831a"
+  },
+  {
+    "file": "exports/01-App-Store-iPhone-2556x1179/03-upgrades.png",
+    "width": 2556,
+    "height": 1179,
+    "source": "sources/iphone/03-upgrades.png",
+    "alt": "A level-up offers Heavy Payload, Field Medic and Wide Burst during a Foundry run.",
+    "bytes": 1962538,
+    "sha256": "937e2ad5384af936c07e5aed6371557806fce78d15ad9ade0f5a0e8e83c22b51"
+  },
+  {
+    "file": "exports/01-App-Store-iPhone-2556x1179/04-bosses.png",
+    "width": 2556,
+    "height": 1179,
+    "source": "sources/iphone/04-bosses.png",
+    "alt": "Rook takes on Lodestar, an armored boss with a connected chain of weapon sections.",
+    "bytes": 3766350,
+    "sha256": "5fd2302743afc671e2b2ee9f6472d786fd124df0a25d2985305979a1a105fba7"
+  },
+  {
+    "file": "exports/01-App-Store-iPhone-2556x1179/05-loadout.png",
+    "width": 2556,
+    "height": 1179,
+    "source": "sources/iphone/05-loadout.png",
+    "alt": "The loadout screen previews Harrow with a pump shotgun in the Foundry.",
+    "bytes": 1442359,
+    "sha256": "692c6700bca25565b34af9387c00718537165057512a4f4fa5d78fb0a4bfb6d9"
+  },
+  {
+    "file": "exports/01-App-Store-iPhone-2556x1179/06-airdrop.png",
+    "width": 2556,
+    "height": 1179,
+    "source": "sources/iphone/06-airdrop.png",
+    "alt": "Rook defends the capture area around a supply pod while fighting off the horde.",
+    "bytes": 3470745,
+    "sha256": "e3854ceff8d6743cdb7644e5edbcd5f8fb069db09ef99d5a63020348cf025786"
+  },
+  {
+    "file": "exports/02-App-Store-iPad-2752x2064/01-survival.png",
+    "width": 2752,
+    "height": 2064,
+    "source": "sources/ipad/01-survival.png",
+    "alt": "Rook fires a pump shotgun as scorpions and other enemies close in across the Breach.",
+    "bytes": 5712562,
+    "sha256": "0edbfe5836fe2479d7bdab6c6548cf5d68aae3204a3d23180418fa697763d9fb"
+  },
+  {
+    "file": "exports/02-App-Store-iPad-2752x2064/02-weapons.png",
+    "width": 2752,
+    "height": 2064,
+    "source": "sources/ipad/02-weapons.png",
+    "alt": "The Arc Caster chains electricity through three enemies in the Foundry.",
+    "bytes": 6270018,
+    "sha256": "0509d01cffae39641e3ada5a3db77a17b43fad4aeb50cf16f742f82921ec53b0"
+  },
+  {
+    "file": "exports/02-App-Store-iPad-2752x2064/03-upgrades.png",
+    "width": 2752,
+    "height": 2064,
+    "source": "sources/ipad/03-upgrades.png",
+    "alt": "A level-up offers Heavy Payload, Field Medic and Wide Burst during a Foundry run.",
+    "bytes": 3766286,
+    "sha256": "29333d80691284cea94406cf4be1f78b1af70afe2b895c972112a5752e27bd63"
+  },
+  {
+    "file": "exports/02-App-Store-iPad-2752x2064/04-bosses.png",
+    "width": 2752,
+    "height": 2064,
+    "source": "sources/ipad/04-bosses.png",
+    "alt": "Rook takes on Lodestar, an armored boss with a connected chain of weapon sections.",
+    "bytes": 6316307,
+    "sha256": "58625dea5485739a7cb05ce315ed6f908952d42bedc9b17949305aa64dd22c10"
+  },
+  {
+    "file": "exports/02-App-Store-iPad-2752x2064/05-loadout.png",
+    "width": 2752,
+    "height": 2064,
+    "source": "sources/ipad/05-loadout.png",
+    "alt": "The loadout screen previews Harrow with a pump shotgun in the Foundry.",
+    "bytes": 2913679,
+    "sha256": "325f7e99e63473a6defcbbb0a4f84f1c15db7f2bf6117c23dfb361ab6ca71a1a"
+  },
+  {
+    "file": "exports/02-App-Store-iPad-2752x2064/06-airdrop.png",
+    "width": 2752,
+    "height": 2064,
+    "source": "sources/ipad/06-airdrop.png",
+    "alt": "Rook defends the capture area around a supply pod while fighting off the horde.",
+    "bytes": 5775478,
+    "sha256": "6526d45534cc95080028a1380c82c66af7c8035eb161bd0b971cd8df17e33ba2"
+  },
+  {
+    "file": "exports/03-Play-Phone-1920x1080/01-survival.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play/01-survival.png",
+    "alt": "Rook fires a pump shotgun as scorpions and other enemies close in across the Breach.",
+    "bytes": 1324841,
+    "sha256": "f94796b430118c1ca226b435ca6115aa81b6950f356ff0df9442e87b3c38e9f6"
+  },
+  {
+    "file": "exports/03-Play-Phone-1920x1080/02-weapons.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play/02-weapons.png",
+    "alt": "The Arc Caster chains electricity through three enemies in the Foundry.",
+    "bytes": 1500165,
+    "sha256": "78fc872767b607361d0e91f94f38107c4cd4199168965490b09de95a6362147f"
+  },
+  {
+    "file": "exports/03-Play-Phone-1920x1080/03-bosses.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play/04-bosses.png",
+    "alt": "Rook takes on Lodestar, an armored boss with a connected chain of weapon sections.",
+    "bytes": 1550319,
+    "sha256": "2f0aebc787d7f06039df35872faaa4e5ccba684cd746f170cb48b5c51992adbc"
+  },
+  {
+    "file": "exports/03-Play-Phone-1920x1080/04-airdrop.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play/06-airdrop.png",
+    "alt": "Rook defends the capture area around a supply pod while fighting off the horde.",
+    "bytes": 1416348,
+    "sha256": "b8ae6e39b88d41c6846ec4318518b4ec9db2598ff3c40a3288d374a7d7980eea"
+  },
+  {
+    "file": "exports/03-Play-Phone-1920x1080/05-upgrades.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play/03-upgrades.png",
+    "alt": "A level-up offers Heavy Payload, Field Medic and Wide Burst during a Foundry run.",
+    "bytes": 900783,
+    "sha256": "00a735fe1aa95f1b213d1db2c42b91941df2de7ca7db884b54bd39104730ed3e"
+  },
+  {
+    "file": "exports/03-Play-Phone-1920x1080/06-loadout.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play/05-loadout.png",
+    "alt": "The loadout screen previews Harrow with a pump shotgun in the Foundry.",
+    "bytes": 738683,
+    "sha256": "63f8c9897357c7e81451bfb811cb701440c0836e7ba4044c6bcc189db9301df0"
+  },
+  {
+    "file": "exports/07-App-Store-Duo-Outer-2034x1398/01-survival.png",
+    "width": 2034,
+    "height": 1398,
+    "source": "sources/duo-outer/01-survival.png",
+    "alt": "Rook fires a pump shotgun as scorpions and other enemies close in across the Breach.",
+    "bytes": 2726952,
+    "sha256": "9d412a129dad76e243d08b7c31f82c5f13938e3d572cff2e3361d56a74142717"
+  },
+  {
+    "file": "exports/07-App-Store-Duo-Outer-2034x1398/02-weapons.png",
+    "width": 2034,
+    "height": 1398,
+    "source": "sources/duo-outer/02-weapons.png",
+    "alt": "The Arc Caster chains electricity through three enemies in the Foundry.",
+    "bytes": 2907218,
+    "sha256": "903643b589f1e5b16cc659505156be9f6ece75c9b5cd2d9d8f32660b6cb68404"
+  },
+  {
+    "file": "exports/07-App-Store-Duo-Outer-2034x1398/03-upgrades.png",
+    "width": 2034,
+    "height": 1398,
+    "source": "sources/duo-outer/03-upgrades.png",
+    "alt": "A level-up offers Heavy Payload, Field Medic and Wide Burst during a Foundry run.",
+    "bytes": 1590255,
+    "sha256": "77b0f9eb4368ec3edfdcc32e6868e7e42930be3bddd5bb59914b6c03fa787c6e"
+  },
+  {
+    "file": "exports/07-App-Store-Duo-Outer-2034x1398/04-bosses.png",
+    "width": 2034,
+    "height": 1398,
+    "source": "sources/duo-outer/04-bosses.png",
+    "alt": "Rook takes on Lodestar, an armored boss with a connected chain of weapon sections.",
+    "bytes": 2930241,
+    "sha256": "5f2c6c47ea3682f6f330613852b3d7c23e29844b23f4cdcc5347e7a8670cb0a9"
+  },
+  {
+    "file": "exports/07-App-Store-Duo-Outer-2034x1398/05-loadout.png",
+    "width": 2034,
+    "height": 1398,
+    "source": "sources/duo-outer/05-loadout.png",
+    "alt": "The loadout screen previews Harrow with a pump shotgun in the Foundry.",
+    "bytes": 1517596,
+    "sha256": "08c72cc06209504bb14f5ae2f95490a3526d8c5594115f685ac469fae47ead80"
+  },
+  {
+    "file": "exports/07-App-Store-Duo-Outer-2034x1398/06-airdrop.png",
+    "width": 2034,
+    "height": 1398,
+    "source": "sources/duo-outer/06-airdrop.png",
+    "alt": "Rook defends the capture area around a supply pod while fighting off the horde.",
+    "bytes": 2732319,
+    "sha256": "76c0a01b3052e6d7a9b644aff4fe8562d6bc3e8db77087eee58b6b175e9bff40"
+  },
+  {
+    "file": "exports/10-Play-Tablet-1920x1080/01-survival.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play-tablet/01-survival.png",
+    "alt": "Rook fires a pump shotgun as scorpions and other enemies close in across the Breach.",
+    "bytes": 1545407,
+    "sha256": "679fb8fdc8b15773ae7984027d23523435b2009666b2470a698b688a287b4991"
+  },
+  {
+    "file": "exports/10-Play-Tablet-1920x1080/02-weapons.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play-tablet/02-weapons.png",
+    "alt": "The Arc Caster chains electricity through three enemies in the Foundry.",
+    "bytes": 1736209,
+    "sha256": "1139723f0dd6e41ec252c68e66e896cdd2446fdeb6852a8f98ff98cf3ca24e80"
+  },
+  {
+    "file": "exports/10-Play-Tablet-1920x1080/03-bosses.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play-tablet/04-bosses.png",
+    "alt": "Rook takes on Lodestar, an armored boss with a connected chain of weapon sections.",
+    "bytes": 1782586,
+    "sha256": "d5066de21a372de8dd5b8cb291843ccfbdbba3b2a5a040e5f66324d588e41896"
+  },
+  {
+    "file": "exports/10-Play-Tablet-1920x1080/04-airdrop.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play-tablet/06-airdrop.png",
+    "alt": "Rook defends the capture area around a supply pod while fighting off the horde.",
+    "bytes": 1761479,
+    "sha256": "4485a455e723c903a909996986ba3820e340323245b8b52cdcf4ab9744a74dde"
+  },
+  {
+    "file": "exports/10-Play-Tablet-1920x1080/05-upgrades.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play-tablet/03-upgrades.png",
+    "alt": "A level-up offers Heavy Payload, Field Medic and Wide Burst during a Foundry run.",
+    "bytes": 1207962,
+    "sha256": "08b3fed0fbff13559ca6e99cd78fccb3dad0213ab4a8fe6036efeee07f8edc2d"
+  },
+  {
+    "file": "exports/10-Play-Tablet-1920x1080/06-loadout.png",
+    "width": 1920,
+    "height": 1080,
+    "source": "sources/play-tablet/05-loadout.png",
+    "alt": "The loadout screen previews Harrow with a pump shotgun in the Foundry.",
+    "bytes": 801354,
+    "sha256": "21cfbb6de235a9781bfcd9ac730afaeba561cd0be4c65098b5d24ec3aae2ef07"
+  },
+  {
+    "file": "exports/08-App-Store-Duo-Inner-2853x2007/01-survival.png",
+    "width": 2853,
+    "height": 2007,
+    "source": "sources/duo-inner/01-survival.png",
+    "alt": "Rook fires a pump shotgun as scorpions and other enemies close in across the Breach.",
+    "bytes": 6216952,
+    "sha256": "d6a98cbdcf732053429c554030505c796bb8677cd52adef8eb7753fc6cfed709"
+  },
+  {
+    "file": "exports/08-App-Store-Duo-Inner-2853x2007/02-weapons.png",
+    "width": 2853,
+    "height": 2007,
+    "source": "sources/duo-inner/02-weapons.png",
+    "alt": "The Arc Caster chains electricity through three enemies in the Foundry.",
+    "bytes": 6691884,
+    "sha256": "254fdeb3a83c3ea63d32cff5d0282bfae877dd333068d62f7961a31ef6f01a2b"
+  },
+  {
+    "file": "exports/08-App-Store-Duo-Inner-2853x2007/03-upgrades.png",
+    "width": 2853,
+    "height": 2007,
+    "source": "sources/duo-inner/03-upgrades.png",
+    "alt": "A level-up offers Heavy Payload, Field Medic and Wide Burst during a Foundry run.",
+    "bytes": 3945681,
+    "sha256": "421c4e4c60ecea7b0ccc4df896dec156428d538d35aefba40d71ec0ad8008e35"
+  },
+  {
+    "file": "exports/08-App-Store-Duo-Inner-2853x2007/04-bosses.png",
+    "width": 2853,
+    "height": 2007,
+    "source": "sources/duo-inner/04-bosses.png",
+    "alt": "Rook takes on Lodestar, an armored boss with a connected chain of weapon sections.",
+    "bytes": 6729835,
+    "sha256": "858f69f8f4fb2c1a3d4b2a359e8552ea8d0d153bfc122b1704491602242d085e"
+  },
+  {
+    "file": "exports/08-App-Store-Duo-Inner-2853x2007/05-loadout.png",
+    "width": 2853,
+    "height": 2007,
+    "source": "sources/duo-inner/05-loadout.png",
+    "alt": "The loadout screen previews Harrow with a pump shotgun in the Foundry.",
+    "bytes": 2921245,
+    "sha256": "b4772aa5e2683df192597f197870055268b85598d65664cd2bedec0e504afc90"
+  },
+  {
+    "file": "exports/08-App-Store-Duo-Inner-2853x2007/06-airdrop.png",
+    "width": 2853,
+    "height": 2007,
+    "source": "sources/duo-inner/06-airdrop.png",
+    "alt": "Rook defends the capture area around a supply pod while fighting off the horde.",
+    "bytes": 6240753,
+    "sha256": "26a1a10383d507c98eb398244f326ca939b3d7f9b067bbaf30ff8c4a20deeda0"
+  },
+  {
+    "file": "exports/04-Play-Feature-1024x500/regun-feature.png",
+    "width": 1024,
+    "height": 500,
+    "source": "assets/art/arenas/home_hideout_v2.png",
+    "alt": "Regun title beside Rook preparing a shotgun shell at an amber-lit workbench.",
+    "bytes": 844248,
+    "sha256": "0370bdc07f7006374b3fe18361d1d58a0e77508242c46073d543fcf8ea74b1cf"
+  },
+  {
+    "file": "exports/05-App-Store-Header-3840x1646/regun-header.png",
+    "width": 3840,
+    "height": 1646,
+    "source": "assets/art/arenas/home_hideout_v2.png",
+    "alt": "Regun title beside Rook in his lamp-lit shelter.",
+    "bytes": 6166858,
+    "sha256": "4964bf0cf0a4c8716127e9a04382185f51421924c8e1349d06425d728c8c52bf"
+  },
+  {
+    "file": "exports/06-App-Store-Search-Results-3840x2560/regun-search-results.png",
+    "width": 3840,
+    "height": 2560,
+    "source": "sources/iphone/04-bosses.png",
+    "alt": "Regun twin-stick survival gameplay showing Rook fighting the segmented Lodestar boss.",
+    "bytes": 9078019,
+    "sha256": "8454b240db9a4f2a7673a5e007f4c44569e7d4d37d2335d3fb58838aa3e72c78"
+  },
+  {
+    "file": "exports/09-Play-Icon-512x512/regun-play-icon.png",
+    "width": 512,
+    "height": 512,
+    "source": "app_icon/launcher.png",
+    "alt": "Rook's helmet with a cyan visor and ochre scarf.",
+    "bytes": 315894,
+    "sha256": "d65995e46ebbb7cf26ede1bfe7d2b735fedf401e7eb5f65229cd290c6434f7e9"
+  }
+]

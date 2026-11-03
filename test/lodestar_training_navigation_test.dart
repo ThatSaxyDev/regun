@@ -109,6 +109,7 @@ void main() {
       }
       await tester.runAsync(() async {
         final b = await ready(g);
+        expect(g.foundryRailActive, isFalse);
         await advance(g, 4.5);
         var eligible = 0, moving = 0, surfaceFrames = 0, nearFrames = 0;
         var stall = 0.0, maxStall = 0.0;

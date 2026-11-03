@@ -83,6 +83,67 @@ class MapComponent extends PositionComponent with HasGameReference<RegunGame> {
   List<Rect> regions(String group) =>
       List.unmodifiable(_obstacles[group] ?? const <Rect>[]);
 
+  late final List<Rect> foundryTracks = _foundryTracks();
+
+  List<Rect> _foundryTracks() {
+    final landmarks = _obstacles['foundry_landmarks'];
+    if (landmarks == null || landmarks.length < 2) return const [];
+    return List.unmodifiable(landmarks.take(landmarks.length - 1));
+  }
+
+  static const floorGrade = ColorFilter.mode(
+    Color(0xff6B7770),
+    BlendMode.modulate,
+  );
+  static const breachGrade = ColorFilter.matrix([
+    .30,
+    .16,
+    .08,
+    0,
+    8,
+    .15,
+    .36,
+    .09,
+    0,
+    12,
+    .13,
+    .22,
+    .36,
+    0,
+    16,
+    0,
+    0,
+    0,
+    1,
+    0,
+  ]);
+
+  String footstepSurface(
+    ArenaType arena,
+    Offset contact, {
+    required bool legacy,
+  }) {
+    if (!legacy) {
+      final landmark = _obstacles['${arena.name}_landmarks']?.firstOrNull;
+      if (arena == ArenaType.floodworks &&
+          landmark != null &&
+          landmark.contains(contact)) {
+        return 'wet';
+      }
+      if (arena == ArenaType.foundry) {
+        for (final track in foundryTracks) {
+          if (contact.dy >= track.top &&
+              contact.dy < track.bottom &&
+              (contact.dx - track.center.dx).abs() > 31 &&
+              (contact.dx - track.center.dx).abs() < 54) {
+            return 'metal';
+          }
+        }
+      }
+    }
+    return 'stone';
+  }
+
   @override
   void render(Canvas canvas) {
     final image = RegunArt.shared.image(
@@ -95,10 +156,9 @@ class MapComponent extends PositionComponent with HasGameReference<RegunGame> {
     final paint = Paint()
       ..filterQuality = FilterQuality.none
       ..isAntiAlias = false
-      ..colorFilter = const ColorFilter.mode(
-        Color(0xff6B7770),
-        BlendMode.modulate,
-      );
+      ..colorFilter = game.loadout.arena == ArenaType.breach
+          ? breachGrade
+          : floorGrade;
     canvas.save();
     canvas.clipRect(Rect.fromLTWH(0, 0, size.x, size.y));
     for (

@@ -1,3 +1,5 @@
+import 'dart:ui' show Offset;
+
 import 'package:regun/data/loadout.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +13,8 @@ class SoloudPlay {
   final _lastPlayed = <String, int>{};
   final _clock = Stopwatch()..start();
   SoundHandle? _musicHandle;
+  SoundHandle? _movementVoice, _crowdVoice, _warningVoice;
+  int _lastWarning = -1000;
   final _weaponLoops = <String, SoundHandle>{};
   final _loopRequests = <String, int>{};
   String? _music;
@@ -72,6 +76,16 @@ class SoloudPlay {
         'upgrade_pulse.wav',
         'grenade_throw.wav',
         'dash_burst.wav',
+        'dash_land.wav',
+        'enemy_scuttle.wav',
+        'enemy_skitter_warn.wav',
+        for (final kind in ['press', 'sluice', 'relay'])
+          'machine_${kind}_charge.wav',
+        'machine_press_hit.wav',
+        'machine_sluice_flow.wav',
+        'machine_relay_pulse.wav',
+        for (final surface in ['stone', 'metal', 'wet'])
+          for (var i = 0; i < 3; i++) 'step_${surface}_$i.wav',
         'enemy3projectile.wav',
         'impact_guard.wav',
         'impact_boss.wav',
@@ -149,6 +163,177 @@ class SoloudPlay {
       );
     } catch (_) {
       // Native audio may be unavailable in tests or after interruption.
+    }
+  }
+
+  SoundHandle? _railVoice;
+  Offset? _railOffset;
+  bool _railLoading = false;
+
+  void syncFoundryRail(Offset? offset) {
+    _railOffset = offset;
+    final distance = offset?.distance ?? double.infinity;
+    final handle = _railVoice;
+    if (!_soloud.isInitialized || _sfxVolume == 0 || distance >= 850) {
+      _railVoice = null;
+      if (handle != null &&
+          _soloud.isInitialized &&
+          _soloud.getIsValidVoiceHandle(handle)) {
+        _soloud.stop(handle);
+      }
+      return;
+    }
+    if (handle == null || !_soloud.getIsValidVoiceHandle(handle)) {
+      if (!_railLoading &&
+          !_reportedFailures.contains('foundry_rail_roll.wav')) {
+        _startFoundryRail();
+      }
+      return;
+    }
+    _soloud.setVolume(handle, _railGain(distance));
+    _soloud.setPan(handle, _railPan(offset!, distance));
+  }
+
+  double _railGain(double distance) {
+    final proximity = (1 - distance / 850).clamp(0.0, 1.0);
+    return .37 * _sfxVolume * proximity * proximity;
+  }
+
+  double _railPan(Offset offset, double distance) =>
+      (offset.dx / (distance + 125) * .8).clamp(-.7, .7);
+
+  Future<void> _startFoundryRail() async {
+    _railLoading = true;
+    const asset = 'foundry_rail_roll.wav';
+    try {
+      final source = await _source(asset);
+      final offset = _railOffset;
+      if (offset == null ||
+          offset.distance >= 850 ||
+          !_soloud.isInitialized ||
+          _sfxVolume == 0) {
+        return;
+      }
+      final distance = offset.distance;
+      _railVoice = _soloud.play(
+        source,
+        looping: true,
+        volume: _railGain(distance),
+        pan: _railPan(offset, distance),
+      );
+    } catch (error) {
+      if (_reportedFailures.add(asset)) {
+        Logger('audio').warning('Could not play $asset', error);
+      }
+    } finally {
+      _railLoading = false;
+    }
+  }
+
+  final _machineVoices = <SoundHandle>[];
+  int _machineEpoch = 0;
+
+  void stopMachines() {
+    _machineEpoch++;
+    if (_soloud.isInitialized) {
+      for (final voice in _machineVoices) {
+        if (_soloud.getIsValidVoiceHandle(voice)) _soloud.stop(voice);
+      }
+    }
+    _machineVoices.clear();
+  }
+
+  Future<void> playMachine(String asset, Offset offset) async {
+    final distance = offset.distance;
+    if (distance >= 940 || !_soloud.isInitialized || _sfxVolume == 0) return;
+    final epoch = _machineEpoch;
+    try {
+      final source = await _source(asset);
+      if (epoch != _machineEpoch || !_soloud.isInitialized || _sfxVolume == 0) {
+        return;
+      }
+      _machineVoices.removeWhere(
+        (handle) => !_soloud.getIsValidVoiceHandle(handle),
+      );
+      final proximity = 1 - distance / 940;
+      final gain = asset == 'machine_press_hit.wav' ? .64 : .43;
+      _machineVoices.add(
+        _soloud.play(
+          source,
+          volume: _sfxVolume * gain * proximity,
+          pan: (offset.dx / (distance + 150) * .75).clamp(-.65, .65),
+        ),
+      );
+    } catch (error) {
+      _sources.remove(asset);
+      if (_reportedFailures.add(asset)) {
+        Logger('audio').warning('Could not play $asset', error);
+      }
+    }
+  }
+
+  Future<void> playEnemyMovement(String asset, Offset offset, double range) {
+    final distance = offset.distance;
+    if (distance >= range) return Future<void>.value();
+    return playMovement(
+      asset,
+      proximity: 1 - distance / range,
+      pan: (offset.dx / (distance + 95) * .85).clamp(-.75, .75),
+    );
+  }
+
+  Future<void> playMovement(
+    String asset, {
+    double proximity = 1,
+    double pan = 0,
+  }) async {
+    if (!_soloud.isInitialized || _sfxVolume == 0 || proximity <= 0) return;
+    final warning = asset == 'enemy_skitter_warn.wav';
+    final crowd = asset == 'enemy_scuttle.wav';
+    if (warning) _lastWarning = _clock.elapsedMilliseconds;
+    try {
+      final source = await _source(asset);
+      if (!_soloud.isInitialized || _sfxVolume == 0) return;
+      if (crowd && _clock.elapsedMilliseconds - _lastWarning < 500) return;
+      final previous = warning
+          ? _warningVoice
+          : crowd
+          ? _crowdVoice
+          : _movementVoice;
+      if (previous != null && _soloud.getIsValidVoiceHandle(previous)) {
+        if (asset != 'dash_land.wav') return;
+        _soloud.setVolume(previous, 0);
+      }
+      if (warning) {
+        final ambient = _crowdVoice;
+        if (ambient != null && _soloud.getIsValidVoiceHandle(ambient)) {
+          _soloud.setVolume(ambient, 0);
+        }
+      }
+      final gain = warning
+          ? .48
+          : crowd
+          ? .20
+          : asset == 'dash_land.wav'
+          ? .32
+          : .25;
+      final handle = _soloud.play(
+        source,
+        volume: _sfxVolume * gain * proximity,
+        pan: pan,
+      );
+      if (warning) {
+        _warningVoice = handle;
+      } else if (crowd) {
+        _crowdVoice = handle;
+      } else {
+        _movementVoice = handle;
+      }
+    } catch (error) {
+      _sources.remove(asset);
+      if (_reportedFailures.add(asset)) {
+        Logger('RegunAudio').warning('Could not play $asset', error);
+      }
     }
   }
 

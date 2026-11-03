@@ -4,7 +4,7 @@
     "Sentry Gun",
     "enabled",
     "Enabled",
-    0,
+    1,
     0,
     1,
     true
@@ -13,11 +13,31 @@
     "sentry",
     "Sentry Gun",
     "weight",
-    "Offer weight (ordinary-only hand: 2)",
+    "Airdrop offer weight",
     1,
     0,
     5,
     false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "xpWeight",
+    "Level-up offer weight",
+    0.16,
+    0,
+    1,
+    false
+  ],
+  [
+    "sentry",
+    "Sentry Gun",
+    "xpMinLevel",
+    "First eligible level",
+    5,
+    2,
+    30,
+    true
   ],
   [
     "sentry",
@@ -134,7 +154,7 @@
     "Aura Salad",
     "enabled",
     "Enabled",
-    0,
+    1,
     0,
     1,
     true
@@ -143,11 +163,31 @@
     "aura",
     "Aura Salad",
     "weight",
-    "Offer weight (ordinary-only hand: 2)",
+    "Airdrop offer weight",
     1,
     0,
     5,
     false
+  ],
+  [
+    "aura",
+    "Aura Salad",
+    "xpWeight",
+    "Level-up offer weight",
+    0.24,
+    0,
+    1,
+    false
+  ],
+  [
+    "aura",
+    "Aura Salad",
+    "xpMinLevel",
+    "First eligible level",
+    4,
+    2,
+    30,
+    true
   ],
   [
     "aura",

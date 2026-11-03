@@ -1307,7 +1307,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                         ?.values ??
                                     {},
                               ),
-                              'AIRDROP ONLY / ${(_myGame.gameNotifier.support.tiers[card.family.name] ?? 0) == supportMaxTier ? 'DEPLOY AGAIN' : 'TEMPORARY'}',
+                              'SUPPORT / ${(_myGame.gameNotifier.support.tiers[card.family.name] ?? 0) == supportMaxTier ? 'DEPLOY AGAIN' : 'TEMPORARY'}',
                               () => _myGame.gameNotifier.chooseSupport(
                                 card.id,
                                 offerId: state.offerId,

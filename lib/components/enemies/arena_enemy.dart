@@ -129,6 +129,7 @@ class ArenaEnemy extends PositionComponent
               )) {
             phase = 1;
             clock = 0;
+            game.playEnemyMovement('enemy_skitter_warn.wav', position, 850);
             final aim = game.myPlayer.position.clone();
             // Mix direct attacks with route cuts. Lock before showing the lane;
             // turning after the warning always changes the player's escape.

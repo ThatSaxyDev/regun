@@ -1,0 +1,10 @@
+{
+  "status": "failed",
+  "endpoint": "regunserver.kiishi.space",
+  "checks": [
+    "fresh-native-guests-and-prediction-capabilities"
+  ],
+  "connectMs": 3749,
+  "weapon": "carbine",
+  "failure": "Expected: empty\n  Actual: 'Verify your email to play online'\ncreate: Connected\n"
+}

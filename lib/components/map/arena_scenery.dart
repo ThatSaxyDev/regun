@@ -1,3 +1,4 @@
+import 'package:regun/presentation/arena_machine_art.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
@@ -47,6 +48,17 @@ class ArenaScenery extends PositionComponent with HasGameReference<RegunGame> {
       legacy: game.legacyArena,
       flowTime: game.preferences.reducedMotion ? 0 : _flowTime,
     );
+    if (!game.bossRush) {
+      for (final machine in game.arenaMachines) {
+        if (visible.overlaps(machine.area)) {
+          ArenaMachineArt.floor(
+            canvas,
+            machine,
+            game.preferences.reducedMotion,
+          );
+        }
+      }
+    }
     // Fence dimensions and its visible inner edge share ArenaBounds geometry.
     WallArt.perimeter(canvas, floor, iron: foundry, inside: true);
     canvas.restore();
@@ -62,35 +74,12 @@ void drawArenaDistricts(
   double flowTime = 0,
 }) {
   final marks = map.regions('${arena.name}_landmarks');
-  final paint = Paint()..isAntiAlias = false;
-  void strip(Rect rect, Color color) {
-    if (visible.overlaps(rect)) canvas.drawRect(rect, paint..color = color);
-  }
-
   if (arena == ArenaType.foundry) {
-    if (!legacy && marks.length == 2) {
-      final rail = marks.first, bypass = marks.last;
-      for (var y = rail.top; y < rail.bottom; y += 74) {
-        strip(
-          Rect.fromLTWH(rail.left, y, rail.width, 16),
-          const Color(0xff41372c),
-        );
-        strip(
-          Rect.fromLTWH(rail.left, y, rail.width, 3),
-          const Color(0xff635341),
-        );
+    if (!legacy && marks.length >= 2) {
+      for (final track in map.foundryTracks) {
+        _railTrack(canvas, track, visible);
       }
-      for (final x in [rail.left + 25, rail.right - 32]) {
-        strip(
-          Rect.fromLTWH(x, rail.top, 8, rail.height),
-          const Color(0xff685f52),
-        );
-        strip(
-          Rect.fromLTWH(x + 2, rail.top, 2, rail.height),
-          const Color(0xff95816a),
-        );
-      }
-      _pavers(canvas, bypass, visible, arena);
+      _pavers(canvas, marks.last, visible, arena);
     }
     for (final vent in map.anchors(
       legacy ? 'foundry_legacy_vents' : 'foundry_vents',
@@ -123,22 +112,112 @@ void drawArenaDistricts(
       _pavers(canvas, road, visible, arena);
       break;
     case ArenaType.relayGraveyard:
-      final trench = marks.first;
-      for (var y = trench.top; y < trench.bottom; y += 110) {
-        final bend = ((y - trench.top) / 110).floor() % 3 * 9;
-        strip(
-          Rect.fromLTWH(trench.center.dx + bend, y, 7, 83),
-          const Color(0xff785340),
-        );
-        strip(
-          Rect.fromLTWH(trench.center.dx + bend + 9, y + 15, 4, 89),
-          const Color(0xff665e43),
-        );
-      }
+      _relayTrench(canvas, marks.first, visible);
       break;
     case ArenaType.foundry:
       break;
   }
+}
+
+void _railTrack(Canvas canvas, Rect track, Rect visible) {
+  if (!track.overlaps(visible)) return;
+  final floor = RegunArt.shared.image('arenas/foundry_floor');
+  final material = Paint()..filterQuality = FilterQuality.none;
+  final shadow = Paint()..color = const Color(0xc4141516);
+  final ballast = Paint()
+    ..filterQuality = FilterQuality.none
+    ..colorFilter = const ColorFilter.mode(
+      Color(0xff514d48),
+      BlendMode.modulate,
+    );
+  final edge = Paint()..color = const Color(0xff60554b);
+  final iron = Paint()..color = const Color(0xff333337);
+  final rivet = Paint()..color = const Color(0xff8a7561);
+  canvas.drawRect(track, shadow);
+  canvas.save();
+  canvas.clipRect(track);
+  final start = ((visible.top - track.top) / 58).floor().clamp(0, 1000);
+  for (
+    var row = start, y = track.top + start * 58;
+    y < track.bottom && y < visible.bottom;
+    row++, y += 58
+  ) {
+    final source = Rect.fromLTWH(
+      (row % 4) * floor.width / 5,
+      floor.height * .16,
+      floor.width * .19,
+      floor.height * .22,
+    );
+    canvas.drawImageRect(
+      floor,
+      source,
+      Rect.fromLTWH(track.left + 3, y, track.width - 6, 58),
+      ballast,
+    );
+    final sleeper = Rect.fromLTWH(track.left + 4, y + 14, track.width - 8, 20);
+    canvas.drawRect(sleeper.shift(const Offset(0, 4)), shadow);
+    canvas.drawImageRect(floor, source, sleeper, material);
+    canvas.drawRect(
+      Rect.fromLTWH(sleeper.left, sleeper.top, sleeper.width, 2),
+      edge,
+    );
+    for (final x in [track.center.dx - 42, track.center.dx + 42]) {
+      canvas.drawRect(Rect.fromLTWH(x - 9, y, 18, 58), shadow);
+      canvas.drawRect(Rect.fromLTWH(x - 5, y, 10, 58), iron);
+      canvas.drawRect(Rect.fromLTWH(x - 2, y, 4, 58), edge);
+      canvas.drawRect(Rect.fromLTWH(x + 3, y + 14, 7, 6), rivet);
+      canvas.drawRect(Rect.fromLTWH(x - 9, y + 28, 6, 5), rivet);
+    }
+  }
+  for (final y in [track.top, track.bottom - 17]) {
+    final stop = Rect.fromLTWH(track.left + 2, y, track.width - 4, 17);
+    canvas.drawImageRect(
+      floor,
+      const Rect.fromLTWH(6, 8, 72, 25),
+      stop,
+      material,
+    );
+    canvas.drawRect(Rect.fromLTWH(stop.left, stop.top, stop.width, 3), edge);
+  }
+  canvas.restore();
+}
+
+void _relayTrench(Canvas canvas, Rect trench, Rect visible) {
+  if (!trench.overlaps(visible)) return;
+  final floor = RegunArt.shared.image('arenas/relayGraveyard_floor');
+  final source = Rect.fromLTWH(
+    floor.width * .229,
+    floor.height * .079,
+    floor.width * .109,
+    floor.height * .18,
+  );
+  final channel = Rect.fromCenter(
+    center: trench.center,
+    width: 82,
+    height: trench.height,
+  );
+  canvas.save();
+  canvas.clipRect(channel);
+  final paint = Paint()
+    ..filterQuality = FilterQuality.none
+    ..colorFilter = const ColorFilter.mode(
+      Color(0xff85847e),
+      BlendMode.modulate,
+    );
+  final first = ((visible.top - trench.top) / 142).floor().clamp(0, 1000);
+  for (
+    var y = trench.top + first * 142;
+    y < trench.bottom && y < visible.bottom;
+    y += 142
+  ) {
+    canvas.drawImageRect(
+      floor,
+      source,
+      Rect.fromLTWH(channel.left, y, channel.width, 142),
+      paint,
+    );
+  }
+  canvas.restore();
 }
 
 void _pavers(Canvas canvas, Rect rect, Rect visible, ArenaType arena) {
@@ -286,6 +365,18 @@ class _ArenaProp extends PositionComponent with HasGameReference<RegunGame> {
     );
     if (spriteName != null) {
       paintArenaSolid(canvas, base, spriteName);
+      if (!game.bossRush) {
+        for (final machine in game.arenaMachines) {
+          if (machine.body == footprint) {
+            ArenaMachineArt.head(
+              canvas,
+              machine,
+              Offset(-position.x, -position.y),
+              game.preferences.reducedMotion,
+            );
+          }
+        }
+      }
       return;
     }
     if (arena == ArenaType.floodworks) {

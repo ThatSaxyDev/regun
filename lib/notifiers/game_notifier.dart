@@ -252,10 +252,16 @@ class GameNotifier extends Notifier<GameState> {
     acceptedUpgrade.value = null;
     runStatistics = RunStatistics.read(snapshot['runStatistics']);
     support = SupportProgress.restore(snapshot['supportProgress']);
-    offerSource =
+    final restoredSource =
         snapshot['offerSource'] as String? ??
         (snapshot['supplyOffer'] == true ? 'supply' : 'xp');
-    if (!['none', 'xp', 'supply', 'fusion', 'practice'].contains(offerSource)) {
+    if (![
+      'none',
+      'xp',
+      'supply',
+      'fusion',
+      'practice',
+    ].contains(restoredSource)) {
       throw const FormatException('Invalid offer source');
     }
     final restoredPower = WeaponPowerBalance.read(
@@ -335,6 +341,7 @@ class GameNotifier extends Notifier<GameState> {
       );
     }
     cancelPendingActions();
+    offerSource = restoredSource;
     _activeSeconds = (snapshot['activeSeconds'] as num).toDouble();
     _reloadElapsedMs = (snapshot['reloadElapsedMs'] as num).toDouble();
     _reloadDurationMs = (snapshot['reloadDurationMs'] as num).toDouble();
@@ -431,7 +438,8 @@ class GameNotifier extends Notifier<GameState> {
       survivor.restore(Map<String, dynamic>.from(raw));
     }
     supplyOffer =
-        snapshot['supplyOffer'] == true && restored.powerUpChoices.isNotEmpty;
+        snapshot['supplyOffer'] == true &&
+        (restored.powerUpChoices.isNotEmpty || support.offer != null);
     _reloadCue = snapshot['reloadCue'] as int? ?? 0;
     reloadProgress.value = _reloadDurationMs > 0
         ? (_reloadElapsedMs / _reloadDurationMs).clamp(0, 1)
@@ -738,6 +746,20 @@ class GameNotifier extends Notifier<GameState> {
     return choices;
   }
 
+  bool get _regularSupportOffer =>
+      offerSource == 'xp' || offerSource == 'supply';
+
+  List<PowerUp> _rollRewardChoices({int? level}) {
+    if (_regularSupportOffer) {
+      support.roll(
+        SupportConfig(weaponPower.snapshot?.values ?? {}),
+        _offerRandom.nextDouble,
+        xpLevel: offerSource == 'xp' ? level ?? state.currentLevel : null,
+      );
+    }
+    return List.unmodifiable(_rollOffers().take(support.offer == null ? 3 : 2));
+  }
+
   void upgradeLevel() {
     if (state.gameplayState != GameplayState.playing ||
         _choiceGrace > 0 ||
@@ -746,14 +768,14 @@ class GameNotifier extends Notifier<GameState> {
     }
     supplyOffer = false;
     offerSource = 'xp';
-    final choices = _rollOffers();
+    final choices = _rollRewardChoices(level: state.currentLevel + 1);
     state = state.copyWith(
       xP: max(0, state.xP - state.noOfCoinsToUpgrade.floor()),
       currentLevel: state.currentLevel + 1,
       offerId: state.offerId + 1,
       noOfCoinsToUpgrade: XPProgression.cost(state.currentLevel + 1).toDouble(),
       gameplayState: GameplayState.powerup,
-      powerUpChoices: List.unmodifiable(choices.take(3)),
+      powerUpChoices: choices,
     );
   }
 
@@ -765,14 +787,11 @@ class GameNotifier extends Notifier<GameState> {
     }
     supplyOffer = true;
     offerSource = 'supply';
-    final config = SupportConfig(weaponPower.snapshot?.values ?? {});
-    support.roll(config, _offerRandom.nextDouble);
+    final choices = _rollRewardChoices();
     state = state.copyWith(
       offerId: state.offerId + 1,
       gameplayState: GameplayState.powerup,
-      powerUpChoices: List.unmodifiable(
-        _rollOffers().take(support.offer == null ? 3 : 2),
-      ),
+      powerUpChoices: choices,
       evolutionChoices: const [],
     );
     return true;
@@ -895,8 +914,7 @@ class GameNotifier extends Notifier<GameState> {
     final rewardBefore = state;
     final family = SupportCard.read(id)?.family.name;
     final priorTier = support.tiers[family] ?? 0;
-    if (!supplyOffer ||
-        !['supply', 'practice'].contains(offerSource) ||
+    if ((!_regularSupportOffer && offerSource != 'practice') ||
         state.gameplayState != GameplayState.powerup ||
         state.offerId != offerId ||
         !support.confirm(id)) {
@@ -913,9 +931,7 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void banSupport(String id, {required int offerId}) {
-    if (offerSource == 'practice') return;
-    if (!supplyOffer ||
-        !['supply', 'practice'].contains(offerSource) ||
+    if (!_regularSupportOffer ||
         state.gameplayState != GameplayState.powerup ||
         state.offerId != offerId ||
         state.bans <= 0 ||
@@ -923,16 +939,10 @@ class GameNotifier extends Notifier<GameState> {
       return;
     }
     support.banned.add(support.offer!.family.name);
-    support.roll(
-      SupportConfig(weaponPower.snapshot?.values ?? {}),
-      _offerRandom.nextDouble,
-    );
     state = state.copyWith(
       bans: state.bans - 1,
       offerId: state.offerId + 1,
-      powerUpChoices: _rollOffers()
-          .take(support.offer == null ? 3 : 2)
-          .toList(),
+      powerUpChoices: _rollRewardChoices(),
     );
   }
 
@@ -944,21 +954,10 @@ class GameNotifier extends Notifier<GameState> {
         state.evolutionChoices.isNotEmpty) {
       return;
     }
-    if (supplyOffer &&
-        weaponPower.snapshot?.values.containsKey('support.sentry.enabled') ==
-            true) {
-      support.roll(
-        SupportConfig(weaponPower.snapshot!.values),
-        _offerRandom.nextDouble,
-      );
-    }
-    final pool = _rollOffers()
-        .take(supplyOffer && support.offer != null ? 2 : 3)
-        .toList();
     state = state.copyWith(
       rerolls: state.rerolls - 1,
       offerId: state.offerId + 1,
-      powerUpChoices: List.unmodifiable(pool.take(3)),
+      powerUpChoices: _rollRewardChoices(),
     );
   }
 
@@ -974,20 +973,9 @@ class GameNotifier extends Notifier<GameState> {
       bans: state.bans - 1,
       banned: Set.unmodifiable({...state.banned, powerUp}),
     );
-    if (supplyOffer &&
-        weaponPower.snapshot?.values.containsKey('support.sentry.enabled') ==
-            true) {
-      support.roll(
-        SupportConfig(weaponPower.snapshot!.values),
-        _offerRandom.nextDouble,
-      );
-    }
-    final pool = _rollOffers()
-        .take(supplyOffer && support.offer != null ? 2 : 3)
-        .toList();
     state = state.copyWith(
       offerId: state.offerId + 1,
-      powerUpChoices: List.unmodifiable(pool.take(3)),
+      powerUpChoices: _rollRewardChoices(),
     );
   }
 
@@ -1114,7 +1102,10 @@ class GameNotifier extends Notifier<GameState> {
   void playGame() {
     if (state.gameplayState == GameplayState.paused) {
       state = state.copyWith(
-        gameplayState: state.powerUpChoices.isNotEmpty
+        gameplayState:
+            state.powerUpChoices.isNotEmpty ||
+                state.evolutionChoices.isNotEmpty ||
+                support.offer != null
             ? GameplayState.powerup
             : GameplayState.playing,
       );

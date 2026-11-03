@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/models/live_balance.dart';
+import 'package:regun/services/balance_repository.dart';
+import 'package:regun/systems/support_rewards.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/systems/xp_progression.dart';
 import 'package:regun/utils/soloud_play.dart';
@@ -42,6 +45,67 @@ void main() {
     notifier.restoreCheckpoint(snapshot);
     notifier.playGame();
     notifier.applyPowerUp(power, offerId: state().offerId);
+  }
+
+  for (final family in SupportFamily.values) {
+    test(
+      '${family.name} can be earned, restored and deployed from an XP hand',
+      () {
+        final repository = BalanceRepository.shared;
+        final prior = repository.current;
+        addTearDown(() => repository.current = prior);
+        repository.current = LiveBalance.create(1, {
+          ...LiveBalance.bundled.values,
+          for (final other in SupportFamily.values)
+            'support.${other.name}.enabled': other == family ? 1 : 0,
+        });
+        notifier.resetRun(seed: 0);
+        final minimum = family == SupportFamily.aura ? 4 : 5;
+
+        void openLevel(int target) {
+          final snapshot = notifier.checkpoint();
+          snapshot['offerRandom'] = 0;
+          snapshot['choiceGrace'] = 0;
+          snapshot['state'] = state()
+              .copyWith(
+                currentLevel: target - 1,
+                noOfCoinsToUpgrade: XPProgression.cost(target - 1).toDouble(),
+                xP: 0,
+                powerUpChoices: const [],
+              )
+              .toJson();
+          notifier.restoreCheckpoint(snapshot);
+          notifier.playGame();
+          notifier.increaseXP(state().noOfCoinsToUpgrade.toInt() + 2);
+        }
+
+        openLevel(minimum - 1);
+        expect(notifier.support.offer, isNull);
+        expect(state().powerUpChoices, hasLength(3));
+        notifier.applyPowerUp(state().powerUpChoices.first);
+        openLevel(minimum);
+        final card = notifier.support.offer!;
+        expect(card.family, family);
+        expect(notifier.offerSource, 'xp');
+        expect(notifier.supplyOffer, isFalse);
+        expect(state().powerUpChoices, hasLength(2));
+        final offerId = state().offerId;
+        notifier.chooseSupport(card.id, offerId: offerId + 1);
+        expect(notifier.support.pending, isEmpty);
+        notifier.restoreCheckpoint(notifier.checkpoint());
+        notifier.playGame();
+        final xp = state().xP;
+        final ranks = state().ranks;
+        notifier.chooseSupport(card.id, offerId: offerId);
+        expect(notifier.support.pending.single.id, card.id);
+        expect(state().ranks, ranks);
+        expect(state().currentLevel, minimum);
+        expect(state().xP, xp);
+        expect(notifier.acceptedUpgrade.value?.source, 'xp');
+        openLevel(minimum + 1);
+        expect(notifier.support.offer, isNull);
+      },
+    );
   }
 
   test('every upgrade family remains selectable through its own rank cap, then stops', () {
