@@ -26,32 +26,16 @@ class _FailingPreferences extends LocalPreferences {
   }) async => false;
 }
 
-class _Browser extends StatefulWidget {
+class _Browser extends StatelessWidget {
   const _Browser(this.preferences);
   final LocalPreferences preferences;
   @override
-  State<_Browser> createState() => _BrowserState();
-}
-
-class _BrowserState extends State<_Browser> {
-  WeaponType selected = WeaponType.shotgun;
-  @override
   Widget build(BuildContext context) => TrainingWeaponBrowser(
-    preferences: widget.preferences,
-    selected: selected,
-    builder: (weapons, details) => Column(
+    preferences: preferences,
+    builder: (weapons) => Column(
       children: [
-        for (final w in weapons)
-          Column(
-            children: [
-              TextButton(
-                key: ValueKey('try-${w.name}'),
-                onPressed: () => setState(() => selected = w),
-                child: Text(w.title),
-              ),
-              if (w == selected && details != null) details,
-            ],
-          ),
+        for (final weapon in weapons)
+          Text(weapon.title, key: ValueKey('equip-${weapon.name}')),
       ],
     ),
   );
@@ -91,17 +75,18 @@ void main() {
       prefs.profile.scrap = 77;
       await show(tester, prefs);
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('try-shotgun')), findsOneWidget);
-      expect(find.byKey(const ValueKey('try-railLance')), findsNothing);
-      await tester.tap(find.byKey(const ValueKey('training-try-locked')));
+      expect(find.byKey(const ValueKey('equip-shotgun')), findsOneWidget);
+      expect(find.byKey(const ValueKey('equip-railLance')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('training-locked-weapons')));
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('try-shotgun')), findsNothing);
-      final rail = find.byKey(const ValueKey('try-railLance'));
+      expect(find.byKey(const ValueKey('equip-shotgun')), findsNothing);
+      expect(find.byKey(const ValueKey('equip-railLance')), findsNothing);
+      final rail = find.byKey(const ValueKey('training-locked-railLance'));
       await tester.ensureVisible(rail);
       await tester.tap(rail);
       await tester.pumpAndSettle();
-      expect(find.text('Rail Lance / TRAINING ONLY'), findsOneWidget);
-      expect(find.text('Unlock: 0 / 7 boss victories'), findsOneWidget);
+      expect(find.text('Rail Lance / LOCKED'), findsOneWidget);
+      expect(find.text('Earn it: 0 / 7 boss victories'), findsOneWidget);
       final pin = find.byKey(const Key('training-pin-weapon-goal'));
       await tester.ensureVisible(pin);
       await tester.tap(pin);
@@ -130,9 +115,9 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('training-your-weapons')));
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('try-railLance')), findsNothing);
-      // Browsing does not silently replace the Training selection.
-      expect(find.text('Rail Lance / TRAINING ONLY'), findsOneWidget);
+      expect(find.byKey(const ValueKey('equip-railLance')), findsNothing);
+      expect(find.text('Rail Lance / LOCKED'), findsNothing);
+      expect(find.byKey(const ValueKey('equip-shotgun')), findsOneWidget);
     },
   );
 
@@ -143,9 +128,9 @@ void main() {
       await prefs.load();
       await show(tester, prefs);
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('training-try-locked')));
+      await tester.tap(find.byKey(const ValueKey('training-locked-weapons')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('try-carbine')));
+      await tester.tap(find.byKey(const ValueKey('training-locked-carbine')));
       await tester.pumpAndSettle();
       final pin = find.byKey(const Key('training-pin-weapon-goal'));
       await tester.ensureVisible(pin);
@@ -175,9 +160,9 @@ void main() {
     await prefs.load();
     await show(tester, prefs);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('training-try-locked')));
+    await tester.tap(find.byKey(const ValueKey('training-locked-weapons')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('try-carbine')));
+    await tester.tap(find.byKey(const ValueKey('training-locked-carbine')));
     await tester.pumpAndSettle();
     final pin = find.byKey(const Key('training-pin-weapon-goal'));
     await tester.ensureVisible(pin);

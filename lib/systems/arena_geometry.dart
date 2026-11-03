@@ -60,7 +60,19 @@ class ArenaGeometry {
   bool blocked(Vector2 start, Vector2 end) =>
       solids.any((rect) => crosses(start, end, rect));
 
-  static bool crosses(Vector2 start, Vector2 end, Rect rect) {
+  Vector2? firstSolidContact(Vector2 start, Vector2 end) {
+    double? entry;
+    for (final rect in solids) {
+      final t = _entryFraction(start, end, rect);
+      if (t != null && (entry == null || t < entry)) entry = t;
+    }
+    return entry == null ? null : start + (end - start) * entry;
+  }
+
+  static bool crosses(Vector2 start, Vector2 end, Rect rect) =>
+      _entryFraction(start, end, rect) != null;
+
+  static double? _entryFraction(Vector2 start, Vector2 end, Rect rect) {
     var t0 = 0.0, t1 = 1.0;
     final dx = end.x - start.x, dy = end.y - start.y;
     final p = [-dx, dx, -dy, dy];
@@ -72,18 +84,18 @@ class ArenaGeometry {
     ];
     for (var i = 0; i < 4; i++) {
       if (p[i] == 0) {
-        if (q[i] < 0) return false;
+        if (q[i] < 0) return null;
         continue;
       }
       final t = q[i] / p[i];
       if (p[i] < 0) {
-        if (t > t1) return false;
+        if (t > t1) return null;
         if (t > t0) t0 = t;
       } else {
-        if (t < t0) return false;
+        if (t < t0) return null;
         if (t < t1) t1 = t;
       }
     }
-    return t0 <= t1;
+    return t0 <= t1 ? t0 : null;
   }
 }

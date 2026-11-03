@@ -217,6 +217,9 @@ class WalkerBoss extends PositionComponent
   }
 
   void _signal(WalkerSignal event) {
+    if (event == WalkerSignal.land) {
+      game.showGroundImpact(rig.position, strength: 16);
+    }
     game.audio.play(switch (event) {
       WalkerSignal.rotary => 'sentry_fire.wav',
       WalkerSignal.cannon => 'shot_revolver_0.wav',

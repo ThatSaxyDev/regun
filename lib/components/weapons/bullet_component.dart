@@ -193,10 +193,25 @@ class BulletComponent extends PositionComponent
       );
       if (_bouncedThisFrame) break;
     }
+    if (isRemoving) return;
+    final solid = game.geometry.firstSolidContact(before, position);
+    if (solid != null &&
+        primary &&
+        !_bouncedThisFrame &&
+        game.claimWeaponImpact()) {
+      game.addCombatEffect(
+        WeaponImpact(
+          position: solid,
+          weapon: weapon,
+          direction: -direction,
+          surface: ImpactSurface.stone,
+        ),
+      );
+    }
     if (direction.isZero() ||
         _travelled >= maxTravelDistance ||
         !game.map.bounds.floor.contains(position.toOffset()) ||
-        game.segmentBlocked(before, position)) {
+        solid != null) {
       removeFromParent();
     }
   }
@@ -272,9 +287,10 @@ class BulletComponent extends PositionComponent
     if (primary && game.claimWeaponImpact()) {
       game.addCombatEffect(
         WeaponImpact(
-          position: other.position.clone(),
+          position: (contactPoint ?? position).clone(),
           weapon: weapon,
           direction: direction,
+          surface: ImpactSurface.on(owner),
         ),
       );
       game.audio.play('impact_${weapon.name}.wav');

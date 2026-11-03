@@ -1,3 +1,4 @@
+import 'package:regun/presentation/weapon_art_spec.dart';
 import 'package:regun/components/map/arena_scenery.dart';
 import 'package:regun/components/map/map_component.dart';
 import 'package:regun/presentation/travel_gait.dart';
@@ -100,7 +101,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       _reloadPhase = {};
   final Map<String, double> shotTimes = {}, hurtTimes = {};
   final Set<String> _warmed = {};
-  final Map<String, bool> _wasReloading = {};
+  final Map<String, bool> _wasReloading = {}, _wasDashing = {};
   final Map<String, double> _damageTotals = {};
   double lostHp = 0, damageAt = -10;
   final Map<String, String> _worldCues = {};
@@ -516,6 +517,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       _damageTotals.clear();
       _reloadPhase.clear();
       _wasReloading.clear();
+      _wasDashing.clear();
       localFireFeedback.reset();
       shotTimes.clear();
       hurtTimes.clear();
@@ -538,6 +540,12 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     math.pow(member.y - session.me!.y, 2),
               ) <
               850;
+      final dashing = (member?.dashRemaining ?? 0) > 0;
+      final wasDashing = _wasDashing[key];
+      _wasDashing[key] = dashing;
+      if (dashing && wasDashing == false && audible) {
+        unawaited(audio.play('dash_burst.wav'));
+      }
       final predictedCue =
           key == session.identity && session.projectilePredictionAvailable
           ? session.projectilePresentation.takeCue()
@@ -1815,9 +1823,18 @@ class _ArenaPainter extends CustomPainter {
             (w) => w.name == gun.weapon,
           );
           canvas.save();
-          canvas.translate(p.dx, p.dy + 6);
-          final heading = restingAim[key] ?? Offset(member.aimX, member.aimY);
+          final aiming = restingAim[key] ?? Offset(member.aimX, member.aimY);
+          final heading =
+              shotAge < weaponFlashDuration && key != session.identity
+              ? Offset(math.cos(gun.shotAngle), math.sin(gun.shotAngle))
+              : aiming.distanceSquared > 0
+              ? aiming / aiming.distance
+              : const Offset(1, 0);
+          final hand =
+              p + WeaponArtSpec.handMount + heading * WeaponArtSpec.handReach;
+          canvas.translate(hand.dx, hand.dy);
           canvas.rotate(math.atan2(heading.dy, heading.dx));
+          if (heading.dx < 0) canvas.scale(1, -1);
           paintWeapon(
             canvas,
             weapon,
@@ -1825,6 +1842,7 @@ class _ArenaPainter extends CustomPainter {
             reloadShells: gun.capacity - gun.ammo,
             tactical: gun.data['reloadTactical'] == true,
             recoil: (1 - shotAge / WeaponFeel.of(weapon).recovery).clamp(0, 1),
+            flash: (1 - shotAge / weaponFlashDuration).clamp(0, 1),
             reducedMotion: LocalPreferences.shared.reducedMotion,
           );
           MechanicVfx.weapon(
@@ -1835,10 +1853,7 @@ class _ArenaPainter extends CustomPainter {
             reducedMotion: LocalPreferences.shared.reducedMotion,
             muzzle: WeaponFeel.of(weapon).muzzle,
           );
-          if (shotAge < .045 && !LocalPreferences.shared.reducedMotion) {
-            final feel = WeaponFeel.of(weapon);
-            AttackVfx.chip(canvas, Offset(feel.muzzle + 8, 0), 14, feel.color);
-          }
+
           canvas.restore();
         }
       }

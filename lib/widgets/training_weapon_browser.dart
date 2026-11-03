@@ -6,34 +6,33 @@ import 'package:regun/models/player_profile.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/click_button.dart';
+import 'package:regun/widgets/weapon_practice_tile.dart';
 
-/// Trying a weapon never changes its normal-run unlock or grants rewards.
+/// Locked weapons can be inspected without becoming an equipped selection.
 class TrainingWeaponBrowser extends StatefulWidget {
   const TrainingWeaponBrowser({
     super.key,
-    required this.selected,
     required this.builder,
     this.preferences,
-    this.initialTryLocked = false,
+    this.initialShowLocked = false,
     this.onGroupChanged,
   });
-  final bool initialTryLocked;
+  final bool initialShowLocked;
   final ValueChanged<bool>? onGroupChanged;
-  final WeaponType selected;
-  final Widget Function(List<WeaponType> weapons, Widget? selectedDetails)
-  builder;
+  final Widget Function(List<WeaponType> weapons) builder;
   final LocalPreferences? preferences;
   @override
   State<TrainingWeaponBrowser> createState() => _TrainingWeaponBrowserState();
 }
 
 class _TrainingWeaponBrowserState extends State<TrainingWeaponBrowser> {
-  bool _tryLocked = false, _saving = false;
+  bool _showLocked = false, _saving = false;
   String? _issue;
+  WeaponType? _inspected;
   @override
   void initState() {
     super.initState();
-    _tryLocked = widget.initialTryLocked;
+    _showLocked = widget.initialShowLocked;
   }
 
   LocalPreferences get source => widget.preferences ?? LocalPreferences.shared;
@@ -59,12 +58,16 @@ class _TrainingWeaponBrowserState extends State<TrainingWeaponBrowser> {
     });
   }
 
-  Widget _goalDetails(PlayerProfile profile, CareerGoal goal) {
+  Widget _goalDetails(
+    PlayerProfile profile,
+    WeaponType weapon,
+    CareerGoal goal,
+  ) {
     final label = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${widget.selected.title} / TRAINING ONLY',
+          '${weapon.title} / LOCKED',
           key: const Key('training-locked-weapon'),
           style: const TextStyle(
             fontFamily: FontFam.orbitron,
@@ -75,7 +78,7 @@ class _TrainingWeaponBrowserState extends State<TrainingWeaponBrowser> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Unlock: ${goal.detail}',
+          'Earn it: ${goal.detail}',
           key: const Key('training-unlock-requirement'),
           style: const TextStyle(
             fontFamily: FontFam.orbitron,
@@ -120,19 +123,18 @@ class _TrainingWeaponBrowserState extends State<TrainingWeaponBrowser> {
     builder: (context, _) {
       final profile = source.profile;
       final weapons = WeaponType.values
-          .where((w) => profile.weaponUnlocked(w) != _tryLocked)
+          .where((w) => profile.weaponUnlocked(w) != _showLocked)
           .toList();
-      final goalId = widget.selected == WeaponType.carbine
+      final inspected = _showLocked && weapons.contains(_inspected)
+          ? _inspected
+          : null;
+      final goalId = inspected == WeaponType.carbine
           ? 'training'
-          : widget.selected.name;
+          : inspected?.name;
       final goal = CareerProgress(
         profile,
         armory: ArmoryRepository.shared.catalog,
       ).goals.where((g) => g.id == goalId).firstOrNull;
-      final locked = !profile.weaponUnlocked(widget.selected);
-      final Widget? details = locked && goal != null
-          ? _goalDetails(profile, goal)
-          : null;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -142,21 +144,23 @@ class _TrainingWeaponBrowserState extends State<TrainingWeaponBrowser> {
             children: [
               for (final option in [false, true])
                 Semantics(
-                  selected: _tryLocked == option,
+                  selected: _showLocked == option,
                   child: ClickButton(
                     key: ValueKey(
-                      option ? 'training-try-locked' : 'training-your-weapons',
+                      option
+                          ? 'training-locked-weapons'
+                          : 'training-your-weapons',
                     ),
-                    text: option ? 'Try locked weapons' : 'Your weapons',
+                    text: option ? 'Locked weapons' : 'Your weapons',
                     width: option ? 196 : 156,
                     height: 48,
                     fontSize: 8,
-                    buttonColor: _tryLocked == option
+                    buttonColor: _showLocked == option
                         ? const Color(0xffE1BA78)
                         : const Color(0xff746878),
                     onTap: () {
                       setState(() {
-                        _tryLocked = option;
+                        _showLocked = option;
                         _issue = null;
                       });
                       widget.onGroupChanged?.call(option);
@@ -166,11 +170,11 @@ class _TrainingWeaponBrowserState extends State<TrainingWeaponBrowser> {
             ],
           ),
           const SizedBox(height: 12),
-          if (_tryLocked)
+          if (_showLocked)
             const Padding(
               padding: EdgeInsets.only(bottom: 12),
               child: Text(
-                'Try it here. Earn it for normal runs. No Scrap or challenge rewards.',
+                'Earn these weapons before equipping them.',
                 style: TextStyle(
                   fontFamily: FontFam.orbitron,
                   fontSize: 10,
@@ -179,7 +183,6 @@ class _TrainingWeaponBrowserState extends State<TrainingWeaponBrowser> {
                 ),
               ),
             ),
-          if (details != null && !weapons.contains(widget.selected)) details,
           if (_issue != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -203,8 +206,24 @@ class _TrainingWeaponBrowserState extends State<TrainingWeaponBrowser> {
                 color: Color(0xffB2A8B4),
               ),
             )
+          else if (!_showLocked)
+            widget.builder(weapons)
           else
-            widget.builder(weapons, details),
+            for (final weapon in weapons) ...[
+              WeaponPracticeTile(
+                key: ValueKey('training-locked-${weapon.name}'),
+                weapon: weapon,
+                selected: false,
+                locked: true,
+                onTap: () => setState(() {
+                  _inspected = weapon;
+                  _issue = null;
+                }),
+              ),
+              if (weapon == inspected && goal != null)
+                _goalDetails(profile, weapon, goal),
+              const SizedBox(height: 8),
+            ],
         ],
       );
     },

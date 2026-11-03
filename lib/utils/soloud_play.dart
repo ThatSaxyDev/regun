@@ -71,6 +71,7 @@ class SoloudPlay {
         'blast.wav',
         'upgrade_pulse.wav',
         'grenade_throw.wav',
+        'dash_burst.wav',
         'enemy3projectile.wav',
         'impact_guard.wav',
         'impact_boss.wav',
@@ -161,6 +162,8 @@ class SoloudPlay {
           ? 120
           : assetPath.startsWith('section_')
           ? 90
+          : assetPath == 'dash_burst.wav'
+          ? 85
           : assetPath == 'upgrade_pulse.wav'
           ? 120
           : assetPath == 'blast.wav'
@@ -204,6 +207,8 @@ class SoloudPlay {
             ? .38
             : assetPath == 'level.wav'
             ? .6
+            : assetPath == 'dash_burst.wav'
+            ? .48
             : assetPath == 'upgrade_pulse.wav'
             ? .35
             : assetPath == 'blast.wav'

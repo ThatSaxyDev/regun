@@ -28,6 +28,9 @@ class WeaponArtSpec {
   Offset get gripSocket => Offset(width * grip, height * .55);
   Offset get muzzleSocket => Offset(width, height * muzzleHeight);
   double get muzzle => muzzleSocket.dx - gripSocket.dx;
+  Offset get localMuzzle => muzzleSocket - gripSocket;
+  static const handMount = Offset(0, 6);
+  static const handReach = 8.0;
 
   static WeaponArtSpec of(WeaponType type) => switch (type) {
     WeaponType.houndrack => const WeaponArtSpec(
@@ -79,6 +82,7 @@ class WeaponArtSpec {
       64,
       22,
       .44,
+      muzzleHeight: .2772727,
     ),
     WeaponType.carbine => const WeaponArtSpec(
       'weapons/arsenal',
@@ -87,6 +91,7 @@ class WeaponArtSpec {
       57,
       26,
       .45,
+      muzzleHeight: .3576923,
     ),
     WeaponType.revolver => const WeaponArtSpec(
       'weapons/arsenal',
@@ -95,6 +100,7 @@ class WeaponArtSpec {
       44,
       26,
       .23,
+      muzzleHeight: .2038462,
     ),
     WeaponType.arcCaster => const WeaponArtSpec(
       'weapons/arsenal',
@@ -279,11 +285,9 @@ class WeaponArtSpec {
   /// The actor's hand mount is 8 units toward aim and 6 units below its origin.
   /// World projectile creation and local/remote presentation share this socket.
   Offset releaseOffset(Offset direction) {
-    if (direction.distanceSquared < 1e-12) return const Offset(0, 6);
+    if (direction.distanceSquared < 1e-12) return handMount;
     final unit = direction / math.sqrt(direction.distanceSquared);
     final side = Offset(-unit.dy, unit.dx) * (unit.dx < 0 ? -1 : 1);
-    return const Offset(0, 6) +
-        unit * (8 + muzzle) +
-        side * (muzzleSocket.dy - gripSocket.dy);
+    return handMount + unit * (handReach + muzzle) + side * localMuzzle.dy;
   }
 }

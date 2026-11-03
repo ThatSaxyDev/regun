@@ -744,8 +744,10 @@ void main() {
         step(g, .6);
         expect(g.arsenal!.frontier.ring, isNull);
         g.gameNotifier.pauseGame();
+        g.preferences.profile.challenges.add('training');
         expect(await g.changeTrainingWeapon(WeaponType.carbine), true);
         expect(g.ringArtReady, false);
+        g.preferences.profile.challenges.add(WeaponType.ringCaster.name);
         expect(await g.changeTrainingWeapon(WeaponType.ringCaster), true);
         expect(g.ringArtReady, true);
       });

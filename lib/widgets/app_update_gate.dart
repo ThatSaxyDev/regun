@@ -216,18 +216,20 @@ class UpdateNotice extends StatelessWidget {
         height: 48,
         onTap: opening || !storeAvailable ? null : onUpdate,
       ),
-      secondary: ClickButton(
-        text: result.isRequired
-            ? (checking ? 'Checking…' : 'Check again')
-            : 'Later',
-        buttonColor: const Color(0xffA79AA9),
-        height: 48,
-        onTap: checking || opening
-            ? null
-            : result.isRequired
-            ? onRetry
-            : onLater,
-      ),
+      secondary: result.isRequired && storeAvailable
+          ? null
+          : ClickButton(
+              text: result.isRequired
+                  ? (checking ? 'Checking…' : 'Check again')
+                  : 'Later',
+              buttonColor: const Color(0xffA79AA9),
+              height: 48,
+              onTap: checking || opening
+                  ? null
+                  : result.isRequired
+                  ? onRetry
+                  : onLater,
+            ),
     ),
   );
 

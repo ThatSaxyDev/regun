@@ -345,6 +345,8 @@ void main() {
           expect(shots, hasLength(type == WeaponType.shotgun ? 3 : 1));
           if (type == WeaponType.shotgun) {
             expect(shots.map((s) => s.direction.y).toSet(), hasLength(3));
+            expect(shots.map((s) => s.position.x).toSet(), hasLength(1));
+            expect(shots.map((s) => s.position.y).toSet(), hasLength(1));
             expect(shots[1].direction.y, closeTo(0, .001));
             expect(
               shots.first.direction.y,
@@ -379,9 +381,8 @@ void main() {
               await game.ready();
             }
             expect(headings.toSet().length, greaterThan(1));
-            expect(origins.map((p) => p.y).toSet().length, greaterThan(1));
             expect(
-              origins.every((p) => (p - origins.first).length < 7),
+              origins.every((p) => (p - origins.first).length < .001),
               isTrue,
             );
           }

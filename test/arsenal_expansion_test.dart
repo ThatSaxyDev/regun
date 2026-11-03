@@ -1496,6 +1496,7 @@ void main() {
         final saved = game.checkpoint();
         expect((saved['state'] as Map)['movementSpeed'], 510);
         game.pauseGame();
+        game.preferences.profile.challenges.add('training');
         expect(await game.changeTrainingWeapon(WeaponType.carbine), true);
         expect(game.gameState.movementSpeed, 510);
         expect(game.playerWalkSpeed, 510);
@@ -2195,11 +2196,10 @@ void main() {
   );
 
   testWidgets(
-    'Repeater accelerates, samples bounded barrel recoil and resets on release',
+    'Repeater accelerates, keeps shots centered and resets on release',
     (tester) async {
       final game = await mount(tester, WeaponType.beltRepeater, _Audio());
       await tester.runAsync(() async {
-        final jitters = <String>{};
         final system = game.arsenal!;
         var fired = 0;
         for (var i = 0; i < 200; i++) {
@@ -2208,12 +2208,10 @@ void main() {
           await game.ready();
           if (game.shotsFired != fired) {
             fired = game.shotsFired;
-            jitters.add(system.muzzleJitter.toString());
-            expect(system.muzzleJitter.x.abs(), lessThanOrEqualTo(2));
-            expect(system.muzzleJitter.y.abs(), lessThanOrEqualTo(4));
+            expect(system.muzzleJitter.isZero(), isTrue);
           }
         }
-        expect(jitters.length, greaterThan(20));
+        expect(fired, greaterThan(20));
         expect(system.beltCadence, lessThan(.062));
         expect(game.gameState.noOfBullets, greaterThan(0));
         game.pauseGame();
@@ -2409,6 +2407,9 @@ void main() {
               .toJson(),
         });
         game.pauseGame();
+        game.preferences.profile.ownedWeapons.add(
+          WeaponType.longwatchSniper.name,
+        );
         expect(
           await game.changeTrainingWeapon(WeaponType.longwatchSniper),
           true,
@@ -2420,6 +2421,7 @@ void main() {
         expect(game.myPlayer.position, at);
         expect(game.gameState.noOfBullets, 5);
         expect(game.loadout.weapon, WeaponType.longwatchSniper);
+        game.preferences.profile.challenges.add(WeaponType.prismCutter.name);
         expect(await game.changeTrainingWeapon(WeaponType.prismCutter), true);
         expect(game.gameState.maxBullets, 18);
       });

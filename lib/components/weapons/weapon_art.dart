@@ -9,12 +9,17 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:regun/data/loadout.dart';
 
+const weaponFlashDuration = .060;
+double muzzleFlashDuration(WeaponType weapon) =>
+    weapon == WeaponType.frostShotgun ? .115 : weaponFlashDuration;
+
 /// One mechanical presentation for every weapon, shared by the world and HUD.
 void paintWeapon(
   Canvas canvas,
   WeaponType type, {
   double reload = -1,
   double recoil = 0,
+  double? flash,
   double charge = 0,
   Offset muzzleJitter = Offset.zero,
   int reloadShells = 5,
@@ -26,7 +31,13 @@ void paintWeapon(
   if (!art.contains(spec.atlas)) return;
   final body = art.rawSprite(spec.atlas, spec.body);
   final part = art.rawSprite(spec.atlas, spec.mechanism);
-  final loading = reload >= 0;
+  final flashAmount =
+      flash ??
+      (reload < 0 && recoil > max(0, 1 - .045 / WeaponFeel.of(type).recovery)
+          ? 1.0
+          : 0.0);
+  // Preserve the muzzle pose for the shot that begins an automatic reload.
+  final loading = reload >= 0 && flashAmount <= 0;
   final p = reload.clamp(0.0, 1.0);
   final feel = WeaponFeel.of(type);
   final movingReload = loading && !reducedMotion;
@@ -41,15 +52,49 @@ void paintWeapon(
   final width = spec.width, grip = spec.grip;
   final height = spec.height;
   canvas.save();
-  canvas.translate(reducedMotion ? 0 : -recoil * recoil * feel.kick, 0);
-  if (!loading && !reducedMotion && type.index < 4) {
-    canvas.rotate(
-      -recoil * recoil * (type == WeaponType.revolver ? .10 : .035),
-    );
+  // A firing frame pivots around its muzzle; the receiver can kick while
+  // the emitted projectile and the visible barrel share the same point.
+  if (flashAmount > 0 && !loading) {
+    if (!reducedMotion) {
+      final tip = spec.localMuzzle;
+      canvas.translate(tip.dx, tip.dy);
+      canvas.rotate(
+        -recoil.clamp(0.0, 1.0) * (type == WeaponType.revolver ? .11 : .05),
+      );
+      canvas.translate(-tip.dx, -tip.dy);
+    }
+  } else {
+    canvas.translate(reducedMotion ? 0 : -recoil * recoil * feel.kick, 0);
   }
   if (movingReload) {
+    final cant = switch (type) {
+      WeaponType.revolver => .48,
+      WeaponType.shotgun ||
+      WeaponType.frostShotgun ||
+      WeaponType.cycloneBreacher => .30,
+      WeaponType.carbine ||
+      WeaponType.burstRifle ||
+      WeaponType.beltRepeater ||
+      WeaponType.houndrack => .18,
+      WeaponType.railLance ||
+      WeaponType.longwatchSniper ||
+      WeaponType.faultlineDriver ||
+      WeaponType.mourningBell => -.16,
+      WeaponType.scrapMortar ||
+      WeaponType.sporeLobber ||
+      WeaponType.anchorEngine ||
+      WeaponType.flakRegent => -.23,
+      WeaponType.arcCaster ||
+      WeaponType.stormOrb ||
+      WeaponType.prismCutter => .22,
+      WeaponType.rivetDriver ||
+      WeaponType.cinderHose ||
+      WeaponType.twinVerdict ||
+      WeaponType.reaperDisc ||
+      WeaponType.ringCaster => .26,
+    };
     canvas.rotate(
-      (action(p, 0, .10) - action(p, .82, tactical ? 1 : .94)) * .12,
+      (action(p, 0, .10) - action(p, .82, tactical ? 1 : .94)) * cant,
     );
     if (type != WeaponType.shotgun && !tactical) {
       canvas.translate(-pulse(p, .82, .85, .93) * 2, 0);
@@ -403,20 +448,33 @@ void paintWeapon(
         }
       }
   }
-  if (!type.isContinuous &&
-      recoil > max(0, 1 - .045 / feel.recovery) &&
-      !loading) {
-    if (type.index >= 4) {
-      // The released flash stays at the authoritative socket as the gun kicks.
-      canvas.translate(
-        reducedMotion ? 0 : recoil * recoil * feel.kick,
-        spec.muzzleSocket.dy - spec.gripSocket.dy,
-      );
-    }
-    canvas.translate(muzzleJitter.dx, muzzleJitter.dy);
-    final muzzle = spec.muzzle;
-    final length = feel.flashLength * (reducedMotion ? .65 : 1);
-    final wide = feel.flashWidth;
+  if (!type.isContinuous && flashAmount > 0) {
+    final ballistic = switch (type) {
+      WeaponType.shotgun ||
+      WeaponType.frostShotgun ||
+      WeaponType.carbine ||
+      WeaponType.revolver ||
+      WeaponType.burstRifle ||
+      WeaponType.beltRepeater ||
+      WeaponType.longwatchSniper ||
+      WeaponType.twinVerdict ||
+      WeaponType.flakRegent ||
+      WeaponType.cycloneBreacher => true,
+      _ => false,
+    };
+    canvas.translate(muzzleJitter.dx, muzzleJitter.dy + spec.localMuzzle.dy);
+    final muzzle = spec.muzzle - (ballistic ? 1.5 : 0);
+    final bloom = .7 + .3 * flashAmount.clamp(0, 1);
+    final length =
+        feel.flashLength *
+        bloom *
+        (reducedMotion
+            ? .70
+            : ballistic
+            ? 1.42
+            : 1);
+    final wide = feel.flashWidth * (ballistic && !reducedMotion ? 1.3 : 1);
+
     final ink = Paint()..color = feel.color;
     if (type == WeaponType.arcCaster) {
       final arc = Path()
@@ -433,20 +491,84 @@ void paintWeapon(
           ..strokeWidth = 2.5,
       );
     } else {
-      final flash = Path()
-        ..moveTo(muzzle, -2)
-        ..lineTo(muzzle + length * .3, -wide)
-        ..lineTo(muzzle + length * .5, -3)
-        ..lineTo(muzzle + length, 0)
-        ..lineTo(muzzle + length * .45, 4)
-        ..lineTo(muzzle + length * .25, wide)
-        ..lineTo(muzzle, 3)
-        ..close();
-      canvas.drawPath(flash, ink);
-      canvas.drawRect(
-        Rect.fromLTWH(muzzle, -2, length * .4, 4),
-        Paint()..color = const Color(0xffFFF2D7),
-      );
+      if (ballistic) {
+        final texture = art.image(
+          type == WeaponType.frostShotgun
+              ? 'effects/frost_flash'
+              : 'effects/ballistic_flash',
+        );
+        final frame = flashAmount > .70
+            ? 0
+            : flashAmount > .30
+            ? 1
+            : 2;
+        final frameWidth = texture.width / 3;
+        final sniper = type == WeaponType.longwatchSniper;
+        final frost = type == WeaponType.frostShotgun;
+        final shotgun = type == WeaponType.shotgun || frost;
+        final plume = sniper
+            ? length * 1.22
+            : frost
+            ? length * (1.48 + .26 * (1 - flashAmount))
+            : shotgun
+            ? length * 1.14
+            : length;
+        final spread = sniper
+            ? wide * .72
+            : frost
+            ? wide * 2.05
+            : shotgun
+            ? wide * 1.7
+            : wide;
+        if (shotgun && !reducedMotion) {
+          final source = Rect.fromLTWH(
+            frame * frameWidth,
+            0,
+            frameWidth,
+            texture.height.toDouble(),
+          );
+          for (final side in [-1.0, 1.0]) {
+            canvas.save();
+            canvas.translate(muzzle, 0);
+            canvas.rotate(side * .31);
+            canvas.drawImageRect(
+              texture,
+              source,
+              Rect.fromLTWH(0, -spread * .60, plume * .87, spread * 1.2),
+              Paint()
+                ..filterQuality = FilterQuality.none
+                ..color = Colors.white.withValues(
+                  alpha: .78 * flashAmount.clamp(0, 1),
+                ),
+            );
+            canvas.restore();
+          }
+        }
+        canvas.drawImageRect(
+          texture,
+          Rect.fromLTWH(
+            frame * frameWidth,
+            0,
+            frameWidth,
+            texture.height.toDouble(),
+          ),
+          Rect.fromLTWH(muzzle, -spread, plume, spread * 2),
+          Paint()
+            ..filterQuality = FilterQuality.none
+            ..color = Colors.white.withValues(
+              alpha: .60 + .40 * flashAmount.clamp(0, 1),
+            ),
+        );
+      } else {
+        final flash = Path()
+          ..moveTo(muzzle, -2)
+          ..lineTo(muzzle + length * .3, -wide)
+          ..lineTo(muzzle + length, 0)
+          ..lineTo(muzzle + length * .25, wide)
+          ..lineTo(muzzle, 3)
+          ..close();
+        canvas.drawPath(flash, ink);
+      }
     }
   }
   canvas.restore();

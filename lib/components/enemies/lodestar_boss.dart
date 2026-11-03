@@ -122,7 +122,12 @@ class LodestarBoss extends PositionComponent
             poseLegal: _legal,
             hurt: (damage, cause) =>
                 game.damagePlayer(amount: damage, cause: cause),
-            signal: (cue) => game.audio.play(cue),
+            signal: (cue) {
+              game.audio.play(cue);
+              if (cue == 'supply_land.wav' && prepared) {
+                game.showGroundImpact(fight.exit, strength: 15);
+              }
+            },
             visible: (at) =>
                 game.camera.visibleWorldRect.deflate(50).contains(at),
           )
@@ -298,7 +303,11 @@ class LodestarBoss extends PositionComponent
     }
     if (result.isEmpty) return false;
     lastSection = result.first.section;
+    final wasDefeated = fight.defeated;
     fight.localDamage(result);
+    if (!wasDefeated && fight.defeated) {
+      game.showGroundImpact(position.toOffset(), strength: 16);
+    }
     combatHealth.current = maximumHealth * sections.fraction;
     game.revision.value++;
     return true;
@@ -311,11 +320,15 @@ class LodestarBoss extends PositionComponent
 
   void advanceArrival(double dt) {
     if (!readyForFight || fight.phase != LodestarPhase.arrival) return;
+    final before = fight.depths.first;
     var left = math.min(dt, 3.2);
     while (left > 0 && fight.phase == LodestarPhase.arrival) {
       final step = math.min(left, 1 / 120);
       fight.advance(step);
       left -= step;
+    }
+    if (before > .65 && fight.depths.first <= .65) {
+      game.showGroundImpact(fight.entry, strength: 14);
     }
     _sync();
   }

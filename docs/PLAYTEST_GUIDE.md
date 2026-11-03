@@ -512,15 +512,14 @@ agree on spending and recovered charges. Physical comfort/balance remains to rev
 
 ### Training weapon groups
 
-Training → Weapon starts on **Your weapons**. Choose **Try locked weapons** to
-practice any gun you have not yet earned. Selecting one shows **TRAINING ONLY**,
-its normal unlock requirement and **Pin unlock goal**. The pin appears in career
-progress/Results and survives restart. Switching Survivor/Weapon/Arena keeps the
-assembled kit and chosen group. Starting a fresh Training visit returns to Your
-weapons. Pause → Weapon practice offers the same two groups and goal action.
+Training → Weapon starts on **Your weapons**. Choose **Locked weapons** to see
+what you still need to earn. Each locked card shows its unlock requirement and
+lets you pin the goal. Only earned weapons can be equipped. The pin appears in
+career progress/Results and survives restart. Switching Survivor/Weapon/Arena
+keeps the assembled kit and chosen group. A fresh Training visit returns to Your
+weapons. Pause → Weapon practice follows the same ownership rules.
 
-Trying a gun does not unlock it for normal runs or grant Scrap/mastery rewards.
-Normal loadout preferences and existing earned unlocks are preserved. The free
+The free
 Training introduction still unlocks Carbine when completed or skipped. Boss Rush,
 weapon switching, survivor/arena selection and fusion practice remain available.
 
@@ -637,7 +636,7 @@ BOSS_COLLATERAL.md. Native feel/readability and online play need hands-on review
 
 ## Houndrack / Storm Orb / Ring Caster review
 
-Use Training to access all three. Houndrack should feel like continuous miniature rockets with mild correction, not hard homing; test blockers and clustered splash. Send Storm Orb past a pack and compare passage arcs with an immediate body hit; verify cover stops arcs. Hold/release Ring Caster at several radii, move with it and watch outward/return edge cuts: its interior must stay empty. Test early release, last charge, reload, pause, Continue and Reduced Motion. In admin adjust one of the 18 behavior fields, compare the authenticated API preview, publish through the existing workflow and start a fresh run; Continue must retain its pinned values. See [THREE_WEAPONS_REVIEW.md](THREE_WEAPONS_REVIEW.md). Native comfort/audio/performance and tuning still need hands-on approval.
+Once earned, practice all three in Training. Houndrack should feel like continuous miniature rockets with mild correction, not hard homing; test blockers and clustered splash. Send Storm Orb past a pack and compare passage arcs with an immediate body hit; verify cover stops arcs. Hold/release Ring Caster at several radii, move with it and watch outward/return edge cuts: its interior must stay empty. Test early release, last charge, reload, pause, Continue and Reduced Motion. In admin adjust one of the 18 behavior fields, compare the authenticated API preview, publish through the existing workflow and start a fresh run; Continue must retain its pinned values. See [THREE_WEAPONS_REVIEW.md](THREE_WEAPONS_REVIEW.md). Native comfort/audio/performance and tuning still need hands-on approval.
 
 
 ## Weapon feedback, innate Revolver and power-up layout — 24 October 2026

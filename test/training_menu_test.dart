@@ -308,10 +308,12 @@ void main() {
           .where(LocalPreferences.shared.profile.weaponUnlocked)
           .length;
       expect(find.byType(WeaponThumbnail), findsNWidgets(earnedCount));
-      final tryLocked = find.byKey(const ValueKey('training-try-locked'));
-      await tester.ensureVisible(tryLocked);
+      final lockedWeapons = find.byKey(
+        const ValueKey('training-locked-weapons'),
+      );
+      await tester.ensureVisible(lockedWeapons);
       await tester.runAsync(() async {
-        await tester.tap(tryLocked);
+        await tester.tap(lockedWeapons);
         await tester.pump();
         await Future<void>.delayed(const Duration(milliseconds: 150));
       });
@@ -326,7 +328,7 @@ void main() {
       );
       expect(RegunArt.shared.decodedBytes, lessThanOrEqualTo(32 * 1024 * 1024));
       await capture(tester, 'training-pause-weapons');
-      final choice = find.byKey(const ValueKey('practice-weapon-mourningBell'));
+      final choice = find.byKey(const ValueKey('training-locked-mourningBell'));
       await tester.ensureVisible(choice);
       await tester.pump();
       expect(
@@ -338,7 +340,8 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 150));
       });
       await tester.pump();
-      expect(game.loadout.weapon, WeaponType.mourningBell);
+      expect(game.loadout.weapon, WeaponType.shotgun);
+      expect(await game.changeTrainingWeapon(WeaponType.mourningBell), isFalse);
       expect(game.gameState.gameplayState, GameplayState.paused);
       await tester.ensureVisible(find.text('WEAPON PRACTICE'));
       await tester.pump();
@@ -353,8 +356,8 @@ void main() {
       );
       expect(
         RegunArt.shared.contains(WeaponType.mourningBell.atlasName),
-        isTrue,
-      ); // Equipped gun retains its own lease.
+        isFalse,
+      );
       expect(RegunArt.shared.decodedBytes, lessThanOrEqualTo(32 * 1024 * 1024));
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());

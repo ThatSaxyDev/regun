@@ -724,6 +724,8 @@ void main() {
           b.fight.phase = ArietPhase.recovery;
           for (final weapon in WeaponType.values) {
             g.pauseGame();
+            g.preferences.profile.challenges.addAll(['training', weapon.name]);
+            g.preferences.profile.ownedWeapons.add(weapon.name);
             expect(await g.changeTrainingWeapon(weapon), isTrue);
             g.gameNotifier.playGame();
             g.pauseEngine();
@@ -752,6 +754,7 @@ void main() {
             );
           }
           g.pauseGame();
+          g.preferences.profile.challenges.add('training');
           await g.changeTrainingWeapon(WeaponType.carbine);
           g.gameNotifier.playGame();
           g.pauseEngine();

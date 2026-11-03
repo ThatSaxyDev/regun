@@ -1393,6 +1393,92 @@ class RegunGame extends FlameGame
   final bossVictory = BossVictory();
   final bossReveal = BossReveal();
   final mechanicalArrival = MechanicalArrival();
+  final _fireKick = Vector2.zero();
+  final _fireKickFrom = Vector2.zero();
+  double _fireKickTime = 0;
+
+  static const _fireKickRise = .015;
+  static const _fireKickDuration = .132;
+
+  void showFireKick(Vector2 direction) {
+    if (preferences.reducedMotion || inputBlocked || direction.isZero()) return;
+    final amplitude = switch (loadout.weapon) {
+      WeaponType.carbine ||
+      WeaponType.burstRifle ||
+      WeaponType.beltRepeater ||
+      WeaponType.houndrack => 4.5,
+      WeaponType.cinderHose || WeaponType.prismCutter => 3.5,
+      WeaponType.shotgun ||
+      WeaponType.cycloneBreacher ||
+      WeaponType.frostShotgun ||
+      WeaponType.revolver => 9.0,
+      WeaponType.railLance ||
+      WeaponType.longwatchSniper ||
+      WeaponType.faultlineDriver ||
+      WeaponType.mourningBell => 11.0,
+      _ => 6.5,
+    };
+    _fireKickFrom.setFrom(_sampleFireKick());
+    _fireKick.setFrom(direction.normalized() * amplitude);
+    _fireKickTime = _fireKickDuration;
+  }
+
+  Vector2 _sampleFireKick() {
+    if (_fireKickTime <= 0) return Vector2.zero();
+    final age = _fireKickDuration - _fireKickTime;
+    if (age < _fireKickRise) {
+      final t = (age / _fireKickRise).clamp(0.0, 1.0);
+      final eased = t * t * (3 - 2 * t);
+      return _fireKickFrom + (_fireKick - _fireKickFrom) * eased;
+    }
+    final t = ((age - _fireKickRise) / (_fireKickDuration - _fireKickRise))
+        .clamp(0.0, 1.0);
+    return _fireKick * (1 - t * t * (3 - 2 * t));
+  }
+
+  double _groundKickTime = 0, _groundKickStrength = 0;
+  static const _groundKickDuration = .27;
+
+  void showGroundImpact(
+    Offset at, {
+    required double strength,
+    bool attenuate = false,
+  }) {
+    if (preferences.reducedMotion) return;
+    if (attenuate) {
+      final distance = (at - myPlayer.position.toOffset()).distance;
+      final proximity = (1 - (distance - 160) / 1100).clamp(0.0, 1.0);
+      strength *= proximity * proximity;
+    }
+    if (strength < .2 ||
+        (_groundKickTime > .19 && strength < _groundKickStrength)) {
+      return;
+    }
+    _groundKickStrength = strength.clamp(0, 16);
+    _groundKickTime = _groundKickDuration;
+  }
+
+  Vector2? _fireWorldOffset() {
+    if ((_fireKickTime <= 0 && _groundKickTime <= 0) ||
+        preferences.reducedMotion ||
+        gameState.gameplayState != GameplayState.playing) {
+      return null;
+    }
+    final offset = inputBlocked ? Vector2.zero() : _sampleFireKick();
+    if (_groundKickTime > 0) {
+      final t = (1 - _groundKickTime / _groundKickDuration).clamp(0.0, 1.0);
+      final envelope = (1 - t) * (1 - t);
+      offset.y += sin(t * pi * 2.2) * envelope * _groundKickStrength;
+    }
+    final base = camera.viewfinder.position;
+    final desired = base - offset;
+    final clamped = map.bounds.cameraPosition(
+      desired,
+      camera.viewport.virtualSize / camera.viewfinder.zoom,
+    );
+    return base - clamped;
+  }
+
   int _weaponImpacts = 0;
   bool claimWeaponImpact() => _weaponImpacts++ < 8;
   late final MapComponent map;
@@ -1503,6 +1589,7 @@ class RegunGame extends FlameGame
     controls = preferences.controls;
 
     map = await MapComponent.loadMap();
+    world = _CombatWorld(this);
     _legacyArena =
         resumeSnapshot != null && resumeSnapshot!['arenaRevision'] != 1;
     _configureArenaGeometry();
@@ -1602,6 +1689,8 @@ class RegunGame extends FlameGame
   }
 
   void _startRun({bool clearSave = true}) {
+    _fireKickTime = 0;
+    _groundKickTime = 0;
     upgradePresentation.cancel();
     bossReveal.reset();
     mechanicalArrival.reset();
@@ -2308,7 +2397,7 @@ class RegunGame extends FlameGame
       // discarded. No offline simulation or invisible active hitbox is restored.
       return true;
     } on Object {
-      world = World();
+      world = _CombatWorld(this);
       world.add(map);
       _startRun();
       saveIssue = 'Saved run could not be restored.';
@@ -3011,15 +3100,16 @@ class RegunGame extends FlameGame
   }
 
   Future<bool> changeTrainingWeapon(WeaponType next) async {
+    if (disposed ||
+        !loadout.training ||
+        !preferences.profile.weaponUnlocked(next) ||
+        gameState.gameplayState != GameplayState.paused) {
+      return false;
+    }
     upgradePresentation.cancel();
     bossReveal.reset();
     mechanicalArrival.reset();
     confirmationHolding.value = false;
-    if (disposed ||
-        !loadout.training ||
-        gameState.gameplayState != GameplayState.paused) {
-      return false;
-    }
     if (next == loadout.weapon) return true;
     final epoch = ++_trainingWeaponEpoch;
     final names = [
@@ -3041,6 +3131,7 @@ class RegunGame extends FlameGame
     }
     if (disposed ||
         epoch != _trainingWeaponEpoch ||
+        !preferences.profile.weaponUnlocked(next) ||
         gameState.gameplayState != GameplayState.paused) {
       for (final name in names) {
         RegunArt.shared.release(name);
@@ -3159,6 +3250,8 @@ class RegunGame extends FlameGame
     shotsFired++;
     myPlayer.recoil =
         1 + releaseOffset / WeaponFeel.of(loadout.weapon).recovery;
+    myPlayer.markMuzzleFlash(baseDirection);
+    showFireKick(baseDirection);
     var damage =
         state.shotDamage *
         gameNotifier.weaponPower.damage(loadout.weapon) *
@@ -3204,9 +3297,8 @@ class RegunGame extends FlameGame
       if (projectileCount >= maxProjectiles) break;
       final direction = baseDirection.clone()
         ..rotate((i - (count - 1) / 2) * spread);
-      var muzzleOffset = Vector2.zero();
       if (loadout.weapon == WeaponType.carbine) {
-        // A tight per-round grouping, not a shotgun fan or a wandering bullet.
+        // Spread changes trajectory, while every round shares the barrel tip.
         direction.rotate(
           (random.nextDouble() * 2 - 1) *
               gameNotifier.weaponPower.behavior(
@@ -3216,19 +3308,12 @@ class RegunGame extends FlameGame
               pi /
               180,
         );
-        final side = Vector2(-baseDirection.y, baseDirection.x);
-        muzzleOffset =
-            side * ((random.nextDouble() * 2 - 1) * 2) +
-            baseDirection * ((random.nextDouble() * 2 - 1) * 1.25);
       }
-      final socket = WeaponArtSpec.of(loadout.weapon).releaseOffset(
-        (loadout.weapon == WeaponType.burstRifle ? baseDirection : direction)
-            .toOffset(),
-      );
+      final socket = WeaponArtSpec.of(loadout.weapon)
+          .releaseOffset(baseDirection.toOffset());
       addProjectile(
         BulletComponent(
-          position:
-              myPlayer.position + muzzleOffset + Vector2(socket.dx, socket.dy),
+          position: myPlayer.position + Vector2(socket.dx, socket.dy),
           weapon: loadout.weapon,
           initialDelay: releaseOffset,
           damage:
@@ -3324,6 +3409,9 @@ class RegunGame extends FlameGame
       }
       return;
     }
+    if (gameState.gameplayState == GameplayState.playing) {
+      _groundKickTime = max(0.0, _groundKickTime - dt);
+    }
     if (mechanicalArrival.active &&
         gameState.gameplayState == GameplayState.playing) {
       resetInput();
@@ -3371,6 +3459,7 @@ class RegunGame extends FlameGame
       resetInput();
       // Mount/load actors without invoking a zero-dt simulation or collisions.
       processLifecycleEvents();
+      final before = bossReveal.elapsed;
       final done = bossReveal.advance(dt);
       final target = Vector2.zero();
       for (final actor in bossReveal.actors) {
@@ -3383,6 +3472,9 @@ class RegunGame extends FlameGame
         myPlayer.position,
         camera.viewport.virtualSize / camera.viewfinder.zoom,
       );
+      if (before < 1.48 && bossReveal.elapsed >= 1.48) {
+        showGroundImpact(target.toOffset(), strength: 9);
+      }
       final focus = map.bounds.cameraPosition(
         target,
         camera.viewport.virtualSize / camera.viewfinder.zoom,
@@ -3409,6 +3501,7 @@ class RegunGame extends FlameGame
     if (phase == GameplayState.paused || phase == GameplayState.gameOver) {
       return;
     }
+    _fireKickTime = max(0.0, _fireKickTime - dt);
     // Gameplay timers use simulation time; pause and restart cannot leak work.
     _reloadWasActive = gameState.reloading;
     final reloadWait = gameNotifier.reloadRemainingSeconds;
@@ -3685,6 +3778,7 @@ class RegunGame extends FlameGame
   }
 
   void landSupplyDrop(Offset position) {
+    showGroundImpact(position, strength: 11, attenuate: true);
     audio.play('supply_land.wav');
     _impactSupplyDrop(position);
   }
@@ -3915,7 +4009,7 @@ class RegunGame extends FlameGame
     lodestarCandidate?.retire();
     // Replace the run world, including components that are still loading and
     // are not yet visible in world.children. They must never enter a new run.
-    world = World();
+    world = _CombatWorld(this);
     _configureArenaGeometry();
     world.add(map);
     _startRun();
@@ -4015,3 +4109,22 @@ class RegunGame extends FlameGame
 
 /// One exclusive development encounter owner in a Training visit.
 enum MechanicalTrial { walker, ariet, lodestar }
+
+/// A view-only recoil offset. Camera geometry and touch coordinates stay fixed.
+class _CombatWorld extends World {
+  _CombatWorld(this.game);
+  final RegunGame game;
+
+  @override
+  void renderFromCamera(Canvas canvas) {
+    final offset = game._fireWorldOffset();
+    if (offset == null || offset.isZero()) {
+      super.renderFromCamera(canvas);
+      return;
+    }
+    canvas.save();
+    canvas.translate(offset.x, offset.y);
+    super.renderFromCamera(canvas);
+    canvas.restore();
+  }
+}

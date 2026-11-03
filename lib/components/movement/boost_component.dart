@@ -85,6 +85,7 @@ class BoostButtonComponent extends AdvancedButtonComponent
           : game.myPlayer.lastMovement,
     );
     game.dashCount++;
+    game.audio.play('dash_burst.wav');
     game.combat.onDash();
     tapped = true;
     _remaining = game.gameState.sprintTimeDistance / 1000;

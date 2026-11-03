@@ -347,12 +347,18 @@ class ArsenalSystem {
     return amount;
   }
 
-  void _released({bool tick = false, bool cue = true}) {
+  void _released({bool tick = false, bool cue = true, Vector2? heading}) {
     if (cue) {
       audio.play('shot_${weapon.name}_${game.shotsFired % 3}.wav');
     }
     game.shotsFired++;
     game.myPlayer.recoil = tick ? .35 : 1;
+    if (!tick || cue) {
+      final direction =
+          heading ?? (aim.isZero() ? game.myPlayer.aimDirection : aim);
+      game.myPlayer.markMuzzleFlash(direction);
+      game.showFireKick(direction);
+    }
     game.gameNotifier.decreaseBullets();
     nextAttack++;
     _idle = 0;
@@ -517,17 +523,8 @@ class ArsenalSystem {
       return false;
     }
     muzzleJitter.setZero();
-    if (weapon == WeaponType.beltRepeater) {
-      muzzleJitter.setValues(
-        (game.random.nextDouble() * 2 - 1) * 2,
-        (game.random.nextDouble() * 2 - 1) * 4,
-      );
-    }
     if (weapon == WeaponType.twinVerdict) {
       muzzleJitter.y = nextAttack.isOdd ? -2.2 : 2.2;
-    }
-    if (weapon == WeaponType.cycloneBreacher) {
-      muzzleJitter.y = ((nextAttack - 1) % 3 - 1) * 3.8;
     }
     final offset =
         direction * muzzleJitter.x +
@@ -605,7 +602,7 @@ class ArsenalSystem {
         ),
       );
     }
-    _released();
+    _released(heading: direction);
     return true;
   }
 
@@ -721,7 +718,7 @@ class ArsenalSystem {
                   _b('flightScale') * origin.distanceTo(f.destination) / 620)
               .clamp(_b('flightBase'), _b('flightMax'));
     flights.add(f);
-    _released();
+    _released(heading: direction);
     return true;
   }
 
@@ -732,6 +729,7 @@ class ArsenalSystem {
     bool primary = true,
     int? attackId,
     double? travel,
+    Vector2? contactPoint,
     WeaponReaction? reaction,
   }) {
     final owner = game.projectileOwner(target);
@@ -752,17 +750,22 @@ class ArsenalSystem {
       direction: direction,
       reaction: reaction,
     );
-    if (accepted && proc) _contact(target, direction);
+    if (accepted && proc) _contact(target, direction, contactPoint);
     return accepted;
   }
 
-  void _contact(PositionComponent target, Vector2 direction) {
+  void _contact(
+    PositionComponent target,
+    Vector2 direction,
+    Vector2? contactPoint,
+  ) {
     if (!game.claimWeaponImpact()) return;
     game.addCombatEffect(
       WeaponImpact(
-        position: target.position.clone(),
+        position: (contactPoint ?? target.position).clone(),
         weapon: weapon,
         direction: direction,
+        surface: ImpactSurface.on(game.projectileOwner(target)),
       ),
     );
     if (weapon != WeaponType.sporeLobber) {
@@ -801,7 +804,13 @@ class ArsenalSystem {
           final at = game.targetContact(target, origin, end, _b('beamRadius'));
           if (at == null) continue;
           visibleEnd = origin + direction * at;
-          _direct(target, amount, direction, travel: at);
+          _direct(
+            target,
+            amount,
+            direction,
+            travel: at,
+            contactPoint: visibleEnd,
+          );
           hits++;
           break;
         }
@@ -870,7 +879,7 @@ class ArsenalSystem {
     _beamAge = 0;
     final starting = !_loopOn;
     _loop(true);
-    _released(tick: true, cue: starting);
+    _released(tick: true, cue: starting, heading: direction);
     cooldown = weapon == WeaponType.cinderHose
         ? math.max(.075, balance.cadence(weapon) * _trigger)
         : balance.cadence(weapon);
@@ -1108,6 +1117,7 @@ class ArsenalSystem {
         primary: !f.returning,
         attackId: f.id,
         travel: f.travelled + contact,
+        contactPoint: before + f.direction * contact,
         reaction: f.returning
             ? WeaponReaction.of(WeaponType.reaperDisc).scaled(.45)
             : null,

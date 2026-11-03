@@ -102,6 +102,14 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     }
   }
 
+  /// A body pose response can read even when a wall consumes physical travel.
+  Offset get impactBodyOffset {
+    if (_impactRemaining <= 0 || impactResponse <= 0) return Offset.zero;
+    final t = _impactRemaining / _impactDuration;
+    final extent = (_impactDistance * .12).clamp(0.0, 7.0);
+    return _impactDirection.toOffset() * (t * t * extent);
+  }
+
   double _flash = 0;
   final _flashPaint = Paint()
     ..colorFilter = const ColorFilter.mode(
@@ -256,6 +264,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     if (isBoss) game.revision.value++;
     if (result == DamageResult.killed && !_rewarded) {
       _rewarded = true;
+      if (isBoss) game.showGroundImpact(position.toOffset(), strength: 16);
       freezeState.remaining = freezeState.recovery = freezeState.immunity = 0;
       _impactRemaining = _impactCooldown = _staggerRemaining =
           _staggerRecovery = 0;

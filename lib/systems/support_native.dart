@@ -252,12 +252,28 @@ class SupportNative {
       auraHit: (target, damage) {
         final e = actor(target.id);
         if (e != null) {
-          final aura=runtime.units.where((u)=>u.card.family==SupportFamily.aura&&u.phase=='active').firstOrNull;
-          if(aura!=null&&game.targetDistance(e,game.myPlayer.position,body:game.enemyRadius(e))>config.auraRadius(aura.card.tier))return;
+          final aura = runtime.units
+              .where(
+                (u) =>
+                    u.card.family == SupportFamily.aura && u.phase == 'active',
+              )
+              .firstOrNull;
+          if (aura != null &&
+              game.targetDistance(
+                    e,
+                    game.myPlayer.position,
+                    body: game.enemyRadius(e),
+                  ) >
+                  config.auraRadius(aura.card.tier)) {
+            return;
+          }
           hit(e, damage, 'aura');
         }
       },
       cue: (u, cue) {
+        if (cue == 'land' && u.card.family == SupportFamily.sentry) {
+          game.showGroundImpact(u.position, strength: 8, attenuate: true);
+        }
         game.audio.play(switch (cue) {
           'fire' =>
             u.card.mount == 'carbine' ? 'sentry_fire.wav' : 'sentry_burst.wav',

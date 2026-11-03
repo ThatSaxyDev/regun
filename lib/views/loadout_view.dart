@@ -43,7 +43,7 @@ class _LoadoutViewState extends State<LoadoutView> {
   ArenaType arena = ArenaType.breach;
   _Catalog _catalog = _Catalog.survivor;
   final _selectedOption = GlobalKey();
-  bool _starting = false, _tryingLockedWeapons = false, _unlocking = false;
+  bool _starting = false, _showLockedWeapons = false, _unlocking = false;
   String? _unlockIssue;
   final _armory = ArmoryRepository.shared;
   void _armoryChanged() {
@@ -148,17 +148,13 @@ class _LoadoutViewState extends State<LoadoutView> {
                               _catalog == _Catalog.weapon && widget.training
                               ? [
                                   TrainingWeaponBrowser(
-                                    selected: weapon,
-                                    initialTryLocked: _tryingLockedWeapons,
+                                    initialShowLocked: _showLockedWeapons,
                                     onGroupChanged: (value) =>
-                                        _tryingLockedWeapons = value,
-                                    builder: (weapons, details) => Column(
+                                        _showLockedWeapons = value,
+                                    builder: (weapons) => Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.stretch,
-                                      children: _weaponOptions(
-                                        weapons,
-                                        details: details,
-                                      ),
+                                      children: _weaponOptions(weapons),
                                     ),
                                   ),
                                 ]
@@ -240,10 +236,7 @@ class _LoadoutViewState extends State<LoadoutView> {
           .toList(),
   };
 
-  List<Widget> _weaponOptions(
-    List<WeaponType> weapons, {
-    Widget? details,
-  }) => weapons
+  List<Widget> _weaponOptions(List<WeaponType> weapons) => weapons
       .map(
         (w) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -254,7 +247,7 @@ class _LoadoutViewState extends State<LoadoutView> {
               description:
                   '${w.description}${WeaponMobility.label(w).isEmpty ? '' : '\n${WeaponMobility.label(w)}'}',
               selected: weapon == w,
-              unlocked: widget.training || profile.weaponUnlocked(w),
+              unlocked: profile.weaponUnlocked(w),
               previewLocked: armoryWeapons.containsKey(w.name),
               lock: armoryWeapons.containsKey(w.name)
                   ? '${profile.totalBossVictories.clamp(0, w.victoryRequirement)} / ${w.victoryRequirement} bosses / ${walletAmount(_armory.catalog.prices[w.name]!)} Scrap'
@@ -270,7 +263,6 @@ class _LoadoutViewState extends State<LoadoutView> {
               art: WeaponThumbnail(w, key: ValueKey('loadout-art-${w.name}')),
               onTap: () => setState(() => weapon = w),
             ),
-            if (weapon == w && details != null) details,
           ],
         ),
       )
@@ -511,7 +503,7 @@ class _LoadoutViewState extends State<LoadoutView> {
             onTap: _starting
                 ? null
                 : () async {
-                    if (!widget.training && !profile.weaponUnlocked(weapon)) {
+                    if (!profile.weaponUnlocked(weapon)) {
                       return;
                     }
                     setState(() => _starting = true);

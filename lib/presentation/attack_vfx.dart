@@ -477,6 +477,7 @@ class AttackVfx {
     required double progress,
     required ColorFilter ambient,
     bool reducedMotion = false,
+    bool launch = false,
   }) {
     canvas.save();
     canvas.translate(foot.dx, foot.dy);
@@ -486,8 +487,8 @@ class AttackVfx {
       canvas,
       p < .4 ? 2 : 3,
       Offset.zero,
-      reducedMotion ? 52 : 54 + 22 * p,
-      height: reducedMotion ? 19 : 20 + 7 * p,
+      reducedMotion ? 52 : (launch ? 106 : 66) + 25 * p,
+      height: reducedMotion ? 19 : (launch ? 29 : 22) + 7 * p,
       alpha: .65 * (1 - p),
       ambient: ambient,
     );

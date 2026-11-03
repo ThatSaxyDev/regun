@@ -86,14 +86,7 @@ void main() {
             .byKey(const ValueKey('training-your-weapons'))
             .evaluate()
             .isNotEmpty) {
-      final gun = WeaponType.values.firstWhere((w) => 'weapon-${w.name}' == id);
-      final filter = find.byKey(
-        ValueKey(
-          LocalPreferences.shared.profile.weaponUnlocked(gun)
-              ? 'training-your-weapons'
-              : 'training-try-locked',
-        ),
-      );
+      final filter = find.byKey(const ValueKey('training-your-weapons'));
       await tester.ensureVisible(filter);
       await tester.tap(filter);
       await tester.pumpAndSettle();
@@ -173,21 +166,30 @@ void main() {
         find.byKey(const ValueKey('loadout-weapon-railLance')),
         findsNothing,
       );
-      await select(tester, 'weapon-railLance');
+      await tester.tap(find.byKey(const ValueKey('training-locked-weapons')));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('ARENA'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('WEAPON'));
       await tester.pumpAndSettle();
       expect(
-        find.byKey(const ValueKey('loadout-weapon-railLance')),
+        find.byKey(const ValueKey('training-locked-railLance')),
         findsOneWidget,
       );
       expect(
         find.byKey(const ValueKey('loadout-weapon-shotgun')),
         findsNothing,
       );
-      expect(find.text('Rail Lance / TRAINING ONLY'), findsOneWidget);
-      expect(find.text('Unlock: 0 / 7 boss victories'), findsOneWidget);
+      final rail = find.byKey(const ValueKey('training-locked-railLance'));
+      await tester.ensureVisible(rail);
+      await tester.tap(rail);
+      await tester.pumpAndSettle();
+      expect(find.text('Rail Lance / LOCKED'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('loadout-summary'))).data,
+        contains(WeaponType.shotgun.title),
+      );
+      expect(find.text('Earn it: 0 / 7 boss victories'), findsOneWidget);
       final pin = find.byKey(const Key('training-pin-weapon-goal'));
       await tester.ensureVisible(pin);
       await tester.runAsync(() async {
@@ -211,13 +213,16 @@ void main() {
       });
       await tester.pump();
       await Scrollable.ensureVisible(
-        tester.element(find.byKey(const ValueKey('loadout-weapon-railLance'))),
+        tester.element(find.byKey(const ValueKey('training-locked-railLance'))),
         alignment: 0,
       );
       await tester.pump();
       await capture(tester, 'training-locked-goal');
       await show(tester, training: false);
-      expect(find.byKey(const ValueKey('training-try-locked')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('training-locked-weapons')),
+        findsNothing,
+      );
       await tester.tap(find.text('WEAPON'));
       await tester.pumpAndSettle();
       await select(tester, 'weapon-railLance');
@@ -283,6 +288,12 @@ void main() {
       }
       await tester.tap(find.text('WEAPON'));
       await tester.pumpAndSettle();
+      final profile = LocalPreferences.shared.profile;
+      profile.challenges.addAll([
+        'training',
+        ...WeaponType.values.map((w) => w.name),
+      ]);
+      profile.ownedWeapons.addAll(WeaponType.values.map((w) => w.name));
       for (final gun in WeaponType.values) {
         await select(tester, 'weapon-${gun.name}');
         await tester.runAsync(() async {
@@ -322,6 +333,7 @@ void main() {
       await select(tester, 'survivor-warden');
       await tester.tap(find.text('WEAPON'));
       await tester.pumpAndSettle();
+      LocalPreferences.shared.profile.challenges.add('revolver');
       await select(tester, 'weapon-revolver');
       await capture(tester, 'weapon');
       // Verify actual painted pixels, not just a mounted thumbnail placeholder.
@@ -388,6 +400,7 @@ void main() {
   ) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.runAsync(LocalPreferences.shared.resetProgress);
     await show(tester, training: false);
     await select(tester, 'survivor-scrapper');
     await tester.tap(find.text('WEAPON'));

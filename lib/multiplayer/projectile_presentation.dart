@@ -1,3 +1,5 @@
+import 'package:regun/presentation/weapon_art_spec.dart';
+
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -333,7 +335,7 @@ class ProjectilePresentation {
     _predictedShots['$burst:$shot'] = now;
     _cueCount++;
     final angle = math.atan2(aim.dy, aim.dx);
-    // Carbine's random +/-2 degree heading/muzzle offsets are server-owned.
+    // Carbine's small random heading adjustment is server-owned.
     // The initial visual uses centered intent and joins that exact trajectory.
     for (var i = 0; i < pellets; i++) {
       final a =
@@ -343,7 +345,9 @@ class ProjectilePresentation {
               (1 - math.max(0, extra - 3) * .04);
       final d = Offset(math.cos(a), math.sin(a));
       final p =
-          origin + const Offset(0, 6) + d * (WeaponFeel.of(weapon).muzzle + 8);
+          origin +
+          WeaponArtSpec.of(weapon)
+              .releaseOffset(Offset(math.cos(angle), math.sin(angle)));
       final round = OnlineRound('local:$burst:$shot:$i', {
         'x': p.dx,
         'y': p.dy,

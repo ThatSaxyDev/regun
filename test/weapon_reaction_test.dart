@@ -83,6 +83,8 @@ void main() {
       await tester.runAsync(() async {
         for (final weapon in WeaponType.values) {
           game.pauseGame();
+          game.preferences.profile.challenges.addAll(['training', weapon.name]);
+          game.preferences.profile.ownedWeapons.add(weapon.name);
           expect(await game.changeTrainingWeapon(weapon), isTrue);
           game.gameNotifier.playGame();
           final body = _Body(Vector2(300, 0));

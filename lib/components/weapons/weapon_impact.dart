@@ -1,3 +1,5 @@
+import 'package:regun/components/enemies/arena_enemy.dart';
+import 'package:regun/components/enemies/combat_enemy.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/presentation/boss_vfx.dart';
 import 'package:regun/presentation/boss_art.dart';
@@ -12,19 +14,41 @@ import 'package:regun/components/weapons/combat_effect.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/presentation/weapon_feel.dart';
 
+enum ImpactSurface {
+  body,
+  chitin,
+  metal,
+  stone;
+
+  static ImpactSurface on(PositionComponent target) {
+    if (target is CombatEnemy && target.isBoss) return metal;
+    if (target is ArenaEnemy) {
+      return switch (target.kind) {
+        EnemyKind.shield || EnemyKind.sentinel => metal,
+        EnemyKind.scorpion || EnemyKind.runner => chitin,
+        _ => body,
+      };
+    }
+    return body;
+  }
+}
+
 /// Fixed-cost strokes, not emitted particle entities. Uses the existing FX cap.
 class WeaponImpact extends CombatEffect {
   WeaponImpact({
     required super.position,
     required this.weapon,
     required Vector2 direction,
+    this.surface = ImpactSurface.body,
   }) : direction = direction.clone(),
        super(duration: .22);
   final WeaponType weapon;
   final Vector2 direction;
+  final ImpactSurface surface;
   @override
   void render(Canvas canvas) {
-    if (weapon.index >= WeaponType.twinVerdict.index) {
+    if (surface != ImpactSurface.stone &&
+        weapon.index >= WeaponType.twinVerdict.index) {
       EndgameVfx.contact(
         canvas,
         weapon,
@@ -82,6 +106,24 @@ class WeaponImpact extends CombatEffect {
         Rect.fromCenter(center: Offset.zero, width: core, height: core),
         Paint()..color = const Color(0xffFFF1CF),
       );
+    }
+    if (!reduced && t < .8) {
+      final color = switch (surface) {
+        ImpactSurface.body => const Color(0xff9e5041),
+        ImpactSurface.chitin => const Color(0xffcf9b63),
+        ImpactSurface.metal => const Color(0xffe9c686),
+        ImpactSurface.stone => const Color(0xffa79b82),
+      };
+      final reach = radius * (.65 + t * .85);
+      for (var i = 0; i < 3; i++) {
+        final point = Offset(reach * (.45 + i * .2), (i - 1) * reach * .34);
+        AttackVfx.chip(
+          canvas,
+          point,
+          (surface == ImpactSurface.metal ? 5 : 7) * (1 - t),
+          color.withValues(alpha: 1 - t),
+        );
+      }
     }
     if (!reduced && weapon == WeaponType.shotgun) {
       for (final side in [-1, 1]) {

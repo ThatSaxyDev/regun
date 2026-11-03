@@ -110,6 +110,8 @@ void main() {
         g.setTrainingDamage(false);
         for (final weapon in WeaponType.values) {
           g.pauseGame();
+          g.preferences.profile.challenges.addAll(['training', weapon.name]);
+          g.preferences.profile.ownedWeapons.add(weapon.name);
           expect(await g.changeTrainingWeapon(weapon), isTrue);
           g.resumeGame();
           g.pauseEngine();

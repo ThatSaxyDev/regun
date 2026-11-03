@@ -10,16 +10,19 @@ class WeaponPracticeTile extends StatelessWidget {
     required this.weapon,
     required this.selected,
     required this.onTap,
+    this.locked = false,
   });
   final WeaponType weapon;
-  final bool selected;
+  final bool selected, locked;
   final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
     selected: selected,
     enabled: onTap != null,
-    label: '${weapon.title}, ${weapon.capacity} rounds',
+    label: locked
+        ? '${weapon.title}, locked, view unlock requirement'
+        : '${weapon.title}, ${weapon.capacity} rounds',
     excludeSemantics: true,
     child: InkWell(
       excludeFromSemantics: true,
@@ -44,7 +47,11 @@ class WeaponPracticeTile extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                selected ? 'EQUIPPED' : '${weapon.capacity} ROUNDS',
+                locked
+                    ? 'LOCKED / VIEW REQUIREMENT'
+                    : selected
+                    ? 'EQUIPPED'
+                    : '${weapon.capacity} ROUNDS',
                 style: TextStyle(
                   fontFamily: FontFam.orbitron,
                   fontSize: 10,

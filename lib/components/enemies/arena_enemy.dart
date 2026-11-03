@@ -340,6 +340,10 @@ class ArenaEnemy extends PositionComponent
           : (direction.x > 0 ? 0 : 3);
     }
     canvas.save();
+    if (!game.preferences.reducedMotion) {
+      final hit = impactBodyOffset;
+      canvas.translate(hit.dx, hit.dy);
+    }
     final facingLeft = kind == EnemyKind.runner && (phase == 1 || phase == 2)
         ? _committed.x < 0
         : game.myPlayer.position.x < position.x;

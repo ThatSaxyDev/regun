@@ -1,3 +1,4 @@
+import 'package:regun/presentation/weapon_art_spec.dart';
 import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/guard_feedback.dart';
 import 'package:regun/presentation/mechanic_vfx.dart';
@@ -45,6 +46,14 @@ class PlayerComponent extends SpriteAnimationComponent
   final aimDirection = Vector2(1, 0);
   final weaponHeading = WeaponHeading();
   double recoil = 0, hurtFlash = 0;
+  double _flashRemaining = 0;
+  final _releaseHeading = Vector2(1, 0);
+  void markMuzzleFlash(Vector2 heading) {
+    if (heading.isZero()) return;
+    _releaseHeading.setFrom(heading.normalized());
+    _flashRemaining = muzzleFlashDuration(game.loadout.weapon);
+  }
+
   double _trailClock = 0, _dashDustClock = 0;
   bool _wasDashing = false;
 
@@ -112,6 +121,7 @@ class PlayerComponent extends SpriteAnimationComponent
           ? _brace[_facingRow]
           : _idle[_facingRow];
       recoil = 0;
+      _flashRemaining = 0;
       hurtFlash = 0;
       return;
     }
@@ -133,8 +143,13 @@ class PlayerComponent extends SpriteAnimationComponent
       }
     }
     recoil = max(0, recoil - dt / WeaponFeel.of(game.loadout.weapon).recovery);
+    _flashRemaining = max(0, _flashRemaining - dt);
     hurtFlash = max(0, hurtFlash - dt);
-    final facing = aim.isZero() ? movement : aim;
+    final facing = game.boostButtonComponent.tapped
+        ? dashDirection
+        : aim.isZero()
+        ? movement
+        : aim;
     if (!facing.isZero()) {
       _facingRow = facing.x.abs() > facing.y.abs()
           ? (facing.x < 0 ? 2 : 0)
@@ -184,7 +199,23 @@ class PlayerComponent extends SpriteAnimationComponent
           CombatEffect(
             position: position + Vector2(0, 28),
             dashDirection: dashDirection.clone(),
+            dashLaunch: !_wasDashing,
             duration: .24,
+          ),
+        );
+      }
+      if (_dashDustClock == 0 && !game.preferences.reducedMotion) {
+        game.addCombatEffect(
+          CombatEffect(
+            position: position.clone(),
+            remains: RegunArt.shared.survivorActionFrame(
+              game.loadout.character.name,
+              _facingRow,
+              0,
+            ),
+            radius: size.x * .5,
+            remainsOpacity: _wasDashing ? .19 : .32,
+            duration: .16,
           ),
         );
       }
@@ -311,11 +342,13 @@ class PlayerComponent extends SpriteAnimationComponent
     }
     void weapon() {
       canvas.save();
+      final heading = _flashRemaining > 0 ? _releaseHeading : aimDirection;
       canvas.translate(
-        size.x * .5 + aimDirection.x * 8,
-        size.y * .56 + aimDirection.y * 8,
+        size.x * .5 + heading.x * WeaponArtSpec.handReach,
+        size.y * .5 +
+            WeaponArtSpec.handMount.dy +
+            heading.y * WeaponArtSpec.handReach,
       );
-      final heading = aimDirection;
       canvas.rotate(atan2(heading.y, heading.x));
       if (heading.x < 0) canvas.scale(1, -1);
       paintWeapon(
@@ -329,6 +362,7 @@ class PlayerComponent extends SpriteAnimationComponent
             ? game.gameNotifier.reloadProgress.value
             : -1,
         recoil: recoil,
+        flash: _flashRemaining / muzzleFlashDuration(game.loadout.weapon),
         charge: game.arsenal?.visualCharge ?? 0,
         muzzleJitter:
             (game.loadout.weapon == WeaponType.beltRepeater ||

@@ -90,13 +90,7 @@ void drawArenaDistricts(
           const Color(0xff95816a),
         );
       }
-      _pavers(
-        canvas,
-        bypass,
-        visible,
-        const Color(0xff3d3830),
-        const Color(0xff5b4c39),
-      );
+      _pavers(canvas, bypass, visible, arena);
     }
     for (final vent in map.anchors(
       legacy ? 'foundry_legacy_vents' : 'foundry_vents',
@@ -117,13 +111,7 @@ void drawArenaDistricts(
   switch (arena) {
     case ArenaType.floodworks:
       final bed = marks.first;
-      _pavers(
-        canvas,
-        bed.inflate(33),
-        visible,
-        const Color(0xff333d37),
-        const Color(0xff42483f),
-      );
+      _pavers(canvas, bed.inflate(33), visible, arena);
       if (visible.overlaps(bed)) {
         SluiceArt.channel(canvas, bed, flowTime: flowTime);
       }
@@ -132,13 +120,7 @@ void drawArenaDistricts(
       break;
     case ArenaType.breach:
       final road = marks.first;
-      _pavers(
-        canvas,
-        road,
-        visible,
-        const Color(0xff3c3b2e),
-        const Color(0xff56503b),
-      );
+      _pavers(canvas, road, visible, arena);
       break;
     case ArenaType.relayGraveyard:
       final trench = marks.first;
@@ -159,29 +141,37 @@ void drawArenaDistricts(
   }
 }
 
-void _pavers(Canvas canvas, Rect rect, Rect visible, Color base, Color rim) {
+void _pavers(Canvas canvas, Rect rect, Rect visible, ArenaType arena) {
   if (!visible.overlaps(rect)) return;
-  final paint = Paint()..isAntiAlias = false;
+  final tile = RegunArt.shared.image('arenas/${arena.name}_floor');
+  final material = Paint()
+    ..filterQuality = FilterQuality.none
+    ..colorFilter = const ColorFilter.mode(
+      Color(0xff858371),
+      BlendMode.modulate,
+    );
+  final joint = Paint()..color = const Color(0x8c11160f);
   canvas.save();
   canvas.clipRect(rect);
-  for (var row = 0; rect.top + row * 44 < rect.bottom; row++) {
-    final y = rect.top + row * 44;
+  for (var row = 0, y = rect.top; y < rect.bottom; row++, y += 44) {
     if (y + 44 < visible.top || y > visible.bottom) continue;
     for (var col = -1; rect.left + col * 73 < rect.right; col++) {
       final x = rect.left + col * 73 + (row.isOdd ? 36 : 0);
       if (x + 73 < visible.left || x > visible.right) continue;
-      final n = (row * 13 + col * 7).abs() % 5;
-      canvas.drawRect(
-        Rect.fromLTWH(x + 2, y + 3, 69, 38),
-        paint..color = Color.lerp(base, rim, n * .06)!,
+      final n = (row * 31 + col * 17).abs();
+      final w = tile.width.toDouble(), h = tile.height.toDouble();
+      final source = Rect.fromLTWH(
+        (n % 67) / 100 * w,
+        (n % 72) / 100 * h,
+        w * .30,
+        h * .24,
       );
-      canvas.drawRect(
-        Rect.fromLTWH(x + 2, y + 3, 61 - n * 3, 3),
-        paint..color = rim,
-      );
-      canvas.drawRect(
-        Rect.fromLTWH(x + 9 + n * 5, y + 18, 15 + n * 4, 2),
-        paint..color = const Color(0x53302522),
+      canvas.drawRect(Rect.fromLTWH(x + 1, y + 2, 72, 42), joint);
+      canvas.drawImageRect(
+        tile,
+        source,
+        Rect.fromLTWH(x + 1, y + 1, 71, 40),
+        material,
       );
     }
   }

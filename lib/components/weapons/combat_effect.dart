@@ -14,8 +14,10 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
     this.companion = false,
     this.perkChain = false,
     this.dashDirection,
+    this.dashLaunch = false,
     this.remains,
     this.flipRemains = false,
+    this.remainsOpacity = 1,
     this.radius = 90,
     this.material = AttackMaterial.stone,
     this.color = const Color(0xffE3BF83),
@@ -32,7 +34,8 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
              ? -10
              : 20010,
        );
-  final bool upgradePulse, companion, perkChain;
+  final bool upgradePulse, companion, perkChain, dashLaunch;
+  final double remainsOpacity;
   final Vector2? dashDirection;
   final Vector2? endpoint;
   final Sprite? remains;
@@ -64,6 +67,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
         dashDirection!.toOffset(),
         progress: (age / duration).clamp(0, 1),
         ambient: BossArt.ambient(game.loadout.arena),
+        launch: dashLaunch,
         reducedMotion: game.preferences.reducedMotion,
       );
       return;
@@ -90,7 +94,7 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
         anchor: Anchor.center,
         overridePaint: Paint()
           ..color = Colors.white.withValues(
-            alpha: (1 - age / duration).clamp(0, 1),
+            alpha: remainsOpacity * (1 - age / duration).clamp(0, 1),
           ),
       );
       canvas.restore();

@@ -292,6 +292,7 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
     expect(find.text('UPDATE REQUIRED'), findsOneWidget);
+    expect(find.text('CHECK AGAIN'), findsNothing);
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.text('UPDATE REQUIRED'), findsOneWidget);
@@ -300,12 +301,14 @@ void main() {
     expect(find.text('Couldn’t open the store. Please try again.'),
         findsOneWidget);
     s.fail = true;
-    await tester.tap(find.text('CHECK AGAIN'));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
     expect(find.text('UPDATE REQUIRED'), findsOneWidget);
     s.fail = false;
     s.result = VersionCheckResult.noUpdateRequired;
-    await tester.tap(find.text('CHECK AGAIN'));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
     expect(find.text('UPDATE REQUIRED'), findsNothing);
     expect(tester.takeException(), isNull);

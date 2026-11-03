@@ -224,7 +224,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             child: GameNotice(
               eyebrow: 'RE-GUN / ARMORY',
               title: 'WEAPON LOCKED',
-              message: 'Unlock this weapon before starting a normal run. Try it freely in Training.',
+              message: 'Earn this weapon before equipping it.',
               actions: ClickButton(
                 text: 'Back',
                 onTap: () => Navigator.of(context).pop(),
@@ -931,9 +931,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       title: 'WEAPON PRACTICE',
       summary: '${_myGame.loadout.weapon.title} equipped / choose a weapon',
       builder: (_) => TrainingWeaponBrowser(
-        selected: _myGame.loadout.weapon,
         preferences: _myGame.preferences,
-        builder: (weapons, details) => MenuCardGrid(
+        builder: (weapons) => MenuCardGrid(
           minColumnWidth: 180,
           children: [
             for (final weapon in weapons)
@@ -957,8 +956,6 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                             }
                           },
                   ),
-                  if (weapon == _myGame.loadout.weapon && details != null)
-                    details,
                 ],
               ),
           ],
