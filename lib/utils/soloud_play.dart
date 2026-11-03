@@ -279,7 +279,12 @@ class SoloudPlay {
   }
 
   Future<void> playMusic(String theme) async {
-    final asset = theme == 'menu' ? 'music_menu.mp3' : 'music_$theme.wav';
+    final asset = switch (theme) {
+      'menu' => 'music_menu.mp3',
+      'floodworks' => 'music_breach.wav',
+      'relayGraveyard' => 'music_foundry.wav',
+      _ => 'music_$theme.wav',
+    };
     if (_music == asset && _musicHandle != null) return;
     _music = asset;
     final request = ++_musicRequest;

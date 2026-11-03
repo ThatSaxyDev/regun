@@ -460,7 +460,14 @@ class _OnlineViewState extends State<OnlineView> with WidgetsBindingObserver {
           const OnlineCaption('Arena'),
           const SizedBox(height: 8),
           options(
-            ['breach', 'foundry'],
+            [
+              'breach',
+              'foundry',
+              if (session.survivalArenasAvailable) ...[
+                'floodworks',
+                'relayGraveyard',
+              ],
+            ],
             map,
             _mapTitle,
             (v) => setState(() => map = v),
@@ -814,6 +821,8 @@ String _mapTitle(String value) {
   return switch (value) {
     'breach' => 'The Breach',
     'foundry' => 'The Foundry',
+    'floodworks' => 'Floodworks',
+    'relayGraveyard' => 'Relay Graveyard',
     'network_lab' => 'Practice arena',
     _ => 'Arena',
   };

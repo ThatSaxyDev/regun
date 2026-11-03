@@ -1226,3 +1226,30 @@ blasts, a large core explosion around1.65s, settled remains and one reward. Repe
 while partly buried, with pause/resume and Reduced Motion. Test normal solo and
 updated co-op encounter admission (all clients capability12). Ground art, weapon
 readability, aggression, sound and device comfort still need creator approval.
+
+## Four Survival arenas
+
+Choose an arena in **Play → Arena** or **Training → Arena**. Compare with the
+same weapon and pressure. In Breach, follow the evacuation marks and try
+supply drops on both sides. In Foundry, reload behind a press and compare
+the furnace crossing with the southern bypass. In Floodworks, time the sluice
+surge or cross the dry embankment. In Relay Graveyard, move between the wagon
+rows and cable field as reinforcement approaches rotate. During boss practice,
+try camping behind every solid, then retreat both ways around it with a
+dense pack. Record any route the boss cannot contest.
+
+The revised arena art uses distinct material floors and grounded landmarks.
+Floodworks starts on the maintenance apron. The sluice's amber lamps and foam
+mark the warning, then the moving spill fills the committed danger area.
+Reduced Motion keeps the foam and warning lights with a stationary water
+texture. Check that the surge reads against the bank and that it plays without
+an explosion. The [gameplay capture sheet](validation/arena-art-2026-11-03/gameplay-review.jpg)
+shows all four arenas in combat, followed by the sluice warning and active phase.
+Capture again with `flutter test tool/arena_visual_review_test.dart`.
+
+Floodworks follow-up: try to walk or dash through the iron gate and both
+masonry dividers. Check that ground enemies take a route around each and that
+Skitter leaps stop at the same footprint. The channel and its flush edge
+trim are walkable. Watch the current before a surge and check that Reduced
+Motion holds it still. Breach's open ground uses only floor detail and its
+landed supply pod for interior cover.

@@ -1,3 +1,4 @@
+import 'package:regun/presentation/sluice_art.dart';
 import 'package:regun/presentation/travel_gait.dart';
 import 'package:regun/presentation/boss_portal.dart';
 import 'package:regun/presentation/combat_status_art.dart';
@@ -63,6 +64,21 @@ class OnlineWorldArt {
             ((age - (warning ? 0 : entity.number('warning'))) /
                     math.max(.001, duration))
                 .clamp(0.0, 1.0);
+        if (d['material'] == 'sluice') {
+          SluiceArt.surge(
+            canvas,
+            p,
+            entity.number('radius'),
+            warning: warning,
+            drain:
+                ((age - entity.number('warning') - entity.number('duration')) /
+                        SluiceArt.drainDuration)
+                    .clamp(0, 1),
+            progress: progress,
+            reducedMotion: reducedMotion,
+          );
+          return;
+        }
         final material =
             AttackMaterial.values
                 .where((m) => m.name == d['material'])

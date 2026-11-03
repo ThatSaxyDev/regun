@@ -7,13 +7,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/presentation/lodestar_art.dart';
 import 'package:regun/presentation/lodestar_battle_art.dart';
+import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/systems/lodestar/lodestar_combat.dart';
 import 'package:regun/systems/lodestar/lodestar_rig.dart';
 import 'package:regun/systems/lodestar/lodestar_sections.dart';
 
 void main() {
   testWidgets(
-    'both arena materials, finite impacts and sequential burrow paint visible pixels',
+    'all arena materials, finite impacts and sequential burrow paint visible pixels',
     (tester) async {
       await tester.runAsync(() async {
         await (FontLoader('Orbitron')
@@ -44,7 +45,7 @@ void main() {
             final rec = ui.PictureRecorder(),
                 c = Canvas(rec)..translate(750, 350);
             if (focus != null) c.translate(-focus.dx, -focus.dy);
-            final floor = assets.floors[arena.name]!;
+            final floor = RegunArt.shared.image('arenas/${arena.name}_floor');
             for (var x = -1536.0; x < 1536; x += 768) {
               for (var y = -768.0; y < 768; y += 768) {
                 c.drawImageRect(

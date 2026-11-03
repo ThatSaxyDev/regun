@@ -6,11 +6,34 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/components/map/map_component.dart';
 import 'package:regun/data/loadout.dart';
+import 'package:regun/data/enemies.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/systems/arena_geometry.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('the largest boss can cross the sluice and dry bypass', () async {
+    final map = await MapComponent.loadMap();
+    final radius = BossKind.values
+        .map((boss) => boss.bodyRadius)
+        .reduce((a, b) => a > b ? a : b);
+    final floor = map.bounds.interior.deflate(radius);
+    final barriers = map.obstacles(ArenaType.floodworks);
+    for (final y in [0.0, 1450.0]) {
+      final west = Vector2(-1000, y);
+      final east = Vector2(1000, y);
+      expect(floor.contains(west.toOffset()), isTrue);
+      expect(floor.contains(east.toOffset()), isTrue);
+      expect(
+        barriers.any(
+          (r) => ArenaGeometry.crosses(west, east, r.inflate(radius)),
+        ),
+        isFalse,
+      );
+    }
+    expect(map.obstacles(ArenaType.foundry, legacy: true), hasLength(6));
+  });
+
   test('authored frames are finite, inside textures and fit the mobile budget', () async {
     final manifest = jsonDecode(
       await rootBundle.loadString('assets/art/manifest.json'),
@@ -113,7 +136,12 @@ void main() {
       expect(map.bounds.rect, const Rect.fromLTWH(-2256, -2256, 4512, 4512));
       for (final arena in ArenaType.values) {
         final solids = map.obstacles(arena);
-        expect(solids.length, arena == ArenaType.breach ? 0 : 6);
+        expect(
+          solids.length,
+          arena == ArenaType.breach
+              ? 0
+              : (arena == ArenaType.floodworks ? 3 : 2),
+        );
         final geometry = ArenaGeometry(map.bounds, obstacles: solids);
         for (final solid in solids) {
           final savedPosition = Vector2(solid.center.dx, solid.center.dy);

@@ -64,12 +64,25 @@ class MapComponent extends PositionComponent with HasGameReference<RegunGame> {
     return MapComponent._(dimensions, obstacles);
   }
 
-  List<Vector2> get vents => [
-    for (final r in _obstacles['foundry_vents'] ?? <Rect>[])
-      Vector2(r.left, r.top),
+  List<Vector2> get vents => anchors('foundry_vents');
+
+  List<Vector2> anchors(String group) => [
+    for (final r in regions(group)) Vector2(r.left, r.top),
   ];
-  List<Rect> obstacles(ArenaType arena) =>
-      List.unmodifiable(_obstacles['${arena.name}_obstacles']!);
+
+  List<Rect> obstacles(ArenaType arena, {bool legacy = false}) =>
+      List.unmodifiable([
+        ...regions(
+          legacy && arena == ArenaType.foundry
+              ? 'foundry_legacy_obstacles'
+              : '${arena.name}_obstacles',
+        ),
+        if (arena == ArenaType.floodworks) ...regions('floodworks_gate'),
+      ]);
+
+  List<Rect> regions(String group) =>
+      List.unmodifiable(_obstacles[group] ?? const <Rect>[]);
+
   @override
   void render(Canvas canvas) {
     final image = RegunArt.shared.image(

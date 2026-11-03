@@ -190,7 +190,8 @@ class LodestarBoss extends PositionComponent
   bool _legal(List<LodestarPose> poses) {
     // Called only after preparation except initial straight pose construction.
     if (!prepared) return true;
-    for (final shape in fight.shapes(poses)) {
+    final shapes = fight.shapes(poses);
+    for (final shape in shapes) {
       if (!clear(shape.a, shape.b, shape.radius + .4)) return false;
     }
     // One owner reserves the whole ground shape. Other living bodies and
@@ -199,8 +200,10 @@ class LodestarBoss extends PositionComponent
       if (identical(e, this) || e is! CombatEnemy || e.combatHealth.isDead) {
         continue;
       }
-      for (final shape in fight.shapes(poses)) {
-        if (shape.distance(e.position.toOffset()) < game.crowdRadius(e) + 4) {
+      final at = e.position.toOffset();
+      final clearance = game.crowdRadius(e) + 4;
+      for (final shape in shapes) {
+        if (shape.distance(at) < clearance) {
           return false;
         }
       }

@@ -1,3 +1,5 @@
+import 'package:regun/components/map/arena_scenery.dart';
+import 'package:regun/components/map/map_component.dart';
 import 'package:regun/presentation/travel_gait.dart';
 import 'package:regun/presentation/online_lodestar.dart';
 import 'package:regun/presentation/online_walker.dart';
@@ -86,6 +88,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   final Map<String, Offset> origins = {}, knobs = {}, displayed = {};
   final Set<LogicalKeyboardKey> keys = {};
   bool artReady = false;
+  MapComponent? districtMap;
   late final OnlineArtLeases leases = OnlineArtLeases(
     () => mounted ? setState(() {}) : null,
   );
@@ -335,6 +338,9 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   void initState() {
     super.initState();
     audio = ref.read(soloudPlayProvider);
+    MapComponent.loadMap().then((map) {
+      if (mounted) setState(() => districtMap = map);
+    });
     Future.wait([
       for (final c in CharacterType.values.where((c) => c.availableOnline))
         RegunArt.shared.acquireSurvivor(c.name),
@@ -816,6 +822,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                         positions: displayed,
                         seconds: seconds,
                         artReady: artReady,
+                        districtMap: districtMap,
                         shotTimes: shotTimes,
                         hurtTimes: hurtTimes,
                         grenadeAim: grenadeAim,
@@ -1102,6 +1109,7 @@ class _ArenaPainter extends CustomPainter {
     required this.positions,
     required this.seconds,
     required this.artReady,
+    required this.districtMap,
     required this.shotTimes,
     required this.hurtTimes,
     required this.grenadeAim,
@@ -1126,6 +1134,7 @@ class _ArenaPainter extends CustomPainter {
   final Map<String, Offset> positions;
   final double seconds;
   final bool artReady;
+  final MapComponent? districtMap;
   final Map<String, double> shotTimes, hurtTimes;
   @override
   void paint(Canvas canvas, Size size) {
@@ -1179,11 +1188,12 @@ class _ArenaPainter extends CustomPainter {
 
     canvas.drawRect(bounds, Paint()..color = const Color(0xff252B25));
     if (artReady) {
-      final image = RegunArt.shared.image(
-        session.room?.mapId == 'foundry'
-            ? 'arenas/foundry_floor'
-            : 'arenas/breach_floor',
-      );
+      final image = RegunArt.shared.image(switch (session.room?.mapId) {
+        'foundry' => 'arenas/foundry_floor',
+        'floodworks' => 'arenas/floodworks_floor',
+        'relayGraveyard' => 'arenas/relayGraveyard_floor',
+        _ => 'arenas/breach_floor',
+      });
       final transform = Matrix4.diagonal3Values(
         768 / image.width,
         768 / image.height,
@@ -1205,6 +1215,24 @@ class _ArenaPainter extends CustomPainter {
           ),
       );
     }
+    if (artReady && districtMap != null && session.room?.mode == 'coop') {
+      final id = session.room?.mapId;
+      final arena = ArenaType.values.where((a) => a.name == id).firstOrNull;
+      if (arena != null) {
+        drawArenaDistricts(
+          canvas,
+          districtMap!,
+          arena,
+          Rect.fromCenter(
+            center: camera,
+            width: worldSize.width,
+            height: worldSize.height,
+          ),
+          legacy: !session.survivalArenasAvailable,
+          flowTime: LocalPreferences.shared.reducedMotion ? 0 : seconds % 31,
+        );
+      }
+    }
     canvas.drawRect(
       bounds.deflate(4),
       Paint()
@@ -1214,6 +1242,26 @@ class _ArenaPainter extends CustomPainter {
     );
     for (final raw in geometry['obstacles'] as List) {
       final rect = rectOf(raw as List<num>);
+      final id = session.room?.mapId;
+      final arena = ArenaType.values.where((a) => a.name == id).firstOrNull;
+      final map = districtMap;
+      final sprite =
+          artReady &&
+              map != null &&
+              arena != null &&
+              session.survivalArenasAvailable
+          ? arenaSolidSprite(map, arena, rect)
+          : null;
+      if (sprite != null) {
+        paintArenaSolid(canvas, rect, sprite);
+        continue;
+      }
+      if (artReady &&
+          arena == ArenaType.floodworks &&
+          session.survivalArenasAvailable) {
+        paintFloodDivider(canvas, rect);
+        continue;
+      }
       canvas.drawOval(
         Rect.fromCenter(
           center: rect.bottomCenter + const Offset(8, -10),

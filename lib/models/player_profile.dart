@@ -95,7 +95,7 @@ class PlayerProfile {
   bool characterUnlocked(CharacterType character) =>
       character == CharacterType.rook || challenges.contains(character.name);
   bool arenaUnlocked(ArenaType arena) =>
-      arena == ArenaType.breach || challenges.contains('foundry');
+      arena != ArenaType.foundry || challenges.contains('foundry');
 
   String characterProgress(CharacterType c) {
     final count = switch (c) {

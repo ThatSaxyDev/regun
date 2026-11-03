@@ -1,3 +1,5 @@
+import 'package:regun/components/enemies/combat_enemy.dart';
+import 'package:regun/presentation/sluice_art.dart';
 import 'package:regun/systems/player_hurt_geometry.dart';
 import 'package:regun/systems/boss_attack_shape.dart';
 import 'package:regun/data/enemies.dart';
@@ -22,15 +24,39 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
     this.poison = false,
     this.ownerHealth,
     this.bossKind,
-  }) : super(priority: -10);
+    double initialAge = 0,
+  }) : age = initialAge,
+       _impacted = initialAge >= warning,
+       super(priority: -10);
   final double radius, warning, active;
   final int damage;
   final String cause;
   final bool poison;
   final BossKind? bossKind;
   final CombatHealth? ownerHealth;
-  double age = 0;
-  bool _impacted = false;
+  double age;
+  bool _impacted;
+  bool get _sluice => cause == 'Sluice surge';
+  bool get _arenaHazard => _sluice || cause == 'Foundry vent';
+
+  int _pulseAt(double time) => ((time - warning) / .75).floor();
+
+  void _hitArenaEnemies() {
+    for (final actor in game.liveEnemies.toList()) {
+      if (actor is! CombatEnemy || actor.isBoss) continue;
+      final reach = radius + game.enemyRadius(actor);
+      if (actor.position.distanceToSquared(position) < reach * reach &&
+          !game.segmentBlocked(position, actor.position)) {
+        game.hitEnemy(
+          actor,
+          damage.toDouble(),
+          primary: false,
+          allowChain: false,
+        );
+      }
+    }
+  }
+
   @override
   void onRemove() {
     game.unregisterHazard(this);
@@ -55,10 +81,17 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
     }
 
     if (age >= warning + active) {
-      removeFromParent();
+      if (!_sluice || age >= warning + active + SluiceArt.drainDuration) {
+        removeFromParent();
+      }
       return;
     }
-    if (!_impacted && age >= warning) {
+    if (_arenaHazard &&
+        age >= warning &&
+        _pulseAt(age) > _pulseAt(previousAge)) {
+      _hitArenaEnemies();
+    }
+    if (!_impacted && age >= warning && cause != 'Sluice surge') {
       _impacted = true;
       game.addCombatEffect(
         HeavyImpact(
@@ -71,6 +104,8 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
       game.audio.play(poison ? 'impact_poison.wav' : 'impact_boss.wav');
     }
     if (age >= warning &&
+        (!_arenaHazard ||
+            !game.segmentBlocked(position, game.myPlayer.position)) &&
         position.distanceToSquared(game.myPlayer.position) <
             PlayerHurtGeometry.reach(radius) *
                 PlayerHurtGeometry.reach(radius)) {
@@ -80,6 +115,18 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
 
   @override
   void render(Canvas canvas) {
+    if (cause == 'Sluice surge') {
+      SluiceArt.surge(
+        canvas,
+        Offset.zero,
+        radius,
+        warning: age < warning,
+        drain: ((age - warning - active) / SluiceArt.drainDuration).clamp(0, 1),
+        progress: (age / (warning + active)).clamp(0, 1),
+        reducedMotion: game.preferences.reducedMotion,
+      );
+      return;
+    }
     (bossKind == null
         ? AttackVfx.disk
         : BossVfx(

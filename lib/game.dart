@@ -1091,6 +1091,7 @@ class RegunGame extends FlameGame
     bool poison = false,
     BossKind? bossKind,
     CombatHealth? ownerHealth,
+    double initialAge = 0,
   }) {
     if (_hazards.length + _bossAttacks.length >= 8) return;
     constrainActor(position, radius);
@@ -1104,6 +1105,7 @@ class RegunGame extends FlameGame
       poison: poison,
       ownerHealth: ownerHealth,
       bossKind: bossKind,
+      initialAge: initialAge,
     );
     _hazards.add(hazard);
     world.add(hazard);
@@ -1501,15 +1503,9 @@ class RegunGame extends FlameGame
     controls = preferences.controls;
 
     map = await MapComponent.loadMap();
-    geometry = ArenaGeometry(
-      map.bounds,
-      obstacles: map.obstacles(loadout.arena),
-      dynamicObstacles: () sync* {
-        final drop = supplyDrops.drop;
-        if (!_landingSupply && drop != null && drop.solid) yield drop.footprint;
-        yield* supportCombat.solids;
-      },
-    );
+    _legacyArena =
+        resumeSnapshot != null && resumeSnapshot!['arenaRevision'] != 1;
+    _configureArenaGeometry();
     world.add(map);
     movementJoystick = MovementJoystickComponent();
     weaponJoystick = WeaponJoystickComponent();
@@ -1587,6 +1583,22 @@ class RegunGame extends FlameGame
     _startRun(clearSave: resumeSnapshot == null);
     if (resumeSnapshot != null) restoreRun(resumeSnapshot!);
     if (startPaused) gameNotifier.pauseGame();
+  }
+
+  bool get legacyArena => _legacyArena;
+
+  bool _legacyArena = false;
+
+  void _configureArenaGeometry() {
+    geometry = ArenaGeometry(
+      map.bounds,
+      obstacles: map.obstacles(loadout.arena, legacy: _legacyArena),
+      dynamicObstacles: () sync* {
+        final drop = supplyDrops.drop;
+        if (!_landingSupply && drop != null && drop.solid) yield drop.footprint;
+        yield* supportCombat.solids;
+      },
+    );
   }
 
   void _startRun({bool clearSave = true}) {
@@ -1687,7 +1699,11 @@ class RegunGame extends FlameGame
     scorpionKills = 0;
     eliteKills = 0;
     boostButtonComponent.reset();
-    world.add(myPlayer = PlayerComponent(position: Vector2.zero()));
+    final landing = loadout.arena == ArenaType.floodworks
+        ? Vector2(-375, -290)
+        : Vector2.zero();
+    _trainingOrigin.setFrom(landing);
+    world.add(myPlayer = PlayerComponent(position: landing.clone()));
     world.addAll([
       BossPortalFloor(),
       ArsenalOverlay(floor: true),
@@ -1709,6 +1725,7 @@ class RegunGame extends FlameGame
       respawn: false,
       reducedMotion: preferences.reducedMotion,
       camera: camera.viewfinder.position,
+      target: landing,
     );
     layoutControls();
     if (walkerTrial && loadout.training) _placeWalker();
@@ -1758,6 +1775,7 @@ class RegunGame extends FlameGame
       'recordOwner': _recordOwner,
       'recordEpoch': _recordEpoch,
       'weaponAccessVersion': 2,
+      'arenaRevision': _legacyArena ? 0 : 1,
       'id': runId,
       'loadout': loadout.toJson(),
       ...gameNotifier.checkpoint(),
@@ -1766,6 +1784,13 @@ class RegunGame extends FlameGame
       'dash': boostButtonComponent.checkpoint(),
       'droneClock': combat.droneClock,
       'ventClock': _ventClock,
+      'arenaHazards': [
+        for (final hazard in _hazards)
+          if (!hazard.isRemoving &&
+              (hazard.cause == 'Foundry vent' ||
+                  hazard.cause == 'Sluice surge'))
+            [hazard.position.x, hazard.position.y, hazard.age],
+      ],
       'supplyDrops': supplyDrops.toJson(),
       'supportRuntime': supportCombat.runtime.toJson(),
       'upgradePulsePending': _upgradePulsePending,
@@ -2201,6 +2226,7 @@ class RegunGame extends FlameGame
       assisted = snapshot['assisted'] == true;
       combat.droneClock = (snapshot['droneClock'] as num?)?.toDouble() ?? 0;
       _ventClock = (snapshot['ventClock'] as num?)?.toDouble() ?? 0;
+      _restoreArenaHazard(snapshot['arenaHazards']);
       boostButtonComponent.restoreCheckpoint(
         Map<String, dynamic>.from(snapshot['dash'] as Map? ?? {}),
       );
@@ -2341,7 +2367,10 @@ class RegunGame extends FlameGame
     var spawn = Vector2.zero();
     // All pressure levels approach from the view edges like normal survival.
     for (var attempt = 0; attempt < 12; attempt++) {
-      final side = random.nextInt(4);
+      final roll = random.nextInt(4);
+      final side = loadout.arena == ArenaType.relayGraveyard && attempt < 4
+          ? (director.elapsed ~/ 18 + roll ~/ 2 * 2) % 4
+          : roll;
       spawn = switch (side) {
         0 => Vector2(
           visible.left,
@@ -3480,27 +3509,7 @@ class RegunGame extends FlameGame
       if (director.bossDue && !loadout.training) {
         spawnBoss(director.chooseBoss(random));
       }
-      if (loadout.arena == ArenaType.foundry &&
-          director.bossesDefeated > 0 &&
-          activeBoss == null) {
-        _ventClock += dt;
-        if (_ventClock >= 6) {
-          _ventClock = 0;
-          final vents = map.vents
-            ..sort(
-              (a, b) => a
-                  .distanceToSquared(myPlayer.position)
-                  .compareTo(b.distanceToSquared(myPlayer.position)),
-            );
-          addHostileArea(
-            vents.first,
-            radius: 115,
-            warning: 1.2,
-            active: 1.5,
-            cause: 'Foundry vent',
-          );
-        }
-      }
+      _advanceArenaHazard(dt);
     }
     if (loadout.training) {
       final done = switch (trainingStep) {
@@ -3559,6 +3568,78 @@ class RegunGame extends FlameGame
     gameNotifier.offerSupportPractice(family);
   }
 
+  void _advanceArenaHazard(double dt) {
+    final flood = loadout.arena == ArenaType.floodworks;
+    if ((!flood && loadout.arena != ArenaType.foundry) ||
+        bossRush ||
+        activeBoss != null ||
+        (_legacyArena && director.bossesDefeated == 0)) {
+      return;
+    }
+    final interval = flood ? 11.0 : 6.0;
+    _ventClock += dt;
+    if (_ventClock < interval) return;
+    _ventClock = 0;
+    final anchors = _arenaHazardAnchors()
+      ..sort(
+        (a, b) => a
+            .distanceToSquared(myPlayer.position)
+            .compareTo(b.distanceToSquared(myPlayer.position)),
+      );
+    if (anchors.isEmpty ||
+        (!_legacyArena &&
+            anchors.first.distanceToSquared(myPlayer.position) > 720 * 720)) {
+      return;
+    }
+    _stageArenaHazard(anchors.first);
+  }
+
+  List<Vector2> _arenaHazardAnchors() => map.anchors(
+    loadout.arena == ArenaType.floodworks
+        ? 'floodworks_vents'
+        : _legacyArena
+        ? 'foundry_legacy_vents'
+        : 'foundry_vents',
+  );
+
+  void _restoreArenaHazard(Object? raw) {
+    if ((loadout.arena != ArenaType.foundry &&
+            loadout.arena != ArenaType.floodworks) ||
+        raw is! List ||
+        raw.length != 1) {
+      return;
+    }
+    final row = raw.first;
+    if (row is! List ||
+        row.length != 3 ||
+        row.any((v) => v is! num || !v.isFinite)) {
+      return;
+    }
+    final age = (row[2] as num).toDouble();
+    if (age < 0 ||
+        age >= (loadout.arena == ArenaType.floodworks ? 5.95 : 2.7)) {
+      return;
+    }
+    for (final anchor in _arenaHazardAnchors()) {
+      if (anchor.x == row[0] && anchor.y == row[1]) {
+        _stageArenaHazard(anchor, initialAge: age);
+        return;
+      }
+    }
+  }
+
+  void _stageArenaHazard(Vector2 at, {double initialAge = 0}) {
+    final flood = loadout.arena == ArenaType.floodworks;
+    addHostileArea(
+      at,
+      radius: flood ? 330 : 115,
+      warning: flood ? 2 : 1.2,
+      active: flood ? 3 : 1.5,
+      cause: flood ? 'Sluice surge' : 'Foundry vent',
+      initialAge: initialAge,
+    );
+  }
+
   void practiceSupplyDrop() {
     if (!loadout.training || loadout.arena != ArenaType.breach) return;
     _retirePracticeBosses();
@@ -3575,21 +3656,30 @@ class RegunGame extends FlameGame
         .intersect(map.bounds.floor)
         .deflate(SupplyDrop.radius + 35);
     if (area.width <= 0 || area.height <= 0) return null;
+    bool eligible(Offset spot) =>
+        area.contains(spot) &&
+        (spot - myPlayer.position.toOffset()).distance >= 260 &&
+        (supplyDrops.previous == null ||
+            (spot - supplyDrops.previous!).distance >= 350) &&
+        ![
+          ...geometry.solids,
+          ...supportCombat.reservations,
+        ].any((r) => r.inflate(SupplyDrop.radius + 20).contains(spot));
+
+    if (!_legacyArena) {
+      final sites = map
+          .anchors('breach_supply')
+          .map((point) => point.toOffset())
+          .where(eligible)
+          .toList();
+      if (sites.isNotEmpty) return sites[random.nextInt(sites.length)];
+    }
     for (var i = 0; i < 30; i++) {
       final spot = Offset(
         area.left + random.nextDouble() * area.width,
         area.top + random.nextDouble() * area.height,
       );
-      if ((spot - myPlayer.position.toOffset()).distance < 260 ||
-          (supplyDrops.previous != null &&
-              (spot - supplyDrops.previous!).distance < 350) ||
-          [
-            ...geometry.solids,
-            ...supportCombat.reservations,
-          ].any((r) => r.inflate(SupplyDrop.radius + 20).contains(spot))) {
-        continue;
-      }
-      return spot;
+      if (eligible(spot)) return spot;
     }
     return null;
   }
@@ -3826,6 +3916,7 @@ class RegunGame extends FlameGame
     // Replace the run world, including components that are still loading and
     // are not yet visible in world.children. They must never enter a new run.
     world = World();
+    _configureArenaGeometry();
     world.add(map);
     _startRun();
     if (restartRush) startBossRush();

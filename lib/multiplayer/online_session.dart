@@ -57,6 +57,7 @@ class OnlineSession {
   bool upgradeConfirmationAvailable = false;
   bool bossPresentationAvailable = false;
   bool excavationBossesAvailable = false;
+  bool survivalArenasAvailable = false;
   bool segmentedBossesAvailable = false;
   bool mechanicalBossesAvailable = false;
   static const upgradeConfirmationsEnabled = true;
@@ -411,6 +412,9 @@ class OnlineSession {
       );
       grenadeAimingAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'aim_grenade',
+      );
+      survivalArenasAvailable = (schemaJson['reducers'] as List? ?? []).any(
+        (v) => v is Map && v['name'] == 'survival_arenas',
       );
       excavationBossesAvailable = (schemaJson['reducers'] as List? ?? []).any(
         (v) => v is Map && v['name'] == 'excavation_bosses',

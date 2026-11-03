@@ -504,7 +504,15 @@ enum CharacterType {
 
 enum ArenaType {
   breach('The Breach', 'Open dungeon. Space to learn the horde.'),
-  foundry('The Foundry', 'Vents, choke points, and shifting pressure.');
+  foundry(
+    'The Foundry',
+    'Break line of sight behind presses. Watch the vents.',
+  ),
+  floodworks('Floodworks', 'Time the sluice crossing or take the dry route.'),
+  relayGraveyard(
+    'Relay Graveyard',
+    'Switch firing angles as the horde rotates.',
+  );
 
   const ArenaType(this.title, this.description);
   final String title, description;

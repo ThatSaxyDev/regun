@@ -194,14 +194,23 @@ class LodestarBattleArt {
   void body(Canvas c, LodestarCombat f, bool reduced, {int? section}) {
     final art = LodestarArt(assets), poses = f.rig.poses;
     if (f.finished) return;
-    for (var i = 0; i < 5; i++) {
-      if (section != null && i != section) continue;
+    final first = section ?? 0;
+    final end = section == null ? 5 : math.min(5, section + 1);
+    for (var i = first; i < end; i++) {
       final alpha = f.depths[i] >= 1 && f.depths[i + 1] >= 1
           ? 0.0
           : f.wreckOpacity;
       if (alpha <= 0) continue;
-      c.saveLayer(null, Paint()..color = Color.fromRGBO(255, 255, 255, alpha));
-      if (f.depths[i] > 0 || f.depths[i + 1] > 0) {
+      final link = f.rig.couplingAt(i);
+      if (!c
+          .getLocalClipBounds()
+          .inflate(24)
+          .overlaps(Rect.fromPoints(link.a, link.b).inflate(14))) {
+        continue;
+      }
+      final masked = f.depths[i] > 0 || f.depths[i + 1] > 0;
+      if (masked) {
+        c.save();
         c.translate(f.mouth.dx, f.mouth.dy);
         c.rotate(f.course);
         c.clipRect(
@@ -212,15 +221,16 @@ class LodestarBattleArt {
         c.rotate(-f.course);
         c.translate(-f.mouth.dx, -f.mouth.dy);
       }
-      art.coupling(c, f.rig.couplings[i]);
-      c.restore();
+      art.coupling(c, link, alpha: alpha);
+      if (masked) c.restore();
     }
     // Individual parts depth sort, never one enclosing body circle or six
     // independent damage/proc owners. Ground siblings stay below all actors.
-    final order = poses.toList()
-      ..sort((a, b) => a.position.dy.compareTo(b.position.dy));
+    final order = section == null
+        ? (poses.toList()
+            ..sort((a, b) => a.position.dy.compareTo(b.position.dy)))
+        : [poses[section]];
     for (final p in order) {
-      if (section != null && p.section.index != section) continue;
       final depth = f.depths[p.section.index];
       if (depth >= 1) continue;
       if (!c.getLocalClipBounds().inflate(180).contains(p.position)) continue;

@@ -230,7 +230,7 @@ class LodestarArt {
     c.restore();
   }
 
-  void coupling(ui.Canvas c, LodestarCoupling link) {
+  void coupling(ui.Canvas c, LodestarCoupling link, {double alpha = 1}) {
     // Eye centers sit at the two real solved sockets; art adds a small yoke
     // outside each center. Reach rejection prevents visibly stretching hoses.
     part(
@@ -239,6 +239,7 @@ class LodestarArt {
       (link.a + link.b) / 2,
       ui.Size(link.length * 490 / 446, 13),
       link.yaw,
+      alpha: alpha,
     );
   }
 

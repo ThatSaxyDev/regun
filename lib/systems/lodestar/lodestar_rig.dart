@@ -70,9 +70,10 @@ class LodestarRig {
   }
 
   int get historySamples => _path.length;
+  LodestarCoupling couplingAt(int index) =>
+      LodestarCoupling(_poses[index + 1].front, _poses[index].rear);
   List<LodestarCoupling> get couplings => [
-    for (var i = 0; i < 5; i++)
-      LodestarCoupling(_poses[i + 1].front, _poses[i].rear),
+    for (var i = 0; i < 5; i++) couplingAt(i),
   ];
   static Offset rotate(Offset p, double yaw) => Offset(
     p.dx * math.cos(yaw) - p.dy * math.sin(yaw),
