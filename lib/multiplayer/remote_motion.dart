@@ -98,7 +98,12 @@ class RemoteMotion {
     }
   }
 
-  Offset? render(double now, MotionMap map, {bool reducedMotion = false}) {
+  Offset? render(
+    double now,
+    MotionMap map, {
+    bool reducedMotion = false,
+    double radius = 30,
+  }) {
     if (_samples.isEmpty) return null;
     final latest = _samples.last;
     // A recent minimum clock offset estimates the baseline delivery delay.
@@ -113,12 +118,22 @@ class RemoteMotion {
       if (_cursor <= b.time) {
         final t = ((_cursor - a.time) / (b.time - a.time)).clamp(0.0, 1.0);
         // Use shared swept cover constraints for interpolated paths too.
-        return map.move(a.position, (b.position - a.position) * t);
+        return map.move(
+          a.position,
+          (b.position - a.position) * t,
+          const [],
+          radius,
+        );
       }
     }
     final age = math.max(0.0, _cursor - latest.time);
     if (age > .08) underRuns++;
     extrapolatedSeconds = reducedMotion ? 0 : age.clamp(0.0, latest.limit);
-    return map.move(latest.position, latest.velocity * extrapolatedSeconds);
+    return map.move(
+      latest.position,
+      latest.velocity * extrapolatedSeconds,
+      const [],
+      radius,
+    );
   }
 }

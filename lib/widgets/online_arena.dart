@@ -10,7 +10,7 @@ import 'package:regun/presentation/boss_portal.dart';
 import 'package:regun/presentation/freeze_focus.dart';
 import 'package:regun/presentation/guard_feedback.dart';
 import 'package:regun/presentation/mechanic_vfx.dart';
-import 'package:regun/multiplayer/combat_state.dart' show OnlineGun;
+import 'package:regun/multiplayer/combat_state.dart' show OnlineEntity, OnlineGun;
 import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/upgrade_art.dart';
 import 'package:regun/presentation/upgrade_presentation.dart';
@@ -1209,6 +1209,13 @@ class _ArenaPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final mine = session.me;
+    final reducedMotion = LocalPreferences.shared.reducedMotion;
+    final enemyPositions = <String, Offset>{};
+    Offset enemyPosition(OnlineEntity enemy) => enemyPositions.putIfAbsent(
+      enemy.key,
+      () => session.enemyPosition(enemy, reducedMotion: reducedMotion),
+    );
+    final presentedRounds = session.presentedProjectiles();
     final teammate = session.members
         .where(
           (m) =>
@@ -1400,6 +1407,7 @@ class _ArenaPainter extends CustomPainter {
           canvas,
           enemy,
           foundry: session.room?.mapId == 'foundry',
+          presentedPosition: enemyPosition(enemy),
           hideSpawn: bossPresentation.actors.any((a) => a.key == enemy.key),
         );
         if (enemy.data['boss'] == true && enemy.number('health') <= 0) {
@@ -1553,7 +1561,7 @@ class _ArenaPainter extends CustomPainter {
         }
       }
     }
-    for (final grenade in session.projectiles.where(
+    for (final grenade in presentedRounds.where(
       (r) => r.data['kind'] == 'grenade',
     )) {
       canvas.drawOval(
@@ -1577,7 +1585,7 @@ class _ArenaPainter extends CustomPainter {
                   e.kind == 'support',
             )
             .toList()
-          ..sort((a, b) => a.y.compareTo(b.y));
+          ..sort((a, b) => enemyPosition(a).dy.compareTo(enemyPosition(b).dy));
     var enemyIndex = 0;
     void drawEnemy() {
       final enemy = enemies[enemyIndex++];
@@ -1648,6 +1656,7 @@ class _ArenaPainter extends CustomPainter {
       OnlineWorldArt.enemy(
         canvas,
         enemy,
+        presentedPosition: enemyPosition(enemy),
         mummyWalk: mummyWalks[enemy.key],
         scorpionGait: scorpionGaits[enemy.key],
         laserAim: aim,
@@ -1672,7 +1681,7 @@ class _ArenaPainter extends CustomPainter {
     for (final member in sorted) {
       while (artReady &&
           enemyIndex < enemies.length &&
-          enemies[enemyIndex].y < member.y) {
+          enemyPosition(enemies[enemyIndex]).dy < member.y) {
         drawEnemy();
       }
       final p =
@@ -1952,7 +1961,7 @@ class _ArenaPainter extends CustomPainter {
     while (artReady && enemyIndex < enemies.length) {
       drawEnemy();
     }
-    for (final round in session.presentedProjectiles()) {
+    for (final round in presentedRounds) {
       if (round.data['kind'] == 'grenade') {
         final flight = round.data['flight'] as Map? ?? {};
         final height = LocalPreferences.shared.reducedMotion

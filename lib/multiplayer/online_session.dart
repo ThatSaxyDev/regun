@@ -67,6 +67,7 @@ class OnlineSession {
   bool predictionReducedMotion = false;
   final movementPrediction = MovementPrediction();
   final remoteMotion = <String, RemoteMotion>{};
+  final _enemyMotion = <String, RemoteMotion>{};
   final projectilePresentation = ProjectilePresentation();
   ProjectileMap? _projectileMap;
   String? _projectileMapId;
@@ -159,6 +160,18 @@ class OnlineSession {
             ) ??
             Offset(member.x, member.y);
 
+  Offset enemyPosition(OnlineEntity enemy, {bool reducedMotion = false}) {
+    final map = _remoteMap;
+    if (map == null) return Offset(enemy.x, enemy.y);
+    return _enemyMotion[enemy.key]?.render(
+          _time.elapsedMicroseconds / 1e6,
+          map,
+          reducedMotion: reducedMotion,
+          radius: enemy.number('radius', 25).clamp(0, 100),
+        ) ??
+        Offset(enemy.x, enemy.y);
+  }
+
   void _captureRemoteMotion() {
     final r = room;
     if (!connected ||
@@ -167,13 +180,43 @@ class OnlineSession {
         !active ||
         (match != null && match!.phase != 'active')) {
       remoteMotion.clear();
+      _enemyMotion.clear();
       return;
     }
     if (_remoteMapId != r.mapId) {
       _remoteMapId = r.mapId;
-      _remoteMap = MotionMap(onlineGeometry[r.mapId]!);
       remoteMotion.clear();
+      _enemyMotion.clear();
     }
+    _remoteMap = MotionMap(gameplayGeometry);
+    final arrival = _time.elapsedMicroseconds / 1e6;
+    final tick = r.tick.toInt();
+    final serverTime = r.lastTickAt.toInt() / 1e6;
+    final enemyEpoch = '${r.id}:${match?.data['matchId']}';
+    final enemies = <String>{};
+    for (final enemy in scene) {
+      // Plant attacks and spawn cues at their authoritative positions.
+      if (enemy.kind != 'enemy' ||
+          enemy.data['boss'] == true ||
+          enemy.number('health') <= 0 ||
+          enemy.number('spawning') > 0 ||
+          enemy.number('phase') != 0) {
+        continue;
+      }
+      enemies.add(enemy.key);
+      _enemyMotion
+          .putIfAbsent(enemy.key, RemoteMotion.new)
+          .add(
+            epoch: enemyEpoch,
+            tick: tick,
+            serverTime: serverTime,
+            arrival: arrival,
+            position: Offset(enemy.x, enemy.y),
+            moving: true,
+            extrapolationLimit: .03,
+          );
+    }
+    _enemyMotion.removeWhere((key, _) => !enemies.contains(key));
     for (final member in members) {
       final key = member.identity.toHexString;
       if (key == identity) continue;
@@ -321,13 +364,17 @@ class OnlineSession {
   Int64? _generation, _inputRoom, _ack;
   DateTime? _lostAt;
   double moveX = 0, moveY = 0, aimX = 1, aimY = 0;
+  void Function(MotionInput input)? onMotionDispatch;
+  void Function(int sequence, bool firing)? onCombatDispatch;
   Member? get me =>
       members.where((m) => m.identity.toHexString == identity).firstOrNull;
   bool get owner => room?.owner.toHexString == identity;
   bool get compatible =>
       room == null ||
       (room!.protocol == 1 &&
-          room!.geometryHash == (geometryHashes[room!.mapId] ?? geometryHash) &&
+          (room!.geometryHash ==
+                  (geometryHashes[room!.mapId] ?? geometryHash) ||
+              room!.geometryHash == legacyGeometryHashes[room!.mapId]) &&
           onlineGeometry.containsKey(room!.mapId));
   bool get active => room?.phase == 'active';
   bool get canStart {
@@ -502,6 +549,23 @@ class OnlineSession {
         _listeners.add(table.deleteStream.listen((_) => _queueRefresh()));
       }
 
+      final trace = onTickTrace;
+      if (trace != null) {
+        void received(Room row) {
+          if (row.phase != 'active') return;
+          trace(
+            'cache',
+            row.tick.toInt(),
+            row.lastTickAt.toInt(),
+            _time.elapsedMicroseconds,
+          );
+        }
+
+        _listeners.add(fresh.myRoom.insertStream.listen(received));
+        _listeners.add(
+          fresh.myRoom.updateStream.listen((event) => received(event.newRow)),
+        );
+      }
       watch(fresh.myRoom);
       watch(fresh.roomMembers);
       watch(fresh.myProbe);
@@ -520,10 +584,13 @@ class OnlineSession {
         }),
       );
       _refresh();
-      _predictionClock ??= Timer.periodic(
-        const Duration(milliseconds: 16),
-        (_) => _predict(),
-      );
+      _predictionClock ??= Timer.periodic(const Duration(milliseconds: 16), (
+        _,
+      ) {
+        _predict();
+        // The pump still enforces its send interval and in-flight limits.
+        _pumpCombatInput();
+      });
       _clock ??= Timer.periodic(
         const Duration(milliseconds: 50),
         (_) => _tick(),
@@ -592,6 +659,10 @@ class OnlineSession {
     }
     if (!guestRejected && !_closed) await connect();
   }
+
+  /// Optional diagnostic for authoritative ticks at the SDK cache and game.
+  void Function(String stage, int tick, int serverUs, int clientUs)?
+  onTickTrace;
 
   bool _refreshQueued = false;
   void _queueRefresh() {
@@ -775,6 +846,15 @@ class OnlineSession {
       );
     }
     _notify();
+    final trace = onTickTrace, applied = room;
+    if (trace != null && applied != null && applied.phase == 'active') {
+      trace(
+        'applied',
+        applied.tick.toInt(),
+        applied.lastTickAt.toInt(),
+        _time.elapsedMicroseconds,
+      );
+    }
   }
 
   void neutral() {
@@ -988,6 +1068,7 @@ class OnlineSession {
     final client = _client!, mine = me!, epoch = _epoch;
     unawaited(() async {
       try {
+        onMotionDispatch?.call(input);
         await client.reducers
             .queueMotion(
               roomid: mine.roomId,
@@ -1044,6 +1125,56 @@ class OnlineSession {
     }
   }
 
+  void _pumpCombatInput() {
+    final mine = me, r = room;
+    if (_closed ||
+        !controlsEnabled ||
+        mine == null ||
+        r == null ||
+        _client == null ||
+        match == null ||
+        gun?.enabled != true) {
+      return;
+    }
+    final client = _client!, epoch = _epoch, burst = _fireBurst;
+    combatInputPump.tick(_time.elapsedMicroseconds / 1e6, firing, _reloadSeq, (
+      held,
+      reload,
+    ) async {
+      try {
+        final sequence = Int64(++_combatSeq);
+        onCombatDispatch?.call(sequence.toInt(), held);
+        final response =
+            await (projectileInputsAvailable
+                    ? client.reducers.combatInputV2(
+                        roomid: r.id,
+                        generation: mine.generation,
+                        seq: sequence,
+                        reloadseq: Int64(reload),
+                        firing: held,
+                        burst: Int64(burst),
+                      )
+                    : client.reducers.combatInput(
+                        roomid: r.id,
+                        generation: mine.generation,
+                        seq: sequence,
+                        reloadseq: Int64(reload),
+                        firing: held,
+                      ))
+                .timeout(const Duration(seconds: 4));
+        return response.isSuccess;
+      } on ReducerException {
+        // Batched arrivals can hit the server's 10ms limit. Retry the latest
+        // intent on the next bounded send; an old rejection must not release
+        // the player's current sticks or replay a previous reload.
+        return false;
+      } catch (_) {
+        if (!_closed && epoch == _epoch && connected) _lost();
+        return false;
+      }
+    }, burst: burst);
+  }
+
   void _tick() {
     if (!connected || suspended || _closed) return;
     if (tokens is AccountOnlineTokens &&
@@ -1071,44 +1202,6 @@ class OnlineSession {
     if (!controlsEnabled || mine == null || r == null) {
       combatInputPump.reset();
       return;
-    }
-    if (match != null && gun?.enabled == true) {
-      final client = _client!, epoch = _epoch, burst = _fireBurst;
-      combatInputPump.tick(_time.elapsedMicroseconds / 1e6, firing, _reloadSeq, (
-        held,
-        reload,
-      ) async {
-        try {
-          final sequence = Int64(++_combatSeq);
-          final response =
-              await (projectileInputsAvailable
-                      ? client.reducers.combatInputV2(
-                          roomid: r.id,
-                          generation: mine.generation,
-                          seq: sequence,
-                          reloadseq: Int64(reload),
-                          firing: held,
-                          burst: Int64(burst),
-                        )
-                      : client.reducers.combatInput(
-                          roomid: r.id,
-                          generation: mine.generation,
-                          seq: sequence,
-                          reloadseq: Int64(reload),
-                          firing: held,
-                        ))
-                  .timeout(const Duration(seconds: 4));
-          return response.isSuccess;
-        } on ReducerException {
-          // Batched arrivals can hit the server's 10ms limit. Retry the latest
-          // intent on the next bounded send; an old rejection must not release
-          // the player's current sticks or replay a previous reload.
-          return false;
-        } catch (_) {
-          if (!_closed && epoch == _epoch && connected) _lost();
-          return false;
-        }
-      }, burst: burst);
     }
     if (reviveTarget.isNotEmpty && _pulse % 2 == 0) {
       final target = identityKeyFromCanonical(reviveTarget);
@@ -1158,6 +1251,7 @@ class OnlineSession {
     if (_closed || !connected) return;
     connected = false;
     remoteMotion.clear();
+    _enemyMotion.clear();
     projectilePresentation.clear();
     combatInputPump.reset();
     neutral();
@@ -1279,6 +1373,7 @@ class OnlineSession {
     ++_epoch;
     connected = false;
     remoteMotion.clear();
+    _enemyMotion.clear();
     projectilePresentation.clear();
     combatInputPump.reset();
     neutral();

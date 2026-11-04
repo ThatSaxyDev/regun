@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/multiplayer/combat_state.dart';
 import 'package:regun/multiplayer/projectile_presentation.dart';
 import 'package:regun/multiplayer/identity_key.dart';
+import 'package:regun/systems/grenades.dart';
 
 final open = ProjectileMap({
   'bounds': [-2000, -1000, 2000, 1000],
@@ -114,6 +115,31 @@ void main() {
       expect(p.render(1, open).single.x, closeTo(176, 1e-8));
       capture(p, 1, g, []);
       expect(p.render(1, open), isEmpty);
+    },
+  );
+  test(
+    'grenade presentation advances briefly and respects cover and deletion',
+    () {
+      final p = ProjectilePresentation(), g = gun();
+      final grenade = OnlineRound('grenade:1', {
+        'kind': 'grenade',
+        'x': 0,
+        'y': 0,
+        'flight': GrenadeFlight(Offset.zero, const Offset(600, 0)).toJson(),
+      });
+      final cover = ProjectileMap({
+        'bounds': [-2000, -1000, 2000, 1000],
+        'obstacles': [
+          [30, -100, 40, 100],
+        ],
+      });
+      capture(p, 0, g, [grenade]);
+      expect(p.render(.02, open).single.x, greaterThan(0));
+      expect(p.render(.08, open).single.x, greaterThan(40));
+      expect(p.render(.5, open).single.x, p.render(.08, open).single.x);
+      expect(p.render(.08, cover).single.x, lessThan(30));
+      capture(p, .1, g, []);
+      expect(p.render(.1, open), isEmpty);
     },
   );
   test(

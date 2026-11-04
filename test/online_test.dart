@@ -39,23 +39,21 @@ Member member(
   'pingMs': ping,
   'pingAt': at,
 });
-Room room({
-  String mode = 'versus',
-  int teamSize = 3,
-  String hash = geometryHash,
-}) => Room.fromJson({
-  'id': 1,
-  'code': 'ABCDEFGH23',
-  'owner': id(1),
-  'mode': mode,
-  'teamSize': teamSize,
-  'capacity': mode == 'coop' ? 3 : teamSize * 2,
-  'enemies': true,
-  'phase': 'waiting',
-  'mapId': mode == 'coop' ? 'breach' : 'network_lab',
-  'protocol': 1,
-  'geometryHash': hash,
-});
+Room room({String mode = 'versus', int teamSize = 3, String? hash}) =>
+    Room.fromJson({
+      'id': 1,
+      'code': 'ABCDEFGH23',
+      'owner': id(1),
+      'mode': mode,
+      'teamSize': teamSize,
+      'capacity': mode == 'coop' ? 3 : teamSize * 2,
+      'enemies': true,
+      'phase': 'waiting',
+      'mapId': mode == 'coop' ? 'breach' : 'network_lab',
+      'protocol': 1,
+      'geometryHash':
+          hash ?? (mode == 'coop' ? geometryHashes['breach'] : geometryHash),
+    });
 
 class FakeSession extends OnlineSession {
   int dashes = 0;
@@ -127,6 +125,10 @@ void main() {
     expect(s.canStart, isFalse);
     s.members[2] = member(3);
     expect(s.canStart, isTrue);
+    s.room = room(mode: 'coop', hash: legacyGeometryHashes['breach']);
+    expect(s.canStart, isTrue);
+    s.room = room(mode: 'coop', hash: geometryHashes['foundry']);
+    expect(s.canStart, isFalse);
     s.room = room(hash: 'different geometry');
     expect(s.canStart, isFalse);
   });

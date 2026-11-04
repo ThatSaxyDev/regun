@@ -17,17 +17,22 @@ class MotionMap {
   );
   final Rect bounds;
   final List<Rect> obstacles;
-  Offset move(Offset point, Offset delta, [List<Offset> occupied = const []]) {
+  Offset move(
+    Offset point,
+    Offset delta, [
+    List<Offset> occupied = const [],
+    double radius = 30,
+  ]) {
     var position = point;
     final steps = math.max(1, (delta.distance / 18).ceil());
     for (var i = 0; i < steps; i++) {
       var p = position + delta / steps.toDouble();
       p = Offset(
-        p.dx.clamp(bounds.left + 30, bounds.right - 30),
-        p.dy.clamp(bounds.top + 30, bounds.bottom - 30),
+        p.dx.clamp(bounds.left + radius, bounds.right - radius),
+        p.dy.clamp(bounds.top + radius, bounds.bottom - radius),
       );
       for (final obstacle in obstacles) {
-        final r = obstacle.inflate(30);
+        final r = obstacle.inflate(radius);
         if (p.dx <= r.left ||
             p.dx >= r.right ||
             p.dy <= r.top ||

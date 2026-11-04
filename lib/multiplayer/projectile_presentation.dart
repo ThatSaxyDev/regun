@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:regun/data/loadout.dart';
 import 'package:regun/presentation/weapon_feel.dart';
+import 'package:regun/systems/grenades.dart';
 
 import 'combat_state.dart';
 import 'identity_key.dart';
@@ -51,6 +52,7 @@ class ProjectileMap {
     Offset a,
     Offset b, [
     List<(Offset, double)> bodies = const [],
+    double clearance = 5,
   ]) {
     var first = 1.0;
     var blocked = false;
@@ -62,9 +64,9 @@ class ProjectileMap {
     }
 
     for (final r in obstacles) {
-      hit(segment(a, b, r.inflate(5)));
+      hit(segment(a, b, r.inflate(clearance)));
     }
-    final inside = bounds.deflate(5);
+    final inside = bounds.deflate(clearance);
     if (!inside.contains(b)) {
       final d = b - a;
       if (b.dx < inside.left && d.dx < 0) hit((inside.left - a.dx) / d.dx);
@@ -73,7 +75,7 @@ class ProjectileMap {
       if (b.dy > inside.bottom && d.dy > 0) hit((inside.bottom - a.dy) / d.dy);
     }
     for (final body in bodies) {
-      final s = a - body.$1, d = b - a, radius = body.$2 + 5;
+      final s = a - body.$1, d = b - a, radius = body.$2 + clearance;
       final c = s.distanceSquared - radius * radius, aa = d.distanceSquared;
       if (c <= 0) {
         hit(0);
@@ -188,7 +190,13 @@ class ProjectilePresentation {
     final present = rounds.map((r) => r.id).toSet();
     _flights.removeWhere((id, _) => !present.contains(id));
     for (final r in rounds) {
-      if (r.data['kind'] == 'grenade') continue;
+      if (r.data['kind'] == 'grenade') {
+        final old = _flights[r.id];
+        if (old == null || serverTime > old.serverTime) {
+          _flights[r.id] = _Flight(r, now, serverTime);
+        }
+        continue;
+      }
       final tag = key(r), ghost = _ghosts[tag];
       final old = _flights[r.id];
       if (old != null && serverTime <= old.serverTime) continue;
@@ -433,6 +441,35 @@ class ProjectilePresentation {
     return clipped.$1;
   }
 
+  OnlineRound _renderGrenade(OnlineRound round, double now, ProjectileMap map) {
+    final snapshot = _flights[round.id];
+    final data = round.data['flight'];
+    if (snapshot == null || data is! Map<String, dynamic>) return round;
+    final elapsed = (now - snapshot.at).clamp(0.0, .08);
+    if (elapsed == 0) return round;
+    try {
+      final flight = GrenadeFlight.restore({
+        ...data,
+        'x': round.x,
+        'y': round.y,
+      });
+      flight.advance(
+        elapsed,
+        blocked: (a, b) => map.clip(a, b, const [], 8).$2,
+        contact: (_, _) => false,
+      );
+      // The server removes the row and owns the impact event.
+      return OnlineRound(round.id, {
+        ...round.data,
+        'x': flight.position.dx,
+        'y': flight.position.dy,
+        'flight': {...data, 'height': flight.height, 'spin': flight.spin},
+      });
+    } on FormatException {
+      return round;
+    }
+  }
+
   List<OnlineRound> render(
     double now,
     ProjectileMap map, {
@@ -444,7 +481,7 @@ class ProjectilePresentation {
     final result = <OnlineRound>[];
     for (final r in _raw) {
       if (r.data['kind'] == 'grenade') {
-        result.add(r);
+        result.add(_renderGrenade(r, now, map));
         continue;
       }
       final f = _flights[r.id];

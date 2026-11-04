@@ -1,0 +1,270 @@
+[
+  {
+    "status": "passed",
+    "endpoint": "127.0.0.1:41983",
+    "mode": "coop",
+    "players": 3,
+    "arena": "breach",
+    "enemiesEnabled": true,
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 46.196,
+    "inputAgeP95Ms": 52.668,
+    "maxInputAgeMs": 53.975,
+    "tickIntervalP50Ms": 50.125,
+    "tickIntervalP95Ms": 50.825,
+    "maxRemoteExtrapolationMs": 27.37259864807129,
+    "maxEventLoopGapMs": [
+      19.14,
+      20.809,
+      18.824
+    ],
+    "maxRefreshGapMs": [
+      56.277,
+      65.469,
+      59.349
+    ],
+    "droppedCommands": [
+      0,
+      0,
+      0
+    ],
+    "activeSeconds": 4.0,
+    "maxPendingCommands": 2,
+    "stalledSamples": 0,
+    "samples": 48,
+    "maxServerQueued": 1,
+    "minimumSimulationRate": 0.9976967187085483,
+    "maxAckSilenceMs": 49,
+    "maxStoppedError": 2.585954844584653e-10,
+    "applicationRttMs": [
+      2,
+      2,
+      1
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -300.0,
+        -100.0
+      ],
+      [
+        -300.0,
+        0.0
+      ],
+      [
+        -300.0,
+        100.0
+      ]
+    ],
+    "rostersAgree": true,
+    "allClientsObservedFire": true,
+    "testClientsClosed": true
+  },
+  {
+    "status": "passed",
+    "endpoint": "127.0.0.1:41983",
+    "mode": "coop",
+    "players": 2,
+    "arena": "foundry",
+    "enemiesEnabled": true,
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 44.713,
+    "inputAgeP95Ms": 49.955,
+    "maxInputAgeMs": 52.456,
+    "tickIntervalP50Ms": 50.28,
+    "tickIntervalP95Ms": 50.795,
+    "maxRemoteExtrapolationMs": 28.566360473632812,
+    "maxEventLoopGapMs": [
+      18.901,
+      18.019000000000002
+    ],
+    "maxRefreshGapMs": [
+      51.452,
+      51.681
+    ],
+    "droppedCommands": [
+      0,
+      0
+    ],
+    "activeSeconds": 4.0,
+    "maxPendingCommands": 1,
+    "stalledSamples": 0,
+    "samples": 32,
+    "maxServerQueued": 1,
+    "minimumSimulationRate": 0.9986827231315206,
+    "maxAckSilenceMs": 50,
+    "maxStoppedError": 4.992642829101763e-11,
+    "applicationRttMs": [
+      1,
+      3
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -300.0,
+        -50.0
+      ],
+      [
+        -300.0,
+        50.0
+      ]
+    ],
+    "rostersAgree": true,
+    "allClientsObservedFire": true,
+    "testClientsClosed": true
+  },
+  {
+    "status": "passed",
+    "endpoint": "127.0.0.1:41983",
+    "mode": "versus",
+    "players": 4,
+    "arena": "ironworks_relay_2v2",
+    "enemiesEnabled": false,
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 37.923,
+    "inputAgeP95Ms": 86.981,
+    "maxInputAgeMs": 98.219,
+    "tickIntervalP50Ms": 50.081,
+    "tickIntervalP95Ms": 51.875,
+    "maxRemoteExtrapolationMs": 41.73684120178223,
+    "maxEventLoopGapMs": [
+      30.121,
+      30.136,
+      29.81,
+      30.217000000000002
+    ],
+    "maxRefreshGapMs": [
+      71.366,
+      82.015,
+      74.235,
+      76.761
+    ],
+    "droppedCommands": [
+      1,
+      2,
+      2,
+      1
+    ],
+    "activeSeconds": 10.0,
+    "maxPendingCommands": 2,
+    "stalledSamples": 0,
+    "samples": 160,
+    "maxServerQueued": 2,
+    "minimumSimulationRate": 0.9520105710532112,
+    "maxAckSilenceMs": 100,
+    "maxStoppedError": 3.2496643433583705e-10,
+    "applicationRttMs": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -855.0,
+        -55.0
+      ],
+      [
+        855.0,
+        55.0
+      ],
+      [
+        -855.0,
+        55.0
+      ],
+      [
+        855.0,
+        -55.0
+      ]
+    ],
+    "rostersAgree": true,
+    "allClientsObservedFire": true,
+    "testClientsClosed": true
+  },
+  {
+    "status": "passed",
+    "endpoint": "127.0.0.1:41983",
+    "mode": "versus",
+    "players": 6,
+    "arena": "ossuary_cross_3v3",
+    "enemiesEnabled": true,
+    "compactAcknowledgements": true,
+    "inputAgeP50Ms": 41.429,
+    "inputAgeP95Ms": 54.101,
+    "maxInputAgeMs": 58.016,
+    "tickIntervalP50Ms": 50.106,
+    "tickIntervalP95Ms": 50.96,
+    "maxRemoteExtrapolationMs": 80.0,
+    "maxEventLoopGapMs": [
+      33.839,
+      34.011,
+      33.696999999999996,
+      33.393,
+      33.749,
+      33.925
+    ],
+    "maxRefreshGapMs": [
+      118.46,
+      115.79,
+      110.283,
+      111.592,
+      119.755,
+      117.294
+    ],
+    "droppedCommands": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "activeSeconds": 10.0,
+    "maxPendingCommands": 3,
+    "stalledSamples": 0,
+    "samples": 240,
+    "maxServerQueued": 1,
+    "minimumSimulationRate": 0.9965688123226298,
+    "maxAckSilenceMs": 121,
+    "maxStoppedError": 4.0500849002705405e-10,
+    "applicationRttMs": [
+      2,
+      0,
+      0,
+      0,
+      3,
+      0
+    ],
+    "allPositionsFinite": true,
+    "initialPositions": [
+      [
+        -885.0,
+        -125.0
+      ],
+      [
+        885.0,
+        125.0
+      ],
+      [
+        -885.0,
+        0.0
+      ],
+      [
+        885.0,
+        0.0
+      ],
+      [
+        -885.0,
+        125.0
+      ],
+      [
+        885.0,
+        -125.0
+      ]
+    ],
+    "rostersAgree": true,
+    "allClientsObservedFire": true,
+    "testClientsClosed": true
+  }
+]

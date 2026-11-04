@@ -377,8 +377,9 @@ class OnlineWorldArt {
     OnlineEntity entity, {
     required bool foundry,
     bool hideSpawn = false,
+    Offset? presentedPosition,
   }) {
-    final p = Offset(entity.x, entity.y),
+    final p = presentedPosition ?? Offset(entity.x, entity.y),
         size = entity.number('size', 85),
         boss = entity.data['boss'] == true;
     BossArt.contactShadow(
@@ -449,12 +450,13 @@ class OnlineWorldArt {
     OnlineEntity entity, {
     required bool foundry,
     required bool reducedMotion,
+    Offset? presentedPosition,
     MummyWalk? mummyWalk,
     TravelGait? scorpionGait,
     Offset? laserAim,
     Offset? laserOrigin,
   }) {
-    final p = Offset(entity.x, entity.y),
+    final p = presentedPosition ?? Offset(entity.x, entity.y),
         d = entity.data,
         size = entity.number('size', 85),
         kind = d['kind'] as String;

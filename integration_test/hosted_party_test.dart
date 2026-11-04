@@ -96,13 +96,15 @@ void main() {
             ),
             'rosters and attachment',
           );
+          final enemies = scenario.$1 == 'coop' || scenario.$2 == 6;
           if (scenario.$1 == 'versus') {
-            await host.enemies(false);
+            await host.enemies(enemies);
             await until(
-              () => players.every((p) => p.room?.enemies == false),
+              () => players.every((p) => p.room?.enemies == enemies),
               'enemy setting',
             );
           }
+          report['enemiesEnabled'] = enemies;
           final weapons = ['shotgun', 'carbine', 'revolver', 'arcCaster'];
           for (var i = 0; i < players.length; i++) {
             await players[i].chooseLoadout(
@@ -254,6 +256,32 @@ void main() {
             for (final p in initial) [p.dx, p.dy],
           ];
           report['rostersAgree'] = true;
+          // Trigger together after the movement trace, then verify each
+          // observer saw an authoritative shot from every player.
+          final beforeShots = {
+            for (final p in players) p.identity!: p.gun!.shots,
+          };
+          for (final p in players) {
+            p.aimX = 0;
+            p.aimY = p.me!.y <= 0 ? -1 : 1;
+            p.firing = true;
+          }
+          try {
+            await until(
+              () => players.every(
+                (observer) => beforeShots.entries.every(
+                  (entry) =>
+                      (observer.fighters[entry.key]?.shots ?? 0) > entry.value,
+                ),
+              ),
+              'all clients observed simultaneous fire',
+            );
+            report['allClientsObservedFire'] = true;
+          } finally {
+            for (final p in players) {
+              p.neutral();
+            }
+          }
           report['status'] = 'passed';
         } catch (error) {
           report['status'] = 'failed';

@@ -1,0 +1,449 @@
+{
+  "foundry": {
+    "host": {
+      "status": "passed",
+      "rttMs": 196,
+      "updateGapP95Ms": 69.003,
+      "updateGapMaxMs": 162.154,
+      "serverTickP95Ms": 51.477,
+      "stalls": 0,
+      "maxEnemies": 21,
+      "leftRoom": true,
+      "maxConsecutiveServerTickMs": 94.99,
+      "worstObservedGaps": [
+        {
+          "fromTick": 354,
+          "toTick": 357,
+          "observedMs": 162.15,
+          "serverMs": 151.33,
+          "cacheMs": 169.31,
+          "peerCacheMs": 91.01,
+          "appliedMs": 169.27,
+          "cacheToAppliedMs": 0.45,
+          "pollGapMs": 9.81
+        },
+        {
+          "fromTick": 362,
+          "toTick": 363,
+          "observedMs": 114.71,
+          "serverMs": 54.71,
+          "cacheMs": 109.81,
+          "peerCacheMs": 109.86,
+          "appliedMs": 105.84,
+          "cacheToAppliedMs": 0.78,
+          "pollGapMs": 11.61
+        },
+        {
+          "fromTick": 453,
+          "toTick": 454,
+          "observedMs": 80.53,
+          "serverMs": 58.65,
+          "cacheMs": 86.61,
+          "peerCacheMs": 88.15,
+          "appliedMs": 86.48,
+          "cacheToAppliedMs": 0.35,
+          "pollGapMs": 9.31
+        },
+        {
+          "fromTick": 239,
+          "toTick": 240,
+          "observedMs": 78.81,
+          "serverMs": 50.67,
+          "cacheMs": 74.72,
+          "peerCacheMs": 53.63,
+          "appliedMs": 74.82,
+          "cacheToAppliedMs": 0.44,
+          "pollGapMs": 8.97
+        },
+        {
+          "fromTick": 217,
+          "toTick": 218,
+          "observedMs": 78.61,
+          "serverMs": 50.01,
+          "cacheMs": 74.95,
+          "peerCacheMs": 57.89,
+          "appliedMs": 75.06,
+          "cacheToAppliedMs": 0.51,
+          "pollGapMs": 9.96
+        }
+      ]
+    },
+    "peer": {
+      "status": "passed",
+      "rttMs": 196,
+      "updateGapP95Ms": 71.198,
+      "updateGapMaxMs": 116.487,
+      "serverTickP95Ms": 51.337,
+      "stalls": 0,
+      "maxEnemies": 21,
+      "leftRoom": true,
+      "maxConsecutiveServerTickMs": 94.99,
+      "worstObservedGaps": [
+        {
+          "fromTick": 353,
+          "toTick": 354,
+          "observedMs": 116.49,
+          "serverMs": 49.54,
+          "cacheMs": 114.05,
+          "peerCacheMs": 35.74,
+          "appliedMs": 114.12,
+          "cacheToAppliedMs": 0.52,
+          "pollGapMs": 24.18
+        },
+        {
+          "fromTick": 362,
+          "toTick": 363,
+          "observedMs": 116.33,
+          "serverMs": 54.71,
+          "cacheMs": 109.86,
+          "peerCacheMs": 109.81,
+          "appliedMs": 106.23,
+          "cacheToAppliedMs": 0.47,
+          "pollGapMs": 12.05
+        },
+        {
+          "fromTick": 453,
+          "toTick": 454,
+          "observedMs": 90.94,
+          "serverMs": 58.65,
+          "cacheMs": 88.15,
+          "peerCacheMs": 86.61,
+          "appliedMs": 88.0,
+          "cacheToAppliedMs": 0.31,
+          "pollGapMs": 12.11
+        },
+        {
+          "fromTick": 354,
+          "toTick": 357,
+          "observedMs": 89.78,
+          "serverMs": 151.33,
+          "cacheMs": 91.01,
+          "peerCacheMs": 169.31,
+          "appliedMs": 90.8,
+          "cacheToAppliedMs": 0.31,
+          "pollGapMs": 12.12
+        },
+        {
+          "fromTick": 456,
+          "toTick": 457,
+          "observedMs": 81.45,
+          "serverMs": 56.82,
+          "cacheMs": 88.78,
+          "peerCacheMs": 76.99,
+          "appliedMs": 88.73,
+          "cacheToAppliedMs": 0.34,
+          "pollGapMs": 8.86
+        }
+      ]
+    },
+    "geometryHash": "c39954b92f295bacddb69db664a5c68e62fb95a6eb6d420c3d6af5b055be5e48",
+    "remoteMove": {
+      "samples": 7,
+      "medianMs": 285.3,
+      "maxMs": 302.9
+    },
+    "remoteShot": {
+      "samples": 7,
+      "medianMs": 239.4,
+      "maxMs": 255.2
+    }
+  },
+  "ossuary_cross_1v1": {
+    "host": {
+      "status": "passed",
+      "rttMs": 170,
+      "updateGapP95Ms": 67.979,
+      "updateGapMaxMs": 195.235,
+      "serverTickP95Ms": 51.199,
+      "stalls": 0,
+      "maxEnemies": 0,
+      "leftRoom": true,
+      "maxConsecutiveServerTickMs": 53.51,
+      "worstObservedGaps": [
+        {
+          "fromTick": 417,
+          "toTick": 418,
+          "observedMs": 195.24,
+          "serverMs": 49.74,
+          "cacheMs": 199.26,
+          "peerCacheMs": 194.1,
+          "appliedMs": 199.23,
+          "cacheToAppliedMs": 0.38,
+          "pollGapMs": 9.77
+        },
+        {
+          "fromTick": 399,
+          "toTick": 401,
+          "observedMs": 157.78,
+          "serverMs": 100.35,
+          "cacheMs": 164.16,
+          "peerCacheMs": 160.03,
+          "appliedMs": 164.23,
+          "cacheToAppliedMs": 0.43,
+          "pollGapMs": 9.26
+        },
+        {
+          "fromTick": 367,
+          "toTick": 368,
+          "observedMs": 104.57,
+          "serverMs": 49.82,
+          "cacheMs": 102.76,
+          "peerCacheMs": 91.85,
+          "appliedMs": 102.71,
+          "cacheToAppliedMs": 0.46,
+          "pollGapMs": 10.47
+        },
+        {
+          "fromTick": 365,
+          "toTick": 366,
+          "observedMs": 93.01,
+          "serverMs": 49.96,
+          "cacheMs": 91.88,
+          "peerCacheMs": 72.55,
+          "appliedMs": 91.82,
+          "cacheToAppliedMs": 0.48,
+          "pollGapMs": 9.83
+        },
+        {
+          "fromTick": 230,
+          "toTick": 231,
+          "observedMs": 92.57,
+          "serverMs": 50.26,
+          "cacheMs": 98.02,
+          "peerCacheMs": 93.08,
+          "appliedMs": 97.96,
+          "cacheToAppliedMs": 0.37,
+          "pollGapMs": 9.06
+        }
+      ]
+    },
+    "peer": {
+      "status": "passed",
+      "rttMs": 169,
+      "updateGapP95Ms": 68.522,
+      "updateGapMaxMs": 197.332,
+      "serverTickP95Ms": 51.199,
+      "stalls": 0,
+      "maxEnemies": 0,
+      "leftRoom": true,
+      "maxConsecutiveServerTickMs": 53.51,
+      "worstObservedGaps": [
+        {
+          "fromTick": 417,
+          "toTick": 419,
+          "observedMs": 197.33,
+          "serverMs": 99.31,
+          "cacheMs": 201.76,
+          "peerCacheMs": 207.11,
+          "appliedMs": 201.58,
+          "cacheToAppliedMs": 0.28,
+          "pollGapMs": 11.88
+        },
+        {
+          "fromTick": 399,
+          "toTick": 400,
+          "observedMs": 156.99,
+          "serverMs": 50.5,
+          "cacheMs": 158.12,
+          "peerCacheMs": 162.79,
+          "appliedMs": 158.32,
+          "cacheToAppliedMs": 0.55,
+          "pollGapMs": 9.04
+        },
+        {
+          "fromTick": 369,
+          "toTick": 370,
+          "observedMs": 110.03,
+          "serverMs": 49.65,
+          "cacheMs": 102.46,
+          "peerCacheMs": 49.59,
+          "appliedMs": 102.01,
+          "cacheToAppliedMs": 0.49,
+          "pollGapMs": 9.86
+        },
+        {
+          "fromTick": 367,
+          "toTick": 368,
+          "observedMs": 93.49,
+          "serverMs": 49.82,
+          "cacheMs": 91.85,
+          "peerCacheMs": 102.76,
+          "appliedMs": 88.59,
+          "cacheToAppliedMs": 0.5,
+          "pollGapMs": 10.79
+        },
+        {
+          "fromTick": 397,
+          "toTick": 398,
+          "observedMs": 89.48,
+          "serverMs": 49.03,
+          "cacheMs": 81.57,
+          "peerCacheMs": 72.7,
+          "appliedMs": 81.62,
+          "cacheToAppliedMs": 0.41,
+          "pollGapMs": 9.97
+        }
+      ]
+    },
+    "geometryHash": "9fce6cdf94d4ccef3d44351f2e6fc158fa42cc9ed7e3cc502862fd631f6b01d0",
+    "remoteMove": {
+      "samples": 8,
+      "medianMs": 265.0,
+      "maxMs": 287.2
+    },
+    "remoteShot": {
+      "samples": 8,
+      "medianMs": 248.2,
+      "maxMs": 294.2
+    }
+  },
+  "breach": {
+    "host": {
+      "status": "passed",
+      "rttMs": 175,
+      "updateGapP95Ms": 74.644,
+      "updateGapMaxMs": 191.191,
+      "serverTickP95Ms": 52.463,
+      "stalls": 0,
+      "maxEnemies": 21,
+      "leftRoom": true,
+      "maxConsecutiveServerTickMs": 64.48,
+      "worstObservedGaps": [
+        {
+          "fromTick": 468,
+          "toTick": 470,
+          "observedMs": 191.19,
+          "serverMs": 96.98,
+          "cacheMs": 196.51,
+          "peerCacheMs": 199.22,
+          "appliedMs": 196.65,
+          "cacheToAppliedMs": 0.43,
+          "pollGapMs": 9.83
+        },
+        {
+          "fromTick": 326,
+          "toTick": 329,
+          "observedMs": 160.84,
+          "serverMs": 150.71,
+          "cacheMs": 171.6,
+          "peerCacheMs": 141.31,
+          "appliedMs": 170.93,
+          "cacheToAppliedMs": 0.31,
+          "pollGapMs": 9.51
+        },
+        {
+          "fromTick": 423,
+          "toTick": 425,
+          "observedMs": 151.41,
+          "serverMs": 100.15,
+          "cacheMs": 152.81,
+          "peerCacheMs": 144.74,
+          "appliedMs": 152.79,
+          "cacheToAppliedMs": 0.51,
+          "pollGapMs": 13.46
+        },
+        {
+          "fromTick": 354,
+          "toTick": 355,
+          "observedMs": 123.41,
+          "serverMs": 49.43,
+          "cacheMs": 126.93,
+          "peerCacheMs": 100.91,
+          "appliedMs": 127.2,
+          "cacheToAppliedMs": 0.57,
+          "pollGapMs": 9.21
+        },
+        {
+          "fromTick": 341,
+          "toTick": 342,
+          "observedMs": 111.11,
+          "serverMs": 50.55,
+          "cacheMs": 112.41,
+          "peerCacheMs": 102.65,
+          "appliedMs": 112.42,
+          "cacheToAppliedMs": 0.49,
+          "pollGapMs": 9.76
+        }
+      ]
+    },
+    "peer": {
+      "status": "passed",
+      "rttMs": 172,
+      "updateGapP95Ms": 75.322,
+      "updateGapMaxMs": 192.078,
+      "serverTickP95Ms": 52.013,
+      "stalls": 0,
+      "maxEnemies": 21,
+      "leftRoom": true,
+      "maxConsecutiveServerTickMs": 64.48,
+      "worstObservedGaps": [
+        {
+          "fromTick": 468,
+          "toTick": 470,
+          "observedMs": 192.08,
+          "serverMs": 96.98,
+          "cacheMs": 199.22,
+          "peerCacheMs": 196.51,
+          "appliedMs": 199.32,
+          "cacheToAppliedMs": 0.47,
+          "pollGapMs": 10.36
+        },
+        {
+          "fromTick": 423,
+          "toTick": 425,
+          "observedMs": 147.17,
+          "serverMs": 100.15,
+          "cacheMs": 144.74,
+          "peerCacheMs": 152.81,
+          "appliedMs": 144.78,
+          "cacheToAppliedMs": 0.5,
+          "pollGapMs": 9.12
+        },
+        {
+          "fromTick": 326,
+          "toTick": 328,
+          "observedMs": 132.42,
+          "serverMs": 101.54,
+          "cacheMs": 137.13,
+          "peerCacheMs": 168.63,
+          "appliedMs": 136.76,
+          "cacheToAppliedMs": 0.32,
+          "pollGapMs": 8.28
+        },
+        {
+          "fromTick": 406,
+          "toTick": 407,
+          "observedMs": 103.65,
+          "serverMs": 50.23,
+          "cacheMs": 99.39,
+          "peerCacheMs": 104.37,
+          "appliedMs": 99.32,
+          "cacheToAppliedMs": 0.35,
+          "pollGapMs": 9.96
+        },
+        {
+          "fromTick": 341,
+          "toTick": 342,
+          "observedMs": 100.68,
+          "serverMs": 50.55,
+          "cacheMs": 102.65,
+          "peerCacheMs": 112.41,
+          "appliedMs": 102.62,
+          "cacheToAppliedMs": 0.46,
+          "pollGapMs": 9.65
+        }
+      ]
+    },
+    "geometryHash": "98a12dbf932fe96449a332e179a3ed9c6c2c8ada28f776962aebeb4c33b1ded2",
+    "remoteMove": {
+      "samples": 7,
+      "medianMs": 283.4,
+      "maxMs": 320.9
+    },
+    "remoteShot": {
+      "samples": 7,
+      "medianMs": 220.6,
+      "maxMs": 273.9
+    }
+  }
+}

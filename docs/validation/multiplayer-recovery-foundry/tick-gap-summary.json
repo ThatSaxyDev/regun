@@ -1,0 +1,116 @@
+{
+  "host": [
+    {
+      "fromTick": 400,
+      "toTick": 401,
+      "observedMs": 194.06,
+      "serverMs": 49.73,
+      "cacheMs": 194.93,
+      "peerCacheMs": 195.21,
+      "appliedMs": 195.05,
+      "cacheToAppliedMs": 0.7,
+      "pollGapMs": 9.93
+    },
+    {
+      "fromTick": 334,
+      "toTick": 335,
+      "observedMs": 89.21,
+      "serverMs": 51.31,
+      "cacheMs": 95.65,
+      "peerCacheMs": 40.53,
+      "appliedMs": 96.0,
+      "cacheToAppliedMs": 0.76,
+      "pollGapMs": 9.02
+    },
+    {
+      "fromTick": 431,
+      "toTick": 432,
+      "observedMs": 83.69,
+      "serverMs": 50.11,
+      "cacheMs": 82.87,
+      "peerCacheMs": 57.48,
+      "appliedMs": 82.6,
+      "cacheToAppliedMs": 0.57,
+      "pollGapMs": 10.12
+    },
+    {
+      "fromTick": 451,
+      "toTick": 452,
+      "observedMs": 80.09,
+      "serverMs": 50.24,
+      "cacheMs": 89.33,
+      "peerCacheMs": 88.61,
+      "appliedMs": 89.4,
+      "cacheToAppliedMs": 0.36,
+      "pollGapMs": 9.0
+    },
+    {
+      "fromTick": 464,
+      "toTick": 465,
+      "observedMs": 78.66,
+      "serverMs": 50.39,
+      "cacheMs": 76.24,
+      "peerCacheMs": 54.69,
+      "appliedMs": 76.1,
+      "cacheToAppliedMs": 0.41,
+      "pollGapMs": 9.49
+    }
+  ],
+  "peer": [
+    {
+      "fromTick": 400,
+      "toTick": 401,
+      "observedMs": 194.88,
+      "serverMs": 49.73,
+      "cacheMs": 195.21,
+      "peerCacheMs": 194.93,
+      "appliedMs": 194.93,
+      "cacheToAppliedMs": 0.74,
+      "pollGapMs": 9.64
+    },
+    {
+      "fromTick": 451,
+      "toTick": 452,
+      "observedMs": 88.87,
+      "serverMs": 50.24,
+      "cacheMs": 88.61,
+      "peerCacheMs": 89.33,
+      "appliedMs": 88.61,
+      "cacheToAppliedMs": 0.34,
+      "pollGapMs": 11.64
+    },
+    {
+      "fromTick": 190,
+      "toTick": 191,
+      "observedMs": 83.72,
+      "serverMs": 52.6,
+      "cacheMs": 75.19,
+      "peerCacheMs": 75.08,
+      "appliedMs": 79.74,
+      "cacheToAppliedMs": 5.05,
+      "pollGapMs": 9.36
+    },
+    {
+      "fromTick": 151,
+      "toTick": 152,
+      "observedMs": 83.56,
+      "serverMs": 47.49,
+      "cacheMs": 79.92,
+      "peerCacheMs": 79.62,
+      "appliedMs": 80.08,
+      "cacheToAppliedMs": 0.52,
+      "pollGapMs": 9.25
+    },
+    {
+      "fromTick": 354,
+      "toTick": 355,
+      "observedMs": 80.58,
+      "serverMs": 51.69,
+      "cacheMs": 76.28,
+      "peerCacheMs": 76.17,
+      "appliedMs": 76.17,
+      "cacheToAppliedMs": 0.53,
+      "pollGapMs": 9.95
+    }
+  ]
+}
