@@ -108,7 +108,7 @@ abstract class ExpansionBoss extends PositionComponent
   Vector2 get target {
     final point =
         game.myPlayer.position +
-        game.movementJoystick.relativeDelta * game.playerWalkSpeed * .7;
+        game.movementIntent * game.playerWalkSpeed * .7;
     game.constrainActor(point, 35);
     return point;
   }
@@ -626,7 +626,7 @@ class MagistrateBoss extends ExpansionBoss {
 
   @override
   BossMove plan() {
-    final velocity = game.movementJoystick.relativeDelta * game.playerWalkSpeed;
+    final velocity = game.movementIntent * game.playerWalkSpeed;
     final aim = safePoint(game.myPlayer.position + velocity * .8);
     final forward = aim - position;
     final random = game.random;
@@ -678,7 +678,7 @@ class MirrorSaintBoss extends ExpansionBoss {
   @override
   BossMove plan() {
     final player = game.myPlayer.position.clone();
-    var travel = game.movementJoystick.relativeDelta * game.playerWalkSpeed;
+    var travel = game.movementIntent * game.playerWalkSpeed;
     if (travel.length < 30) travel = (player - position).normalized() * 160;
     final forward = travel.normalized(), side = Vector2(-forward.y, forward.x);
     final aim = safePoint(player + travel * .7);

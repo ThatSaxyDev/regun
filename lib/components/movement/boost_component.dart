@@ -1,3 +1,4 @@
+import 'package:regun/desktop/touch_control_visibility.dart';
 import 'package:flame/components.dart';
 import 'package:regun/systems/dash_reserve.dart';
 import 'package:flame/events.dart';
@@ -7,7 +8,7 @@ import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 
 class BoostButtonComponent extends AdvancedButtonComponent
-    with HasGameReference<RegunGame> {
+    with HasGameReference<RegunGame>, TouchControlVisibility {
   BoostButtonComponent({super.onPressed, this.tapped = false})
     : super(
         defaultSkin: ActionControlSkin(glyph: PixelGlyph.dash, label: 'DASH'),
@@ -68,15 +69,20 @@ class BoostButtonComponent extends AdvancedButtonComponent
   void onTapDown(TapDownEvent event) {
     if (game.inputBlocked) return;
     super.onTapDown(event);
-    if (game.gameState.gameplayState != GameplayState.playing ||
+    requestDash();
+  }
+
+  void requestDash() {
+    if (game.inputBlocked ||
+        game.gameState.gameplayState != GameplayState.playing ||
         tapped ||
         reserve.charges <= 0) {
       return;
     }
     syncCapacity();
     if (!reserve.spend(recharge)) return;
-    final movement = game.movementJoystick.relativeDelta;
-    final aim = game.weaponJoystick.relativeDelta;
+    final movement = game.movementIntent;
+    final aim = game.aimIntent;
     game.myPlayer.dashDirection.setFrom(
       !movement.isZero()
           ? movement.normalized()

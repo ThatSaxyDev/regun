@@ -273,7 +273,9 @@ class ArsenalSystem {
     );
   }
 
-  Vector2 get rawAim => weapon.firesOnRelease
+  Vector2 get rawAim => game.usingDesktopInput
+      ? (game.fireIntent ? game.aimIntent : Vector2.zero())
+      : weapon.firesOnRelease
       ? game.weaponJoystick.strengthDelta
       : game.weaponJoystick.relativeDelta;
   Vector2 aimedDirection(Vector2 raw) {

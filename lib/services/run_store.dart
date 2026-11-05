@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:regun/services/local_preferences.dart';
 
 import 'dart:convert';
@@ -14,8 +16,12 @@ class RunStore {
   Directory? _directory;
   Future<void> _pending = Future.value();
 
+  bool _validOwner(String owner) =>
+      owner == 'guest' || RegExp(r'^[a-f0-9-]{36}$').hasMatch(owner);
+  String _webKey(String owner) => 'regun.web.run.v1.$owner';
+
   Future<File?> _file(String owner) async {
-    if (owner != 'guest' && !RegExp(r'^[a-f0-9-]{36}$').hasMatch(owner)) {
+    if (!_validOwner(owner)) {
       return null;
     }
     try {
@@ -37,6 +43,16 @@ class RunStore {
   }) async {
     final owner = LocalPreferences.shared.profileOwner;
     await _pending;
+    if (kIsWeb) {
+      if (!_validOwner(owner)) return null;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final map = jsonDecode(prefs.getString(_webKey(owner)) ?? 'null');
+        return _snapshot(map, validate);
+      } catch (_) {
+        return null;
+      }
+    }
     final file = await _file(owner);
     if (file == null) return null;
     for (final candidate in [file, File('${file.path}.bak')]) {
@@ -44,15 +60,8 @@ class RunStore {
         if (!await candidate.exists()) continue;
         final map = jsonDecode(await candidate.readAsString());
         if (map is Map && map['settled'] == true) return null;
-        if (map is Map &&
-            [1, 2].contains(map['schema']) &&
-            map['state'] is Map &&
-            map['player'] is List &&
-            map['enemies'] is List &&
-            map['drops'] is List) {
-          final snapshot = Map<String, dynamic>.from(map);
-          if (validate == null || validate(snapshot)) return snapshot;
-        }
+        final snapshot = _snapshot(map, validate);
+        if (snapshot != null) return snapshot;
       } on FormatException {
         // Try the previous completed checkpoint.
       } on FileSystemException {
@@ -62,12 +71,43 @@ class RunStore {
     return null;
   }
 
+  Map<String, dynamic>? _snapshot(
+    Object? map,
+    bool Function(Map<String, dynamic>)? validate,
+  ) {
+    if (map is! Map ||
+        map['settled'] == true ||
+        ![1, 2].contains(map['schema']) ||
+        map['state'] is! Map ||
+        map['player'] is! List ||
+        map['enemies'] is! List ||
+        map['drops'] is! List) {
+      return null;
+    }
+    final snapshot = Map<String, dynamic>.from(map);
+    return validate == null || validate(snapshot) ? snapshot : null;
+  }
+
+  Future<bool> _saveWeb(String owner, String payload) async {
+    if (!_validOwner(owner)) return false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return await prefs.setString(_webKey(owner), payload);
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> write(Map<String, dynamic> snapshot) {
     final owner = LocalPreferences.shared.profileOwner;
     // Encode before queueing: callers can no longer mutate this snapshot.
     final payload = jsonEncode(snapshot);
     var saved = false;
     final operation = _pending.then((_) async {
+      if (kIsWeb) {
+        saved = await _saveWeb(owner, payload);
+        return;
+      }
       final file = await _file(owner);
       if (file == null) return;
       try {
@@ -93,6 +133,10 @@ class RunStore {
     // One queue operation owns both copies; a background save or owner switch
     // cannot interleave between them and restore a pre-purchase backup.
     final operation = _pending.then((_) async {
+      if (kIsWeb) {
+        saved = await _saveWeb(owner, payload);
+        return;
+      }
       final file = await _file(owner);
       if (file == null) return;
       try {
@@ -119,6 +163,28 @@ class RunStore {
   Future<void> clearOwner(String owner) => _clear(owner);
   Future<void> _clear(String owner, {String? expectedRunId}) {
     final operation = _pending.then((_) async {
+      if (kIsWeb) {
+        if (!_validOwner(owner)) return;
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          if (expectedRunId != null) {
+            try {
+              final map = jsonDecode(prefs.getString(_webKey(owner)) ?? 'null');
+              if (map is Map &&
+                  map['id'] != null &&
+                  map['id'] != expectedRunId) {
+                return;
+              }
+            } on FormatException {
+              // A corrupt record can still be cleared.
+            }
+          }
+          await prefs.remove(_webKey(owner));
+        } catch (_) {
+          // Storage may be disabled or full.
+        }
+        return;
+      }
       final file = await _file(owner);
       if (file == null) return;
       try {

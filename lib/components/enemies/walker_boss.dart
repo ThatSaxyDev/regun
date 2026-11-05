@@ -288,8 +288,8 @@ class WalkerBoss extends PositionComponent
     final before = fight.phase;
     rig.reducedMotion = game.preferences.reducedMotion;
     fight.player = game.myPlayer.position.toOffset();
-    fight.playerVelocity =
-        (game.movementJoystick.relativeDelta * game.playerWalkSpeed).toOffset();
+    fight.playerVelocity = (game.movementIntent * game.playerWalkSpeed)
+        .toOffset();
     fight.enraged = combatHealth.fraction <= .5;
     fight.advance(dt);
     position.setValues(rig.position.dx, rig.position.dy);

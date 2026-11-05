@@ -16,7 +16,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Regun is a twin-stick survival shooter.">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,13 +25,13 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/png" href="regun-rook.png" sizes="32x32">
 
   <title>regun</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json?v=rook">
 
 
-  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <style id="splash-screen-style">
     html {
       height: 100%
@@ -105,8 +105,14 @@
       <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
   </picture>
 
-  <script src="assets/packages/flutter_soloud/web/init_soloud.js" defer=""></script>
-  <script src="flutter_bootstrap.js" defer=""></script>
+  <main id="mobile-download" hidden style="box-sizing:border-box; max-width:30rem; margin:auto; padding:12vh 1.5rem 2rem; text-align:center; font:1rem/1.5 system-ui,sans-serif; color:#e5ddd1">
+    <img src="icons/Icon-192.png" width="88" height="88" alt="">
+    <h1>Regun</h1>
+    <p id="mobile-download-copy" role="status">Finding the mobile download…</p>
+    <a id="regun-store" hidden style=" padding:.75rem 1.2rem; background:#e1ba78; color:#161b18; font-weight:bold"></a>
+    <button id="mobile-download-retry" hidden type="button">Try again</button>
+  </main>
+  <script src="platform_bootstrap.js"></script>
 
 
 

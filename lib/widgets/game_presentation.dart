@@ -4,12 +4,13 @@ import 'package:regun/presentation/game_layout.dart';
 /// Tablet type scales independently of world art and the player's accessibility
 /// preference. Phone MediaQuery and text metrics pass through unchanged.
 class GamePresentation extends StatelessWidget {
-  const GamePresentation({super.key, required this.child});
+  const GamePresentation({super.key, required this.child, this.scale});
   final Widget child;
+  final double? scale;
   @override
   Widget build(BuildContext context) {
     final data = MediaQuery.of(context),
-        factor = GameLayout.uiScale(MediaQuery.sizeOf(context));
+        factor = scale ?? GameLayout.uiScale(MediaQuery.sizeOf(context));
     if (factor == 1) return child;
     return MediaQuery(
       data: data.copyWith(textScaler: _TabletText(data.textScaler, factor)),

@@ -1,3 +1,5 @@
+import 'package:regun/desktop/desktop_combat_kit.dart';
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/utils/format_number.dart';
 
 import 'dart:async';
@@ -14,8 +16,13 @@ import 'package:regun/widgets/online_upgrade_picker.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 
 class OnlineCombatHud extends StatelessWidget {
-  const OnlineCombatHud({super.key, required this.session});
+  const OnlineCombatHud({
+    super.key,
+    required this.session,
+    this.controller = false,
+  });
   final OnlineSession session;
+  final bool controller;
   @override
   Widget build(BuildContext context) {
     final gun = session.gun, match = session.match;
@@ -89,6 +96,10 @@ class OnlineCombatHud extends StatelessWidget {
       );
     }
     final locked = match.phase != 'active';
+    final dash = session.movementPrediction.body;
+    final dashRechargeRemaining = dash != null && dash.rechargeRemaining >= 0
+        ? dash.rechargeRemaining
+        : session.predictedDashCooldown;
     return Stack(
       children: [
         if (locked && ['countdown', 'round_break'].contains(match.phase))
@@ -187,45 +198,79 @@ class OnlineCombatHud extends StatelessWidget {
             ),
           ),
         Positioned(
-          bottom: 64,
+          bottom: desktopInputAvailable ? 16 : 64,
           left: 0,
           right: 0,
           child: IgnorePointer(
-            child: Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 220),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xbb141117),
-                  border: Border.all(color: const Color(0xff6F604B)),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${gun.health.toStringAsFixed(1)} / ${gun.maxHealth.toStringAsFixed(0)} HP | ${gun.ammo}/${gun.capacity}',
-                      style: const TextStyle(
-                        fontFamily: FontFam.orbitron,
-                        fontSize: 13,
-                        color: Color(0xffE5DDD1),
-                      ),
-                    ),
-                    if (gun.reloading)
-                      SizedBox(
-                        width: 150,
-                        height: 80,
-                        child: WeaponReloadDisplay(
-                          weapon: weapon,
-                          progress: gun.reloadProgress,
-                          shells: gun.capacity - gun.ammo,
-                          tactical: gun.data['reloadTactical'] == true,
-                          reducedMotion: LocalPreferences.shared.reducedMotion,
+            child: desktopInputAvailable
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${gun.health.toStringAsFixed(1)} / ${gun.maxHealth.toStringAsFixed(0)} HP',
+                        style: const TextStyle(
+                          fontFamily: FontFam.orbitron,
+                          color: Color(0xffE5DDD1),
+                          shadows: [Shadow(color: Colors.black, blurRadius: 5)],
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ),
+                      const SizedBox(height: 8),
+                      DesktopCombatKit(
+                        weapon: weapon,
+                        ammo: gun.ammo,
+                        capacity: gun.capacity,
+                        dash: dash?.dashCharges ?? 1,
+                        dashRecharge:
+                            1 -
+                            dashRechargeRemaining /
+                                session.predictedDashDuration,
+                        grenadeRecharge: gun.grenadeProgress,
+                        grenade: session.grenadesAvailable
+                            ? gun.grenadeCharges
+                            : null,
+                        controller: controller,
+                        reducedMotion: LocalPreferences.shared.reducedMotion,
+                        reload: gun.reloading ? gun.reloadProgress : -1,
+                        tactical: gun.data['reloadTactical'] == true,
+                      ),
+                    ],
+                  )
+                : Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 220),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xbb141117),
+                        border: Border.all(color: const Color(0xff6F604B)),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${gun.health.toStringAsFixed(1)} / ${gun.maxHealth.toStringAsFixed(0)} HP | ${gun.ammo}/${gun.capacity}',
+                            style: const TextStyle(
+                              fontFamily: FontFam.orbitron,
+                              fontSize: 13,
+                              color: Color(0xffE5DDD1),
+                            ),
+                          ),
+                          if (gun.reloading)
+                            SizedBox(
+                              width: 150,
+                              height: 80,
+                              child: WeaponReloadDisplay(
+                                weapon: weapon,
+                                progress: gun.reloadProgress,
+                                shells: gun.capacity - gun.ammo,
+                                tactical: gun.data['reloadTactical'] == true,
+                                reducedMotion:
+                                    LocalPreferences.shared.reducedMotion,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
           ),
         ),
       ],

@@ -2,11 +2,11 @@
 
 **Planning date** — 5 November 2026  
 **Scope** — Native macOS and desktop web, with mouse and keyboard and controller support.  
-**Status** — Repository and documentation review. Desktop builds, physical controller tests, and performance measurements are pending. Dimensions and performance thresholds are proposals for the first review.
+**Status** — Local desktop review builds are available. Physical controller, 120 Hz pacing, and live Online acceptance are open.
 
 ## What desktop needs to deliver
 
-A player can start a run, aim and fight, choose upgrades, pause, continue, and restart with their chosen device. Mouse aim stays aligned while the player moves, the camera follows, or the window resizes. A larger display improves clarity while keeping encounter visibility within a deliberate limit. The first playable milestone is a complete Training session on macOS and web with both input methods.
+A player can start a run, aim and fight, choose upgrades, pause, continue, and restart with their chosen device. Mouse aim stays aligned while the player moves, the camera follows, or the window resizes. A larger display improves clarity while keeping encounter visibility within a deliberate limit. The desktop review build covers the complete game on macOS and web. Training provides repeatable combat scenarios alongside full Solo and Online checks.
 
 ## Starting point
 
@@ -40,14 +40,14 @@ A player can start a run, aim and fight, choose upgrades, pause, continue, and r
 
 ## Windowing and scale
 
-- Start with a centered 16:9 combat frame with fixed world height. Compare it with current framing in Training before locking dimensions. Use gutters for extra width or height. Compare desktop and mobile visibility before opening competitive desktop play.
+- Desktop Solo and Training use a 1,080-unit world height and adapt from 16:10 through 2:1. The camera shows more of the arena and keeps actors at a smaller screen size. Gutters cover aspect ratios beyond that range. Online retains its existing framing pending competitive visibility review.
 - Anchor the HUD to the playfield, cap menu and upgrade card widths, and expose UI scale independently of camera zoom. Provide clear keyboard and controller focus across the whole run loop. Show prompts for the active device and retain touch for hybrid browsers.
-- Review 960×540 logical pixels, 16:10 MacBooks, 1440p, 4K/Retina, and 21:9. Keep 960×540 as a test size until large text and dense screens fit. Verify browser zoom, resize, moving between displays, and fullscreen transitions. Restore the macOS window inside the available display. Use an explicit fullscreen action in the browser and retain a usable windowed mode. [Flame camera](https://github.com/flame-engine/flame/blob/main/doc/flame/camera.md) · [Web fullscreen](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen)
+- Review 960×540 logical pixels, 16:10 MacBooks, 1440p, 4K/Retina, and 21:9. macOS opens at 1280×720 content points when the display can fit it and enforces a 960×540 content minimum. The desktop web shell measures its own viewport and shows a dedicated landscape-required screen when the viewport is square or portrait. Widening restores the mounted route. Active Solo play pauses and Online sends neutral inputs while the match continues. Verify browser zoom, resize, moving between displays, and fullscreen transitions. Restore the macOS window inside the available display. Use an explicit fullscreen action in the browser and retain a usable windowed mode. [Flame camera](https://github.com/flame-engine/flame/blob/main/doc/flame/camera.md) · [Web fullscreen](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen)
 
 ## Desktop settings and controls
 
 - During mouse/keyboard or controller play, hide both on-screen sticks and the Dash, Reload, and Grenade buttons. Keep the crosshair or controller reticle, the combat HUD, and contextual prompts for the active device.
-- Give desktop Controls separate **Keyboard & Mouse** and **Controller** sections. Keyboard & Mouse covers bindings and crosshair size and contrast. Controller covers button bindings, stick dead zone, and aim sensitivity. Each section has its own reset to defaults. Players can configure either device regardless of which one currently drives the prompts.
+- Desktop text starts at 125% of the previous baseline, before the player’s UI scale setting. Solo time, kills, health and ammo use larger dedicated readouts. Give desktop Controls separate **Keyboard & Mouse** and **Controller** sections. Keyboard & Mouse covers bindings and crosshair size and contrast. Controller covers button bindings, stick dead zone, and aim sensitivity. Each section has its own reset to defaults. Players can configure either device regardless of which one currently drives the prompts.
 - Allow primary and optional alternate keyboard/mouse bindings for gameplay actions, including a keyboard alternative for fire. Allow controller gameplay button and trigger remapping and a left/right stick swap. Use a visible menu navigation mapping during rebinding so players can always cancel or restore defaults. For conflicts in the same context, show the affected action and offer swap, replace, or cancel as applicable. Apply one action per press and update prompts immediately.
 - Persist the two input profiles independently on the device. Include a live stick preview for tuning dead zones and aim response. Verify custom bindings across Training, Solo, and Online, plus browser refresh and macOS relaunch. Review the defaults with a fresh profile and the customizations without relying on a second input device.
 - Keep stick placement, handedness, floating sticks, and touch control size in **Touch** settings. On desktop web, expose that section when touch controls are available and let players select touch mode on hybrid devices. Keep native macOS Controls focused on desktop input.
@@ -68,8 +68,9 @@ Use a capture to decide what to optimize. Expensive transparent layers and effec
 
 ## Platform readiness
 
+- **Mobile browsers** — Detect Android and iOS/iPadOS before loading Flutter or SoLoud. Show the matching store link. Use `make buildWeb` to fetch iOS and Android destinations from Telling as part of the web build. Serve the generated `mobile-store-links.json` with revalidation. Run `make refreshWebStoreLinks` and publish the updated manifest when destinations change. The landing page labels beta destinations and offers retry when a link is unavailable. Update Telling to the public listings before rollout. Native iOS and Android retain the established touch and settings paths.
 - **Web** — Use HTTPS staging on the intended origin. Exercise controller discovery and hot-plug, SoLoud first-gesture audio unlock, mute, tab switching, account connectivity, Online, refresh/Continue, and failed storage. Preserve checkpoint schema and recovery semantics with browser storage. Measure compressed first-use payload and test cache behavior on rollout and rollback with older tabs open. [Web Audio autoplay](https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay) · [Flutter web caching](https://docs.flutter.dev/platform-integration/web/faq)
-- **macOS** — Verify a release build with native fullscreen, audio, saves, account credentials, and Online. Resolve the actual minimum OS and architectures from Flutter and plugin builds. Prototype Apple Game Controller extended-profile input alongside the web Gamepad API. Evaluate a package against the same checks as a native adapter. Test Xbox and DualSense wired and Bluetooth, including disconnect during movement or grenade aiming. If direct distribution is selected, verify the notarized download on a separate Mac. [Apple controller configuration](https://developer.apple.com/documentation/xcode/configuring-game-controllers) · [Apple packaging and notarization](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)
+- **macOS** — Verify a release build with native fullscreen, audio, saves, account credentials, and Online. Resolve the actual minimum OS and architectures from Flutter and plugin builds. Prototype Apple Game Controller extended-profile input alongside the web Gamepad API. Evaluate a package against the same checks as a native adapter. Test Xbox and DualSense wired and Bluetooth, including disconnect during movement or grenade aiming. Verify the signed bundle has App Sandbox, outbound networking, and the app’s signing identity for Keychain access. Declare Extended Gamepad support in the macOS Info.plist. The Release target enables Hardened Runtime. For direct distribution, build with Developer ID, verify the distribution entitlements and notarization, and test the download on a separate Mac. [Apple controller configuration](https://developer.apple.com/documentation/xcode/configuring-game-controllers) · [Apple packaging and notarization](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)
 
 ## Measurement and acceptance
 
@@ -94,3 +95,20 @@ Use the same cold start, first arena entry, normal run, crowded boss fight, and 
 3. **Complete the desktop loop.** Take mouse/keyboard and controller through loadout, Solo, upgrades, pause, Continue, results, and restart. Add remaps, prompts, focus traversal, and interruption handling. Run mobile touch regressions.
 4. **Online parity.** Verify camera mapping, mixed-device co-op, reconnect, neutral inputs on blur, and server-authoritative weapon and grenade actions. Review visibility before opening competitive desktop play.
 5. **Release review.** Cover Safari, Chrome, and Firefox on macOS, and Chrome/Edge and Firefox on Windows for web. Run clean installs and 20–30 minute sessions, fullscreen recovery, controller hot-plug, and rollback checks. Publish support from the tested matrix.
+
+
+## Local review build
+
+- **macOS** — Open `build/macos/Build/Products/Release/regun.app`. The development-signed build contains arm64 and x86_64 slices and declares macOS 12.0 as its minimum. The launch trace confirms Impeller with Metal. The signed bundle passes strict signature verification. It is a local review build and has no notarization ticket.
+- **Web** — Run `make buildWeb` with the Regun release config and serve `build/web`. Chromium smoke tests exercised loadout, Solo combat, Escape pause, Settings, results, and Save & leave followed by Continue. Chromium reported hardware WebGL through the Apple GPU. The browser build uses JavaScript/CanvasKit while the current secure storage dependency still blocks a clean Wasm build.
+- **Mobile browsers** — Emulated iPhone, iPad with a desktop user agent, and Android used the Telling-generated destinations without loading Flutter or SoLoud. Telling currently returns beta destinations for both platforms.
+- **Regression checks** — Analyzer clean. The full suite reported 1,018 passes, five skips, and one weapon catalogue failure reproduced on the original commit. Desktop aim, the 60/120 cap, touch controls, and browser save/resume were checked separately. Physical mobile play, a connected controller, sustained 120 FPS, and live Online remain review gates.
+
+
+## Full-screen desktop presentation review
+
+The desktop shelter menu uses larger title typography. Loadout lays out category navigation, the roster or armory, and the equipped kit across the window. Settings and Controls group related settings in separate columns on wider windows. Results use the full desktop frame.
+
+Pause keeps the frozen arena visible across the window. The action rail sits on the left and the run summary sits on the right. Upgrades use the arena as the backdrop for a full-window selection screen with the reroll action next to the choices. Menus use a brass arrow and combat uses the aiming reticle. Native phone layouts keep their separate touch presentation.
+
+The layout reference review looked at how Hades II builds its inventory and market around the game's setting, and how DOOM Eternal divides desktop navigation and information across the screen. [Hades II UI illustrator case study](https://www.corviday.net/supergiant) · [DOOM Eternal interface captures](https://interfaceingame.com/games/doom-eternal/)

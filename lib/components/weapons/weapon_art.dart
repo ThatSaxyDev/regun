@@ -580,17 +580,25 @@ class WeaponReloadDisplay extends StatelessWidget {
     required this.weapon,
     required this.progress,
     this.shells = 5,
+    this.showChrome = true,
     this.tactical = false,
     this.reducedMotion = false,
   });
   final WeaponType weapon;
   final double progress;
   final int shells;
-  final bool reducedMotion, tactical;
+  final bool reducedMotion, tactical, showChrome;
   @override
   Widget build(BuildContext context) => CustomPaint(
-    size: const Size(150, 80),
-    painter: _ReloadPainter(weapon, progress, shells, reducedMotion, tactical),
+    size: Size(150, showChrome ? 80 : 46),
+    painter: _ReloadPainter(
+      weapon,
+      progress,
+      shells,
+      reducedMotion,
+      tactical,
+      showChrome,
+    ),
   );
 }
 
@@ -601,33 +609,36 @@ class _ReloadPainter extends CustomPainter {
     this.shells,
     this.reducedMotion,
     this.tactical,
+    this.showChrome,
   );
   final WeaponType weapon;
   final double progress;
   final int shells;
-  final bool reducedMotion, tactical;
+  final bool reducedMotion, tactical, showChrome;
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
-    final title = TextPainter(
-      text: TextSpan(
-        text: weapon == WeaponType.prismCutter
-            ? 'VENTING'
-            : weapon.title.toUpperCase(),
-        style: const TextStyle(
-          fontFamily: FontFam.pressStart,
-          fontSize: 8,
-          color: Color(0xffE5DDD1),
+    if (showChrome) {
+      final title = TextPainter(
+        text: TextSpan(
+          text: weapon == WeaponType.prismCutter
+              ? 'VENTING'
+              : weapon.title.toUpperCase(),
+          style: const TextStyle(
+            fontFamily: FontFam.pressStart,
+            fontSize: 8,
+            color: Color(0xffE5DDD1),
+          ),
         ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: size.width);
-    title.paint(canvas, Offset((size.width - title.width) / 2, 0));
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: size.width);
+      title.paint(canvas, Offset((size.width - title.width) / 2, 0));
+    }
     final spec = WeaponArtSpec.of(weapon);
     final scale = min(1.5, (size.width - 12) / spec.width);
     canvas.translate(
       size.width / 2 + scale * spec.width * (spec.grip - .5),
-      38,
+      showChrome ? 38 : size.height / 2,
     );
     canvas.scale(scale);
     paintWeapon(
@@ -639,6 +650,7 @@ class _ReloadPainter extends CustomPainter {
       reducedMotion: reducedMotion,
     );
     canvas.restore();
+    if (!showChrome) return;
     canvas.drawRect(
       const Rect.fromLTWH(24, 74, 102, 3),
       Paint()..color = const Color(0xff4F404D),
@@ -651,6 +663,7 @@ class _ReloadPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ReloadPainter oldDelegate) =>
+      oldDelegate.showChrome != showChrome ||
       oldDelegate.weapon != weapon ||
       oldDelegate.progress != progress ||
       oldDelegate.shells != shells ||

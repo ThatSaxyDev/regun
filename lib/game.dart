@@ -1,3 +1,6 @@
+import 'package:regun/desktop/desktop_bindings.dart';
+import 'package:regun/desktop/desktop_frame_pacer.dart';
+import 'package:regun/desktop/desktop_combat_input.dart';
 import 'package:regun/systems/gunplay_flourish.dart';
 import 'package:regun/systems/arena_machine.dart';
 import 'package:regun/components/map/foundry_cart_view.dart';
@@ -116,8 +119,81 @@ class RegunGame extends FlameGame
     this.reviewControlledSpawns = false,
     RunStore? runStore,
     this.recoveryTransport,
+    this.desktopInput,
   }) : runStore = runStore ?? RunStore.shared,
-       super(camera: CameraComponent(viewport: ArenaViewport()));
+       super(
+         camera: CameraComponent(
+           viewport: ArenaViewport(desktop: desktopInput != null),
+         ),
+       );
+
+  final DesktopCombatInput? desktopInput;
+  final desktopKitStatus = ValueNotifier((
+    dash: 1,
+    grenade: 2,
+    dashRecharge: 1.0,
+    grenadeRecharge: 1.0,
+    controller: false,
+  ));
+  bool _desktopPacingInstalled = false;
+  final _desktopPacer = DesktopFramePacer();
+  void _installDesktopPacing() {
+    if (desktopInput == null || _desktopPacingInstalled || !isAttached) return;
+    final loop = renderBox.gameLoop;
+    if (loop == null) return;
+    _desktopPacingInstalled = true;
+    final callback = loop.callback;
+    loop.callback = (dt) {
+      final elapsed = _desktopPacer.advance(
+        dt,
+        DesktopBindings.shared.frameCeiling,
+      );
+      if (elapsed != null) callback(elapsed);
+    };
+  }
+
+  bool get usingDesktopInput => desktopInput?.active ?? false;
+  bool get acceptsDesktopInput =>
+      _started &&
+      applicationActive &&
+      !viewportBlocked &&
+      !inputBlocked &&
+      gameState.gameplayState == GameplayState.playing;
+  Vector2 get movementIntent => usingDesktopInput
+      ? desktopInput!.movement
+      : movementJoystick.relativeDelta;
+  Vector2 get aimIntent {
+    if (!usingDesktopInput) return weaponJoystick.relativeDelta;
+    final input = desktopInput!;
+    final point = input.pointer;
+    if (point == null) {
+      return input.stickAim.isZero() && input.fire
+          ? myPlayer.aimDirection
+          : input.stickAim;
+    }
+    final direction =
+        camera.globalToLocal(Vector2(point.dx, point.dy)) - myPlayer.position;
+    return direction.isZero() ? direction : direction.normalized();
+  }
+
+  bool get fireIntent => usingDesktopInput
+      ? desktopInput!.fire && !aimIntent.isZero()
+      : !weaponJoystick.relativeDelta.isZero();
+
+  void setDesktopInputActive(bool active) {
+    if (desktopInput == null || desktopInput!.active == active) return;
+    if (_controlsLoaded) resetInput();
+    desktopInput!.active = active;
+    (camera.viewport as ArenaViewport).desktop = active;
+    if (canvasSize.x > 0 && canvasSize.y > 0) onGameResize(canvasSize.clone());
+  }
+
+  void requestDash() {
+    if (acceptsDesktopInput) boostButtonComponent.requestDash();
+  }
+
+  Vector2 get desktopGrenadeDirection =>
+      aimIntent.isZero() ? quickGrenadeDirection : aimIntent;
 
   final BuildContext context;
   Loadout loadout;
@@ -179,6 +255,7 @@ class RegunGame extends FlameGame
   String _recordOwner = 'guest', _recordEpoch = '0';
   SoloRecovery recovery = SoloRecovery(owner: 'guest', startingScrap: 0);
   bool applicationActive = true;
+  bool viewportBlocked = false;
   Future<Map<String, dynamic>> Function(Map<String, dynamic>)?
   recoveryTransport;
   bool _settled = false;
@@ -187,8 +264,18 @@ class RegunGame extends FlameGame
   int trainingStep = 0, shotsFired = 0, dashCount = 0, manualReloads = 0;
   final _trainingOrigin = Vector2.zero();
   String get trainingHint => switch (trainingStep) {
-    0 => 'Move with the movement stick',
-    1 => 'Aim and fire with the aiming stick',
+    0 =>
+      usingDesktopInput
+          ? (desktopInput!.controller
+                ? 'Move with the movement stick'
+                : 'Move with the movement keys')
+          : 'Move with the movement stick',
+    1 =>
+      usingDesktopInput
+          ? (desktopInput!.controller
+                ? 'Aim with the stick, fire with the trigger'
+                : 'Aim with the mouse, click to fire')
+          : 'Aim and fire with the aiming stick',
     2 => 'Dash while moving',
     3 => 'Fire, then reload',
     4 => 'Collect XP and choose an upgrade',
@@ -1379,7 +1466,7 @@ class RegunGame extends FlameGame
               (loadout.character == CharacterType.fuse ? 2 : 0))
           .clamp(10, 18);
   Vector2 get quickGrenadeDirection {
-    final movement = movementJoystick.relativeDelta;
+    final movement = movementIntent;
     return movement.isZero()
         ? myPlayer.aimDirection.clone()
         : movement.normalized();
@@ -3355,7 +3442,7 @@ class RegunGame extends FlameGame
   Vector2 assistedWeaponDirection(Vector2 raw, {required double range}) {
     if (raw.isZero()) return Vector2.zero();
     final direction = raw.normalized();
-    if (!preferences.aimAssist) return direction;
+    if (usingDesktopInput || !preferences.aimAssist) return direction;
     assisted = true;
     PositionComponent? target;
     var best = .94;
@@ -3391,7 +3478,7 @@ class RegunGame extends FlameGame
       return false;
     }
     final baseDirection = assistedWeaponDirection(
-      weaponJoystick.relativeDelta,
+      aimIntent,
       range: state.bulletRange.toDouble(),
     );
     if (baseDirection.isZero()) return false;
@@ -3510,9 +3597,10 @@ class RegunGame extends FlameGame
 
   @override
   void update(double dt) {
+    _installDesktopPacing();
     _steppedMinions.clear();
     if (!_started) return;
-    if (!applicationActive) return;
+    if (!applicationActive || viewportBlocked) return;
     if (gameState.gameplayState == GameplayState.gameOver) {
       upgradePresentation.cancel();
     }
@@ -3695,7 +3783,7 @@ class RegunGame extends FlameGame
       }
     }
     if (gameState.gameplayState == GameplayState.playing) {
-      final firing = !weaponJoystick.relativeDelta.isZero();
+      final firing = fireIntent;
       if (loadout.weapon.usesArsenalRuntime) {
         arsenal!.advance(dt, blockedFor: min(dt, reloadWait));
       } else if (loadout.weapon == WeaponType.burstRifle) {
@@ -3749,6 +3837,7 @@ class RegunGame extends FlameGame
               pow(0.85, gameState.effectRank(PowerUp.quickTrigger));
         }
       }
+      if (usingDesktopInput) desktopInput!.consumeFirePress();
       if (_upgradePulsePending) {
         _upgradePulsePending = false;
         upgradePresentation.releaseImpact();
@@ -3806,6 +3895,18 @@ class RegunGame extends FlameGame
     _advanceOrdinaryMinions(dt);
     try {
       super.update(dt);
+      if (desktopInput case final input?) {
+        final dash = boostButtonComponent.reserve;
+        // One update per visible step of the recharge meters.
+        desktopKitStatus.value = (
+          dash: dash.charges,
+          grenade: grenades.charges,
+          dashRecharge:
+              ((1 - dash.remaining / dash.duration) * 48).floor() / 48,
+          grenadeRecharge: (grenades.progress * 48).floor() / 48,
+          controller: input.controller,
+        );
+      }
       if (escapePlayerBefore != null) {
         _resolveDashEscape(escapePlayerBefore, escapeHealthBefore);
       }
@@ -4367,6 +4468,7 @@ class RegunGame extends FlameGame
   void gameOver() => gameNotifier.gameOver();
 
   void resetInput() {
+    desktopInput?.reset();
     _escapeDashStart = null;
     _escapeSlowRemaining = 0;
     _arenaAudio?.syncFoundryRail(null);
@@ -4495,6 +4597,7 @@ class RegunGame extends FlameGame
     arietCandidate?.retire();
     lodestarCandidate?.retire();
     _phaseSubscription?.close();
+    desktopKitStatus.dispose();
     confirmationHolding.dispose();
     damageFeedback.healthLost.dispose();
     bossVictory.current.dispose();

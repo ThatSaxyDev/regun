@@ -10,7 +10,7 @@ DIST_GROUPS ?=
 DIST_NOTES ?= Regun $(shell sed -n 's/^version: //p' pubspec.yaml)
 APK_PATH ?= build/app/outputs/flutter-apk/app-release.apk
 
-.PHONY: analyze test soak verify runRelease build buildAPK buildIOS buildIPA cleanAndGet pubGet createLauncherIcons createSplashScreen distribute
+.PHONY: analyze test soak verify runRelease build buildAPK buildIOS buildIPA buildWeb refreshWebStoreLinks cleanAndGet pubGet createLauncherIcons createSplashScreen distribute
 
 analyze:
 	$(FLUTTER) analyze
@@ -38,6 +38,15 @@ buildIOS:
 
 buildIPA:
 	$(FLUTTER) build ipa --release --export-method app-store $(RELEASE_DEFINES)
+
+buildWeb:
+	@tmp=$$(mktemp -d) && trap 'rm -f "$$tmp/web.json"; rmdir "$$tmp"' EXIT && \
+		python3 -c 'import json, sys; data = json.load(open(sys.argv[1])); names = ("REGUN_SERVER_HOST", "REGUN_DATABASE", "REGUN_SERVER_TLS", "REGUN_IDENTITY_URL"); print(json.dumps({name: data[name] for name in names if name in data}))' "$(RELEASE_CONFIG)" > "$$tmp/web.json" && \
+		$(FLUTTER) build web --release --dart-define-from-file="$$tmp/web.json"
+	$(MAKE) refreshWebStoreLinks
+
+refreshWebStoreLinks:
+	python3 tool/refresh_web_store_links.py "$(RELEASE_CONFIG)" build/web/mobile-store-links.json
 
 cleanAndGet:
 	$(FLUTTER) clean

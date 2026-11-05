@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -34,10 +37,19 @@ class AccountLocalStore {
   AccountLocalStore({Directory? directory}) : _directory = directory;
   Directory? _directory;
   Future<void> _pending = Future.value();
-  Future<File> _file(String owner) async {
+  String _webKey(String owner) {
+    _validateOwner(owner);
+    return 'regun.web.account.v1.$owner';
+  }
+
+  void _validateOwner(String owner) {
     if (!RegExp(r'^[a-f0-9-]{36}$').hasMatch(owner)) {
       throw const FormatException('Invalid account');
     }
+  }
+
+  Future<File> _file(String owner) async {
+    _validateOwner(owner);
     _directory ??= await getApplicationSupportDirectory();
     final folder = Directory('${_directory!.path}/accounts');
     await folder.create(recursive: true);
@@ -46,6 +58,24 @@ class AccountLocalStore {
 
   Future<Map<String, dynamic>?> read(String owner) async {
     await _pending;
+    if (kIsWeb) {
+      final key = _webKey(owner);
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(key);
+      if (raw == null) return null;
+      try {
+        final data = jsonDecode(raw);
+        if (data is Map<String, dynamic> &&
+            data['schema'] == 1 &&
+            data['owner'] == owner &&
+            data['profile'] is Map) {
+          return data;
+        }
+      } on FormatException {
+        return null;
+      }
+      return null;
+    }
     final file = await _file(owner);
     for (final candidate in [file, File('${file.path}.bak')]) {
       try {
@@ -65,6 +95,11 @@ class AccountLocalStore {
 
   Future<void> remove(String owner) {
     final next = _pending.catchError((Object _) {}).then((_) async {
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(_webKey(owner));
+        return;
+      }
       final file = await _file(owner);
       for (final candidate in [
         file,
@@ -81,6 +116,13 @@ class AccountLocalStore {
   Future<void> write(String owner, Map<String, dynamic> data) {
     final encoded = jsonEncode({...data, 'schema': 1, 'owner': owner});
     final next = _pending.catchError((Object _) {}).then((_) async {
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        if (!await prefs.setString(_webKey(owner), encoded)) {
+          throw StateError('Account storage unavailable');
+        }
+        return;
+      }
       final file = await _file(owner),
           temp = File('${(await _file(owner)).path}.tmp');
       await temp.writeAsString(encoded, flush: true);

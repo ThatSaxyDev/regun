@@ -1,3 +1,7 @@
+import 'package:flutter/gestures.dart';
+import 'package:regun/views/settings_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -45,6 +49,100 @@ void main() {
         );
       }
     },
+  );
+
+  testWidgets(
+    'macOS Home fits the minimum window and confirms before quitting',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = const Size(2056, 1290);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const channel = MethodChannel('regun/display');
+      final messenger = tester.binding.defaultBinaryMessenger;
+      final calls = <String>[];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        calls.add(call.method);
+        return null;
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+          child: MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: const TextScaler.linear(1.25)),
+              child: child!,
+            ),
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => HomeMenu(
+                  ready: true,
+                  reducedMotion: true,
+                  onlineAvailable: true,
+                  onContinue: () {},
+                  onPlay: () {},
+                  onOnline: () {},
+                  onLeaderboards: () {},
+                  onTraining: () {},
+                  onCollection: () {},
+                  onSettings: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const SettingsView(allowProgressReset: true),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final play = find.text('PLAY');
+      final plate = find
+          .ancestor(of: play, matching: find.byType(CustomPaint))
+          .first;
+      final before = tester.widget<CustomPaint>(plate).painter!;
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: tester.getCenter(play));
+      await tester.pump();
+      expect(
+        tester.widget<CustomPaint>(plate).painter!.shouldRepaint(before),
+        isTrue,
+      );
+      await mouse.removePointer();
+
+      tester.view.physicalSize = const Size(960, 540);
+      await tester.pumpAndSettle();
+      expect(find.text('COLLECTION').hitTestable(), findsOneWidget);
+      await tester.tap(find.byKey(const Key('home-settings')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('CONTROLS').hitTestable());
+      await tester.pumpAndSettle();
+      expect(find.text('KEY BINDINGS'), findsOneWidget);
+      await tester.tap(find.text('CONTROLLER'));
+      await tester.pumpAndSettle();
+      expect(find.text('CONTROLLER BINDINGS'), findsOneWidget);
+      await tester.tap(find.text('BACK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('BACK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('EXIT'));
+      await tester.pumpAndSettle();
+      expect(find.text('EXIT REGUN?'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('run-action-cancel')));
+      await tester.pumpAndSettle();
+      expect(calls, isEmpty);
+      await tester.tap(find.text('EXIT'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('run-action-confirm')));
+      await tester.pumpAndSettle();
+      expect(calls, ['quit']);
+      expect(tester.takeException(), isNull);
+    },
+    variant: const TargetPlatformVariant({TargetPlatform.macOS}),
   );
 
   testWidgets('five home actions and settings fit safe landscape edges', (

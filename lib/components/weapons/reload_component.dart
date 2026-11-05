@@ -1,3 +1,4 @@
+import 'package:regun/desktop/touch_control_visibility.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/input.dart';
@@ -6,7 +7,7 @@ import 'package:regun/game.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 
 class ReloadButtonComponent extends ButtonComponent
-    with HasGameReference<RegunGame> {
+    with HasGameReference<RegunGame>, TouchControlVisibility {
   ReloadButtonComponent({super.onPressed})
     : super(
         button: ActionControlSkin(glyph: PixelGlyph.reload, label: 'RELOAD'),

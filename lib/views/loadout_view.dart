@@ -1,3 +1,4 @@
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/widgets/wallet_bar.dart' show walletAmount;
 import 'package:regun/models/economy/armory_catalog.dart';
@@ -90,7 +91,10 @@ class _LoadoutViewState extends State<LoadoutView> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) =>
+      desktopInputAvailable ? _desktopLoadout() : _mobileLoadout();
+
+  Widget _mobileLoadout() => Scaffold(
     backgroundColor: const Color(0xff141117),
     body: SafeArea(
       minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -195,6 +199,209 @@ class _LoadoutViewState extends State<LoadoutView> {
     ),
   );
 
+  String _selection(_Catalog catalog) => switch (catalog) {
+    _Catalog.survivor => character.title,
+    _Catalog.weapon => weapon.title,
+    _Catalog.arena => arena.title,
+  };
+
+  Widget _desktopLoadout() => Scaffold(
+    backgroundColor: const Color(0xff191a17),
+    body: SafeArea(
+      minimum: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1320),
+          child: LayoutBuilder(
+            builder: (context, box) {
+              final wide = box.maxWidth >= 740;
+              final armory = _catalog == _Catalog.weapon;
+              Widget entries(List<Widget> items) => MenuCardGrid(
+                minColumnWidth: armory ? 300 : 248,
+                maxColumns: 2,
+                children: items,
+              );
+              final catalog = MenuScrollBody(
+                key: ValueKey(_catalog),
+                child: armory && widget.training
+                    ? TrainingWeaponBrowser(
+                        initialShowLocked: _showLockedWeapons,
+                        onGroupChanged: (value) => _showLockedWeapons = value,
+                        builder: (weapons) => entries(_weaponOptions(weapons)),
+                      )
+                    : entries(_options()),
+              );
+              final browser = Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    switch (_catalog) {
+                      _Catalog.survivor => 'Survivor roster',
+                      _Catalog.weapon => 'Armory',
+                      _Catalog.arena => 'Arena routes',
+                    },
+                    style: const TextStyle(
+                      fontFamily: FontFam.orbitron,
+                      color: Color(0xffeadfc9),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Expanded(child: catalog),
+                ],
+              );
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  MenuHeader(
+                    title: widget.training ? 'TRAINING' : 'LOADOUT',
+                    showWallet: true,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    spacing: 8,
+                    children: [
+                      for (final item in _Catalog.values)
+                        Expanded(
+                          child: _CatalogTab(
+                            label: item.name.toUpperCase(),
+                            selection: _selection(item),
+                            active: item == _catalog,
+                            onTap: () => _browse(item),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const Divider(height: 28, color: Color(0xff494438)),
+                  Expanded(
+                    child: wide
+                        ? Row(
+                            spacing: 24,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(
+                                width: (box.maxWidth * .37).clamp(280.0, 460.0),
+                                child: _desktopSelection(),
+                              ),
+                              const VerticalDivider(
+                                width: 1,
+                                color: Color(0xff494438),
+                              ),
+                              Expanded(child: browser),
+                            ],
+                          )
+                        : browser,
+                  ),
+                  const SizedBox(height: 12),
+                  _footer(),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Widget _desktopSelection() {
+    final status = switch (_catalog) {
+      _Catalog.survivor => 'SELECTED SURVIVOR',
+      _Catalog.weapon =>
+        profile.weaponUnlocked(weapon) ? 'SELECTED WEAPON' : 'LOCKED WEAPON',
+      _Catalog.arena => 'SELECTED ARENA',
+    };
+    final description = switch (_catalog) {
+      _Catalog.survivor => character.description,
+      _Catalog.weapon => weapon.description,
+      _Catalog.arena => arena.description,
+    };
+    final details = switch (_catalog) {
+      _Catalog.survivor =>
+        '${character.role}  /  ${character.health} HP  /  ${WeaponMobility.speed(weapon, character.speed).round()} SPEED',
+      _Catalog.weapon => WeaponMobility.label(weapon),
+      _Catalog.arena => '',
+    };
+    return LayoutBuilder(
+      builder: (context, box) => SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              status,
+              style: const TextStyle(
+                fontFamily: FontFam.orbitron,
+                color: Color(0xffdfb677),
+                fontSize: 12,
+                letterSpacing: 1.6,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _selection(_catalog),
+              style: const TextStyle(
+                fontFamily: FontFam.orbitron,
+                color: Color(0xffeadfc9),
+                fontSize: 25,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: (box.maxHeight * .37).clamp(76.0, 196.0),
+              child: switch (_catalog) {
+                _Catalog.survivor => SurvivorPortrait(
+                  key: const Key('loadout-kit-preview'),
+                  animated: true,
+                  character: character,
+                  weapon: weapon,
+                  style: profile.cosmetic,
+                  maxArtSize: 154,
+                ),
+                _Catalog.weapon => Center(
+                  child: SizedBox(
+                    width: 300,
+                    height: 132,
+                    child: WeaponThumbnail(weapon),
+                  ),
+                ),
+                _Catalog.arena => ClipPath(
+                  clipper: const _ArenaPreviewClip(),
+                  child: Image.asset(
+                    _floor(arena),
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.none,
+                  ),
+                ),
+              },
+            ),
+            const Divider(height: 24, color: Color(0xff756044)),
+            if (details.isNotEmpty) ...[
+              Text(
+                details,
+                style: const TextStyle(
+                  fontFamily: FontFam.orbitron,
+                  color: Color(0xffdfb677),
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 6),
+            ],
+            Text(
+              description,
+              style: const TextStyle(
+                fontFamily: FontFam.orbitron,
+                color: Color(0xffeadfc9),
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<Widget> _options() => switch (_catalog) {
     _Catalog.survivor =>
       CharacterType.values
@@ -202,8 +409,9 @@ class _LoadoutViewState extends State<LoadoutView> {
             (c) => _option(
               id: 'survivor-${c.name}',
               title: c.title,
-              description:
-                  '${c.role} / ${c.health} HP / ${c.speed.round()} speed / ${WeaponMobility.speed(weapon, c.speed).round()} equipped\n${c.description}',
+              description: desktopInputAvailable
+                  ? '${c.role} / ${c.health} HP / ${WeaponMobility.speed(weapon, c.speed).round()} speed'
+                  : '${c.role} / ${c.health} HP / ${c.speed.round()} speed / ${WeaponMobility.speed(weapon, c.speed).round()} equipped\n${c.description}',
               selected: character == c,
               unlocked: widget.training || profile.characterUnlocked(c),
               lock: profile.characterProgress(c),
@@ -279,6 +487,7 @@ class _LoadoutViewState extends State<LoadoutView> {
     required VoidCallback onTap,
     bool previewLocked = false,
   }) {
+    final desktop = desktopInputAvailable;
     final option = Padding(
       key: ValueKey('loadout-$id'),
       padding: const EdgeInsets.only(bottom: 8),
@@ -289,14 +498,18 @@ class _LoadoutViewState extends State<LoadoutView> {
         child: _SoundTap(
           onTap: unlocked || previewLocked ? onTap : null,
           child: CustomPaint(
-            painter: _SlotPlate(selected: selected),
+            painter: _SlotPlate(selected: selected, desktop: desktop),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 14, 12),
+              padding: desktop
+                  ? const EdgeInsets.symmetric(horizontal: 16, vertical: 14)
+                  : const EdgeInsets.fromLTRB(12, 10, 14, 12),
               child: Row(
                 children: [
                   SizedBox(
-                    width: 50,
-                    height: 48,
+                    width: desktop
+                        ? (_catalog == _Catalog.weapon ? 96 : 72)
+                        : 50,
+                    height: desktop ? 68 : 48,
                     child: Opacity(opacity: unlocked ? 1 : .4, child: art),
                   ),
                   const SizedBox(width: 12),
@@ -309,7 +522,7 @@ class _LoadoutViewState extends State<LoadoutView> {
                           style: TextStyle(
                             fontFamily: FontFam.orbitron,
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontSize: desktop ? 17 : 12,
                             color: unlocked
                                 ? const Color(0xffe5ddd1)
                                 : const Color(0xffa99c9d),
@@ -318,11 +531,11 @@ class _LoadoutViewState extends State<LoadoutView> {
                         const SizedBox(height: 4),
                         Text(
                           unlocked ? description : 'Locked / $lock',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontFam.orbitron,
-                            fontSize: 10,
+                            fontSize: desktop ? 13 : 10,
                             height: 1.5,
-                            color: Color(0xffb9aaab),
+                            color: const Color(0xffb9aaab),
                           ),
                         ),
                       ],
@@ -462,11 +675,11 @@ class _LoadoutViewState extends State<LoadoutView> {
           Text(
             '${character.title} / ${weapon.title} / ${arena.title}${WeaponMobility.label(weapon).isEmpty ? '' : ' / ${WeaponMobility.label(weapon)}'}',
             key: const Key('loadout-summary'),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFam.orbitron,
-              fontSize: 11,
+              fontSize: desktopInputAvailable ? 14 : 11,
               height: 1.5,
-              color: Color(0xffc7b9a6),
+              color: const Color(0xffc7b9a6),
             ),
           ),
           if (_unlockIssue != null)
@@ -490,16 +703,17 @@ class _LoadoutViewState extends State<LoadoutView> {
             text: _unlocking
                 ? 'Checking'
                 : 'Unlock / ${walletAmount(_armory.catalog.prices[weapon.name]!)}',
-            width: 200,
-            height: 48,
-            fontSize: 8,
+            width: desktopInputAvailable ? 280 : 200,
+            height: desktopInputAvailable ? 60 : 48,
+            fontSize: desktopInputAvailable ? 12 : 8,
             onTap: _unlocking ? null : _unlockWeapon,
           )
         else
           ClickButton(
             text: _starting ? 'Loading' : 'Start',
-            width: 120,
-            height: 48,
+            width: desktopInputAvailable ? 180 : 120,
+            height: desktopInputAvailable ? 60 : 48,
+            fontSize: desktopInputAvailable ? 14 : 10,
             onTap: _starting
                 ? null
                 : () async {
@@ -567,6 +781,16 @@ class _LoadoutViewState extends State<LoadoutView> {
 }
 
 String _floor(ArenaType arena) => 'assets/art/arenas/${arena.name}_floor.png';
+
+class _ArenaPreviewClip extends CustomClipper<Path> {
+  const _ArenaPreviewClip();
+
+  @override
+  Path getClip(Size size) => controlPlate(Offset.zero & size, cut: 12);
+
+  @override
+  bool shouldReclip(_ArenaPreviewClip oldClipper) => false;
+}
 
 class _KitPreview extends StatelessWidget {
   const _KitPreview({
@@ -660,7 +884,7 @@ class _CatalogTab extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontFamily: FontFam.orbitron,
-                  fontSize: 9,
+                  fontSize: desktopInputAvailable ? 12 : 9,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1,
                   color: active
@@ -673,11 +897,11 @@ class _CatalogTab extends StatelessWidget {
                 selection,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFam.orbitron,
-                  fontSize: 11,
+                  fontSize: desktopInputAvailable ? 14 : 11,
                   height: 1.4,
-                  color: Color(0xffe5ddd1),
+                  color: const Color(0xffe5ddd1),
                 ),
               ),
             ],
@@ -688,47 +912,89 @@ class _CatalogTab extends StatelessWidget {
   );
 }
 
-class _SoundTap extends ConsumerWidget {
+class _SoundTap extends ConsumerStatefulWidget {
   const _SoundTap({required this.child, required this.onTap});
   final Widget child;
   final VoidCallback? onTap;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) => InkWell(
-    onTap: onTap == null
+  ConsumerState<_SoundTap> createState() => _SoundTapState();
+}
+
+class _SoundTapState extends ConsumerState<_SoundTap> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: widget.onTap == null
         ? null
         : () {
             ref.read(soloudPlayProvider).play('click.mp3');
-            onTap!();
+            widget.onTap!();
           },
+    onHover: desktopInputAvailable
+        ? (value) => setState(() => _hovered = value)
+        : null,
     highlightColor: const Color(0x246f5341),
     splashColor: Colors.transparent,
-    child: child,
+    child: CustomPaint(
+      foregroundPainter: _hovered && widget.onTap != null
+          ? const _SlotHover()
+          : null,
+      child: widget.child,
+    ),
   );
 }
 
+class _SlotHover extends CustomPainter {
+  const _SlotHover();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawPath(
+      controlPlate((Offset.zero & size).deflate(1), cut: 4),
+      Paint()
+        ..color = const Color(0xffe1ba78)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_SlotHover oldDelegate) => false;
+}
+
 class _SlotPlate extends CustomPainter {
-  const _SlotPlate({required this.selected});
-  final bool selected;
+  const _SlotPlate({required this.selected, this.desktop = false});
+  final bool selected, desktop;
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     canvas.drawPath(
       controlPlate(rect, cut: 4),
       Paint()
-        ..color = selected ? const Color(0xff3a2e28) : const Color(0xff211b26),
+        ..color = selected
+            ? const Color(0xff3a2e28)
+            : desktop
+            ? const Color(0xff252722)
+            : const Color(0xff211b26),
     );
     canvas.drawPath(
       controlPlate(rect.deflate(.75), cut: 4),
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
-        ..color = selected ? const Color(0xffbf995f) : const Color(0xff51424f),
+        ..color = selected
+            ? const Color(0xffbf995f)
+            : desktop
+            ? const Color(0xff494438)
+            : const Color(0xff51424f),
     );
   }
 
   @override
   bool shouldRepaint(_SlotPlate oldDelegate) =>
-      oldDelegate.selected != selected;
+      oldDelegate.selected != selected || oldDelegate.desktop != desktop;
 }
 
 class _EquippedMark extends CustomPainter {

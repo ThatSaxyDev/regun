@@ -1,3 +1,6 @@
+import 'package:regun/desktop/desktop_display.dart';
+import 'package:regun/widgets/confirm_run_action.dart';
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/widgets/wallet_bar.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +13,7 @@ import 'online_coming_soon.dart';
 import 'app_build_label.dart';
 import 'home_artwork.dart';
 
-/// Home navigation stays in two action rows, even with a suspended run.
+/// Home navigation and the shelter backdrop.
 class HomeMenu extends StatelessWidget {
   const HomeMenu({
     super.key,
@@ -35,13 +38,81 @@ class HomeMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
+      final desktop = desktopInputAvailable;
+      final desktopMenu =
+          desktop && box.maxWidth >= 680 && box.maxWidth >= box.maxHeight;
       final portrait = box.maxHeight > box.maxWidth;
       final compact = box.maxHeight < 440;
       final panelWidth = portrait
           ? 440.0
+          : desktopMenu
+          ? (box.maxWidth * .28).clamp(280.0, 360.0)
           : (box.maxWidth * .48).clamp(290.0, 470.0);
       final scale = MediaQuery.textScalerOf(context).scale(12) / 12;
       final reduced = reducedMotion || MediaQuery.disableAnimationsOf(context);
+      final online = _HomeAction(
+        label: 'Online',
+        quiet: desktopMenu,
+        detail: onlineChecking
+            ? 'CHECKING…'
+            : onlineAvailable
+            ? 'CO-OP / VERSUS'
+            : 'COMING SOON',
+        muted: !onlineAvailable,
+        onTap: !ready || onlineChecking
+            ? null
+            : onlineAvailable
+            ? onOnline
+            : () => showOnlineComingSoon(context),
+      );
+      final leaderboards = _HomeAction(
+        label: 'Leaderboards',
+        quiet: desktopMenu,
+        onTap: ready ? onLeaderboards : null,
+      );
+      final play = _HomeAction(
+        label: ready ? 'Play' : 'Loading',
+        primary: onContinue == null,
+        quiet: desktopMenu && onContinue != null,
+        onTap: ready ? onPlay : null,
+      );
+      final training = _HomeAction(
+        label: 'Training',
+        utility: !desktopMenu,
+        quiet: desktopMenu,
+        onTap: ready ? onTraining : null,
+      );
+      final collection = _HomeAction(
+        label: 'Collection',
+        utility: !desktopMenu,
+        quiet: desktopMenu,
+        onTap: ready ? onCollection : null,
+      );
+      final settings = _HomeAction(
+        key: const Key('home-settings'),
+        label: 'Settings',
+        utility: true,
+        gear: !desktopMenu,
+        quiet: desktopMenu,
+        onTap: ready ? onSettings : null,
+      );
+      final exit = _HomeAction(
+        label: 'Exit',
+        utility: true,
+        quiet: desktopMenu,
+        onTap: () async {
+          final confirmed = await confirmRunAction(
+            context,
+            eyebrow: 'RE-GUN',
+            title: 'EXIT REGUN?',
+            message: 'Close the game and return to your desktop.',
+            action: 'Exit',
+          );
+          if (confirmed && context.mounted) {
+            await quitDesktopApp();
+          }
+        },
+      );
       final navigation = SizedBox(
         width: panelWidth,
         child: Column(
@@ -53,100 +124,104 @@ class HomeMenu extends StatelessWidget {
               key: const Key('home-title'),
               style: TextStyle(
                 fontFamily: FontFam.pressStart,
-                fontSize: compact ? 24 : 34,
+                fontSize: compact
+                    ? 24
+                    : desktop && !portrait
+                    ? (panelWidth * .13).clamp(36, 58)
+                    : 34,
                 height: 1.3,
                 letterSpacing: 3,
                 color: const Color(0xffeee5d4),
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'NO QUIET WAY OUT.',
               style: TextStyle(
                 fontFamily: FontFam.orbitron,
-                fontSize: 10,
+                fontSize: desktopMenu ? 12 : 10,
                 letterSpacing: 2,
-                color: Color(0xffb5aa96),
+                color: const Color(0xffb5aa96),
               ),
             ),
-            SizedBox(height: compact ? 12 : 28),
-            Row(
-              children: [
-                if (onContinue != null) ...[
-                  Expanded(
-                    child: _HomeAction(
-                      label: 'Continue',
-                      primary: true,
-                      onTap: ready ? onContinue : null,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                Expanded(
-                  child: _HomeAction(
-                    label: ready ? 'Play' : 'Loading',
-                    primary: onContinue == null,
-                    onTap: ready ? onPlay : null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _HomeAction(
-              label: 'Online',
-              detail: onlineChecking
-                  ? 'CHECKING…'
-                  : onlineAvailable
-                  ? 'CO-OP / VERSUS'
-                  : 'COMING SOON',
-              muted: !onlineAvailable,
-              onTap: !ready || onlineChecking
-                  ? null
-                  : onlineAvailable
-                  ? onOnline
-                  : () => showOnlineComingSoon(context),
-            ),
-            if (onLeaderboards != null) ...[
-              const SizedBox(height: 10),
-              _HomeAction(
-                label: 'Leaderboards',
-                onTap: ready ? onLeaderboards : null,
-              ),
-            ],
-            SizedBox(height: compact ? 10 : 22),
-            Row(
-              children: [
-                Expanded(
-                  child: _HomeAction(
-                    label: 'Training',
-                    utility: true,
-                    onTap: ready ? onTraining : null,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _HomeAction(
-                    label: 'Collection',
-                    utility: true,
-                    onTap: ready ? onCollection : null,
-                  ),
-                ),
-                const SizedBox(width: 8),
+            SizedBox(height: compact ? 12 : (desktopMenu ? 20 : 28)),
+            if (desktopMenu) ...[
+              if (onContinue != null) ...[
                 _HomeAction(
-                  key: const Key('home-settings'),
-                  label: 'Settings',
-                  utility: true,
-                  gear: true,
-                  onTap: ready ? onSettings : null,
+                  label: 'Continue',
+                  primary: true,
+                  onTap: ready ? onContinue : null,
+                ),
+                const SizedBox(height: 8),
+              ],
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 5,
+                children: [
+                  play,
+                  online,
+                  training,
+                  collection,
+                  if (onLeaderboards != null) leaderboards,
+                ],
+              ),
+              const Divider(height: 20, color: Color(0x667d6856)),
+              Row(
+                spacing: 8,
+                children: [
+                  Expanded(child: settings),
+                  if (nativeMacDesktop)
+                    Expanded(child: exit)
+                  else
+                    const Spacer(),
+                ],
+              ),
+            ] else ...[
+              Row(
+                children: [
+                  if (onContinue != null) ...[
+                    Expanded(
+                      child: _HomeAction(
+                        label: 'Continue',
+                        primary: true,
+                        onTap: ready ? onContinue : null,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                  Expanded(child: play),
+                ],
+              ),
+              const SizedBox(height: 10),
+              online,
+              if (onLeaderboards != null) ...[
+                const SizedBox(height: 10),
+                leaderboards,
+              ],
+              SizedBox(height: compact ? 10 : 22),
+              Row(
+                spacing: 8,
+                children: [
+                  Expanded(child: training),
+                  Expanded(child: collection),
+                  settings,
+                ],
+              ),
+              if (nativeMacDesktop) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: SizedBox(width: 100, child: exit),
                 ),
               ],
-            ),
+            ],
           ],
         ),
       );
       // Large text deliberately switches to a scrollable composition rather than
       // shrinking touch targets or letting the title disappear behind a mask.
-      final scroll = portrait || box.maxHeight < 360 || scale > 1.25;
+      final scroll =
+          portrait || box.maxHeight < (desktop ? 540 : 360) || scale > 1.25;
       return Stack(
         fit: StackFit.expand,
         children: [
@@ -177,7 +252,11 @@ class HomeMenu extends StatelessWidget {
             minimum: const EdgeInsets.all(16),
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: box.maxWidth > 700 ? 32 : 8,
+                horizontal: desktop && !portrait
+                    ? (box.maxWidth * .065).clamp(24, 128)
+                    : box.maxWidth > 700
+                    ? 32
+                    : 8,
               ),
               child: Column(
                 children: [
@@ -252,17 +331,20 @@ class _HomeAction extends ConsumerStatefulWidget {
     this.utility = false,
     this.gear = false,
     this.muted = false,
+    this.quiet = false,
   });
   final String label;
   final String? detail;
   final VoidCallback? onTap;
-  final bool primary, utility, gear, muted;
+  final bool primary, utility, gear, muted, quiet;
   @override
   ConsumerState<_HomeAction> createState() => _HomeActionState();
 }
 
 class _HomeActionState extends ConsumerState<_HomeAction> {
   bool _pressed = false;
+  bool _hovered = false;
+  bool _focused = false;
 
   @override
   void didUpdateWidget(_HomeAction oldWidget) {
@@ -294,6 +376,12 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
                     ref.read(soloudPlayProvider).play('click.mp3');
                     widget.onTap!();
                   },
+            onHover: desktopInputAvailable
+                ? (value) => setState(() => _hovered = value)
+                : null,
+            onFocusChange: desktopInputAvailable
+                ? (value) => setState(() => _focused = value)
+                : null,
             onTapDown: !enabled ? null : (_) => setState(() => _pressed = true),
             onTapUp: (_) => setState(() => _pressed = false),
             onTapCancel: () => setState(() => _pressed = false),
@@ -302,18 +390,26 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
             child: CustomPaint(
               painter: _HomePlate(
                 primary: widget.primary,
+                quiet: widget.quiet,
                 utility: widget.utility,
                 pressed: _pressed,
                 enabled: enabled && !widget.muted,
+                highlighted: enabled && (_hovered || _focused),
               ),
               child: Container(
                 constraints: BoxConstraints(
-                  minHeight: widget.utility ? 48 : 54,
+                  minHeight: desktopInputAvailable
+                      ? (widget.quiet ? 36 : 48)
+                      : (widget.utility ? 48 : 54),
                 ),
                 width: widget.gear ? 48 : null,
                 padding: EdgeInsets.symmetric(
-                  horizontal: widget.utility ? 12 : 20,
-                  vertical: 12,
+                  horizontal: desktopInputAvailable
+                      ? (widget.primary ? 16 : 12)
+                      : widget.utility
+                      ? 12
+                      : 20,
+                  vertical: desktopInputAvailable ? 8 : 12,
                 ),
                 child: Transform.translate(
                   offset: Offset(0, _pressed ? 1 : -1),
@@ -337,11 +433,20 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
                                   textAlign: widget.utility
                                       ? TextAlign.center
                                       : TextAlign.left,
+                                  maxLines: desktopInputAvailable ? 1 : null,
+                                  overflow: desktopInputAvailable
+                                      ? TextOverflow.ellipsis
+                                      : null,
                                   style: TextStyle(
                                     fontFamily: widget.utility
                                         ? FontFam.orbitron
                                         : FontFam.pressStart,
-                                    fontSize: widget.utility ? 11 : 10,
+                                    fontSize:
+                                        desktopInputAvailable && widget.primary
+                                        ? 13
+                                        : widget.utility
+                                        ? 11
+                                        : 10,
                                     height: 1.5,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: .5,
@@ -349,7 +454,9 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
                                   ),
                                 ),
                               ),
-                              if (widget.detail != null && scale <= 1.25) ...[
+                              if (widget.detail != null &&
+                                  scale <= 1.25 &&
+                                  (!desktopInputAvailable || widget.quiet)) ...[
                                 const SizedBox(width: 12),
                                 Text(
                                   widget.detail!,
@@ -382,11 +489,14 @@ class _HomePlate extends CustomPainter {
     required this.utility,
     required this.pressed,
     required this.enabled,
+    required this.highlighted,
+    required this.quiet,
   });
-  final bool primary, utility, pressed, enabled;
+  final bool primary, utility, pressed, enabled, highlighted, quiet;
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (quiet && !highlighted && !pressed) return;
     final face = Rect.fromLTWH(
       1,
       pressed ? 3 : 0,
@@ -394,7 +504,11 @@ class _HomePlate extends CustomPainter {
       size.height - 4,
     );
     final paint = Paint()..isAntiAlias = false;
-    final rim = primary ? const Color(0xffbd9762) : const Color(0xff71604f);
+    final rim = highlighted
+        ? const Color(0xfff4d8a5)
+        : primary
+        ? const Color(0xffbd9762)
+        : const Color(0xff71604f);
     canvas.drawPath(
       controlPlate(face.shift(const Offset(0, 4))),
       paint..color = const Color(0xff0c0a0e),
@@ -402,7 +516,7 @@ class _HomePlate extends CustomPainter {
     canvas.drawPath(controlPlate(face), paint..color = const Color(0xff141116));
     canvas.drawPath(
       controlPlate(face.deflate(1)),
-      paint..color = rim.withValues(alpha: enabled ? 1 : .35),
+      paint..color = rim.withValues(alpha: enabled || highlighted ? 1 : .35),
     );
     final inner = face.deflate(3);
     canvas.drawPath(
@@ -410,6 +524,8 @@ class _HomePlate extends CustomPainter {
       paint
         ..color = pressed
             ? const Color(0xff211b20)
+            : highlighted
+            ? const Color(0xff564337)
             : !enabled
             ? const Color(0xff242327)
             : primary
@@ -460,9 +576,11 @@ class _HomePlate extends CustomPainter {
   @override
   bool shouldRepaint(_HomePlate oldDelegate) =>
       oldDelegate.primary != primary ||
+      oldDelegate.quiet != quiet ||
       oldDelegate.utility != utility ||
       oldDelegate.pressed != pressed ||
-      oldDelegate.enabled != enabled;
+      oldDelegate.enabled != enabled ||
+      oldDelegate.highlighted != highlighted;
 }
 
 class _SettingsGlyph extends CustomPainter {

@@ -370,8 +370,8 @@ class ArietBoss extends PositionComponent
       return;
     }
     fight.player = game.myPlayer.position.toOffset();
-    fight.playerVelocity =
-        (game.movementJoystick.relativeDelta * game.playerWalkSpeed).toOffset();
+    fight.playerVelocity = (game.movementIntent * game.playerWalkSpeed)
+        .toOffset();
     rig.reducedMotion = game.preferences.reducedMotion;
     fight.enraged = combatHealth.fraction <= .5;
     fight.healthFraction = combatHealth.fraction;

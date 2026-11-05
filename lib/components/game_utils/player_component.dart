@@ -149,8 +149,8 @@ class PlayerComponent extends SpriteAnimationComponent
       hurtFlash = 0;
       return;
     }
-    final movement = game.movementJoystick.relativeDelta;
-    final aim = game.weaponJoystick.relativeDelta;
+    final movement = game.movementIntent;
+    final aim = game.aimIntent;
     if (game.gameState.gameplayState == GameplayState.playing) {
       final heading = weaponHeading.advance(
         aimDirection.toOffset(),
@@ -162,6 +162,7 @@ class PlayerComponent extends SpriteAnimationComponent
       aimDirection.setValues(heading.dx, heading.dy);
       if (game.loadout.weapon == WeaponType.longwatchSniper &&
           !aim.isZero() &&
+          (!game.usingDesktopInput || game.fireIntent) &&
           game.arsenal!.ready) {
         aimDirection.setFrom(game.arsenal!.aim);
       }

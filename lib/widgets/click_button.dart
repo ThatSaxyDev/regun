@@ -1,3 +1,4 @@
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/theme/palette.dart';
@@ -39,6 +40,8 @@ class ClickButton extends ConsumerStatefulWidget {
 
 class _ClickButtonState extends ConsumerState<ClickButton> {
   bool _pressed = false;
+  bool _focused = false;
+  bool _hovered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +58,12 @@ class _ClickButtonState extends ConsumerState<ClickButton> {
         height: widget.height ?? 52,
         child: InkWell(
           autofocus: widget.autofocus,
+          onHover: desktopInputAvailable
+              ? (value) => setState(() => _hovered = value)
+              : null,
+          onFocusChange: desktopInputAvailable
+              ? (focused) => setState(() => _focused = focused)
+              : null,
           onTap: enabled
               ? () {
                   ref.read(soloudPlayProvider).play('click.mp3');
@@ -71,6 +80,8 @@ class _ClickButtonState extends ConsumerState<ClickButton> {
               accent: accent,
               pressed: _pressed,
               enabled: enabled,
+              focused: _focused,
+              hovered: _hovered && enabled,
             ),
             child: Padding(
               padding: EdgeInsets.fromLTRB(
@@ -166,10 +177,13 @@ class _ButtonPlate extends CustomPainter {
     required this.accent,
     required this.pressed,
     required this.enabled,
+    required this.focused,
+    required this.hovered,
   });
   final Color accent;
   final bool pressed;
   final bool enabled;
+  final bool focused, hovered;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -186,13 +200,17 @@ class _ButtonPlate extends CustomPainter {
     canvas.drawPath(
       controlPlate(rect),
       Paint()
-        ..color = pressed ? const Color(0xff3a3031) : const Color(0xff252129),
+        ..color = pressed
+            ? const Color(0xff3a3031)
+            : hovered
+            ? const Color(0xff514034)
+            : const Color(0xff252129),
     );
     canvas.drawPath(
       controlPlate(rect.deflate(0.75)),
       Paint()
-        ..color = accent.withValues(
-          alpha: pressed
+        ..color = (hovered ? const Color(0xffe1ba78) : accent).withValues(
+          alpha: pressed || hovered
               ? 0.9
               : enabled
               ? 0.5
@@ -208,6 +226,15 @@ class _ButtonPlate extends CustomPainter {
         ..color = const Color(0xff51454c)
         ..strokeWidth = 1,
     );
+    if (focused && enabled) {
+      canvas.drawPath(
+        controlPlate(rect.deflate(2)),
+        Paint()
+          ..color = const Color(0xfff4dfaf)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+    }
     final rivet = Paint()
       ..color = accent.withValues(alpha: enabled ? 0.8 : 0.2)
       ..isAntiAlias = false;
@@ -225,5 +252,7 @@ class _ButtonPlate extends CustomPainter {
   bool shouldRepaint(_ButtonPlate oldDelegate) =>
       oldDelegate.accent != accent ||
       oldDelegate.pressed != pressed ||
-      oldDelegate.enabled != enabled;
+      oldDelegate.enabled != enabled ||
+      oldDelegate.focused != focused ||
+      oldDelegate.hovered != hovered;
 }

@@ -1,3 +1,4 @@
+import 'package:regun/desktop/touch_control_visibility.dart';
 import 'package:regun/components/enemies/ground_projection.dart';
 
 import 'dart:ui';
@@ -101,7 +102,11 @@ class GrenadeComponent extends PositionComponent
 }
 
 class GrenadeButtonComponent extends PositionComponent
-    with TapCallbacks, DragCallbacks, HasGameReference<RegunGame> {
+    with
+        TapCallbacks,
+        DragCallbacks,
+        HasGameReference<RegunGame>,
+        TouchControlVisibility {
   GrenadeButtonComponent()
     : super(size: Vector2.all(112), anchor: Anchor.center);
   double flash = 0;
@@ -217,17 +222,19 @@ class GrenadeAimPreview extends PositionComponent
   @override
   void render(Canvas canvas) {
     final input = game.grenadeButtonComponent.aim;
-    if (!input.active ||
-        input.cancelled ||
+    final desktop = game.usingDesktopInput && game.desktopInput!.grenade;
+    if ((!desktop && (!input.active || input.cancelled)) ||
         !game.grenadeButtonComponent.available) {
       return;
     }
     final direction = input.direction;
     final flight = game.grenadeFlight(
-      direction == null
+      desktop
+          ? game.desktopGrenadeDirection
+          : direction == null
           ? game.quickGrenadeDirection
           : Vector2(direction.dx, direction.dy),
-      input.power(game.controlButtonSize * .85),
+      desktop ? 1 : input.power(game.controlButtonSize * .85),
     );
     final points = grenadePreview(
       flight,

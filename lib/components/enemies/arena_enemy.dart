@@ -134,10 +134,7 @@ class ArenaEnemy extends PositionComponent
             // Mix direct attacks with route cuts. Lock before showing the lane;
             // turning after the warning always changes the player's escape.
             if (game.random.nextDouble() < .4) {
-              final lead =
-                  game.movementJoystick.relativeDelta *
-                  game.playerWalkSpeed *
-                  .8;
+              final lead = game.movementIntent * game.playerWalkSpeed * .8;
               if (lead.length > 200) lead.scale(200 / lead.length);
               aim.add(lead);
             }

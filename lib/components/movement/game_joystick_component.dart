@@ -1,3 +1,4 @@
+import 'package:regun/desktop/touch_control_visibility.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/events.dart';
@@ -5,7 +6,7 @@ import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/presentation/control_art.dart';
 import 'package:regun/game.dart';
 
-class GameStick extends JoystickComponent {
+class GameStick extends JoystickComponent with TouchControlVisibility {
   GameStick() : super(knob: JoyStickKnob(), background: _JoystickRing());
   int? _pointer;
   bool _cancelling = false;
@@ -13,6 +14,7 @@ class GameStick extends JoystickComponent {
 
   @override
   bool containsLocalPoint(Vector2 point) {
+    if (!showTouchControl) return false;
     final regun = game as RegunGame;
     if (!regun.controls.floating) return super.containsLocalPoint(point);
     final viewportPoint = localToParent(point);

@@ -1,3 +1,9 @@
+import 'package:regun/desktop/web_landscape_prompt.dart';
+import 'package:regun/desktop/desktop_menu_cursor.dart';
+import 'package:flutter/services.dart';
+import 'package:regun/desktop/desktop_bindings.dart';
+import 'package:regun/desktop/desktop_controller.dart';
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/services/player_registry.dart';
 import 'package:regun/services/local_preferences.dart';
@@ -37,8 +43,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb) OnlineSession.appTokens = SecureOnlineTokens();
   OnlineSession.prepareAssets = () => RegunArt.shared.load();
-  Flame.device.fullScreen();
-  Flame.device.setLandscape();
+  if (desktopInputAvailable) await DesktopBindings.shared.load();
+  if (kIsWeb) await BrowserContextMenu.disableContextMenu();
+  if (!desktopInputAvailable) {
+    Flame.device.fullScreen();
+    Flame.device.setLandscape();
+  }
 
   try {
     await SoLoud.instance.init();
@@ -145,7 +155,20 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
     // final router = goRouter();
     return MaterialApp(
       title: 'Regun',
-      builder: (context, child) => GamePresentation(child: child!),
+      builder: (context, child) => desktopInputAvailable
+          ? ValueListenableBuilder<double>(
+              valueListenable: DesktopBindings.shared.uiScale,
+              child: DesktopController(
+                child: DesktopMenuCursor(
+                  child: kIsWeb ? WebLandscapePrompt(child: child!) : child!,
+                ),
+              ),
+              builder: (context, scale, child) => GamePresentation(
+                scale: DesktopBindings.textBaseline * scale,
+                child: child!,
+              ),
+            )
+          : GamePresentation(child: child!),
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true)

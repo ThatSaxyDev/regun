@@ -13,10 +13,12 @@ class RunPauseSummary extends StatelessWidget {
     required this.state,
     required this.loadout,
     required this.reloadSeconds,
+    this.desktop = false,
   });
   final GameState state;
   final Loadout loadout;
   final double reloadSeconds;
+  final bool desktop;
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -24,8 +26,8 @@ class RunPauseSummary extends StatelessWidget {
       Row(
         children: [
           SizedBox(
-            width: 76,
-            height: 36,
+            width: desktop ? 142 : 76,
+            height: desktop ? 62 : 36,
             child: WeaponThumbnail(loadout.weapon),
           ),
           const SizedBox(width: 16),
@@ -35,21 +37,21 @@ class RunPauseSummary extends StatelessWidget {
               children: [
                 Text(
                   loadout.weapon.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFam.orbitron,
-                    fontSize: 14,
+                    fontSize: desktop ? 20 : 14,
                     height: 1.4,
-                    color: Color(0xffE5DDD1),
+                    color: const Color(0xffE5DDD1),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${loadout.character.title} / ${loadout.arena.title}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFam.orbitron,
-                    fontSize: 11,
+                    fontSize: desktop ? 14 : 11,
                     height: 1.4,
-                    color: Color(0xffB2A8B4),
+                    color: const Color(0xffB2A8B4),
                   ),
                 ),
               ],
@@ -61,17 +63,27 @@ class RunPauseSummary extends StatelessWidget {
       const Divider(height: 1, color: Color(0xff665A68)),
       const SizedBox(height: 16),
       MenuCardGrid(
-        minColumnWidth: 160,
+        minColumnWidth: desktop ? 145 : 160,
         children: [
           _Stat(
             'SURVIVED',
+            desktop: desktop,
             '${state.survivalSeconds ~/ 60}:${(state.survivalSeconds % 60).toString().padLeft(2, '0')}',
           ),
-          _Stat('KILLS', formatNumber(state.kills)),
-          _Stat('BOSSES DEFEATED', formatNumber(state.bosses)),
-          _Stat('HEALTH', '${state.health} / ${state.maxHealth}'),
+          _Stat('KILLS', formatNumber(state.kills), desktop: desktop),
+          _Stat(
+            'BOSSES DEFEATED',
+            formatNumber(state.bosses),
+            desktop: desktop,
+          ),
+          _Stat(
+            'HEALTH',
+            '${state.health} / ${state.maxHealth}',
+            desktop: desktop,
+          ),
           _Stat(
             'AMMO',
+            desktop: desktop,
             '${state.noOfBullets} / ${state.maxBullets}',
             note: state.reloading
                 ? 'Reloading ${reloadSeconds.toStringAsFixed(1)}s'
@@ -79,6 +91,7 @@ class RunPauseSummary extends StatelessWidget {
           ),
           _Stat(
             'LEVEL',
+            desktop: desktop,
             '${state.currentLevel}',
             note:
                 '${formatNumber(state.xP)} / ${formatNumber(state.noOfCoinsToUpgrade.floor())} XP',
@@ -90,9 +103,10 @@ class RunPauseSummary extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat(this.label, this.value, {this.note});
+  const _Stat(this.label, this.value, {this.note, required this.desktop});
   final String label, value;
   final String? note;
+  final bool desktop;
   @override
   Widget build(BuildContext context) => Semantics(
     label: '$label: $value${note == null ? '' : ', $note'}',
@@ -104,32 +118,32 @@ class _Stat extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFam.orbitron,
-              fontSize: 10,
+              fontSize: desktop ? 13 : 10,
               height: 1.4,
-              color: Color(0xffB2A8B4),
+              color: const Color(0xffB2A8B4),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFam.pressStart,
-              fontSize: 13,
+              fontSize: desktop ? 20 : 13,
               height: 1.6,
-              color: Color(0xffE1BA78),
+              color: const Color(0xffE1BA78),
             ),
           ),
           if (note != null) ...[
             const SizedBox(height: 4),
             Text(
               note!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFam.orbitron,
-                fontSize: 11,
+                fontSize: desktop ? 14 : 11,
                 height: 1.4,
-                color: Color(0xffE5DDD1),
+                color: const Color(0xffE5DDD1),
               ),
             ),
           ],

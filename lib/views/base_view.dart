@@ -1,3 +1,9 @@
+import 'package:regun/desktop/desktop_combat_kit.dart';
+import 'package:regun/desktop/web_landscape_prompt.dart';
+import 'package:regun/desktop/desktop_field_frame.dart';
+import 'package:regun/desktop/desktop_combat_input.dart';
+import 'package:regun/desktop/desktop_combat_surface.dart';
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/systems/lodestar/lodestar_combat.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/presentation/upgrade_presentation.dart';
@@ -109,6 +115,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     _myGame = RegunGame(
       context,
       startPaused: _trainingIntro,
+      desktopInput: desktopInputAvailable ? DesktopCombatInput() : null,
       loadout: widget.loadout,
       upgradeFeelMode: widget.upgradeFeelMode,
       reviewControlledSpawns: widget.reviewControlledSpawns,
@@ -116,6 +123,24 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       runStore: widget.runStore,
       recoveryTransport: widget.recoveryTransport,
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_admissionDenied) return;
+    final blocked = WebLandscapePrompt.blocksPlay(context);
+    if (blocked == _myGame.viewportBlocked) return;
+    _myGame.viewportBlocked = blocked;
+    if (!blocked) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_myGame.viewportBlocked || !_myGame.isMounted) return;
+      if (_myGame.gameState.gameplayState == GameplayState.playing) {
+        _myGame.pauseGame();
+      } else {
+        _myGame.resetInput();
+      }
+    });
   }
 
   @override
@@ -244,7 +269,28 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 style: const TextStyle(fontFamily: FontFam.orbitron),
                 child: Stack(
                   children: [
-                    RiverpodAwareGameWidget(key: gameWidgetKey, game: _myGame),
+                    if (_myGame.desktopInput == null)
+                      RiverpodAwareGameWidget(key: gameWidgetKey, game: _myGame)
+                    else
+                      Consumer(
+                        child: RiverpodAwareGameWidget(
+                          key: gameWidgetKey,
+                          game: _myGame,
+                          autofocus: false,
+                        ),
+                        builder: (context, ref, child) => DesktopCombatSurface(
+                          game: _myGame,
+                          playing:
+                              !_trainingIntro &&
+                              ref.watch(
+                                    gameNotifierProvider.select(
+                                      (state) => state.gameplayState,
+                                    ),
+                                  ) ==
+                                  GameplayState.playing,
+                          child: child!,
+                        ),
+                      ),
                     Consumer(
                       builder: (context, ref, _) {
                         final state = ref.watch(gameNotifierProvider);
@@ -341,9 +387,23 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           ),
         );
 
-  double get _hudScale => GameLayout.uiScale(MediaQuery.sizeOf(context));
+  double get _hudScale => desktopInputAvailable
+      ? 1
+      : GameLayout.uiScale(MediaQuery.sizeOf(context));
+
+  EdgeInsets get _desktopHudInsets {
+    if (!desktopInputAvailable) return EdgeInsets.zero;
+    final size = MediaQuery.sizeOf(context);
+    final world = GameLayout.desktopWorld(size);
+    final fitted = applyBoxFit(BoxFit.contain, world, size).destination;
+    return EdgeInsets.symmetric(
+      horizontal: (size.width - fitted.width) / 2 + 20,
+      vertical: (size.height - fitted.height) / 2 + 12,
+    );
+  }
 
   Widget _hud(GameState state, GameNotifier notifier) => SafeArea(
+    minimum: _desktopHudInsets,
     child: Column(
       children: [
         IgnorePointer(
@@ -354,118 +414,120 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             backgroundColor: const Color(0x66352A35),
           ),
         ),
-        Row(
-          children: [
-            IconButton(
-              tooltip: 'Pause',
-              constraints: BoxConstraints(
-                minWidth: 48 * _hudScale,
-                minHeight: 48 * _hudScale,
-              ),
-              onPressed: _myGame.pauseGame,
-              icon: SizedBox(
-                width: 22 * _hudScale,
-                height: 24 * _hudScale,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(width: 7, color: _paper),
-                    Container(width: 7, color: _paper),
-                  ],
+        _hudHeader(
+          Row(
+            children: [
+              IconButton(
+                tooltip: 'Pause',
+                constraints: BoxConstraints(
+                  minWidth: 48 * _hudScale,
+                  minHeight: 48 * _hudScale,
                 ),
-              ),
-            ),
-            _readout(runTime(state.survivalSeconds), 'SURVIVAL'),
-            const Spacer(),
-            Text(
-              'L${state.currentLevel} / C${state.bosses ~/ 3 + 1}',
-              style: const TextStyle(
-                fontFamily: FontFam.pressStart,
-                fontSize: 10,
-                color: _brass,
-              ),
-            ),
-            const SizedBox(width: 20),
-            ValueListenableBuilder<int>(
-              valueListenable: _myGame.damageFeedback.healthLost,
-              builder: (context, lost, _) => Semantics(
-                label: 'Health ${state.health}',
-                child: Container(
-                  width: 90 * _hudScale,
-                  height: 44 * _hudScale,
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  decoration: BoxDecoration(
-                    color: lost > 0
-                        ? const Color(0x993D2525)
-                        : Colors.transparent,
-                    border: Border.all(
-                      color: lost > 0
-                          ? const Color(0xffEF8B76)
-                          : Colors.transparent,
-                    ),
-                  ),
+                onPressed: _myGame.pauseGame,
+                icon: SizedBox(
+                  width: 22 * _hudScale,
+                  height: 24 * _hudScale,
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Image.asset(
-                        'assets/images/heart.png',
-                        width: 24,
-                        height: 24,
-                      ),
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '${state.health}',
-                                style: TextStyle(
-                                  fontFamily: FontFam.orbitron,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: lost > 0
-                                      ? const Color(0xffEF8B76)
-                                      : _paper,
-                                ),
-                              ),
-                              if (lost > 0)
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '-$lost',
-                                      style: const TextStyle(
-                                        fontFamily: FontFam.pressStart,
-                                        fontSize: 7,
-                                        color: Color(0xffEF8B76),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 3),
-                                    Image.asset(
-                                      'assets/images/heart.png',
-                                      key: const Key('health-loss-heart'),
-                                      width: 12,
-                                      height: 12,
-                                      filterQuality: FilterQuality.none,
-                                      excludeFromSemantics: true,
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      Container(width: 7, color: _paper),
+                      Container(width: 7, color: _paper),
                     ],
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 18),
-            _readout(formatNumber(state.kills), 'KILLS'),
-            const SizedBox(width: 12),
-          ],
+              _readout(runTime(state.survivalSeconds), 'SURVIVAL'),
+              const Spacer(),
+              Text(
+                'L${state.currentLevel} / C${state.bosses ~/ 3 + 1}',
+                style: TextStyle(
+                  fontFamily: FontFam.pressStart,
+                  fontSize: desktopInputAvailable ? 12 : 10,
+                  color: _brass,
+                ),
+              ),
+              const SizedBox(width: 20),
+              ValueListenableBuilder<int>(
+                valueListenable: _myGame.damageFeedback.healthLost,
+                builder: (context, lost, _) => Semantics(
+                  label: 'Health ${state.health}',
+                  child: Container(
+                    width: desktopInputAvailable ? 106 : 90 * _hudScale,
+                    height: desktopInputAvailable ? 54 : 44 * _hudScale,
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    decoration: BoxDecoration(
+                      color: lost > 0
+                          ? const Color(0x993D2525)
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: lost > 0
+                            ? const Color(0xffEF8B76)
+                            : Colors.transparent,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/heart.png',
+                          width: 24,
+                          height: 24,
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${state.health}',
+                                  style: TextStyle(
+                                    fontFamily: FontFam.orbitron,
+                                    fontSize: desktopInputAvailable ? 25 : 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: lost > 0
+                                        ? const Color(0xffEF8B76)
+                                        : _paper,
+                                  ),
+                                ),
+                                if (lost > 0)
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '-$lost',
+                                        style: const TextStyle(
+                                          fontFamily: FontFam.pressStart,
+                                          fontSize: 7,
+                                          color: Color(0xffEF8B76),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Image.asset(
+                                        'assets/images/heart.png',
+                                        key: const Key('health-loss-heart'),
+                                        width: 12,
+                                        height: 12,
+                                        filterQuality: FilterQuality.none,
+                                        excludeFromSemantics: true,
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 18),
+              _readout(formatNumber(state.kills), 'KILLS'),
+              const SizedBox(width: 12),
+            ],
+          ),
         ),
         ValueListenableBuilder<int>(
           valueListenable: _myGame.revision,
@@ -631,123 +693,152 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             ),
           ),
         const Spacer(),
-        IgnorePointer(
-          child: SizedBox(
-            height: 100 * _hudScale,
-            width: 220 * _hudScale,
-            child: Center(
-              child: ValueListenableBuilder<double>(
-                valueListenable: notifier.quickRefillProgress,
-                builder: (context, refill, child) => refill >= 0
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          WeaponReloadDisplay(
-                            weapon: _myGame.loadout.weapon,
-                            progress: _myGame.preferences.reducedMotion
-                                ? 1
-                                : refill,
-                            shells: 1,
-                            reducedMotion: _myGame.preferences.reducedMotion,
-                          ),
-                          const Text(
-                            'MAG READY',
-                            style: TextStyle(
-                              fontFamily: FontFam.pressStart,
-                              fontSize: 8,
-                              color: _brass,
+        if (desktopInputAvailable)
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              _myGame.desktopKitStatus,
+              notifier.reloadProgress,
+              notifier.quickRefillProgress,
+            ]),
+            builder: (context, _) {
+              final kit = _myGame.desktopKitStatus.value;
+              return DesktopCombatKit(
+                weapon: _myGame.loadout.weapon,
+                ammo: state.noOfBullets,
+                capacity: state.maxBullets,
+                dash: kit.dash,
+                grenade: kit.grenade,
+                dashRecharge: kit.dashRecharge,
+                grenadeRecharge: kit.grenadeRecharge,
+                controller: kit.controller,
+                reducedMotion: _myGame.preferences.reducedMotion,
+                reload: state.reloading ? notifier.reloadProgress.value : -1,
+                refill: notifier.quickRefillProgress.value,
+                tactical: notifier.reloadTactical,
+                breachEngine: _myGame.breachEngine,
+              );
+            },
+          )
+        else
+          IgnorePointer(
+            child: SizedBox(
+              height: 100 * _hudScale,
+              width: 220 * _hudScale,
+              child: Center(
+                child: ValueListenableBuilder<double>(
+                  valueListenable: notifier.quickRefillProgress,
+                  builder: (context, refill, child) => refill >= 0
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            WeaponReloadDisplay(
+                              weapon: _myGame.loadout.weapon,
+                              progress: _myGame.preferences.reducedMotion
+                                  ? 1
+                                  : refill,
+                              shells: 1,
+                              reducedMotion: _myGame.preferences.reducedMotion,
                             ),
-                          ),
-                        ],
-                      )
-                    : child!,
-                child: state.reloading
-                    ? ValueListenableBuilder<bool>(
-                        valueListenable: _myGame.confirmationHolding,
-                        builder: (context, held, child) => TickerMode(
-                          enabled:
-                              state.gameplayState == GameplayState.playing &&
-                              !held,
-                          child: child!,
-                        ),
-                        child: ValueListenableBuilder<double>(
-                          valueListenable: _myGame.gameNotifier.reloadProgress,
-                          builder: (context, progress, _) =>
-                              WeaponReloadDisplay(
-                                weapon: _myGame.loadout.weapon,
-                                progress: progress,
-                                tactical: notifier.reloadTactical,
-                                reducedMotion:
-                                    _myGame.preferences.reducedMotion,
-                                shells: state.maxBullets - state.noOfBullets,
+                            const Text(
+                              'MAG READY',
+                              style: TextStyle(
+                                fontFamily: FontFam.pressStart,
+                                fontSize: 8,
+                                color: _brass,
                               ),
-                        ),
-                      )
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _myGame.loadout.weapon.title.toUpperCase(),
-                            style: const TextStyle(
-                              fontFamily: FontFam.pressStart,
-                              fontSize: 8,
-                              color: _muted,
                             ),
+                          ],
+                        )
+                      : child!,
+                  child: state.reloading
+                      ? ValueListenableBuilder<bool>(
+                          valueListenable: _myGame.confirmationHolding,
+                          builder: (context, held, child) => TickerMode(
+                            enabled:
+                                state.gameplayState == GameplayState.playing &&
+                                !held,
+                            child: child!,
                           ),
-                          const SizedBox(height: 8),
-                          if (_myGame.breachEngine)
-                            const Padding(
-                              padding: EdgeInsets.only(bottom: 8),
-                              child: Text(
-                                'BREACH ENGINE',
-                                style: TextStyle(
-                                  fontFamily: FontFam.pressStart,
-                                  fontSize: 9,
-                                  color: _brass,
+                          child: ValueListenableBuilder<double>(
+                            valueListenable:
+                                _myGame.gameNotifier.reloadProgress,
+                            builder: (context, progress, _) =>
+                                WeaponReloadDisplay(
+                                  weapon: _myGame.loadout.weapon,
+                                  progress: progress,
+                                  tactical: notifier.reloadTactical,
+                                  reducedMotion:
+                                      _myGame.preferences.reducedMotion,
+                                  shells: state.maxBullets - state.noOfBullets,
+                                ),
+                          ),
+                        )
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _myGame.loadout.weapon.title.toUpperCase(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: FontFam.pressStart,
+                                fontSize: 8,
+                                color: _muted,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            if (_myGame.breachEngine)
+                              const Padding(
+                                padding: EdgeInsets.only(bottom: 8),
+                                child: Text(
+                                  'BREACH ENGINE',
+                                  style: TextStyle(
+                                    fontFamily: FontFam.pressStart,
+                                    fontSize: 9,
+                                    color: _brass,
+                                  ),
+                                ),
+                              ),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              alignment: WrapAlignment.center,
+                              children: List.generate(
+                                state.maxBullets.clamp(0, 15),
+                                (i) => Container(
+                                  width: 6,
+                                  height: 17,
+                                  color:
+                                      i <
+                                          ((_myGame.loadout.weapon ==
+                                                          WeaponType.prismCutter
+                                                      ? state.maxBullets -
+                                                            state.noOfBullets
+                                                      : state.noOfBullets) /
+                                                  state.maxBullets *
+                                                  state.maxBullets.clamp(0, 15))
+                                              .ceil()
+                                      ? _brass
+                                      : const Color(0x88695A66),
                                 ),
                               ),
                             ),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            alignment: WrapAlignment.center,
-                            children: List.generate(
-                              state.maxBullets.clamp(0, 15),
-                              (i) => Container(
-                                width: 6,
-                                height: 17,
-                                color:
-                                    i <
-                                        ((_myGame.loadout.weapon ==
-                                                        WeaponType.prismCutter
-                                                    ? state.maxBullets -
-                                                          state.noOfBullets
-                                                    : state.noOfBullets) /
-                                                state.maxBullets *
-                                                state.maxBullets.clamp(0, 15))
-                                            .ceil()
-                                    ? _brass
-                                    : const Color(0x88695A66),
+                            const SizedBox(height: 7),
+                            Text(
+                              _myGame.loadout.weapon == WeaponType.prismCutter
+                                  ? 'HEAT ${state.maxBullets - state.noOfBullets} / ${state.maxBullets}'
+                                  : '${state.noOfBullets} / ${state.maxBullets}',
+                              style: const TextStyle(
+                                fontFamily: FontFam.orbitron,
+                                fontSize: 12,
+                                color: _paper,
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 7),
-                          Text(
-                            _myGame.loadout.weapon == WeaponType.prismCutter
-                                ? 'HEAT ${state.maxBullets - state.noOfBullets} / ${state.maxBullets}'
-                                : '${state.noOfBullets} / ${state.maxBullets}',
-                            style: const TextStyle(
-                              fontFamily: FontFam.orbitron,
-                              fontSize: 12,
-                              color: _paper,
-                            ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                ),
               ),
             ),
           ),
-        ),
       ],
     ),
   );
@@ -760,17 +851,17 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFam.orbitron,
-            fontSize: 18,
+            fontSize: desktopInputAvailable ? 24 : 18,
             color: _paper,
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 8,
+          style: TextStyle(
+            fontSize: desktopInputAvailable ? 11 : 8,
             letterSpacing: 1.4,
             color: _muted,
           ),
@@ -778,6 +869,21 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       ],
     ),
   );
+
+  Widget _hudHeader(Widget row) {
+    if (!desktopInputAvailable) return row;
+    return LayoutBuilder(
+      builder: (context, box) {
+        final comfortableWidth =
+            440 * MediaQuery.textScalerOf(context).scale(1);
+        if (box.maxWidth >= comfortableWidth) return row;
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: SizedBox(width: comfortableWidth, child: row),
+        );
+      },
+    );
+  }
 
   Future<void> _openSettings() async {
     await Navigator.of(context).push(
@@ -788,7 +894,190 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
-  Widget _pauseMenu() => Positioned.fill(
+  Widget _pauseMenu() =>
+      desktopInputAvailable ? _desktopPauseMenu() : _mobilePauseMenu();
+
+  Widget _desktopPauseMenu() {
+    final training = widget.loadout.training;
+    final state = _myGame.gameState;
+    final actions = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 12,
+      children: [
+        ClickButton(
+          text: 'Resume',
+          height: 76,
+          fontSize: 18,
+          autofocus: true,
+          glyph: PixelGlyph.play,
+          onTap: _myGame.resumeGame,
+        ),
+        ClickButton(
+          text: 'Settings',
+          height: 60,
+          fontSize: 14,
+          glyph: PixelGlyph.settings,
+          buttonColor: _muted,
+          onTap: _openSettings,
+        ),
+        ClickButton(
+          text: 'Restart',
+          height: 60,
+          fontSize: 14,
+          buttonColor: _muted,
+          onTap: () => _requestRunAction(restart: true),
+        ),
+        ClickButtonM(
+          key: const Key('pause-menu-home'),
+          text: 'Menu',
+          height: 60,
+          fontSize: 14,
+          onTap: () => _requestRunAction(),
+        ),
+        if (_myGame.gameNotifier.canFuse)
+          ClickButton(
+            text: 'Fuse core',
+            height: 60,
+            fontSize: 14,
+            onTap: _myGame.gameNotifier.openBossCore,
+          ),
+      ],
+    );
+    final summary = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 16,
+      children: [
+        Text(
+          training ? 'Practice' : 'Run summary',
+          style: const TextStyle(
+            fontFamily: FontFam.orbitron,
+            fontSize: 25,
+            fontWeight: FontWeight.w700,
+            color: _paper,
+          ),
+        ),
+        if (_myGame.saveIssue != null)
+          const GameNoticeStrip(
+            message: 'Run could not be saved. Stay here and try Menu again.',
+          ),
+        if (training)
+          ..._trainingSections()
+        else
+          RunPauseSummary(
+            desktop: true,
+            state: state,
+            loadout: _myGame.loadout,
+            reloadSeconds: _myGame.gameNotifier.reloadRemainingSeconds,
+          ),
+      ],
+    );
+    return Positioned.fill(
+      child: DesktopFieldFrame(
+        openCenter: MediaQuery.sizeOf(context).width >= 840,
+        child: LayoutBuilder(
+          builder: (context, box) {
+            final wide = box.maxWidth >= 740;
+            final title = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 12,
+              children: [
+                Text(
+                  _myGame.loadout.arena.title.toUpperCase(),
+                  style: const TextStyle(
+                    fontFamily: FontFam.orbitron,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 2,
+                    color: _brass,
+                  ),
+                ),
+                Text(
+                  'PAUSED',
+                  style: TextStyle(
+                    fontFamily: FontFam.pressStart,
+                    fontSize: wide ? 48 : 30,
+                    height: 1.3,
+                    color: _paper,
+                  ),
+                ),
+              ],
+            );
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: title),
+                    const WalletBar(showLabels: false),
+                  ],
+                ),
+                const Divider(height: 36, color: Color(0xff756044)),
+                Expanded(
+                  child: wide
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(
+                              width: (box.maxWidth * .26).clamp(250, 420),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: SingleChildScrollView(child: actions),
+                              ),
+                            ),
+                            const Spacer(),
+                            SizedBox(
+                              width: (box.maxWidth * .40).clamp(360, 640),
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: SingleChildScrollView(
+                                  child: DecoratedBox(
+                                    decoration: const BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: Color(0xffad8957),
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: summary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            spacing: 24,
+                            children: [actions, summary],
+                          ),
+                        ),
+                ),
+                const Divider(height: 32, color: Color(0xff756044)),
+                Text(
+                  training
+                      ? 'TRAINING  /  ${runTime(state.survivalSeconds)}'
+                      : 'SURVIVAL  /  ${runTime(state.survivalSeconds)}  /  +${formatNumber(_myGame.earnedScrap)} SCRAP',
+                  style: const TextStyle(
+                    fontFamily: FontFam.orbitron,
+                    color: _brass,
+                    fontSize: 14,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _mobilePauseMenu() => Positioned.fill(
     child: ColoredBox(
       color: const Color(0xe8141117),
       child: SafeArea(
@@ -1223,6 +1512,174 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
         : _myGame.gameNotifier.supplyOffer
         ? 'Supply secured'
         : 'Level ${state.currentLevel}';
+    final desktop = desktopInputAvailable;
+    final heading = Wrap(
+      alignment: desktop ? WrapAlignment.start : WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 16,
+      runSpacing: 4,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontFamily: FontFam.pressStart,
+            fontSize: desktop ? 32 : 16,
+            height: 1.3,
+            color: _paper,
+          ),
+        ),
+        if (subtitle != null)
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontFamily: FontFam.orbitron,
+              fontSize: 12,
+              color: _muted,
+            ),
+          ),
+      ],
+    );
+    final cards = MenuCardGrid(
+      minColumnWidth: 210,
+      children: [
+        for (final id in state.evolutionChoices)
+          _upgradeCard(
+            fusionRecipes.firstWhere((r) => r.id == id).title,
+            fusionRecipes.firstWhere((r) => r.id == id).description,
+            'FUSION',
+            () => _myGame.gameNotifier.fuse(id, offerId: state.offerId),
+            glyph: fusionGlyph(id),
+          ),
+        if (_myGame.gameNotifier.support.offer case final card?)
+          _upgradeCard(
+            '${card.title} ${card.rankLabel}',
+            card.description(
+              _myGame.gameNotifier.weaponPower.snapshot?.values ?? {},
+            ),
+            'SUPPORT / ${(_myGame.gameNotifier.support.tiers[card.family.name] ?? 0) == supportMaxTier ? 'DEPLOY AGAIN' : 'TEMPORARY'}',
+            () => _myGame.gameNotifier.chooseSupport(
+              card.id,
+              offerId: state.offerId,
+            ),
+            artwork: SupportThumbnail(card: card, width: 48, height: 40),
+            onBan:
+                state.bans > 0 && _myGame.gameNotifier.offerSource != 'practice'
+                ? () => _myGame.gameNotifier.banSupport(
+                    card.id,
+                    offerId: state.offerId,
+                  )
+                : null,
+          ),
+        for (final choice in state.powerUpChoices)
+          _upgradeCard(
+            choice == PowerUp.dashCapacity && state.rank(choice) > 0
+                ? 'Triple Dash'
+                : choice.title,
+            upgradeDescription(choice, rank: state.rank(choice)),
+            choice == PowerUp.salvage
+                ? 'RECOVERY'
+                : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${state.rankLimit(choice)}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',
+            () => _myGame.gameNotifier.applyPowerUp(
+              choice,
+              offerId: state.offerId,
+            ),
+            copy: UpgradeOfferCopy(
+              key: ValueKey(
+                '${state.offerId}-${choice.name}-${state.rank(choice)}',
+              ),
+              description: upgradeDescription(choice, rank: state.rank(choice)),
+              summary: upgradeDetails(
+                choice,
+                state,
+                _myGame.loadout.weapon,
+                balance: _myGame.gameNotifier.buildBalance,
+                power: _myGame.gameNotifier.weaponPower,
+                character: _myGame.loadout.character,
+                brief: true,
+              ),
+              details: upgradeDetails(
+                choice,
+                state,
+                _myGame.loadout.weapon,
+                balance: _myGame.gameNotifier.buildBalance,
+                power: _myGame.gameNotifier.weaponPower,
+                character: _myGame.loadout.character,
+              ),
+              initiallyExpanded: _myGame.loadout.training,
+            ),
+            glyph: choice.glyph,
+            onBan: state.bans > 0 && choice != PowerUp.salvage
+                ? () => _myGame.gameNotifier.ban(choice, offerId: state.offerId)
+                : null,
+          ),
+      ],
+    );
+    final canReroll =
+        state.evolutionChoices.isEmpty && state.rerolls > 0 && !practice;
+    final reroll = Padding(
+      padding: EdgeInsets.only(top: desktop ? 20 : 8),
+      child: ClickButtonM(
+        key: const Key('upgrade-reroll'),
+        text: 'Reroll (${state.rerolls})',
+        width: 170 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0),
+        height: 48,
+        onTap: () => _myGame.gameNotifier.reroll(offerId: state.offerId),
+      ),
+    );
+    final scroll = SingleChildScrollView(
+      key: const Key('upgrade-offer-scroll'),
+      child: desktop
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                cards,
+                if (canReroll)
+                  Align(alignment: Alignment.centerLeft, child: reroll),
+              ],
+            )
+          : Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: (cards.children.length * 282 - 12)
+                      .clamp(210, 900)
+                      .toDouble(),
+                ),
+                child: cards,
+              ),
+            ),
+    );
+    if (desktop) {
+      return Positioned.fill(
+        child: DesktopFieldFrame(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: (cards.children.length.clamp(1, 3) * 300).toDouble(),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  heading,
+                  const Divider(height: 28, color: Color(0xff756044)),
+                  Flexible(child: scroll),
+                  const Divider(height: 24, color: Color(0xff756044)),
+                  Text(
+                    '${_myGame.loadout.arena.title.toUpperCase()}  /  ${runTime(state.survivalSeconds)}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: _brass,
+                      letterSpacing: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return Positioned.fill(
       child: ColoredBox(
         color: const Color(0xB30D0A10),
@@ -1230,179 +1687,10 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           minimum: const EdgeInsets.fromLTRB(16, 24, 16, 8),
           child: Column(
             children: [
-              Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 16,
-                runSpacing: 4,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontFamily: FontFam.pressStart,
-                      fontSize: 16,
-                      height: 1.3,
-                      color: _paper,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontFamily: FontFam.orbitron,
-                        fontSize: 12,
-                        color: _muted,
-                      ),
-                    ),
-                ],
-              ),
+              heading,
               const SizedBox(height: 8),
-              Expanded(
-                child: SingleChildScrollView(
-                  key: const Key('upgrade-offer-scroll'),
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth:
-                            ((state.evolutionChoices.length +
-                                            state.powerUpChoices.length +
-                                            (_myGame
-                                                        .gameNotifier
-                                                        .support
-                                                        .offer ==
-                                                    null
-                                                ? 0
-                                                : 1)) *
-                                        282 -
-                                    12)
-                                .clamp(210, 900)
-                                .toDouble(),
-                      ),
-                      child: MenuCardGrid(
-                        minColumnWidth: 210,
-                        children: [
-                          for (final id in state.evolutionChoices)
-                            _upgradeCard(
-                              fusionRecipes.firstWhere((r) => r.id == id).title,
-                              fusionRecipes
-                                  .firstWhere((r) => r.id == id)
-                                  .description,
-                              'FUSION',
-                              () => _myGame.gameNotifier.fuse(
-                                id,
-                                offerId: state.offerId,
-                              ),
-                              glyph: fusionGlyph(id),
-                            ),
-                          if (_myGame.gameNotifier.support.offer
-                              case final card?)
-                            _upgradeCard(
-                              '${card.title} ${card.rankLabel}',
-                              card.description(
-                                _myGame
-                                        .gameNotifier
-                                        .weaponPower
-                                        .snapshot
-                                        ?.values ??
-                                    {},
-                              ),
-                              'SUPPORT / ${(_myGame.gameNotifier.support.tiers[card.family.name] ?? 0) == supportMaxTier ? 'DEPLOY AGAIN' : 'TEMPORARY'}',
-                              () => _myGame.gameNotifier.chooseSupport(
-                                card.id,
-                                offerId: state.offerId,
-                              ),
-                              artwork: SupportThumbnail(
-                                card: card,
-                                width: 48,
-                                height: 40,
-                              ),
-                              onBan:
-                                  state.bans > 0 &&
-                                      _myGame.gameNotifier.offerSource !=
-                                          'practice'
-                                  ? () => _myGame.gameNotifier.banSupport(
-                                      card.id,
-                                      offerId: state.offerId,
-                                    )
-                                  : null,
-                            ),
-                          for (final choice in state.powerUpChoices)
-                            _upgradeCard(
-                              choice == PowerUp.dashCapacity &&
-                                      state.rank(choice) > 0
-                                  ? 'Triple Dash'
-                                  : choice.title,
-                              upgradeDescription(
-                                choice,
-                                rank: state.rank(choice),
-                              ),
-                              choice == PowerUp.salvage
-                                  ? 'RECOVERY'
-                                  : '${choice.group.name.toUpperCase()} / ${state.rank(choice) + 1} OF ${state.rankLimit(choice)}${choice.group == UpgradeGroup.special && state.rank(choice) == 0 && state.ranks.keys.where((p) => p.group == UpgradeGroup.special).length == 5 ? ' / FINAL SLOT' : ''}',
-                              () => _myGame.gameNotifier.applyPowerUp(
-                                choice,
-                                offerId: state.offerId,
-                              ),
-                              copy: UpgradeOfferCopy(
-                                key: ValueKey(
-                                  '${state.offerId}-${choice.name}-${state.rank(choice)}',
-                                ),
-                                description: upgradeDescription(
-                                  choice,
-                                  rank: state.rank(choice),
-                                ),
-                                summary: upgradeDetails(
-                                  choice,
-                                  state,
-                                  _myGame.loadout.weapon,
-                                  balance: _myGame.gameNotifier.buildBalance,
-                                  power: _myGame.gameNotifier.weaponPower,
-                                  character: _myGame.loadout.character,
-                                  brief: true,
-                                ),
-                                details: upgradeDetails(
-                                  choice,
-                                  state,
-                                  _myGame.loadout.weapon,
-                                  balance: _myGame.gameNotifier.buildBalance,
-                                  power: _myGame.gameNotifier.weaponPower,
-                                  character: _myGame.loadout.character,
-                                ),
-                                initiallyExpanded: _myGame.loadout.training,
-                              ),
-                              glyph: choice.glyph,
-                              onBan: state.bans > 0 && choice != PowerUp.salvage
-                                  ? () => _myGame.gameNotifier.ban(
-                                      choice,
-                                      offerId: state.offerId,
-                                    )
-                                  : null,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              if (state.evolutionChoices.isEmpty &&
-                  state.rerolls > 0 &&
-                  _myGame.gameNotifier.offerSource != 'practice')
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: ClickButtonM(
-                    key: const Key('upgrade-reroll'),
-                    text: 'Reroll (${state.rerolls})',
-                    width:
-                        170 *
-                        MediaQuery.textScalerOf(context)
-                            .scale(1)
-                            .clamp(1.0, 2.0),
-                    height: 48,
-                    onTap: () =>
-                        _myGame.gameNotifier.reroll(offerId: state.offerId),
-                  ),
-                ),
+              Expanded(child: scroll),
+              if (canReroll) reroll,
             ],
           ),
         ),
@@ -1423,14 +1711,16 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     key: ValueKey('upgrade-card-$title'),
     width: 210,
     child: Material(
-      color: _panel,
+      color: desktopInputAvailable ? const Color(0xff292820) : _panel,
       child: InkWell(
         onTap: onTap,
         child: Container(
           padding: EdgeInsets.all(
             MediaQuery.sizeOf(context).height < 460 ? 12 : 16,
           ),
-          constraints: const BoxConstraints(minHeight: 148),
+          constraints: BoxConstraints(
+            minHeight: desktopInputAvailable ? 220 : 148,
+          ),
           decoration: BoxDecoration(
             border: Border.all(color: const Color(0xff75604C)),
           ),
@@ -1487,6 +1777,18 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                     ),
                   ),
               const Spacer(),
+              if (desktopInputAvailable)
+                TextButton(
+                  onPressed: onTap,
+                  style: TextButton.styleFrom(foregroundColor: _brass),
+                  child: const Text(
+                    'Choose',
+                    style: TextStyle(
+                      fontFamily: FontFam.orbitron,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               if (onBan != null)
                 Align(
                   alignment: Alignment.centerRight,

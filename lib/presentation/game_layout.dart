@@ -4,6 +4,11 @@ import 'dart:ui';
 /// Phones keep the approved framing exactly. Tablets reveal more arena instead
 /// of cropping the phone view or stretching sprites into a letterboxed strip.
 class GameLayout {
+  static Size desktopWorld(Size canvas) {
+    final ratio = canvas.isEmpty ? 16 / 9 : canvas.aspectRatio.clamp(1.6, 2.0);
+    return Size(1080 * ratio, 1080);
+  }
+
   static bool tablet(Size size) => size.shortestSide >= 600;
   static double uiScale(Size size) => tablet(size) ? 1.25 : 1;
   static Size world(Size canvas) {

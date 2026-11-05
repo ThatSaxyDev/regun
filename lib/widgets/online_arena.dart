@@ -1,3 +1,12 @@
+import 'package:regun/desktop/web_landscape_prompt.dart';
+import 'package:regun/desktop/desktop_menu_cursor.dart';
+import 'package:regun/desktop/desktop_frame_pacer.dart';
+import 'package:flutter/gestures.dart';
+import 'package:regun/desktop/desktop_bindings.dart';
+import 'package:regun/desktop/desktop_combat_input.dart';
+import 'package:regun/desktop/desktop_combat_surface.dart';
+import 'package:regun/desktop/desktop_controller.dart';
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/presentation/footstep_cadence.dart';
 import 'package:regun/presentation/weapon_art_spec.dart';
 import 'package:regun/components/map/arena_scenery.dart';
@@ -10,7 +19,8 @@ import 'package:regun/presentation/boss_portal.dart';
 import 'package:regun/presentation/freeze_focus.dart';
 import 'package:regun/presentation/guard_feedback.dart';
 import 'package:regun/presentation/mechanic_vfx.dart';
-import 'package:regun/multiplayer/combat_state.dart' show OnlineEntity, OnlineGun;
+import 'package:regun/multiplayer/combat_state.dart'
+    show OnlineEntity, OnlineGun;
 import 'package:regun/presentation/combat_status_art.dart';
 import 'package:regun/presentation/upgrade_art.dart';
 import 'package:regun/presentation/upgrade_presentation.dart';
@@ -89,6 +99,188 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   final Map<int, String> pointers = {};
   final Map<String, Offset> origins = {}, knobs = {}, displayed = {};
   final Set<LogicalKeyboardKey> keys = {};
+  bool _desktop = desktopInputAvailable;
+  bool _viewportBlocked = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final blocked = WebLandscapePrompt.blocksPlay(context);
+    if (blocked && !_viewportBlocked) clear();
+    _viewportBlocked = blocked;
+  }
+
+  final _desktopPacer = DesktopFramePacer();
+  bool _controllerActive = false, _controllerArmed = false;
+  late final ControllerHandler _controllerHandler = _controller;
+  final _desktopKeys = <PhysicalKeyboardKey>{};
+  final _controllerHeld = <ControllerAction>{};
+  Offset? _mouse, _worldCenter;
+  Rect _worldFrame = Rect.zero;
+  double _worldScale = 1;
+  bool _mouseFire = false, _mouseGrenade = false, _desktopGrenade = false;
+  static const _desktopGrenadeId = -1;
+  DesktopBindings get _bindings => DesktopBindings.shared;
+
+  void _projection(Rect frame, Offset center, double scale) {
+    _worldFrame = frame;
+    _worldCenter = center;
+    _worldScale = scale;
+  }
+
+  void _aimMouse() {
+    if (!_desktop || _controllerActive || !session.controlsEnabled) return;
+    final point = _mouse, center = _worldCenter;
+    if (point == null || center == null || !_worldFrame.contains(point)) {
+      if (DesktopMenuCursor.combatPointer.value == this) {
+        DesktopMenuCursor.combatPointer.value = null;
+      }
+      return;
+    }
+    final player =
+        displayed[session.identity] ??
+        Offset(session.me?.x ?? 0, session.me?.y ?? 0);
+    final direction =
+        center + (point - _worldFrame.center) / _worldScale - player;
+    DesktopMenuCursor.combatPointer.value = this;
+    if (direction.distanceSquared > 1e-8) {
+      session.aimX = direction.dx / direction.distance;
+      session.aimY = direction.dy / direction.distance;
+    }
+    _previewDesktopGrenade();
+  }
+
+  void _previewDesktopGrenade() {
+    if (!_desktopGrenade ||
+        !session.grenadeAimingAvailable ||
+        (session.gun?.grenadeCharges ?? 0) <= 0) {
+      return;
+    }
+    if (!grenadeAim.active) grenadeAim.begin(_desktopGrenadeId, Offset.zero);
+    grenadeAim.move(
+      _desktopGrenadeId,
+      Offset(session.aimX, session.aimY) * 150,
+    );
+  }
+
+  void _setGrenade(bool held) {
+    final released = _desktopGrenade && !held;
+    _desktopGrenade = held;
+    if (held) {
+      _previewDesktopGrenade();
+    } else if (released) {
+      final direction =
+          grenadeAim.direction ?? Offset(session.aimX, session.aimY);
+      grenadeAim.cancel();
+      if (session.controlsEnabled) session.throwGrenade(aim: direction);
+    }
+  }
+
+  void _mouseKeyboard() {
+    if (_controllerActive || !_desktop) {
+      clear();
+      _controllerActive = false;
+      if (!_desktop) setState(() => _desktop = true);
+    }
+  }
+
+  bool _controller(ControllerFrame? frame) {
+    if (!mounted ||
+        _viewportBlocked ||
+        ModalRoute.of(context)?.isCurrent != true ||
+        !session.controlsEnabled) {
+      _controllerArmed = false;
+      return false;
+    }
+    if (frame == null) {
+      if (_controllerActive) clear();
+      _controllerActive = _controllerArmed = false;
+      return false;
+    }
+    final held = {
+      for (final action in ControllerAction.values)
+        if (frame.button(_bindings.button(action)) >=
+            (_controllerHeld.contains(action) ? .4 : .55))
+          action,
+    };
+    Offset stick(int index) {
+      final axis = Offset(frame.axis(index), frame.axis(index + 1));
+      final length = axis.distance;
+      if (length <= _bindings.deadZone) return Offset.zero;
+      return axis /
+          length *
+          ((length - _bindings.deadZone) / (1 - _bindings.deadZone)).clamp(
+            0,
+            1,
+          );
+    }
+
+    final move = stick(_bindings.swapSticks ? 2 : 0);
+    final aim = stick(_bindings.swapSticks ? 0 : 2);
+    final neutral = held.isEmpty && move == Offset.zero && aim == Offset.zero;
+    if (!_controllerArmed) {
+      _controllerArmed = neutral;
+      return _controllerActive;
+    }
+    if (!_controllerActive) {
+      if (neutral) return false;
+      clear();
+      _controllerActive = _controllerArmed = true;
+      if (!_desktop) setState(() => _desktop = true);
+    }
+    final fresh = held.difference(_controllerHeld);
+    _controllerHeld
+      ..clear()
+      ..addAll(held);
+    if (fresh.contains(ControllerAction.pause)) {
+      clear();
+      setState(() => session.menuOpen = true);
+      return true;
+    }
+    session.moveX = move.dx;
+    session.moveY = move.dy;
+    if (aim != Offset.zero) {
+      session.aimX = aim.dx / aim.distance;
+      session.aimY = aim.dy / aim.distance;
+    }
+    if (fresh.contains(ControllerAction.dash)) session.dash();
+    if (fresh.contains(ControllerAction.reload)) session.reload();
+    session.firing =
+        session.match != null && held.contains(ControllerAction.fire);
+    _setGrenade(held.contains(ControllerAction.grenade));
+    return true;
+  }
+
+  KeyEventResult _desktopKey(KeyEvent event) {
+    final key = event.physicalKey;
+    if (!session.controlsEnabled ||
+        !DesktopAction.values.any(
+          (action) => _bindings.matchesKey(action, key),
+        )) {
+      return KeyEventResult.ignored;
+    }
+    _mouseKeyboard();
+    if (event is KeyDownEvent) _desktopKeys.add(key);
+    if (event is KeyUpEvent) _desktopKeys.remove(key);
+    int held(DesktopAction action) =>
+        _bindings.held(action, _desktopKeys) ? 1 : 0;
+    var move = Offset(
+      (held(DesktopAction.right) - held(DesktopAction.left)).toDouble(),
+      (held(DesktopAction.down) - held(DesktopAction.up)).toDouble(),
+    );
+    if (move.distanceSquared > 1) move /= move.distance;
+    session.moveX = move.dx;
+    session.moveY = move.dy;
+    if (event is KeyDownEvent) {
+      if (_bindings.matchesKey(DesktopAction.dash, key)) session.dash();
+      if (_bindings.matchesKey(DesktopAction.reload, key)) session.reload();
+    }
+    session.firing =
+        session.match != null && (_mouseFire || held(DesktopAction.fire) > 0);
+    _setGrenade(_mouseGrenade || held(DesktopAction.grenade) > 0);
+    return KeyEventResult.handled;
+  }
+
   bool artReady = false;
   MapComponent? districtMap;
   late final OnlineArtLeases leases = OnlineArtLeases(
@@ -349,6 +541,9 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   @override
   void initState() {
     super.initState();
+    if (desktopInputAvailable) {
+      DesktopController.handlers.add(_controllerHandler);
+    }
     audio = ref.read(soloudPlayProvider);
     MapComponent.loadMap().then((map) {
       if (mounted) setState(() => districtMap = map);
@@ -366,8 +561,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       }
     });
     ticker = createTicker((elapsed) {
-      final dt = ((elapsed - last).inMicroseconds / 1000000).clamp(0.0, .1);
+      final elapsedSeconds = (elapsed - last).inMicroseconds / 1000000;
       last = elapsed;
+      final paced = desktopInputAvailable
+          ? _desktopPacer.advance(elapsedSeconds, _bindings.frameCeiling)
+          : elapsedSeconds;
+      if (paced == null) return;
+      final dt = paced.clamp(0.0, .1);
       session.predictionReducedMotion = LocalPreferences.shared.reducedMotion;
       bossPresentation.sync(
         '${session.room?.id}:${session.match?.data['matchId']}',
@@ -392,6 +592,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       }
       if (_controlled && !session.controlsEnabled) clear();
       _controlled = session.controlsEnabled;
+      _aimMouse();
       if (session.match?.phase == 'active') {
         session.upgradeReceipts.advanceActive(dt);
       }
@@ -706,6 +907,14 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   }
 
   void clear() {
+    if (DesktopMenuCursor.combatPointer.value == this) {
+      DesktopMenuCursor.combatPointer.value = null;
+    }
+    _desktopKeys.clear();
+    _controllerHeld.clear();
+    _controllerArmed = false;
+    _mouse = null;
+    _mouseFire = _mouseGrenade = _desktopGrenade = false;
     grenadeAim.cancel();
     pointers.clear();
     origins.clear();
@@ -716,6 +925,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
 
   @override
   void dispose() {
+    DesktopController.handlers.remove(_controllerHandler);
     upgradeArt.clear();
     statusArt.clear();
     if (artReady) {
@@ -820,6 +1030,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                 setState(() => session.menuOpen = !session.menuOpen);
                 return KeyEventResult.handled;
               }
+              if (desktopInputAvailable) return _desktopKey(event);
               if (session.menuOpen) return KeyEventResult.handled;
               if (event is KeyDownEvent) {
                 keys.add(event.logicalKey);
@@ -846,67 +1057,165 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: Listener(
-                    onPointerDown: (event) {
-                      if (!session.controlsEnabled) return;
-                      final p = event.localPosition;
-                      if ((p - geometry.dash).distance < buttonSize / 2) {
-                        pointers[event.pointer] = 'dash';
-                        session.dash();
-                        return;
-                      }
-                      if (session.match != null &&
-                          (p - geometry.reload).distance < buttonSize / 2) {
-                        pointers[event.pointer] = 'reload';
-                        session.reload();
-                        return;
-                      }
-                      if (session.match != null &&
-                          (p - geometry.grenade).distance < buttonSize / 2) {
-                        pointers[event.pointer] = 'grenade';
-                        return;
-                      }
-                      for (final id in ['move', 'aim']) {
-                        if (pointers.containsValue(id)) continue;
-                        final matchesSide =
-                            (p.dx < size.width / 2) ==
-                            (centers[id]!.dx < size.width / 2);
-                        if ((p - centers[id]!).distance <= radius ||
-                            (controls.floating &&
-                                matchesSide &&
-                                p.dy > size.height * .35)) {
-                          pointers[event.pointer] = id;
-                          origins[id] = controls.floating ? p : centers[id]!;
-                          update(event);
-                          break;
+                  child: MouseRegion(
+                    onHover: !desktopInputAvailable
+                        ? null
+                        : (event) {
+                            if (_controllerActive && event.delta.distance < 2) {
+                              return;
+                            }
+                            _mouseKeyboard();
+                            _mouse = event.localPosition;
+                            _aimMouse();
+                          },
+                    onExit: !desktopInputAvailable
+                        ? null
+                        : (_) {
+                            if (!_controllerActive && _desktop) clear();
+                          },
+                    cursor:
+                        _desktop &&
+                            !_controllerActive &&
+                            session.controlsEnabled &&
+                            _worldFrame.contains(_mouse ?? const Offset(-1, -1))
+                        ? SystemMouseCursors.none
+                        : MouseCursor.defer,
+                    child: Listener(
+                      onPointerDown: (event) {
+                        if (!session.controlsEnabled) return;
+                        if (desktopInputAvailable &&
+                            event.kind == PointerDeviceKind.mouse) {
+                          _mouseKeyboard();
+                          if (!_worldFrame.contains(event.localPosition)) {
+                            return;
+                          }
+                          _mouse = event.localPosition;
+                          _aimMouse();
+                          _mouseFire = event.buttons & _bindings.mouseFire != 0;
+                          _mouseGrenade =
+                              event.buttons & _bindings.mouseGrenade != 0;
+                          session.firing = session.match != null && _mouseFire;
+                          _setGrenade(_mouseGrenade);
+                          return;
                         }
-                      }
-                    },
-                    onPointerMove: update,
-                    onPointerUp: release,
-                    onPointerCancel: release,
-                    child: CustomPaint(
-                      painter: _ArenaPainter(
-                        session: session,
-                        bossPresentation: bossPresentation,
-                        positions: displayed,
-                        seconds: seconds,
-                        artReady: artReady,
-                        districtMap: districtMap,
-                        shotTimes: shotTimes,
-                        hurtTimes: hurtTimes,
-                        grenadeAim: grenadeAim,
-                        restingAim: restingAim,
-                        mummyWalks: mummyWalks,
-                        scorpionGaits: scorpionGaits,
-                        walkers: walkers,
-                        lodestars: lodestars,
-                        guardFeedback: guardFeedback,
-                        mechanicFeedback: mechanicFeedback,
+                        if (_desktop && event.kind == PointerDeviceKind.touch) {
+                          clear();
+                          _controllerActive = false;
+                          setState(() => _desktop = false);
+                        }
+                        final p = event.localPosition;
+                        if ((p - geometry.dash).distance < buttonSize / 2) {
+                          pointers[event.pointer] = 'dash';
+                          session.dash();
+                          return;
+                        }
+                        if (session.match != null &&
+                            (p - geometry.reload).distance < buttonSize / 2) {
+                          pointers[event.pointer] = 'reload';
+                          session.reload();
+                          return;
+                        }
+                        if (session.match != null &&
+                            (p - geometry.grenade).distance < buttonSize / 2) {
+                          pointers[event.pointer] = 'grenade';
+                          return;
+                        }
+                        for (final id in ['move', 'aim']) {
+                          if (pointers.containsValue(id)) continue;
+                          final matchesSide =
+                              (p.dx < size.width / 2) ==
+                              (centers[id]!.dx < size.width / 2);
+                          if ((p - centers[id]!).distance <= radius ||
+                              (controls.floating &&
+                                  matchesSide &&
+                                  p.dy > size.height * .35)) {
+                            pointers[event.pointer] = id;
+                            origins[id] = controls.floating ? p : centers[id]!;
+                            update(event);
+                            break;
+                          }
+                        }
+                      },
+                      onPointerMove: (event) {
+                        if (_desktop && event.kind == PointerDeviceKind.mouse) {
+                          _mouse = event.localPosition;
+                          _aimMouse();
+                        } else {
+                          update(event);
+                        }
+                      },
+                      onPointerUp: (event) {
+                        if (_desktop && event.kind == PointerDeviceKind.mouse) {
+                          _mouse = event.localPosition;
+                          _aimMouse();
+                          _mouseFire = _mouseGrenade = false;
+                          session.firing =
+                              session.match != null &&
+                              _desktopKeys.contains(
+                                _bindings.key(DesktopAction.fire),
+                              );
+                          if (!_worldFrame.contains(event.localPosition)) {
+                            _desktopGrenade = false;
+                            grenadeAim.cancel();
+                          } else {
+                            _setGrenade(
+                              _desktopKeys.contains(
+                                _bindings.key(DesktopAction.grenade),
+                              ),
+                            );
+                          }
+                        } else {
+                          release(event);
+                        }
+                      },
+                      onPointerCancel: (event) {
+                        if (_desktop && event.kind == PointerDeviceKind.mouse) {
+                          clear();
+                        } else {
+                          release(event);
+                        }
+                      },
+                      child: CustomPaint(
+                        painter: _ArenaPainter(
+                          session: session,
+                          bossPresentation: bossPresentation,
+                          positions: displayed,
+                          seconds: seconds,
+                          artReady: artReady,
+                          districtMap: districtMap,
+                          shotTimes: shotTimes,
+                          hurtTimes: hurtTimes,
+                          grenadeAim: grenadeAim,
+                          restingAim: restingAim,
+                          mummyWalks: mummyWalks,
+                          scorpionGaits: scorpionGaits,
+                          walkers: walkers,
+                          lodestars: lodestars,
+                          guardFeedback: guardFeedback,
+                          mechanicFeedback: mechanicFeedback,
+                          desktop: _desktop,
+                          onProjection: _desktop ? _projection : null,
+                        ),
                       ),
                     ),
                   ),
                 ),
+                if (_desktop &&
+                    !_controllerActive &&
+                    session.controlsEnabled &&
+                    _mouse != null &&
+                    _worldFrame.contains(_mouse!))
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: DesktopCrosshair(
+                          _mouse!,
+                          _bindings.crosshairScale,
+                          _bindings.highContrast,
+                        ),
+                      ),
+                    ),
+                  ),
                 Positioned(
                   left: 12,
                   right: 144,
@@ -958,65 +1267,73 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     ),
                   ),
                 ),
-                for (final id in ['move', 'aim'])
+                if (!_desktop)
+                  for (final id in ['move', 'aim'])
+                    Positioned(
+                      left: (origins[id] ?? centers[id]!).dx - radius,
+                      top: (origins[id] ?? centers[id]!).dy - radius,
+                      child: IgnorePointer(
+                        child: SizedBox(
+                          width: radius * 2,
+                          height: radius * 2,
+                          child: CustomPaint(
+                            painter: OnlineStickSkin(
+                              delta: knobs[id] ?? Offset.zero,
+                              opacity: controls.opacity,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                if (!_desktop)
                   Positioned(
-                    left: (origins[id] ?? centers[id]!).dx - radius,
-                    top: (origins[id] ?? centers[id]!).dy - radius,
-                    child: IgnorePointer(
-                      child: SizedBox(
-                        width: radius * 2,
-                        height: radius * 2,
-                        child: CustomPaint(
-                          painter: OnlineStickSkin(
-                            delta: knobs[id] ?? Offset.zero,
-                            opacity: controls.opacity,
+                    left: geometry.dash.dx - buttonSize / 2,
+                    top: geometry.dash.dy - buttonSize / 2,
+                    child: Semantics(
+                      label: 'Dash',
+                      button: true,
+                      enabled: session.controlsEnabled,
+                      onTap: session.controlsEnabled ? session.dash : null,
+                      child: IgnorePointer(
+                        child: SizedBox.square(
+                          dimension: buttonSize,
+                          child: CustomPaint(
+                            painter: OnlineActionSkin(
+                              glyph: PixelGlyph.dash,
+                              label: 'DASH',
+                              opacity: controls.opacity,
+                              active:
+                                  session.predictedDashRemaining > 0 ||
+                                  pointers.containsValue('dash'),
+                              capacity:
+                                  session
+                                      .movementPrediction
+                                      .body
+                                      ?.dashCapacity ??
+                                  1,
+                              charges:
+                                  session
+                                      .movementPrediction
+                                      .body
+                                      ?.dashCharges ??
+                                  1,
+                              chargeProgress:
+                                  1 -
+                                  (session
+                                              .movementPrediction
+                                              .body
+                                              ?.rechargeRemaining ??
+                                          0) /
+                                      session.predictedDashDuration,
+                              cooldown:
+                                  session.predictedDashCooldown /
+                                  session.predictedDashDuration,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                Positioned(
-                  left: geometry.dash.dx - buttonSize / 2,
-                  top: geometry.dash.dy - buttonSize / 2,
-                  child: Semantics(
-                    label: 'Dash',
-                    button: true,
-                    enabled: session.controlsEnabled,
-                    onTap: session.controlsEnabled ? session.dash : null,
-                    child: IgnorePointer(
-                      child: SizedBox.square(
-                        dimension: buttonSize,
-                        child: CustomPaint(
-                          painter: OnlineActionSkin(
-                            glyph: PixelGlyph.dash,
-                            label: 'DASH',
-                            opacity: controls.opacity,
-                            active:
-                                session.predictedDashRemaining > 0 ||
-                                pointers.containsValue('dash'),
-                            capacity:
-                                session.movementPrediction.body?.dashCapacity ??
-                                1,
-                            charges:
-                                session.movementPrediction.body?.dashCharges ??
-                                1,
-                            chargeProgress:
-                                1 -
-                                (session
-                                            .movementPrediction
-                                            .body
-                                            ?.rechargeRemaining ??
-                                        0) /
-                                    session.predictedDashDuration,
-                            cooldown:
-                                session.predictedDashCooldown /
-                                session.predictedDashDuration,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
                 for (final victory
                     in session.scene
                         .where(
@@ -1042,67 +1359,72 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                     ),
                   ),
                 if (session.match != null) ...[
-                  Positioned(
-                    left: geometry.reload.dx - buttonSize / 2,
-                    top: geometry.reload.dy - buttonSize / 2,
-                    child: Semantics(
-                      label: 'Reload',
-                      button: true,
-                      enabled: session.controlsEnabled,
-                      onTap: session.controlsEnabled ? session.reload : null,
-                      child: SizedBox(
-                        width: buttonSize,
-                        height: buttonSize,
-                        child: IgnorePointer(
-                          child: CustomPaint(
-                            painter: OnlineActionSkin(
-                              glyph: PixelGlyph.reload,
-                              label: 'RELOAD',
-                              opacity: controls.opacity,
-                              active:
-                                  session.gun?.reloading == true ||
-                                  pointers.containsValue('reload'),
+                  if (!_desktop)
+                    Positioned(
+                      left: geometry.reload.dx - buttonSize / 2,
+                      top: geometry.reload.dy - buttonSize / 2,
+                      child: Semantics(
+                        label: 'Reload',
+                        button: true,
+                        enabled: session.controlsEnabled,
+                        onTap: session.controlsEnabled ? session.reload : null,
+                        child: SizedBox(
+                          width: buttonSize,
+                          height: buttonSize,
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: OnlineActionSkin(
+                                glyph: PixelGlyph.reload,
+                                label: 'RELOAD',
+                                opacity: controls.opacity,
+                                active:
+                                    session.gun?.reloading == true ||
+                                    pointers.containsValue('reload'),
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    left: geometry.grenade.dx - buttonSize / 2,
-                    top: geometry.grenade.dy - buttonSize / 2,
-                    child: Semantics(
-                      label: 'Hold and drag to aim grenade; release to throw',
-                      button: true,
-                      enabled:
-                          session.controlsEnabled &&
-                          session.grenadesAvailable &&
-                          (session.gun?.grenadeCharges ?? 0) > 0,
-                      child: GrenadeAimButton(
-                        input: grenadeAim,
-                        onChanged: () => mounted ? setState(() {}) : null,
-                        size: buttonSize,
-                        charges: session.grenadesAvailable
-                            ? session.gun?.grenadeCharges ?? 0
-                            : 0,
-                        capacity: session.gun?.grenadeCapacity ?? 2,
-                        progress: session.gun?.grenadeProgress ?? 0,
-                        remaining: session.gun?.grenadeRemaining ?? 0,
-                        opacity: controls.opacity,
-                        onThrow:
+                  if (!_desktop)
+                    Positioned(
+                      left: geometry.grenade.dx - buttonSize / 2,
+                      top: geometry.grenade.dy - buttonSize / 2,
+                      child: Semantics(
+                        label: 'Hold and drag to aim grenade; release to throw',
+                        button: true,
+                        enabled:
                             session.controlsEnabled &&
-                                session.grenadeAimingAvailable &&
-                                (session.gun?.grenadeCooldown ?? 0) <= 0
-                            ? (direction, power) => session.throwGrenade(
-                                aim: direction,
-                                power: power,
-                              )
-                            : null,
+                            session.grenadesAvailable &&
+                            (session.gun?.grenadeCharges ?? 0) > 0,
+                        child: GrenadeAimButton(
+                          input: grenadeAim,
+                          onChanged: () => mounted ? setState(() {}) : null,
+                          size: buttonSize,
+                          charges: session.grenadesAvailable
+                              ? session.gun?.grenadeCharges ?? 0
+                              : 0,
+                          capacity: session.gun?.grenadeCapacity ?? 2,
+                          progress: session.gun?.grenadeProgress ?? 0,
+                          remaining: session.gun?.grenadeRemaining ?? 0,
+                          opacity: controls.opacity,
+                          onThrow:
+                              session.controlsEnabled &&
+                                  session.grenadeAimingAvailable &&
+                                  (session.gun?.grenadeCooldown ?? 0) <= 0
+                              ? (direction, power) => session.throwGrenade(
+                                  aim: direction,
+                                  power: power,
+                                )
+                              : null,
+                        ),
                       ),
                     ),
-                  ),
                   OnlineObjectives(session: session),
-                  OnlineCombatHud(session: session),
+                  OnlineCombatHud(
+                    session: session,
+                    controller: _controllerActive,
+                  ),
                 ],
                 if (seconds - damageAt < .9)
                   Positioned.fill(
@@ -1190,6 +1512,8 @@ class _ArenaPainter extends CustomPainter {
     required this.lodestars,
     required this.guardFeedback,
     required this.mechanicFeedback,
+    this.desktop = false,
+    this.onProjection,
   });
   final OnlineSession session;
   final OnlineBossPresentation bossPresentation;
@@ -1201,6 +1525,8 @@ class _ArenaPainter extends CustomPainter {
   final OnlineLodestars lodestars;
   final Map<String, GuardFeedback> guardFeedback;
   final Map<String, MechanicFeedback> mechanicFeedback;
+  final bool desktop;
+  final void Function(Rect, Offset, double)? onProjection;
   final Map<String, Offset> positions;
   final double seconds;
   final bool artReady;
@@ -1227,7 +1553,10 @@ class _ArenaPainter extends CustomPainter {
         ? session.identity
         : teammate?.identity.toHexString ?? session.identity;
     final center = positions[anchor] ?? Offset(mine?.x ?? 0, mine?.y ?? 0);
-    final worldSize = GameLayout.world(size) / bossPresentation.zoom;
+    final frame = desktop
+        ? const Size(700 * 16 / 9, 700)
+        : GameLayout.world(size);
+    final worldSize = frame / bossPresentation.zoom;
     final scale = math.min(
       size.width / worldSize.width,
       size.height / worldSize.height,
@@ -1258,10 +1587,20 @@ class _ArenaPainter extends CustomPainter {
       center,
       reducedMotion: LocalPreferences.shared.reducedMotion,
     );
-    canvas.translate(
-      -cameraAxis(camera.dx, bounds.left, bounds.right, worldSize.width / 2),
-      -cameraAxis(camera.dy, bounds.top, bounds.bottom, worldSize.height / 2),
+    final centerOfView = Offset(
+      cameraAxis(camera.dx, bounds.left, bounds.right, worldSize.width / 2),
+      cameraAxis(camera.dy, bounds.top, bounds.bottom, worldSize.height / 2),
     );
+    onProjection?.call(
+      Rect.fromCenter(
+        center: size.center(Offset.zero),
+        width: worldSize.width * scale,
+        height: worldSize.height * scale,
+      ),
+      centerOfView,
+      scale,
+    );
+    canvas.translate(-centerOfView.dx, -centerOfView.dy);
 
     canvas.drawRect(bounds, Paint()..color = const Color(0xff252B25));
     if (artReady) {

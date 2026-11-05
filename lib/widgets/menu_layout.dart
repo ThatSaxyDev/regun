@@ -1,3 +1,4 @@
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/widgets/wallet_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/utils/constants.dart';
@@ -12,6 +13,7 @@ class MenuPage extends StatelessWidget {
     this.navigation,
     this.footer,
     this.maxWidth = 1100,
+    this.desktopMaxWidth,
     this.hideHeader = false,
     this.showWallet = false,
   });
@@ -19,18 +21,31 @@ class MenuPage extends StatelessWidget {
   final Widget body;
   final Widget? navigation, footer;
   final double maxWidth;
+  final double? desktopMaxWidth;
   final bool hideHeader, showWallet;
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xff141117),
+    backgroundColor: desktopInputAvailable
+        ? const Color(0xff191a17)
+        : const Color(0xff141117),
     body: SafeArea(
-      minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      minimum: desktopInputAvailable
+          ? const EdgeInsets.fromLTRB(16, 24, 16, 24)
+          : const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth),
+          constraints: BoxConstraints(
+            maxWidth: desktopInputAvailable
+                ? desktopMaxWidth ?? double.infinity
+                : maxWidth,
+          ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(
+              horizontal: desktopInputAvailable && desktopMaxWidth == null
+                  ? (MediaQuery.sizeOf(context).width * .045).clamp(8, 100)
+                  : 16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -39,6 +54,8 @@ class MenuPage extends StatelessWidget {
                     padding: const EdgeInsets.only(right: 12, bottom: 12),
                     child: MenuHeader(title: title, showWallet: showWallet),
                   ),
+                if (desktopInputAvailable && !hideHeader)
+                  const Divider(height: 24, color: Color(0xff756044)),
                 if (navigation != null)
                   Padding(
                     padding: const EdgeInsets.only(right: 12, bottom: 12),
@@ -83,10 +100,10 @@ class MenuHeader extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFam.pressStart,
-                      fontSize: 18,
-                      color: Color(0xffE5DDD1),
+                      fontSize: desktopInputAvailable ? 30 : 18,
+                      color: const Color(0xffE5DDD1),
                     ),
                   ),
                 ),

@@ -1,3 +1,4 @@
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/presentation/game_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/theme/pixel_glyph.dart';
@@ -91,6 +92,7 @@ class PixelOption extends StatefulWidget {
 class PixelOptionState extends State<PixelOption> {
   bool _pressed = false;
   bool _focused = false;
+  bool _hovered = false;
   @override
   Widget build(BuildContext context) => Semantics(
     label: widget.label,
@@ -106,6 +108,9 @@ class PixelOptionState extends State<PixelOption> {
         onTapDown: (_) => setState(() => _pressed = true),
         onTapUp: (_) => setState(() => _pressed = false),
         onTapCancel: () => setState(() => _pressed = false),
+        onHover: desktopInputAvailable
+            ? (value) => setState(() => _hovered = value)
+            : null,
         onFocusChange: (value) => setState(() => _focused = value),
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
@@ -114,6 +119,7 @@ class PixelOptionState extends State<PixelOption> {
             selected: widget.selected,
             pressed: _pressed,
             focused: _focused,
+            hovered: _hovered,
           ),
           child: ExcludeSemantics(
             child: Padding(
@@ -141,8 +147,9 @@ class _SelectionPlate extends CustomPainter {
     required this.selected,
     required this.pressed,
     required this.focused,
+    required this.hovered,
   });
-  final bool selected, pressed, focused;
+  final bool selected, pressed, focused, hovered;
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(
@@ -158,12 +165,18 @@ class _SelectionPlate extends CustomPainter {
     canvas.drawPath(
       controlPlate(rect),
       Paint()
-        ..color = selected ? const Color(0xff3B3027) : const Color(0xff241F29),
+        ..color = hovered
+            ? const Color(0xff514034)
+            : selected
+            ? const Color(0xff3B3027)
+            : const Color(0xff241F29),
     );
     canvas.drawPath(
       controlPlate(rect.deflate(0.75)),
       Paint()
-        ..color = selected || focused ? _accent : const Color(0xff665A68)
+        ..color = selected || focused || hovered
+            ? _accent
+            : const Color(0xff665A68)
         ..style = PaintingStyle.stroke
         ..strokeWidth = focused ? 2 : 1.5,
     );
@@ -192,7 +205,8 @@ class _SelectionPlate extends CustomPainter {
   bool shouldRepaint(_SelectionPlate oldDelegate) =>
       selected != oldDelegate.selected ||
       pressed != oldDelegate.pressed ||
-      focused != oldDelegate.focused;
+      focused != oldDelegate.focused ||
+      hovered != oldDelegate.hovered;
 }
 
 class ControlSlider extends StatelessWidget {

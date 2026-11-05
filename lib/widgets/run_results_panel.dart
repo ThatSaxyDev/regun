@@ -1,3 +1,4 @@
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/widgets/pixel_icon.dart';
@@ -33,16 +34,31 @@ class RunResultsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ColoredBox(
-    color: const Color(0xDF100D14),
+    color: desktopInputAvailable
+        ? const Color(0xd9191a15)
+        : const Color(0xDF100D14),
     child: SafeArea(
-      minimum: const EdgeInsets.all(16),
+      minimum: desktopInputAvailable
+          ? EdgeInsets.symmetric(
+              horizontal: (MediaQuery.sizeOf(context).width * .05).clamp(
+                16,
+                112,
+              ),
+              vertical: 24,
+            )
+          : const EdgeInsets.all(16),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
+          constraints: BoxConstraints(
+            maxWidth: desktopInputAvailable ? 1040 : 1100,
+          ),
           child: Column(
+            mainAxisSize: desktopInputAvailable
+                ? MainAxisSize.min
+                : MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Wrap(
+              Wrap(
                 spacing: 16,
                 runSpacing: 8,
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -51,29 +67,35 @@ class RunResultsPanel extends StatelessWidget {
                     'END OF THE LINE',
                     style: TextStyle(
                       fontFamily: FontFam.pressStart,
-                      fontSize: 18,
+                      fontSize: desktopInputAvailable ? 30 : 18,
                       height: 1.5,
                       color: _paper,
                     ),
                   ),
-                  WalletBar(showLabels: false),
+                  const WalletBar(showLabels: false),
                 ],
               ),
-              const SizedBox(height: 12),
-              Expanded(
+              if (desktopInputAvailable)
+                const Divider(height: 36, color: Color(0xff756044))
+              else
+                const SizedBox(height: 12),
+              Flexible(
+                fit: desktopInputAvailable ? FlexFit.loose : FlexFit.tight,
                 child: LayoutBuilder(
                   builder: (context, box) {
                     final scale =
                         MediaQuery.textScalerOf(context).scale(12) / 12;
-                    final wide = box.maxWidth >= 660;
-                    final summary = _summary();
+                    final desktop = desktopInputAvailable;
+                    final wide = box.maxWidth >= (desktop ? 700 : 660);
+                    final summary = _summary(desktop: desktop);
                     final details = _ResultDetails(
+                      desktop: desktop,
                       state: state,
                       nextGoal: nextGoal,
                       unlocks: unlocks,
                       availableHeight: wide ? box.maxHeight : null,
                       availableWidth: wide
-                          ? (box.maxWidth - 28) * 4 / 9
+                          ? (box.maxWidth - 28) * 4 / 9 - (desktop ? 24 : 0)
                           : box.maxWidth,
                     );
                     final content = wide
@@ -82,7 +104,26 @@ class RunResultsPanel extends StatelessWidget {
                             children: [
                               Expanded(flex: 5, child: summary),
                               const SizedBox(width: 28),
-                              Expanded(flex: 4, child: details),
+                              Expanded(
+                                flex: 4,
+                                child: desktop
+                                    ? DecoratedBox(
+                                        decoration: const BoxDecoration(
+                                          border: Border(
+                                            left: BorderSide(
+                                              color: Color(0xff756044),
+                                            ),
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 24,
+                                          ),
+                                          child: details,
+                                        ),
+                                      )
+                                    : details,
+                              ),
                             ],
                           )
                         : Column(
@@ -94,7 +135,8 @@ class RunResultsPanel extends StatelessWidget {
                             ],
                           );
                     // Large text reduces the usable viewport just like a smaller screen.
-                    final needsScroll = !wide || box.maxHeight < 210 * scale;
+                    final needsScroll =
+                        desktop || !wide || box.maxHeight < 210 * scale;
                     if (needsScroll) {
                       return SingleChildScrollView(
                         key: const Key('results-small-screen-scroll'),
@@ -105,7 +147,10 @@ class RunResultsPanel extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(height: 12),
+              if (desktopInputAvailable)
+                const Divider(height: 32, color: Color(0xff756044))
+              else
+                const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -114,7 +159,9 @@ class RunResultsPanel extends StatelessWidget {
                       onTap: onRestart,
                       text: 'Restart',
                       width: 160,
-                      height: 48,
+                      height: desktopInputAvailable ? 54 : 48,
+                      fontSize: desktopInputAvailable ? 13 : null,
+                      buttonColor: desktopInputAvailable ? _brass : null,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -123,7 +170,8 @@ class RunResultsPanel extends StatelessWidget {
                       onTap: onMenu,
                       text: 'Menu',
                       width: 140,
-                      height: 48,
+                      height: desktopInputAvailable ? 54 : 48,
+                      fontSize: desktopInputAvailable ? 13 : null,
                     ),
                   ),
                 ],
@@ -135,16 +183,16 @@ class RunResultsPanel extends StatelessWidget {
     ),
   );
 
-  Widget _summary() => Column(
+  Widget _summary({required bool desktop}) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
       if (state.causeOfDeath.isNotEmpty) ...[
         Text(
           state.causeOfDeath,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFam.orbitron,
-            fontSize: 12,
+            fontSize: desktop ? 15 : 12,
             height: 1.4,
             color: _muted,
           ),
@@ -158,7 +206,7 @@ class RunResultsPanel extends StatelessWidget {
               : 3;
           return Wrap(
             spacing: 16,
-            runSpacing: 12,
+            runSpacing: desktop ? 18 : 12,
             children: [
               for (final item in [
                 (
@@ -182,20 +230,22 @@ class RunResultsPanel extends StatelessWidget {
                           item.$1,
                           maxLines: 1,
                           softWrap: false,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontFam.pressStart,
-                            fontSize: 16,
+                            fontSize: desktop ? 22 : 16,
                             height: 1.5,
-                            color: _paper,
+                            color: desktop && item.$2 == 'SCORE'
+                                ? _brass
+                                : _paper,
                           ),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         item.$2,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFam.orbitron,
-                          fontSize: 9,
+                          fontSize: desktop ? 13 : 9,
                           height: 1.4,
                           color: _muted,
                         ),
@@ -210,9 +260,9 @@ class RunResultsPanel extends StatelessWidget {
       const SizedBox(height: 12),
       Text(
         scrapBreakdown,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: FontFam.orbitron,
-          fontSize: 10,
+          fontSize: desktop ? 14 : 10,
           height: 1.5,
           color: _muted,
         ),
@@ -220,9 +270,9 @@ class RunResultsPanel extends StatelessWidget {
       const SizedBox(height: 10),
       Text(
         record,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: FontFam.orbitron,
-          fontSize: 11,
+          fontSize: desktop ? 14 : 11,
           height: 1.5,
           color: _brass,
         ),
@@ -234,11 +284,13 @@ class RunResultsPanel extends StatelessWidget {
 class _ResultDetails extends StatefulWidget {
   const _ResultDetails({
     required this.state,
+    required this.desktop,
     required this.nextGoal,
     required this.unlocks,
     this.availableHeight,
     required this.availableWidth,
   });
+  final bool desktop;
   final double? availableHeight;
   final double availableWidth;
   final GameState state;
@@ -261,24 +313,27 @@ class _ResultDetailsState extends State<_ResultDetails> {
     ];
     final scale = MediaQuery.textScalerOf(context).scale(10) / 10;
     final width = widget.availableWidth;
+    final bodySize = widget.desktop ? 15.0 : 11.0;
+    final labelSize = widget.desktop ? 13.0 : 10.0;
     final goalPainter = TextPainter(
       text: TextSpan(
         text: widget.nextGoal ?? '',
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: FontFam.orbitron,
-          fontSize: 11,
+          fontSize: bodySize,
           height: 1.5,
         ),
       ),
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
     )..layout(maxWidth: width.clamp(100, 600));
+    final goalHeight = goalPainter.height;
+    goalPainter.dispose();
     final remaining =
-        (widget.availableHeight ?? 300 * scale) -
-        goalPainter.height -
-        60 * scale -
-        48;
-    final count = (remaining / (24 * scale)).floor().clamp(1, 4);
+        (widget.availableHeight ?? 300 * scale) - goalHeight - 60 * scale - 48;
+    final count = (remaining / ((widget.desktop ? 30 : 24) * scale))
+        .floor()
+        .clamp(1, 4);
     final pages = (lines.length / count).ceil().clamp(1, 100);
     final current = page.clamp(0, pages - 1);
     return Column(
@@ -286,41 +341,41 @@ class _ResultDetailsState extends State<_ResultDetails> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.nextGoal != null) ...[
-          const Text(
+          Text(
             'NEXT GOAL',
             style: TextStyle(
               fontFamily: FontFam.orbitron,
-              fontSize: 10,
+              fontSize: labelSize,
               color: _brass,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             widget.nextGoal!,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFam.orbitron,
-              fontSize: 11,
+              fontSize: bodySize,
               height: 1.5,
               color: _paper,
             ),
           ),
           const SizedBox(height: 12),
         ],
-        const Text(
+        Text(
           'RUN BUILD',
           style: TextStyle(
             fontFamily: FontFam.orbitron,
-            fontSize: 10,
+            fontSize: labelSize,
             color: _brass,
           ),
         ),
         const SizedBox(height: 8),
         if (lines.isEmpty)
-          const Text(
+          Text(
             'No upgrades collected',
             style: TextStyle(
               fontFamily: FontFam.orbitron,
-              fontSize: 11,
+              fontSize: bodySize,
               color: _muted,
             ),
           ),
@@ -329,9 +384,9 @@ class _ResultDetailsState extends State<_ResultDetails> {
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
               line,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFam.orbitron,
-                fontSize: 10,
+                fontSize: widget.desktop ? bodySize : labelSize,
                 height: 1.5,
                 color: _muted,
               ),
@@ -353,9 +408,9 @@ class _ResultDetailsState extends State<_ResultDetails> {
               ),
               Text(
                 '${current + 1} / $pages',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFam.orbitron,
-                  fontSize: 10,
+                  fontSize: labelSize,
                   color: _muted,
                 ),
               ),
