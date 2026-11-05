@@ -1,3 +1,4 @@
+import 'package:regun/systems/gunplay_flourish.dart';
 import 'package:regun/systems/arena_machine.dart';
 import 'package:regun/components/map/foundry_cart_view.dart';
 import 'package:regun/systems/foundry_rail.dart';
@@ -1534,6 +1535,57 @@ class RegunGame extends FlameGame
   double _ventClock = 0;
   late ArenaGeometry geometry;
   bool _reloadWasActive = false;
+  Offset? _escapeDashStart;
+  double _escapeSlowRemaining = 0, _escapeCooldown = 0;
+  final _escapeSegments = <(Offset, Offset, double)>[];
+
+  void armDashEscape() {
+    if (loadout.training &&
+        !preferences.reducedMotion &&
+        _escapeCooldown <= 0) {
+      _escapeDashStart = myPlayer.position.toOffset();
+    }
+  }
+
+  void observeDashEscape(Vector2 before, Vector2 after, double contact) {
+    final start = _escapeDashStart;
+    if (start == null || _escapeSegments.length >= 12) return;
+    final dashOrigin = Vector2(start.dx, start.dy);
+    if (BulletComponent.segmentDistanceSquared(dashOrigin, before, after) <=
+            contact * contact &&
+        !segmentBlocked(before, dashOrigin)) {
+      _escapeSegments.add((before.toOffset(), after.toOffset(), contact));
+    }
+  }
+
+  void _resolveDashEscape(Offset before, int healthBefore) {
+    final start = _escapeDashStart;
+    if (start == null ||
+        playerEntrance.active ||
+        gameState.health != healthBefore ||
+        gameState.gameplayState != GameplayState.playing) {
+      return;
+    }
+    final after = myPlayer.position.toOffset();
+    for (final (shotBefore, shotAfter, contact) in _escapeSegments) {
+      if (!isDashNearMiss(
+        dashStart: start,
+        playerBefore: before,
+        playerAfter: after,
+        shotBefore: shotBefore,
+        shotAfter: shotAfter,
+        contact: contact,
+      )) {
+        continue;
+      }
+      _escapeDashStart = null;
+      _escapeSlowRemaining = .20;
+      _escapeCooldown = 3;
+      myPlayer.markDashEscape();
+      break;
+    }
+  }
+
   bool _breachCharged = false;
   bool breachEngine = false;
   final revision = ValueNotifier<int>(0);
@@ -1845,6 +1897,7 @@ class RegunGame extends FlameGame
     bossRushWait = 0;
     _rushBag.clear();
     _reloadWasActive = false;
+    _escapeCooldown = 0;
     _breachCharged = false;
     breachEngine = false;
     _enemy2Unlocked = false;
@@ -3616,12 +3669,31 @@ class RegunGame extends FlameGame
     if (phase == GameplayState.paused || phase == GameplayState.gameOver) {
       return;
     }
+    if (phase == GameplayState.playing) {
+      if (!boostButtonComponent.tapped || preferences.reducedMotion) {
+        _escapeDashStart = null;
+      }
+      if (preferences.reducedMotion) _escapeSlowRemaining = 0;
+      // Keep the duration in real time. All combat below receives the same dt.
+      final slowed = min(dt, _escapeSlowRemaining);
+      _escapeSlowRemaining -= slowed;
+      _escapeCooldown = max(0, _escapeCooldown - dt);
+      dt -= slowed * .30;
+    }
     _fireKickTime = max(0.0, _fireKickTime - dt);
     // Gameplay timers use simulation time; pause and restart cannot leak work.
     _reloadWasActive = gameState.reloading;
+    final finishFlourish = _reloadWasActive && !gameNotifier.reloadTactical;
     final reloadWait = gameNotifier.reloadRemainingSeconds;
     gameNotifier.advanceTime(dt * timeScale);
-    if (_reloadWasActive && !gameState.reloading) _breachCharged = true;
+    if (_reloadWasActive && !gameState.reloading) {
+      _breachCharged = true;
+      if (finishFlourish &&
+          phase == GameplayState.playing &&
+          !preferences.reducedMotion) {
+        myPlayer.gunplay.reload(loadout.weapon);
+      }
+    }
     if (gameState.gameplayState == GameplayState.playing) {
       final firing = !weaponJoystick.relativeDelta.isZero();
       if (loadout.weapon.usesArsenalRuntime) {
@@ -3727,10 +3799,18 @@ class RegunGame extends FlameGame
         }
       }
     }
+    final escapePlayerBefore = _escapeDashStart == null
+        ? null
+        : myPlayer.position.toOffset();
+    final escapeHealthBefore = gameState.health;
     _advanceOrdinaryMinions(dt);
     try {
       super.update(dt);
+      if (escapePlayerBefore != null) {
+        _resolveDashEscape(escapePlayerBefore, escapeHealthBefore);
+      }
     } finally {
+      _escapeSegments.clear();
       _steppedMinions.clear();
     }
     final state = gameState;
@@ -4287,6 +4367,8 @@ class RegunGame extends FlameGame
   void gameOver() => gameNotifier.gameOver();
 
   void resetInput() {
+    _escapeDashStart = null;
+    _escapeSlowRemaining = 0;
     _arenaAudio?.syncFoundryRail(null);
     _arenaAudio?.stopMachines();
     if (_started) myPlayer.resetMovementAudio();

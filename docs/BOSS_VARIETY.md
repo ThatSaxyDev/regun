@@ -1,11 +1,11 @@
 # Early boss variety
 
-24 October2026. Implemented in source; deployment and device review pending.
+Updated 5 November 2026.
 
-Normal Solo starts with all eight bosses in a bag. The first bag is shuffled,
-then ordered by that player's recorded victories, lowest first; ties retain the
-shuffled order. More familiar bosses move later in the opening rotation. Each
-boss still appears once before the bag refills. Later bags use the existing
+Normal Solo shuffles the active roster. Every boss has two tickets for the
+opening draw, and each boss tied for the fewest recorded wins gets one extra.
+The rest of the first bag stays randomized. Each boss appears once before the
+bag refills. Later bags use the existing
 shuffle with no immediate repeat across bag boundaries. Combat parameters,
 timing, rewards, revives and spending do not participate in selection.
 

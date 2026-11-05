@@ -401,7 +401,10 @@ void main() {
         ..addAll({for (final b in BossKind.active) b.name: 4, 'queen': 0});
       game.restartGame();
       await tick(tester, game, 150);
-      expect(game.director.chooseBoss(game.random), BossKind.queen);
+      expect(game.director.toJson()['openingBossWins'], {
+        for (final boss in BossKind.active) boss.name: 4,
+        'queen': 0,
+      });
       game.spawnBoss(BossKind.shadow);
       await tick(tester, game, 120);
       (game.bosses.single as CombatEnemy).takeDamage(100000);

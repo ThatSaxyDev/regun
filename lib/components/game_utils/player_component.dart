@@ -1,3 +1,4 @@
+import 'package:regun/systems/gunplay_flourish.dart';
 import 'package:regun/presentation/footstep_cadence.dart';
 import 'package:regun/presentation/weapon_art_spec.dart';
 import 'package:regun/presentation/combat_status_art.dart';
@@ -48,9 +49,21 @@ class PlayerComponent extends SpriteAnimationComponent
   final weaponHeading = WeaponHeading();
   double recoil = 0, hurtFlash = 0;
   double _flashRemaining = 0;
+  final gunplay = GunplayFlourish();
+  bool _escapedDash = false;
+  double _dashTuck = 0;
+
+  void markDashEscape() {
+    _escapedDash = game.boostButtonComponent.tapped;
+    if (!_escapedDash) {
+      gunplay.landDash(game.loadout.weapon, escaped: true);
+    }
+  }
+
   final _releaseHeading = Vector2(1, 0);
   void markMuzzleFlash(Vector2 heading) {
     if (heading.isZero()) return;
+    gunplay.clear();
     _releaseHeading.setFrom(heading.normalized());
     _flashRemaining = muzzleFlashDuration(game.loadout.weapon);
   }
@@ -61,6 +74,9 @@ class PlayerComponent extends SpriteAnimationComponent
 
   void resetMovementAudio() {
     _footsteps.reset();
+    gunplay.clear();
+    _escapedDash = false;
+    _dashTuck = 0;
     _wasDashing = false;
   }
 
@@ -150,6 +166,11 @@ class PlayerComponent extends SpriteAnimationComponent
         aimDirection.setFrom(game.arsenal!.aim);
       }
     }
+    if (game.gameState.reloading || game.preferences.reducedMotion) {
+      gunplay.clear();
+    } else {
+      gunplay.advance(dt);
+    }
     recoil = max(0, recoil - dt / WeaponFeel.of(game.loadout.weapon).recovery);
     _flashRemaining = max(0, _flashRemaining - dt);
     hurtFlash = max(0, hurtFlash - dt);
@@ -199,6 +220,8 @@ class PlayerComponent extends SpriteAnimationComponent
 
     final upgradePosition = position.clone();
     final dashLanded = _wasDashing && !game.boostButtonComponent.tapped;
+    final tuckDirection = game.boostButtonComponent.tapped ? 1 : -1;
+    _dashTuck = (_dashTuck + tuckDirection * dt / .075).clamp(0.0, 1.0);
     if (game.boostButtonComponent.tapped) {
       _dashDustClock += dt;
       if (!_wasDashing ||
@@ -253,7 +276,13 @@ class PlayerComponent extends SpriteAnimationComponent
     );
     if (_wasDashing || dashLanded) {
       _footsteps.reset();
-      if (dashLanded) game.audio.playMovement('dash_land.wav');
+      if (dashLanded) {
+        game.audio.playMovement('dash_land.wav');
+        if (!game.gameState.reloading && !game.preferences.reducedMotion) {
+          gunplay.landDash(game.loadout.weapon, escaped: _escapedDash);
+        }
+        _escapedDash = false;
+      }
     } else {
       final variant = _footsteps.advance(
         moving ? position.distanceTo(upgradePosition) : 0,
@@ -376,6 +405,22 @@ class PlayerComponent extends SpriteAnimationComponent
       );
       canvas.rotate(atan2(heading.y, heading.x));
       if (heading.x < 0) canvas.scale(1, -1);
+      final canFlourish =
+          !game.preferences.reducedMotion &&
+          !game.gameState.reloading &&
+          _flashRemaining <= 0 &&
+          game.gameNotifier.quickRefillProgress.value < 0;
+      canvas.save();
+      if (canFlourish) {
+        final pose = gunplay.pose;
+        final tuck = switch (game.loadout.weapon) {
+          WeaponType.shotgun => .23 * _dashTuck,
+          WeaponType.revolver => -.30 * _dashTuck,
+          _ => 0.0,
+        };
+        canvas.translate(-tuck.abs() * 12, -pose.lift);
+        canvas.rotate(pose.angle + tuck);
+      }
       paintWeapon(
         canvas,
         game.loadout.weapon,
@@ -402,6 +447,7 @@ class PlayerComponent extends SpriteAnimationComponent
         reloadShells: game.gameState.maxBullets - game.gameState.noOfBullets,
         reducedMotion: game.preferences.reducedMotion,
       );
+      canvas.restore();
       MechanicVfx.weapon(
         canvas,
         ready: game.readyPerkFlags,

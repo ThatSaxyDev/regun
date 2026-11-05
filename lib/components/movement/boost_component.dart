@@ -84,6 +84,7 @@ class BoostButtonComponent extends AdvancedButtonComponent
           ? aim.normalized()
           : game.myPlayer.lastMovement,
     );
+    game.armDashEscape();
     game.dashCount++;
     game.audio.play('dash_burst.wav');
     game.combat.onDash();

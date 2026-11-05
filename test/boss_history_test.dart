@@ -7,14 +7,22 @@ import 'package:regun/models/player_profile.dart';
 import 'package:regun/systems/encounter_director.dart';
 
 void main() {
-  test('first bag favours fewer victories, shuffles ties, and still contains all eight', () {
-    final wins = {for (final b in BossKind.active) b.name: b.index * 3};
-    for (var seed = 0; seed < 100; seed++) {
-      final d = EncounterDirector(bossWins: wins), r = Random(seed);
+  test('Solo favours the least-beaten opener while every boss can open', () {
+    final wins = {for (final b in BossKind.active) b.name: 4, 'lodestar': 0};
+    final openings = <BossKind, int>{};
+    final r = Random(42);
+    for (var run = 0; run < 5000; run++) {
+      final d = EncounterDirector(bossWins: wins);
       final bag = List.generate(BossKind.active.length, (_) => d.chooseBoss(r));
-      expect(bag, BossKind.active);
+      openings.update(bag.first, (count) => count + 1, ifAbsent: () => 1);
+      expect(bag, unorderedEquals(BossKind.active));
       expect(d.chooseBoss(r), isNot(bag.last));
     }
+    expect(openings.keys, unorderedEquals(BossKind.active));
+    final expectedShare = 3 / (2 * BossKind.active.length + 1);
+    expect(openings[BossKind.lodestar]! / 5000, closeTo(expectedShare, .02));
+  });
+  test('tied histories keep the opening shuffle', () {
     final openings = {
       for (var seed = 0; seed < 200; seed++)
         EncounterDirector(bossWins: {}).chooseBoss(Random(seed)),
@@ -34,7 +42,7 @@ void main() {
       final before = EncounterDirector()..restore(d.toJson());
       expect(before.chooseBoss(Random(42)), d.chooseBoss(Random(42)));
       final saved = d.toJson(), copy = EncounterDirector()..restore(saved);
-      for (var i = 0; i < 7; i++) {
+      for (var i = 1; i < BossKind.active.length; i++) {
         expect(copy.chooseBoss(Random(91)), d.chooseBoss(Random(7)));
       }
       final legacy = EncounterDirector()..restore(EncounterDirector().toJson());

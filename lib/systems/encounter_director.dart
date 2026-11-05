@@ -24,16 +24,25 @@ class EncounterDirector {
     if (_bossBag.isEmpty) {
       _bossBag.addAll(BossKind.active);
       _bossBag.shuffle(random);
-      if (_openingWins != null) {
-        final order = {
-          for (var i = 0; i < _bossBag.length; i++) _bossBag[i]: i,
-        };
-        _bossBag.sort((a, b) {
-          final wins = (_openingWins![a.name] ?? 0).compareTo(
-            _openingWins![b.name] ?? 0,
-          );
-          return wins != 0 ? wins : order[a]!.compareTo(order[b]!);
-        });
+      final openingWins = _openingWins;
+      if (openingWins != null) {
+        final fewestWins = _bossBag
+            .map((boss) => openingWins[boss.name] ?? 0)
+            .reduce(min);
+        final leastBeaten = _bossBag
+            .where((boss) => (openingWins[boss.name] ?? 0) == fewestWins)
+            .toList();
+        // Two tickets per boss, plus one for each tied at the fewest wins.
+        if (leastBeaten.length < _bossBag.length) {
+          final baseTickets = 2 * _bossBag.length;
+          final ticket = random.nextInt(baseTickets + leastBeaten.length);
+          final openingIndex = ticket < baseTickets
+              ? ticket ~/ 2
+              : _bossBag.indexOf(leastBeaten[ticket - baseTickets]);
+          final openingBoss = _bossBag[openingIndex];
+          _bossBag[openingIndex] = _bossBag.first;
+          _bossBag[0] = openingBoss;
+        }
         _openingWins = null;
       }
       if (_bossBag.first == _lastBoss) {

@@ -133,6 +133,8 @@ class Enemy3Projectile extends PositionComponent
             maxTravelDistance * maxTravelDistance ||
         !game.map.bounds.rect.contains(position.toOffset())) {
       removeFromParent();
+      return;
     }
+    game.observeDashEscape(before, position, contact);
   }
 }
