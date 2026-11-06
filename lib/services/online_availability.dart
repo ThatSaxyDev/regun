@@ -62,8 +62,9 @@ class OnlineAvailability extends ChangeNotifier {
               ['127.0.0.1', 'localhost'].contains(endpoint.host))) {
         throw StateError('Invalid feature endpoint');
       }
+      // The server sends no-store. Keep this a simple cross-origin GET.
       final response = await client
-          .get(endpoint, headers: {'Cache-Control': 'no-cache'})
+          .get(endpoint)
           .timeout(const Duration(seconds: 4));
       if (response.statusCode != 200 || response.bodyBytes.length > 4096) {
         throw StateError('Feature policy unavailable');

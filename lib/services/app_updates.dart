@@ -49,10 +49,14 @@ class AppUpdates {
   static const _targetKey = 'regun.update.target';
   static const _androidFirebaseAppId =
       '1:225712394437:android:a774f7de7e22d0abd0e0ac';
-  bool get enabled =>
-      apiKey.trim().isNotEmpty &&
-      !kIsWeb &&
-      [TargetPlatform.iOS, TargetPlatform.android].contains(platform);
+  String? get _channel => kIsWeb
+      ? null
+      : switch (platform) {
+          TargetPlatform.iOS || TargetPlatform.macOS => 'ios',
+          TargetPlatform.android => 'android',
+          _ => null,
+        };
+  bool get enabled => apiKey.trim().isNotEmpty && _channel != null;
 
   /// Only platform store listings, official iOS TestFlight invitations or
   /// Firebase App Distribution tester links for this Android app.
@@ -65,17 +69,17 @@ class AppUpdates {
         uri.hasFragment) {
       return null;
     }
-    if (platform == TargetPlatform.iOS &&
+    if (_channel == 'ios' &&
         uri.host == 'apps.apple.com' &&
         RegExp(r'/id[0-9]+/?$').hasMatch(uri.path)) {
       return uri;
     }
-    if (platform == TargetPlatform.iOS &&
+    if (_channel == 'ios' &&
         uri.host == 'testflight.apple.com' &&
         RegExp(r'^/join/[A-Za-z0-9]{8}/?$').hasMatch(uri.path)) {
       return uri;
     }
-    if (platform == TargetPlatform.android) {
+    if (_channel == 'android') {
       if (uri.host == 'play.google.com' &&
           uri.path == '/store/apps/details' &&
           uri.queryParameters['id'] == 'dev.kiishi.regun') {
@@ -97,7 +101,10 @@ class AppUpdates {
   }
 
   Future<VersionCheckResult> check() async {
-    if (!enabled) return VersionCheckResult.noUpdateRequired;
+    final channel = _channel;
+    if (channel == null || apiKey.trim().isEmpty) {
+      return VersionCheckResult.noUpdateRequired;
+    }
     final base = Uri.tryParse(serverUrl);
     if (base == null ||
         base.scheme != 'https' ||
@@ -114,7 +121,7 @@ class AppUpdates {
         var received = false;
         final result = await telling_version.fetchVersionCheck(
           serverUrl: serverUrl.replaceFirst(RegExp(r'/+$'), ''),
-          platform: platform == TargetPlatform.iOS ? 'ios' : 'android',
+          platform: channel,
           version: installed.version,
           build: installed.buildNumber,
           apiKey: apiKey,

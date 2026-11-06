@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -92,6 +93,25 @@ void main() {
     });
     expect((await s.check()).minBuild, 5);
     expect(AppUpdates(apiKey: '').enabled, false);
+  });
+  test('macOS uses the iOS update channel and web skips Telling', () async {
+    var requests = 0;
+    final s = service(() => policy(required: true),
+        platform: TargetPlatform.macOS, inspect: (request) {
+      requests++;
+      expect(request.url.queryParameters,
+          {'platform': 'ios', 'version': '1.0.0', 'build': '4'});
+    });
+    expect(s.enabled, !kIsWeb);
+    final result = await s.check();
+    expect(result.requiresUpdate, !kIsWeb);
+    expect(requests, kIsWeb ? 0 : 1);
+    if (!kIsWeb) {
+      expect(result.isRequired, true);
+      expect(s.storeUri(result.storeUrl), isNotNull);
+      expect(s.storeUri('https://testflight.apple.com/join/96knrEeD'),
+          isNotNull);
+    }
   });
   test('optional snooze scopes build target; required ignores it', () async {
     var required = false, build = 5;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:regun/systems/ariet_escort_tactics.dart';
 import 'package:regun/components/enemies/boss_encounter.dart';
 import 'package:regun/data/enemies.dart';
@@ -162,8 +164,11 @@ class ArietBoss extends PositionComponent
   Future<void> onLoad() async {
     initializeHealth(maximumHealth);
     final world = game.world;
-    await game.audio.warmWalker();
-    await assets.load(combat: true);
+    unawaited(game.audio.warmWalker());
+    if (!await game.prepareBossAssets(this, () => assets.load(combat: true))) {
+      assets.dispose();
+      return;
+    }
 
     if (retired ||
         assets.disposed ||

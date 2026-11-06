@@ -38,7 +38,7 @@ void main() {
       final policy = OnlineAvailability(
         client: () => MockClient((request) async {
           expect(request.url.path, '/features');
-          expect(request.headers['Cache-Control'], 'no-cache');
+          expect(request.headers, isEmpty);
           return http.Response(
             jsonEncode({'schemaVersion': 1, 'onlinePlay': enabled}),
             200,

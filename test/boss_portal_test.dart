@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -200,6 +202,31 @@ void main() {
           g.update(.6);
           expect(g.bossReveal.active, isFalse);
           g.preferences.reducedMotion = false;
+          final messenger = tester.binding.defaultBinaryMessenger;
+          messenger.setMockMessageHandler('flutter/assets', (message) async {
+            final path = utf8.decode(
+              message!.buffer.asUint8List(
+                message.offsetInBytes,
+                message.lengthInBytes,
+              ),
+            );
+            if (path == 'assets/art/bosses/bellkeeper.png') return null;
+            final file = File(path);
+            return await file.exists()
+                ? ByteData.sublistView(await file.readAsBytes())
+                : null;
+          });
+          try {
+            g.practiceBoss(BossKind.bellkeeper);
+            expect(g.inputBlocked, isTrue);
+            await g.ready();
+            expect(g.inputBlocked, isFalse);
+            expect(g.confirmationHolding.value, isFalse);
+            expect(g.bosses, isEmpty);
+            expect(g.director.bossActive, isFalse);
+          } finally {
+            messenger.setMockMessageHandler('flutter/assets', null);
+          }
           await tester.pumpWidget(const SizedBox.shrink());
         }
         for (final kind in _legacyBosses.where((k) => k.expansion)) {

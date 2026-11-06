@@ -141,14 +141,21 @@ abstract class ExpansionBoss extends PositionComponent
   Future<void> onLoad() async {
     initializeHealth(maximumHealth);
     _ground = GroundProjection(this, renderGround);
-    game.world.add(_ground);
     final encounterWorld = game.world;
-    await RegunArt.shared.acquire('bosses/${kind.name}');
-    _acquired = true;
-    if (game.disposed || game.world != encounterWorld) {
+    final ready = await game.prepareBossAssets(this, () async {
+      await RegunArt.shared.acquire('bosses/${kind.name}');
+      _acquired = true;
+      if (game.disposed ||
+          parent != encounterWorld ||
+          game.world != encounterWorld) {
+        releaseArt();
+      }
+    });
+    if (!ready || !_acquired || parent != encounterWorld) {
       releaseArt();
       return;
     }
+    encounterWorld.add(_ground);
     _idle = clip([0, 1, 2, 3], 1.2, loop: true);
     _walk = clip([4, 5, 6, 7], .64, loop: true);
     _enragedIdle = clip([32, 33, 34, 35], 1.0, loop: true);

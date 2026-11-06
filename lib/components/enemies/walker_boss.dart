@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:regun/components/weapons/shootable_ordnance.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/components/enemies/boss_encounter.dart';
@@ -88,8 +90,11 @@ class WalkerBoss extends PositionComponent
   Future<void> onLoad() async {
     initializeHealth(maximumHealth);
     final owningWorld = game.world;
-    await game.audio.warmWalker();
-    await assets.load(combat: true);
+    unawaited(game.audio.warmWalker());
+    if (!await game.prepareBossAssets(this, () => assets.load(combat: true))) {
+      assets.dispose();
+      return;
+    }
     if (assets.disposed ||
         game.disposed ||
         game.world != owningWorld ||

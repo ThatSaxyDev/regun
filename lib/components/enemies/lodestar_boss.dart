@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -97,8 +98,11 @@ class LodestarBoss extends PositionComponent
   Future<void> onLoad() async {
     initializeHealth(maximumHealth);
     final owningWorld = game.world;
-    await game.audio.warmWalker();
-    await assets.load(combat: true);
+    unawaited(game.audio.warmWalker());
+    if (!await game.prepareBossAssets(this, () => assets.load(combat: true))) {
+      assets.dispose();
+      return;
+    }
     if (retired ||
         assets.disposed ||
         game.disposed ||

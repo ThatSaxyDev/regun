@@ -1,3 +1,8 @@
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:regun/widgets/online_match_menu.dart';
 import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/views/settings_view.dart';
@@ -25,9 +30,21 @@ class _LeavingSession extends FakeSession {
   }
 }
 
+Future<ByteData> _displayPixels(WidgetTester tester, Key key) async {
+  final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(key));
+  return (await tester.runAsync(() async {
+    final image = await boundary.toImage();
+    try {
+      return await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    } finally {
+      image.dispose();
+    }
+  }))!;
+}
+
 void main() {
   setUpAll(() async {
-    await RegunArt.shared.load();
+    if (!kIsWeb) await RegunArt.shared.load();
   });
   for (final screen in [const Size(844, 390), const Size(1366, 1024)]) {
     for (final left in [false, true]) {
@@ -118,10 +135,16 @@ void main() {
     }
   }
   testWidgets(
-    'online menu stays at the top and opens the shared persistent settings',
+    'online arena fills the display while the menu stays in the safe area',
     (tester) async {
       tester.view.physicalSize = const Size(844, 390);
       tester.view.devicePixelRatio = 1;
+      tester.view.padding = const FakeViewPadding(
+        left: 59,
+        right: 24,
+        bottom: 21,
+      );
+      addTearDown(tester.view.resetPadding);
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       final old = LocalPreferences.shared.controls;
@@ -142,14 +165,38 @@ void main() {
         'weapon': 'shotgun',
         'survivor': 'rook',
       });
+      const display = ValueKey('online display');
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [soloudPlayProvider.overrideWithValue(QuietAudio())],
-          child: MaterialApp(home: OnlineArena(session: s)),
+        RepaintBoundary(
+          key: display,
+          child: ProviderScope(
+            overrides: [soloudPlayProvider.overrideWithValue(QuietAudio())],
+            child: MaterialApp(home: OnlineArena(session: s)),
+          ),
         ),
       );
       await tester.pump(const Duration(milliseconds: 100));
-      expect(tester.getRect(find.text('MENU')).top, lessThan(60));
+      final pixels = await _displayPixels(tester, display);
+      for (final (x, y) in [(0, 0), (843, 0), (0, 389), (843, 389)]) {
+        expect(
+          pixels.getUint32((y * 844 + x) * 4),
+          isNot(0x161b18ff),
+          reason: 'Arena should cover display corner ($x, $y)',
+        );
+      }
+      final menu = tester.getRect(find.text('MENU'));
+      expect(menu.top, lessThan(60));
+      expect(menu.right, lessThan(844 - 24));
+      final sticks = find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is OnlineStickSkin,
+      );
+      final geometry = LocalPreferences.shared.controls.geometry(
+        const Size(844 - 59 - 24, 390 - 21),
+      );
+      expect(
+        tester.getCenter(sticks.first),
+        geometry.movement + const Offset(59, 0),
+      );
       await tester.tap(find.text('MENU'));
       await tester.pump();
       expect(s.menuOpen, isTrue);
@@ -177,6 +224,92 @@ void main() {
       await s.close();
     },
   );
+  testWidgets('online desktop projection and web touch framing', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(960, 540);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final s = FakeSession()
+      ..connected = true
+      ..identity = id(1).toHexString
+      ..room = Room.fromJson(
+        room().toJson()
+          ..['phase'] = 'active'
+          ..['owner'] = id(1),
+      )
+      ..members = [member(1)]
+      ..match = OnlineMatch({'version': 1, 'phase': 'active'});
+    addTearDown(s.close);
+    s.fighters[s.identity!] = OnlineGun(s.identity!, {
+      'health': 6,
+      'weapon': 'shotgun',
+      'survivor': 'rook',
+    });
+    const display = ValueKey('desktop online display');
+    const background = 0x161b18ff;
+    Future<void> mountArena() => tester.pumpWidget(
+      RepaintBoundary(
+        key: display,
+        child: ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(QuietAudio())],
+          child: MaterialApp(home: OnlineArena(session: s)),
+        ),
+      ),
+    );
+    if (kIsWeb) {
+      await tester.runAsync(mountArena);
+    } else {
+      await mountArena();
+    }
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final pixels = await _displayPixels(tester, display);
+    expect(pixels.getUint32(0), isNot(background));
+
+    tester.view.physicalSize = const Size(1200, 540);
+    await tester.pump();
+    final widePixels = await _displayPixels(tester, display);
+    expect(widePixels.getUint32((270 * 1200 + 10) * 4), background);
+    expect(widePixels.getUint32((270 * 1200 + 120) * 4), isNot(background));
+
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    const aimPoint = Offset(780, 270);
+    await mouse.addPointer(location: aimPoint);
+    await mouse.moveTo(aimPoint);
+    expect(s.aimX, closeTo(1, .01));
+    expect(s.aimY, closeTo(0, .01));
+    expect(s.firing, isFalse);
+    await mouse.down(aimPoint);
+    expect(s.firing, isTrue);
+    await mouse.up();
+    expect(s.firing, isFalse);
+    await mouse.down(const Offset(10, 270));
+    expect(s.firing, isFalse);
+    await mouse.up();
+    await mouse.removePointer();
+
+    if (kIsWeb) {
+      const screen = Size(844, 390);
+      tester.view.physicalSize = screen;
+      await tester.pump();
+      final geometry = LocalPreferences.shared.controls.geometry(screen);
+      final touch = await tester.startGesture(geometry.movement);
+      await touch.moveBy(const Offset(30, 0));
+      await tester.pump();
+      expect(s.moveX, greaterThan(.5));
+      final touchPixels = await _displayPixels(tester, display);
+      for (final (x, y) in [(0, 0), (843, 0), (0, 389), (843, 389)]) {
+        expect(touchPixels.getUint32((y * 844 + x) * 4), isNot(background));
+      }
+      await touch.up();
+      expect(s.moveX, 0);
+    }
+    await tester.pumpWidget(const SizedBox());
+  }, variant: const TargetPlatformVariant({TargetPlatform.macOS}));
+
   testWidgets(
     'online leave warns about forfeit and only leaves after confirmation',
     (tester) async {

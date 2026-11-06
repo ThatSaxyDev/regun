@@ -1,6 +1,6 @@
 # Scrap purchase UI plan for desktop and mobile
 
-6 November 2026 · Planning only. This extends the [purchase plan](SCRAP_PURCHASE_PLAN.md) and [verification runbook](SCRAP_PURCHASE_VERIFICATION.md). It reflects desktop commit `5af0c5c` and the current working-tree changes to web startup, arena loading and Mac store metadata. The desktop implementation and its open device checks are documented in the [desktop plan](REGUN_DESKTOP_PLAN.md).
+6 November 2026 · Planning only. This extends the [purchase plan](SCRAP_PURCHASE_PLAN.md) and [verification runbook](SCRAP_PURCHASE_VERIFICATION.md). It reflects desktop controls in `5af0c5c`, the committed startup and Mac presentation work in `7fc9a2f`, and static web build 39 in `884fbfa`. The desktop implementation and its open device checks are documented in the [desktop plan](REGUN_DESKTOP_PLAN.md).
 
 ## Surface changes
 
@@ -13,7 +13,7 @@
 | Pause and Results | Keep the balance and this-run earnings readable in the existing desktop panels. Make the wallet view read-only from these surfaces. No purchase actions in Training, Online rooms, the active run, the upgrade picker, or the Solo recovery offer. |
 | About | Keep attribution. Remove the Credits currency label, icon, placeholder copy and wallet accessibility labels across desktop and touch layouts. |
 
-Use the existing [WalletBar](../lib/widgets/wallet_bar.dart), [MenuHeader](../lib/widgets/menu_layout.dart), [Home layout](../lib/widgets/home_menu.dart) and [account dialog](../lib/widgets/account_flow.dart) as anchors. The wallet needs an explicit browsing versus read-only presentation context because it is shared with Pause and Results. Keep the current layout placements and build a common purchase-state view over platform-specific checkout adapters.
+Use the existing [WalletBar](../lib/widgets/wallet_bar.dart), [MenuHeader](../lib/widgets/menu_layout.dart), [Home layout](../lib/widgets/home_menu.dart) and [account dialog](../lib/widgets/account_flow.dart) as anchors. Trace both compact and desktop branches in [Loadout](../lib/views/loadout_view.dart) and [Pause](../lib/views/base_view.dart), the shared header in [Collection](../lib/views/collection_view.dart), and the direct chip in [Results](../lib/widgets/run_results_panel.dart). The wallet needs an explicit browsing versus read-only presentation context because it is shared with Pause and Results. Keep the current layout placements and build a common purchase-state view over platform-specific checkout adapters.
 
 ## What the player sees during checkout
 
@@ -39,7 +39,7 @@ Keep status announcements accessible, avoid repeated screen-reader announcements
 - Start Bachs hosted checkout from the authenticated desktop game. Use a top-level navigation to the verified hosted checkout URL and preserve the intent before leaving. On return, reload the wallet and look up the original order through the authenticated gateway. Browser Back, refresh, multiple tabs and lost local storage must remain recoverable from the original account. The redirect itself changes no balance.
 - Keep the browser’s explicit fullscreen control. Expect fullscreen to exit on navigation. Return to a usable windowed view and let the player re-enter fullscreen. Preserve the existing landscape-required screen in square or portrait windows. If checkout returns into that screen, reconcile after account initialization and show the result when the wallet is visible again.
 - The current [web bootstrap](../web/platform_bootstrap.js) routes mobile browsers to download links before loading Flutter. Keep that page download-only. If someone opens a return URL on a mobile browser, show how to check their purchase in Regun without sending them back into checkout. Verify the approved cross-platform wallet policy before enabling web sales.
-- The current [web shell](../web/index.html) and [Flutter splash](../lib/views/flame_splash_view.dart) handle startup and arena asset preparation. Keep purchase status independent of arena preload success, browser audio unlock and commerce availability. Resume reconciliation after the account initializes. If the browser serves an older cached client, it must still be safe to sync the wallet and recover any committed purchase.
+- The current [web shell](../web/index.html) and [Flutter splash](../lib/views/flame_splash_view.dart) handle startup and arena asset preparation. Keep purchase status independent of arena preload success, browser audio unlock and commerce availability. Use the game’s [buildWeb target](../makefile) for the next static export so art preparation and store-link generation remain in the build path. Resume reconciliation after the account initializes. If the browser serves an older cached client, it must still be safe to sync the wallet and recover any committed purchase.
 - Run checkout and recovery on HTTPS staging for Safari, Chrome and Firefox on Mac and Chrome/Edge and Firefox on Windows. Cover resize, zoom, fullscreen exit, back navigation, returning after sign-out, stale service-worker assets and controller disconnect. Preserve hybrid touch behavior where the desktop game is available.
 
 ## UI exit checks

@@ -966,9 +966,43 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xff161B18),
-    body: SafeArea(
+  Widget build(BuildContext context) {
+    final arena = CustomPaint(
+      painter: _ArenaPainter(
+        session: session,
+        bossPresentation: bossPresentation,
+        positions: displayed,
+        seconds: seconds,
+        artReady: artReady,
+        districtMap: districtMap,
+        shotTimes: shotTimes,
+        hurtTimes: hurtTimes,
+        grenadeAim: grenadeAim,
+        restingAim: restingAim,
+        mummyWalks: mummyWalks,
+        scorpionGaits: scorpionGaits,
+        walkers: walkers,
+        lodestars: lodestars,
+        guardFeedback: guardFeedback,
+        mechanicFeedback: mechanicFeedback,
+        desktop: _desktop,
+        onProjection: _desktop ? _projection : null,
+      ),
+    );
+    return Scaffold(
+      backgroundColor: const Color(0xff161B18),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (!_desktop) IgnorePointer(child: arena),
+          _safeAreaOverlay(arena),
+        ],
+      ),
+    );
+  }
+
+  Widget _safeAreaOverlay(Widget arena) {
+    return SafeArea(
       child: LayoutBuilder(
         builder: (context, box) {
           final size = Size(box.maxWidth, box.maxHeight);
@@ -1175,28 +1209,8 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                           release(event);
                         }
                       },
-                      child: CustomPaint(
-                        painter: _ArenaPainter(
-                          session: session,
-                          bossPresentation: bossPresentation,
-                          positions: displayed,
-                          seconds: seconds,
-                          artReady: artReady,
-                          districtMap: districtMap,
-                          shotTimes: shotTimes,
-                          hurtTimes: hurtTimes,
-                          grenadeAim: grenadeAim,
-                          restingAim: restingAim,
-                          mummyWalks: mummyWalks,
-                          scorpionGaits: scorpionGaits,
-                          walkers: walkers,
-                          lodestars: lodestars,
-                          guardFeedback: guardFeedback,
-                          mechanicFeedback: mechanicFeedback,
-                          desktop: _desktop,
-                          onProjection: _desktop ? _projection : null,
-                        ),
-                      ),
+                      behavior: HitTestBehavior.opaque,
+                      child: _desktop ? arena : const SizedBox.expand(),
                     ),
                   ),
                 ),
@@ -1490,8 +1504,8 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
           );
         },
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _ArenaPainter extends CustomPainter {
@@ -1556,11 +1570,11 @@ class _ArenaPainter extends CustomPainter {
     final frame = desktop
         ? const Size(700 * 16 / 9, 700)
         : GameLayout.world(size);
-    final worldSize = frame / bossPresentation.zoom;
-    final scale = math.min(
-      size.width / worldSize.width,
-      size.height / worldSize.height,
-    );
+    final world = frame / bossPresentation.zoom;
+    final fit = desktop ? math.min : math.max;
+    final scale = fit(size.width / world.width, size.height / world.height);
+    // Crop the phone view to fill the display without widening sightlines.
+    final worldSize = desktop ? world : size / scale;
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.scale(scale);

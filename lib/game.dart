@@ -2932,6 +2932,44 @@ class RegunGame extends FlameGame
     confirmationHolding.value = true;
   }
 
+  Future<bool> prepareBossAssets(
+    PositionComponent actor,
+    Future<void> Function() load,
+  ) async {
+    final owningWorld = world;
+    try {
+      await load().timeout(const Duration(seconds: 10));
+      return true;
+    } catch (error) {
+      debugPrint('Boss assets unavailable for ${enemyId(actor)}: $error');
+      if (disposed || world != owningWorld || actor.parent != owningWorld) {
+        return false;
+      }
+      // Detach the pending actor before its onLoad returns to Flame.
+      _retirePracticeActor(actor);
+      if (identical(walkerCandidate, actor)) walkerCandidate = null;
+      if (identical(arietCandidate, actor)) arietCandidate = null;
+      if (identical(lodestarCandidate, actor)) lodestarCandidate = null;
+      if (identical(mechanicalArrival.actor, actor)) {
+        mechanicalArrival.reset();
+        mechanicalTrial = null;
+      }
+      bossReveal.actors.remove(actor);
+      if (!bossReveal.active && !mechanicalArrival.active) {
+        bossReveal.reset();
+        confirmationHolding.value = presentationHeld;
+        _updateCamera();
+      }
+      director.bossActive = bosses.isNotEmpty;
+      if (!director.bossActive) {
+        unawaited(audio.playMusic(loadout.arena.name));
+        if (bossRush) bossRushWait = 1;
+      }
+      revision.value++;
+      return false;
+    }
+  }
+
   void _placeAriet() {
     final at = _bossSite(BossKind.ariet);
     if (at == null) {

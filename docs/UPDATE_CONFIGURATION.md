@@ -16,6 +16,8 @@ Preview: [required-update panel](../build/test-previews/update-required.png).
 
 ## Set up the dashboard
 
+macOS uses the iOS policy and update link, with its own installed version and build number. Web skips Telling checks and prompts.
+
 Use the Regun project associated with the supplied key. Configure iOS and Android separately:
 
 1. Set the minimum supported version and, if needed, minimum build. Either threshold can trigger an update in Telling 1.5.0. Builds should increase across releases.
@@ -32,6 +34,7 @@ The key is stored locally in ignored `config/release.local.json`, not copied fro
 ```
 flutter build ipa --release --export-method app-store --dart-define-from-file=config/release.local.json
 flutter build ios --release --dart-define-from-file=config/release.local.json
+flutter build macos --release --dart-define-from-file=config/release.local.json
 ```
 
 `make buildIPA`, `make buildIOS`, `make buildAPK`, `make build` and `make runRelease` use the combined local release file when present, falling back to the older `config/telling.local.json`. See [release configuration](../config/README.md) for all service defines and the phone command. CI must provide the same file/defines. A build without a project key leaves release checks disabled. `TELLING_API_URL` can override the HTTPS API base; default is `https://telling-api.kiishi.space/api/v1`.
