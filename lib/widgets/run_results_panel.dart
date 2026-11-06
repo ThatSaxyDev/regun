@@ -72,7 +72,7 @@ class RunResultsPanel extends StatelessWidget {
                       color: _paper,
                     ),
                   ),
-                  const WalletBar(showLabels: false),
+                  const WalletBar(showLabels: false, readOnly: true),
                 ],
               ),
               if (desktopInputAvailable)

@@ -141,7 +141,7 @@ void main() {
   );
 
   testWidgets(
-    'wallet reacts to grants and explains unavailable Credits without checkout',
+    'wallet reacts to earnings and shows only Scrap without checkout',
     (tester) async {
       final preferences = LocalPreferences();
       await preferences.load();
@@ -154,15 +154,33 @@ void main() {
         ),
       );
       expect(find.text('0'), findsOneWidget);
-      expect(find.text('—'), findsOneWidget);
+      expect(find.text('—'), findsNothing);
       preferences.profile.scrap = 1240;
       await preferences.saveProfile();
       await tester.pump();
       expect(find.text('1,240'), findsOneWidget);
-      await tester.tap(find.text('CREDITS'));
+      await tester.tap(find.text('SCRAP'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Not available yet.'), findsOneWidget);
+      expect(find.textContaining('Scrap: 1,240'), findsOneWidget);
+      expect(find.textContaining('Credits'), findsNothing);
+      expect(find.text('SIGN IN'), findsOneWidget);
       expect(find.text('Buy'), findsNothing);
+      await tester.tap(find.text('CLOSE'));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+          child: MaterialApp(
+            home: Scaffold(
+              body: WalletBar(preferences: preferences, readOnly: true),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('SCRAP'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Scrap: 1,240'), findsOneWidget);
+      expect(find.text('SIGN IN'), findsNothing);
     },
   );
 

@@ -14,11 +14,16 @@ String walletAmount(int value) {
 }
 
 /// Banked profile value only. Run XP, cores and provisional Scrap never enter
-/// this display. Credits deliberately remain unknown until a real wallet exists.
+/// this display.
 class WalletBar extends StatelessWidget {
-  const WalletBar({super.key, this.preferences, this.showLabels = true});
+  const WalletBar({
+    super.key,
+    this.preferences,
+    this.showLabels = true,
+    this.readOnly = false,
+  });
   final LocalPreferences? preferences;
-  final bool showLabels;
+  final bool showLabels, readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -28,31 +33,13 @@ class WalletBar extends StatelessWidget {
       builder: (context, _) => Align(
         widthFactor: 1,
         alignment: Alignment.centerRight,
-        child: Wrap(
-          alignment: WrapAlignment.end,
-          spacing: 8,
-          runSpacing: 6,
-          children: [
-            _BalanceCell(
-              label: 'SCRAP',
-              showLabel: showLabels,
-              amount: source.profileReady
-                  ? walletAmount(source.profile.scrap)
-                  : '—',
-              glyph: PixelGlyph.shards,
-              color: const Color(0xffE1BA78),
-              pending: source.profileSaveFailed,
-              onTap: () => showWallet(context, source),
-            ),
-            _BalanceCell(
-              label: 'CREDITS',
-              showLabel: showLabels,
-              amount: '—',
-              glyph: PixelGlyph.star,
-              color: const Color(0xff9CACAB),
-              onTap: () => showWallet(context, source),
-            ),
-          ],
+        child: _BalanceCell(
+          showLabel: showLabels,
+          amount: source.profileReady
+              ? walletAmount(source.profile.scrap)
+              : '—',
+          pending: source.profileSaveFailed,
+          onTap: () => showWallet(context, source, readOnly: readOnly),
         ),
       ),
     );
@@ -61,25 +48,21 @@ class WalletBar extends StatelessWidget {
 
 class _BalanceCell extends StatelessWidget {
   const _BalanceCell({
-    required this.label,
     required this.amount,
-    required this.glyph,
-    required this.color,
     required this.onTap,
     this.pending = false,
     this.showLabel = true,
   });
-  final String label, amount;
-  final PixelGlyph glyph;
-  final Color color;
+  final String amount;
+  static const color = Color(0xffE1BA78);
   final VoidCallback onTap;
   final bool pending, showLabel;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    label:
-        '${label.toLowerCase()} $amount${pending ? ', save needed' : ''}. Wallet details',
+    label: 'Scrap $amount${pending ? ', save needed' : ''}. Wallet details',
+    onTap: onTap,
     excludeSemantics: true,
     child: Material(
       color: const Color(0xf01D2420),
@@ -97,7 +80,7 @@ class _BalanceCell extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                PixelIcon(glyph, color: color, size: 14),
+                const PixelIcon(PixelGlyph.shards, color: color, size: 14),
                 const SizedBox(width: 8),
                 Flexible(
                   child: Column(
@@ -105,8 +88,8 @@ class _BalanceCell extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (showLabel) ...[
-                        Text(
-                          label,
+                        const Text(
+                          'SCRAP',
                           style: TextStyle(
                             fontFamily: FontFam.orbitron,
                             fontSize: 8,
@@ -148,24 +131,24 @@ class _BalanceCell extends StatelessWidget {
 
 Future<void> showWallet(
   BuildContext pageContext,
-  LocalPreferences source,
-) => showDialog<void>(
+  LocalPreferences source, {
+  bool readOnly = false,
+}) => showDialog<void>(
   context: pageContext,
   builder: (context) => Dialog(
     backgroundColor: Colors.transparent,
     child: ListenableBuilder(
       listenable: source,
       builder: (context, _) => GameNotice(
-        eyebrow: 'YOUR BALANCES',
+        eyebrow: 'SCRAP',
         title: 'WALLET',
         message:
             'Scrap: ${source.profileReady ? walletAmount(source.profile.scrap) : '—'}\n'
             '${source.profileSaveFailed
                 ? 'Save needed. Retry before spending.'
-                : source.canSpend
-                ? 'Solo earnings. Connect to buy styles. Owned styles work offline.'
+                : source.canSpend || readOnly
+                ? 'Banked Solo Scrap.'
                 : 'Sign in with email to spend Scrap.'}\n\n'
-            'Credits: —\nNot available yet.\n\n'
             'Online Scrap: ${source.onlineScrap == null ? '—' : walletAmount(source.onlineScrap!)}\n'
             '${source.onlineScrap == null ? 'Check your balance in Online.' : 'Last checked in Online.'}\n'
             'Separate from spendable Solo Scrap.',
@@ -181,7 +164,7 @@ Future<void> showWallet(
                     await source.saveProfile();
                   },
                 )
-              : !source.canSpend
+              : !readOnly && !source.canSpend
               ? ClickButton(
                   text: 'Sign in',
                   onTap: () async {

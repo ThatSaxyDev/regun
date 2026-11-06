@@ -1039,7 +1039,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 Row(
                   children: [
                     Expanded(child: title),
-                    const WalletBar(showLabels: false),
+                    const WalletBar(showLabels: false, readOnly: true),
                   ],
                 ),
                 const Divider(height: 36, color: Color(0xff756044)),
@@ -1138,7 +1138,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                               color: _paper,
                             ),
                           ),
-                          const WalletBar(showLabels: false),
+                          const WalletBar(showLabels: false, readOnly: true),
                         ],
                       ),
                     ),

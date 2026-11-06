@@ -1,6 +1,6 @@
 # Regun Scrap purchase plan
 
-6 November 2026 · Planning only. This supersedes the product direction in the [Credits monetization plan](CREDITS_MONETIZATION_PLAN.md). Store configuration, code, deployments and sales are outside this pass. The [platform verification runbook](SCRAP_PURCHASE_VERIFICATION.md) defines the evidence required to ship. The [UI plan](SCRAP_PURCHASE_UI_PLAN.md) covers wallet placement, purchase states and the current macOS and desktop-web behavior.
+6 November 2026 · Implementation plan and local checkpoint. This supersedes the product direction in the [Credits monetization plan](CREDITS_MONETIZATION_PLAN.md). Store configuration, deployments and sales are separate release steps. The [platform verification runbook](SCRAP_PURCHASE_VERIFICATION.md) defines the evidence required to ship. The [UI plan](SCRAP_PURCHASE_UI_PLAN.md) covers wallet placement, purchase states and the current macOS and desktop-web behavior.
 
 ## Start here
 
@@ -14,12 +14,39 @@ The active IAP plan has three documents. Read them together before changing any 
 
 Use this plan for shared product and wallet decisions. Use the companion docs for UI details and platform verification. Resolve any conflict across the three before implementing the affected behavior. The [Credits proposal](CREDITS_MONETIZATION_PLAN.md) is historical. Older economy and desktop docs describe the existing baseline.
 
+## Implementation checkpoint
+
+The first local slice starts from game `369beaf`, server `cfbc5ea` and admin
+`c0c4228`. The wallet UI now has one currency chip and retains the separately
+labelled historical Online observation during the migration. Pause and Results
+use read-only wallet details with save recovery still available.
+
+The private `scrap_journal` records before/after amounts for existing Solo
+wallet mutations inside their reducers. Existing wallets get a lazy opening
+entry on first use, while newly initialized wallets record their legacy import.
+This slice preserves existing reset and deletion behavior for the earned wallet.
+A full populated-data migration rehearsal, durable paid transaction records,
+provider checkout and grant/finalization, admin commerce reporting and the Online
+migration remain separate gates. The journal is a balance audit trail. Provider
+deduplication still requires the unique transaction keys below.
+
+Before changes, the server passed 228 tests and built, identity passed 42 tests
+plus its compiled HTTP smoke, and admin passed analysis and 86 tests. The game
+run reproduced the existing retained weapon catalogue mismatch in
+`test/weapon_behavior_test.dart` (expected 0.6, actual 5.0).
+The focused wallet, account and layout suite passed after the client changes.
+The server suite passed 229 tests after adding the journal and built the module.
+A focused disposable SpacetimeDB probe verified that replaying the same cosmetic
+purchase leaves a single debit and a single journal entry. The broader gateway
+smoke returns 503 where the device-ownership check expects 400, reproduced at
+unchanged server commit `cfbc5ea` before its wallet scenarios.
+
 ## Product decision
 
 - Scrap is the one player-facing currency. Players can earn it through play or buy a fixed pack with real money. Remove the Credits chip, wallet-detail copy, semantics and associated tests. Keep attribution in About. There is no Credits balance in the reviewed implementation to convert.
 - Use one spendable account balance, with internal source records for earnings, imports, purchases and reversals. Keep guest/offline play and existing ownership. Guests can earn as today. Buying and spending require a verified, attached account and a server response. Show pending offline earnings separately from the confirmed spendable amount when they differ.
 - Start with one repeatable, deterministic pack. Display the exact Scrap quantity and the provider’s localized total. Pack quantity, price and territories require approval after comparing actual earn rates with existing prices. Keep top-up in Home wallet and optionally in the shop. Complete the top-up independently of any Scrap spend. Keep checkout out of combat, results, and the Solo death screen.
-- Under the proposed fungible model, purchased Scrap can pay for **everything the same balance can buy**. That includes existing Scrap weapons and eligible Solo recovery as well as cosmetics. The launch decision must explicitly accept paid acceleration of weapon access and recovery, including its effects on PvP access, ranking and earn times. Keep the existing 500-Scrap/five-active-minute Solo rule, pre-run balance check and run-scoped receipt. Preserve separate assisted records. Review current deployed policy before testing. Hold sales until the creator approves the spend scope. Keep earned progression intact in the meantime.
+- Use the same spend rules for earned and purchased Scrap, including existing weapons, eligible Solo recovery and cosmetics. Before live sales, review the effects of paid acceleration on weapon access, recovery, PvP access, ranking and earn times. Keep the existing 500-Scrap/five-active-minute Solo rule, pre-run balance check and run-scoped receipt. Preserve separate assisted records. Review current deployed policy before testing. Hold sales until the live economy review is complete. Keep earned progression intact in the meantime.
 - No transfer, redemption, expiry, paid random rewards or cash-out. No automatic purchase, bundle of starting power or special paid stat modifier.
 
 ## What exists in source

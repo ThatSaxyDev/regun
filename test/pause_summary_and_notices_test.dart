@@ -149,6 +149,7 @@ void main() {
       expect((wallet.center.dy - heading.center.dy).abs(), lessThan(3));
       expect(find.text('SCRAP'), findsNothing);
       expect(find.text('CREDITS'), findsNothing);
+      expect(tester.widget<WalletBar>(find.byType(WalletBar)).readOnly, isTrue);
       for (final text in [
         '3:07',
         '47',
