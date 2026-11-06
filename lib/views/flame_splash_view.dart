@@ -1,8 +1,12 @@
 import 'dart:math';
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:regun/components/map/map_component.dart';
+import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/services/online_availability.dart';
+import 'package:regun/utils/constants.dart';
 
 import 'package:flame_splash_screen/flame_splash_screen.dart';
 import 'package:flutter/material.dart';
@@ -57,12 +61,25 @@ class _FlameSplashViewState extends ConsumerState<FlameSplashView>
     await AccountController.shared.initialize();
     if (!mounted) return;
     await Future.wait([
+      if (kIsWeb) _prepareWebArena(),
       precacheImage(_creator, context),
       for (final layer in _layers) precacheImage(layer, context),
     ]);
     if (!mounted) return;
     setState(() => _ready = true);
     if (_foreground) _intro.forward();
+  }
+
+  Future<void> _prepareWebArena() async {
+    try {
+      await Future.wait([
+        RegunArt.shared.load(),
+        MapComponent.preloadWebLayout(),
+      ]);
+    } catch (error) {
+      // A failed preload can be retried when entering an arena.
+      debugPrint('Arena preload failed: $error');
+    }
   }
 
   void _openMenu() {
@@ -108,7 +125,49 @@ class _FlameSplashViewState extends ConsumerState<FlameSplashView>
               width: min(360, constraints.maxWidth * .72),
               height: min(300, constraints.maxHeight),
               child: !_ready
-                  ? const SizedBox.shrink()
+                  ? kIsWeb
+                        ? Center(
+                            child: Semantics(
+                              liveRegion: true,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'LOADING GAME ASSETS…',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: FontFam.pressStart,
+                                      fontSize: 14,
+                                      height: 1.6,
+                                      color: Color(0xffe5ddd1),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: 144,
+                                    child: LinearProgressIndicator(
+                                      value: reduced ? .4 : null,
+                                      minHeight: 4,
+                                      color: const Color(0xffe1ba78),
+                                      backgroundColor: const Color(0xff4a4037),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Your first visit may take longer while Regun downloads game assets.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: FontFam.orbitron,
+                                      fontSize: 13,
+                                      height: 1.5,
+                                      color: Color(0xffc3b8ab),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink()
                   : AnimatedBuilder(
                       animation: _intro,
                       builder: (context, _) {

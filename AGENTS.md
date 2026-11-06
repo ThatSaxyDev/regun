@@ -1283,3 +1283,13 @@ Selected art kit28.67MiB stays below32MiB. Evidence and staged Training review:
 `docs/validation/lodestar-pressure-2026-10-29/`. The review uses protected stationary
 Training and staged lethal hits; it is not physical performance or fairness proof.
 General minion navigation implementation is outside this correction.
+
+## Scrap purchases and IAP planning (2026-11-06)
+
+For IAP work, start with [the Scrap purchase plan](docs/SCRAP_PURCHASE_PLAN.md)
+and read both companion docs it indexes: the [UI plan](docs/SCRAP_PURCHASE_UI_PLAN.md)
+and [platform verification runbook](docs/SCRAP_PURCHASE_VERIFICATION.md).
+They are one implementation package covering wallet/backend, desktop and mobile UI,
+and release verification. Scrap is the chosen player-facing currency for this plan.
+The older Credits proposal is historical. Planning does not authorize implementation,
+store configuration, deployment, or sales.

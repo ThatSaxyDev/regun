@@ -43,6 +43,7 @@ buildWeb:
 	@tmp=$$(mktemp -d) && trap 'rm -f "$$tmp/web.json"; rmdir "$$tmp"' EXIT && \
 		python3 -c 'import json, sys; data = json.load(open(sys.argv[1])); names = ("REGUN_SERVER_HOST", "REGUN_DATABASE", "REGUN_SERVER_TLS", "REGUN_IDENTITY_URL"); print(json.dumps({name: data[name] for name in names if name in data}))' "$(RELEASE_CONFIG)" > "$$tmp/web.json" && \
 		$(FLUTTER) build web --release --dart-define-from-file="$$tmp/web.json"
+	python3 tool/prepare_web_art.py build/web
 	$(MAKE) refreshWebStoreLinks
 
 refreshWebStoreLinks:

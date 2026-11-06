@@ -16,6 +16,7 @@ Future<bool> showAccountFlow(
   bool online = false,
   bool rename = false,
   bool reverify = false,
+  bool deleting = false,
   VoidCallback? onShown,
 }) async =>
     await showDialog<bool>(
@@ -30,6 +31,7 @@ Future<bool> showAccountFlow(
           online: online,
           rename: rename,
           reverify: reverify,
+          deleting: deleting,
           onShown: onShown,
         ),
       ),
@@ -110,10 +112,11 @@ class AccountFlow extends StatefulWidget {
     this.online = false,
     this.rename = false,
     this.reverify = false,
+    this.deleting = false,
     this.onShown,
   });
   final AccountController account;
-  final bool online, rename, reverify;
+  final bool online, rename, reverify, deleting;
   final VoidCallback? onShown;
   @override
   State<AccountFlow> createState() => _AccountFlowState();
@@ -129,16 +132,17 @@ class _AccountFlowState extends State<AccountFlow> {
   DateTime? resendAt;
   Timer? timer;
   AccountController get account => widget.account;
+  bool get requiresSameAccount => widget.reverify || widget.deleting;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) widget.onShown?.call();
     });
-    expectedAccount = widget.reverify ? account.session?.accountId : null;
+    expectedAccount = requiresSameAccount ? account.session?.accountId : null;
     email.text = account.email;
     name.text = account.username;
-    if (!widget.reverify && account.verified) {
+    if (!requiresSameAccount && account.verified) {
       step = widget.rename || !account.ready
           ? 'name'
           : account.conflict
@@ -179,7 +183,9 @@ class _AccountFlowState extends State<AccountFlow> {
     } catch (_) {
       if (mounted) {
         setState(
-          () => error = 'Could not complete setup. You can still play offline.',
+          () => error = widget.deleting
+              ? 'Could not complete account deletion. Try again.'
+              : 'Could not complete setup. You can still play offline.',
         );
       }
     } finally {
@@ -204,6 +210,11 @@ class _AccountFlowState extends State<AccountFlow> {
       expectedAccount: expectedAccount,
     );
     if (!mounted) return;
+    if (widget.deleting) {
+      setState(() => step = 'delete');
+      await delete();
+      return;
+    }
     if (widget.reverify) {
       Navigator.pop(context, true);
       return;
@@ -214,6 +225,11 @@ class _AccountFlowState extends State<AccountFlow> {
       setState(() => step = 'name');
     }
   });
+  Future<void> delete() async {
+    await account.deleteAccount(expectedAccount: expectedAccount);
+    if (mounted) Navigator.pop(context, true);
+  }
+
   Future<void> attach({bool cloud = false, bool device = false}) async {
     await account.attach(useCloud: cloud, useDevice: device);
     if (mounted) setState(() => step = account.conflict ? 'conflict' : 'ready');
@@ -234,6 +250,9 @@ class _AccountFlowState extends State<AccountFlow> {
   @override
   Widget build(BuildContext context) {
     final title = switch (step) {
+      'delete' => 'DELETE ACCOUNT',
+      'email' || 'code' when widget.deleting => 'VERIFY ACCOUNT DELETION',
+      'email' when widget.reverify => 'SIGN IN AGAIN',
       'code' => 'CHECK YOUR EMAIL',
       'name' => widget.rename ? 'CHANGE USERNAME' : 'CHOOSE YOUR USERNAME',
       'conflict' => 'CHOOSE YOUR PROGRESS',
@@ -245,6 +264,12 @@ class _AccountFlowState extends State<AccountFlow> {
       _ => widget.online ? 'SET UP YOUR ONLINE ID' : 'SAVE YOUR PROGRESS',
     };
     final message = switch (step) {
+      'delete' => 'Delete your cloud profile and progress permanently.',
+      'code' when widget.deleting =>
+        'Enter the 6-digit code sent to ${email.text.trim()} to delete your account.',
+      'email' when widget.deleting =>
+        'Request a code to confirm deletion of this account.',
+      'email' when widget.reverify => 'Request a code to sign in again.',
       'code' => 'Enter the 6-digit code sent to ${email.text.trim()}.',
       'name' => 'This is the name other players will see.',
       'conflict' => 'This device and your cloud save have different progress. Choose which to use.',
@@ -258,6 +283,8 @@ class _AccountFlowState extends State<AccountFlow> {
             : 'Keep your unlocked weapons, survivors and gear when you change devices.',
     };
     final label = switch (step) {
+      'delete' => 'Delete account',
+      'code' when widget.deleting => 'Verify and delete',
       'code' => 'Verify code',
       'name' => 'Save username',
       'conflict' => 'Use cloud progress',
@@ -268,6 +295,7 @@ class _AccountFlowState extends State<AccountFlow> {
     VoidCallback? primary = busy
         ? null
         : switch (step) {
+            'delete' => () => run(delete),
             'code' => code.text.length == 6 ? verify : null,
             'name' => saveName,
             'conflict' => () => run(() => attach(cloud: true)),
@@ -298,17 +326,19 @@ class _AccountFlowState extends State<AccountFlow> {
                 controller: email,
                 label: 'Email',
                 email: true,
-                enabled: !busy && !widget.reverify,
+                enabled: !busy && !requiresSameAccount,
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'No password. Just a code sent to your email.',
-                style: TextStyle(
-                  fontFamily: FontFam.orbitron,
-                  fontSize: 11,
-                  color: Color(0xffB2A8B4),
+              if (!requiresSameAccount) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'No password. Just a code sent to your email.',
+                  style: TextStyle(
+                    fontFamily: FontFam.orbitron,
+                    fontSize: 11,
+                    color: Color(0xffB2A8B4),
+                  ),
                 ),
-              ),
+              ],
             ],
             if (step == 'code') ...[
               AccountField(
@@ -320,18 +350,19 @@ class _AccountFlowState extends State<AccountFlow> {
               Wrap(
                 spacing: 16,
                 children: [
-                  TextButton(
-                    onPressed: busy || widget.reverify
-                        ? null
-                        : () => setState(() => step = 'email'),
-                    child: const Text(
-                      'Change email',
-                      style: TextStyle(
-                        fontFamily: FontFam.orbitron,
-                        color: Color(0xffE1BA78),
+                  if (!requiresSameAccount)
+                    TextButton(
+                      onPressed: busy
+                          ? null
+                          : () => setState(() => step = 'email'),
+                      child: const Text(
+                        'Change email',
+                        style: TextStyle(
+                          fontFamily: FontFam.orbitron,
+                          color: Color(0xffE1BA78),
+                        ),
                       ),
                     ),
-                  ),
                   TextButton(
                     onPressed: busy || resendSeconds > 0 ? null : send,
                     child: Text(
@@ -406,6 +437,8 @@ class _AccountFlowState extends State<AccountFlow> {
               secondary: ClickButton(
                 text: step == 'ready'
                     ? 'Close'
+                    : widget.deleting
+                    ? 'Cancel'
                     : widget.online
                     ? 'Back'
                     : 'Not now',

@@ -50,8 +50,9 @@ local gameplay entry future.
 Settings shows Account below Gameplay, with identity, concise backup status,
 sync/setup, username changes, news preference, sign-out and deletion. Email is
 fixed after account creation: both new requests and pending legacy email-change
-codes are blocked by the server. Account deletion still verifies a fresh code
-inside that action; there is no standalone re-verification or legacy-recovery row.
+codes are blocked by the server. After the player confirms deletion, the server
+accepts verification from the last ten minutes. If it requires a fresh code,
+Settings opens a deletion-specific prompt with the account email locked.
 Rename allowance is shown only inside the rename flow. Offline sign-out retains
 pending progress and an encrypted revocation queue for reconnection. Owner changes
 wait until local play ends, so a dismissed network action cannot change the

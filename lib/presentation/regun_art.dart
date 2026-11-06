@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// One decoded texture per atlas, shared by every instance. Metadata is measured
@@ -17,11 +18,26 @@ class RegunArt {
   Map<String, dynamic> _manifest = {};
   final _leases = <String, int>{};
   final _pending = <String, Future<void>>{};
-  Future<void> load() => _loading ??= _load();
+  Future<void> load() => _loading ??= _loadWithRetry();
+
+  Future<void> _loadWithRetry() async {
+    try {
+      await _load();
+    } catch (_) {
+      _loading = null;
+      rethrow;
+    }
+  }
+
   Future<void> _load() async {
-    _manifest = jsonDecode(
-      await rootBundle.loadString('assets/art/manifest.json'),
-    ) as Map<String, dynamic>;
+    final asset = rootBundle.loadString(
+      'assets/art/manifest.json',
+      cache: false,
+    );
+    final json = await (kIsWeb
+        ? asset.timeout(const Duration(seconds: 25))
+        : asset);
+    _manifest = jsonDecode(json) as Map<String, dynamic>;
     await Future.wait(
       _manifest.entries
           .where((e) => (e.value as Map)['lazy'] != true)
@@ -32,7 +48,10 @@ class RegunArt {
   Future<void> _decode(String name) async {
     if (_images.containsKey(name)) return;
     final entry = MapEntry(name, _manifest[name]);
-    final bytes = await rootBundle.load('assets/art/${entry.key}.png');
+    final asset = rootBundle.load('assets/art/${entry.key}.png');
+    final bytes = await (kIsWeb
+        ? asset.timeout(const Duration(seconds: 25))
+        : asset);
     final data = entry.value as Map<String, dynamic>;
     final codec = await ui.instantiateImageCodec(
       bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),

@@ -108,6 +108,60 @@
     "sha256": "6526d45534cc95080028a1380c82c66af7c8035eb161bd0b971cd8df17e33ba2"
   },
   {
+    "file": "exports/11-App-Store-Mac-2880x1800/01-survival.png",
+    "width": 2880,
+    "height": 1800,
+    "source": "sources/macos/01-survival.png",
+    "alt": "Rook fires a pump shotgun as scorpions and other enemies close in across the Breach.",
+    "bytes": 4465977,
+    "sha256": "6b824fe018aca3adfa649c446aa339a4623f3a29c5c8c66a196b28e258e463b2"
+  },
+  {
+    "file": "exports/11-App-Store-Mac-2880x1800/02-weapons.png",
+    "width": 2880,
+    "height": 1800,
+    "source": "sources/macos/02-weapons.png",
+    "alt": "The Arc Caster chains electricity through three enemies in the Foundry.",
+    "bytes": 3760330,
+    "sha256": "739f58fbbf2ff23ed8783d73d143961776c8cc996d5b679967743a7286453112"
+  },
+  {
+    "file": "exports/11-App-Store-Mac-2880x1800/03-bosses.png",
+    "width": 2880,
+    "height": 1800,
+    "source": "sources/macos/04-bosses.png",
+    "alt": "Rook takes on Lodestar, an armored boss with a connected chain of weapon sections.",
+    "bytes": 3808580,
+    "sha256": "163f0e291e5460e9694656341dea91187afb9d271470f676d424243cad228e6a"
+  },
+  {
+    "file": "exports/11-App-Store-Mac-2880x1800/04-airdrop.png",
+    "width": 2880,
+    "height": 1800,
+    "source": "sources/macos/06-airdrop.png",
+    "alt": "Rook defends the capture area around a supply pod while fighting off the horde.",
+    "bytes": 4525293,
+    "sha256": "ab4f16843444e7a1880ad3c72d39f800f118dab1d674743d520ea26d3f4719a0"
+  },
+  {
+    "file": "exports/11-App-Store-Mac-2880x1800/05-upgrades.png",
+    "width": 2880,
+    "height": 1800,
+    "source": "sources/macos/03-upgrades.png",
+    "alt": "A level-up offers Heavy Payload, Field Medic and Wide Burst during a Foundry run.",
+    "bytes": 3682586,
+    "sha256": "00338de9409d25c01bdb4bccadc421d0c09b2344fa0980d6e760c7b923703dd4"
+  },
+  {
+    "file": "exports/11-App-Store-Mac-2880x1800/06-loadout.png",
+    "width": 2880,
+    "height": 1800,
+    "source": "sources/macos/05-loadout.png",
+    "alt": "The loadout screen previews Harrow with a pump shotgun in the Foundry.",
+    "bytes": 1351636,
+    "sha256": "93eaf6845702d212c2d0fca632705b715ba2f7aa5da5ef252e11904e286b5ac3"
+  },
+  {
     "file": "exports/03-Play-Phone-1920x1080/01-survival.png",
     "width": 1920,
     "height": 1080,

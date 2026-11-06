@@ -1762,6 +1762,7 @@ class RegunGame extends FlameGame
     controls = preferences.controls;
 
     map = await MapComponent.loadMap();
+    if (disposed) return;
     world = _CombatWorld(this);
     _legacyArena =
         resumeSnapshot != null && resumeSnapshot!['arenaRevision'] != 1;

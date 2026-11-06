@@ -1170,10 +1170,17 @@ class AccountController extends ChangeNotifier with WidgetsBindingObserver {
     await _clearSession();
   }
 
-  Future<void> deleteAccount() async {
+  Future<void> deleteAccount({String? expectedAccount}) async {
     final owner = session?.accountId, generation = _generation;
-    if (owner == null) return;
-    await api.request('/delete', token: await accessToken(), body: {});
+    if (owner == null ||
+        (expectedAccount != null && expectedAccount != owner)) {
+      throw const AccountError('The signed-in account changed. Try again.');
+    }
+    final token = await accessToken();
+    if (generation != _generation || session?.accountId != owner) {
+      throw const AccountError('The signed-in account changed. Try again.');
+    }
+    await api.request('/delete', token: token, body: {});
     if (generation == _generation) await _clearSession();
     await _switchLocal(() async {
       await _store.remove(owner);

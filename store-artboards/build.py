@@ -1,4 +1,5 @@
 """Compose and validate Regun's landscape store artwork from Flutter captures."""
+from argparse import ArgumentParser
 from hashlib import sha256
 from html import escape
 import json
@@ -34,6 +35,7 @@ SHOTS = (
 FORMATS = (
     ("iphone", "01-App-Store-iPhone-2556x1179", "App Store · iPhone", (2556, 1179)),
     ("ipad", "02-App-Store-iPad-2752x2064", "App Store · iPad", (2752, 2064)),
+    ("macos", "11-App-Store-Mac-2880x1800", "App Store · Mac", (2880, 1800)),
     ("play", "03-Play-Phone-1920x1080", "Google Play · Phone", (1920, 1080)),
     ("duo-outer", "07-App-Store-Duo-Outer-2034x1398", "App Store · iPhone Duo outer", (2034, 1398)),
     ("play-tablet", "10-Play-Tablet-1920x1080", "Google Play · Tablet", (1920, 1080)),
@@ -175,21 +177,23 @@ figcaption{padding:8px 0;color:#c8b8a9}
 """ + "\n".join(sections) + "</main></html>\n", encoding="utf-8")
 
 
-def main():
-    groups = []
-    for target, folder, title, size in FORMATS:
-        rows = []
-        order = SHOTS if not target.startswith("play") else [SHOTS[i] for i in (0, 1, 3, 5, 2, 4)]
-        for number, (name, headline, label, alt) in enumerate(order, start=1):
-            source = PACK / "sources" / target / f"{name}.png"
-            with Image.open(source) as raw:
-                assert raw.size == size, source
-                frame = raw.convert("RGB")
-            art = frame if target.startswith("play") else apple_board(frame, headline, label, number)
-            rows.append(export(art, folder, f"{number:02}-{name[3:]}", size,
-                               str(source.relative_to(PACK)), alt))
-        groups.append((title, rows))
+def screenshots(target, folder, size):
+    rows = []
+    gameplay_first = target.startswith("play") or target == "macos"
+    order = [SHOTS[i] for i in (0, 1, 3, 5, 2, 4)] if gameplay_first else SHOTS
+    for number, (name, headline, label, alt) in enumerate(order, start=1):
+        source = PACK / "sources" / target / f"{name}.png"
+        with Image.open(source) as raw:
+            assert raw.size == size, source
+            frame = raw.convert("RGB")
+        art = frame if target.startswith("play") else apple_board(frame, headline, label, number)
+        rows.append(export(art, folder, f"{number:02}-{name[3:]}", size,
+                           str(source.relative_to(PACK)), alt))
+    return rows
 
+
+def creative_assets():
+    groups = []
     groups.append(("Google Play · Feature graphic", [export(
         feature_graphic(), "04-Play-Feature-1024x500", "regun-feature", (1024, 500),
         str(SHELTER.relative_to(ROOT)),
@@ -212,8 +216,36 @@ def main():
         str(ICON.relative_to(ROOT)), "Rook's helmet with a cyan visor and ochre scarf.",
         icon=True,
     )]))
+    return groups
+
+
+def main(mac_only=False):
+    if mac_only:
+        existing = {}
+        for row in json.loads((PACK / "validation.json").read_text(encoding="utf-8")):
+            folder = Path(row["file"]).parent.name
+            existing.setdefault(folder, []).append(row)
+
+    groups = []
+    for target, folder, title, size in FORMATS:
+        rows = existing[folder] if mac_only and target != "macos" else screenshots(target, folder, size)
+        groups.append((title, rows))
+    if mac_only:
+        for folder, title in (
+            ("04-Play-Feature-1024x500", "Google Play · Feature graphic"),
+            ("05-App-Store-Header-3840x1646", "App Store · Product Page Header"),
+            ("06-App-Store-Search-Results-3840x2560", "App Store · Search Results"),
+            ("09-Play-Icon-512x512", "Google Play · Listing icon"),
+        ):
+            groups.append((title, existing[folder]))
+    else:
+        groups.extend(creative_assets())
+
     rows = [row for _, group in groups for row in group]
-    assert len(rows) == 40
+    assert len(rows) == 46
+    for row in rows:
+        file = PACK / row["file"]
+        assert sha256(file.read_bytes()).hexdigest() == row["sha256"], file
     (PACK / "validation.json").write_text(json.dumps(rows, indent=2) + "\n", encoding="utf-8")
     gallery(groups)
 
@@ -228,4 +260,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument("--mac-only", action="store_true",
+                        help="Refresh Mac screenshots and reuse existing exports for other stores.")
+    main(mac_only=parser.parse_args().mac_only)

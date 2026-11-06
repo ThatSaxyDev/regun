@@ -99,7 +99,7 @@ Use the same cold start, first arena entry, normal run, crowded boss fight, and 
 
 ## Local review build
 
-- **macOS** — Open `build/macos/Build/Products/Release/regun.app`. The development-signed build contains arm64 and x86_64 slices and declares macOS 12.0 as its minimum. The launch trace confirms Impeller with Metal. The signed bundle passes strict signature verification. It is a local review build and has no notarization ticket.
+- **macOS** — Open `build/macos/Build/Products/Release/Regun.app`. The development-signed build contains arm64 and x86_64 slices and declares macOS 12.0 as its minimum. The launch trace confirms Impeller with Metal. The signed bundle passes strict signature verification. It is a local review build and has no notarization ticket.
 - **Web** — Run `make buildWeb` with the Regun release config and serve `build/web`. Chromium smoke tests exercised loadout, Solo combat, Escape pause, Settings, results, and Save & leave followed by Continue. Chromium reported hardware WebGL through the Apple GPU. The browser build uses JavaScript/CanvasKit while the current secure storage dependency still blocks a clean Wasm build.
 - **Mobile browsers** — Emulated iPhone, iPad with a desktop user agent, and Android used the Telling-generated destinations without loading Flutter or SoLoud. Telling currently returns beta destinations for both platforms.
 - **Regression checks** — Analyzer clean. The full suite reported 1,018 passes, five skips, and one weapon catalogue failure reproduced on the original commit. Desktop aim, the 60/120 cap, touch controls, and browser save/resume were checked separately. Physical mobile play, a connected controller, sustained 120 FPS, and live Online remain review gates.

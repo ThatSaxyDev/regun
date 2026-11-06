@@ -18,6 +18,7 @@ import 'package:regun/services/account/account_storage.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/widgets/account_flow.dart';
+import 'package:regun/widgets/account_settings.dart';
 import 'package:regun/views/settings_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -47,6 +48,59 @@ AccountSession session(String id) => AccountSession(
   refreshToken: 'refresh',
   expiresAt: 4102444800,
 );
+
+class _DeletionAccount extends AccountController {
+  _DeletionAccount({required this.fresh}) {
+    this.session = _reviewSession;
+    account = {'username': 'rook', 'email': 'player@example.com'};
+  }
+
+  static final _reviewSession = session(owner);
+  bool fresh;
+  int requests = 0;
+  int deletes = 0;
+
+  @override
+  Future<void> deleteAccount({String? expectedAccount}) async {
+    expect(expectedAccount, owner);
+    deletes++;
+    if (!fresh) {
+      throw const AccountError(
+        'Verify a fresh code before deleting your account',
+        status: 400,
+      );
+    }
+    this.session = null;
+    account = null;
+    notifyListeners();
+  }
+
+  @override
+  Future<Map<String, dynamic>> requestCode(String email) async {
+    expect(email, 'player@example.com');
+    requests++;
+    if (requests == 1) {
+      throw const AccountError(
+        'Please wait before requesting another code',
+        status: 429,
+      );
+    }
+    return {'requestId': owner, 'resendAfter': 60};
+  }
+
+  @override
+  Future<void> verifyCode(
+    String requestId,
+    String code, {
+    String? expectedAccount,
+  }) async {
+    expect(requestId, owner);
+    expect(expectedAccount, owner);
+    expect(code, '123456');
+    fresh = true;
+  }
+}
+
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +111,54 @@ void main() {
     }
   });
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  for (final fresh in [true, false]) {
+    testWidgets('Delete account with fresh verification: $fresh', (
+      tester,
+    ) async {
+      final account = _DeletionAccount(fresh: fresh);
+      addTearDown(account.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+          child: MaterialApp(
+            home: Scaffold(
+              body: AccountSettings(account: account, manage: true),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Delete account'));
+      await tester.pumpAndSettle();
+      expect(account.deletes, 0);
+      await tester.tap(find.byKey(const Key('run-action-confirm')));
+      await tester.pumpAndSettle();
+      expect(account.deletes, 1);
+      expect(account.requests, 0);
+      expect(find.text('SAVE YOUR PROGRESS'), findsNothing);
+
+      if (!fresh) {
+        expect(find.text('VERIFY ACCOUNT DELETION'), findsOneWidget);
+        expect(tester.widget<TextField>(find.byType(TextField)).enabled, false);
+        await tester.tap(find.text('SEND CODE'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Please wait before requesting another code'),
+          findsOneWidget,
+        );
+        expect(account.deletes, 1);
+        await tester.tap(find.text('SEND CODE'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), '123456');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('VERIFY AND DELETE'));
+        await tester.pumpAndSettle();
+        expect(account.deletes, 2);
+      }
+
+      expect(account.verified, false);
+      expect(find.text('CONNECT EMAIL'), findsOneWidget);
+    });
+  }
   test('local boot and saves do not perform account verification; dirty owner snapshot survives restart', () async {
     final dir = await Directory.systemTemp.createTemp('regun-account-test');
     addTearDown(() => dir.delete(recursive: true));

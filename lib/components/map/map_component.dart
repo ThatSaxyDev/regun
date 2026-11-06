@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:xml/xml.dart';
 import 'package:regun/data/loadout.dart';
@@ -17,10 +18,27 @@ class MapComponent extends PositionComponent with HasGameReference<RegunGame> {
   }
   late final ArenaBounds bounds;
   final Map<String, List<Rect>> _obstacles;
+  static Future<String>? _webLayout;
+  static const _layoutAsset = 'assets/tiles/maptile.tmx';
+
+  static Future<String> preloadWebLayout() => _webLayout ??= _readWebLayout();
+
+  static Future<String> _readWebLayout() async {
+    try {
+      return await rootBundle
+          .loadString(_layoutAsset, cache: false)
+          .timeout(const Duration(seconds: 25));
+    } catch (_) {
+      _webLayout = null;
+      rethrow;
+    }
+  }
+
   static Future<MapComponent> loadMap() async {
-    final root = XmlDocument.parse(
-      await rootBundle.loadString('assets/tiles/maptile.tmx'),
-    ).rootElement;
+    final xml = await (kIsWeb
+        ? preloadWebLayout()
+        : rootBundle.loadString(_layoutAsset, cache: false));
+    final root = XmlDocument.parse(xml).rootElement;
     double value(XmlElement e, String key) =>
         double.parse(e.getAttribute(key)!);
     final dimensions = Vector2(

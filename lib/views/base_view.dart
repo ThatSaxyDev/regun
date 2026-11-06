@@ -97,6 +97,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   late bool _trainingIntro;
   late final bool _guidedTraining;
   bool _skippingTraining = false;
+  bool _gameLoadFailed = false;
   bool _changingWeapon = false;
 
   @override
@@ -222,11 +223,35 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     }
   }
 
+  Widget _gameLoadError(BuildContext context, Object error) {
+    if (!_gameLoadFailed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _gameLoadFailed) return;
+        debugPrint('Regun could not load the arena: $error');
+        setState(() => _gameLoadFailed = true);
+      });
+    }
+    return SafeArea(
+      minimum: const EdgeInsets.all(16),
+      child: Center(
+        child: GameNotice(
+          eyebrow: 'RE-GUN',
+          title: 'ARENA UNAVAILABLE',
+          message: 'The arena could not load. Go back and try again.',
+          actions: ClickButton(
+            text: 'Go back',
+            onTap: () => Navigator.of(context).pop(),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _skipTrainingIntro() async {
     if (_skippingTraining) return;
     setState(() => _skippingTraining = true);
     await _myGame.completeTraining();
-    await _myGame.leaveRun();
+    if (_myGame.isMounted) await _myGame.leaveRun();
     if (!mounted) return;
     final completion = Completer<void>();
     try {
@@ -270,13 +295,18 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 child: Stack(
                   children: [
                     if (_myGame.desktopInput == null)
-                      RiverpodAwareGameWidget(key: gameWidgetKey, game: _myGame)
+                      RiverpodAwareGameWidget(
+                        key: gameWidgetKey,
+                        game: _myGame,
+                        errorBuilder: _gameLoadError,
+                      )
                     else
                       Consumer(
                         child: RiverpodAwareGameWidget(
                           key: gameWidgetKey,
                           game: _myGame,
                           autofocus: false,
+                          errorBuilder: _gameLoadError,
                         ),
                         builder: (context, ref, child) => DesktopCombatSurface(
                           game: _myGame,
@@ -293,6 +323,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                       ),
                     Consumer(
                       builder: (context, ref, _) {
+                        if (_gameLoadFailed) return const SizedBox.shrink();
                         final state = ref.watch(gameNotifierProvider);
                         // Results use Positioned.fill after the HUD is removed.
                         // Keep the overlay full-screen even when no save warning exists.
@@ -365,8 +396,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                   child: TrainingNotice(
                                     ready:
                                         state.gameplayState ==
-                                            GameplayState.paused &&
-                                        !_skippingTraining,
+                                        GameplayState.paused,
+                                    skipping: _skippingTraining,
                                     onStart: () {
                                       setState(() => _trainingIntro = false);
                                       _myGame.gameNotifier.playGame();

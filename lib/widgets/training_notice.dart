@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/widgets/click_button.dart';
@@ -10,9 +11,10 @@ class TrainingNotice extends StatelessWidget {
     required this.onStart,
     required this.onSkip,
     this.ready = true,
+    this.skipping = false,
   });
   final VoidCallback onStart, onSkip;
-  final bool ready;
+  final bool ready, skipping;
   static const _brass = Color(0xffE1BA78);
   @override
   Widget build(BuildContext context) => GameNotice(
@@ -21,19 +23,30 @@ class TrainingNotice extends StatelessWidget {
     title: 'TRAINING MODE',
     leading: const CustomPaint(size: Size(16, 16), painter: _TrainingMark()),
     message: 'Learn to move, shoot, dash and reload. Skip straight to a real run whenever you’re ready.',
+    detail: kIsWeb && !ready && !skipping
+        ? LinearProgressIndicator(
+            semanticsLabel: 'Preparing training arena',
+            value: MediaQuery.disableAnimationsOf(context) ? .4 : null,
+            minHeight: 4,
+            color: _brass,
+            backgroundColor: const Color(0xff4a4037),
+          )
+        : null,
     actions: GameNoticeActions(
       primaryFirstWhenStacked: true,
       primary: ClickButton(
-        text: 'Start training',
+        text: ready
+            ? 'Start training'
+            : (kIsWeb ? 'Preparing arena…' : 'Loading arena…'),
         glyph: PixelGlyph.play,
         height: 48,
-        onTap: ready ? onStart : null,
+        onTap: ready && !skipping ? onStart : null,
       ),
       secondary: ClickButton(
-        text: 'Skip training',
+        text: skipping ? 'Opening loadout…' : 'Skip training',
         height: 48,
         buttonColor: const Color(0xffA79AA9),
-        onTap: ready ? onSkip : null,
+        onTap: skipping ? null : onSkip,
       ),
     ),
   );

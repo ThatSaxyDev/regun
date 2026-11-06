@@ -12,13 +12,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/data/enemies.dart';
 import 'package:regun/data/loadout.dart';
+import 'package:regun/desktop/desktop_bindings.dart';
 import 'package:regun/game.dart';
 import 'package:regun/models/player_profile.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/services/local_preferences.dart';
+import 'package:regun/services/run_store.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:regun/views/loadout_view.dart';
+import 'package:regun/widgets/game_presentation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _SilentAudio extends SoloudPlay {
@@ -73,6 +76,14 @@ Future<void> _crowd(RegunGame game, {bool left = false}) async {
 }
 
 Future<void> _fire(RegunGame game, Vector2 direction, int frames) async {
+  if (game.desktopInput case final input?) {
+    final point = game.camera.localToGlobal(game.myPlayer.position + direction);
+    input.pointer = Offset(point.x, point.y);
+    input.fire = true;
+    await _step(game, frames);
+    input.cancelFire();
+    return;
+  }
   game.weaponJoystick.delta.setFrom(direction);
   await _step(game, frames);
   game.weaponJoystick.delta.setZero();
@@ -80,7 +91,20 @@ Future<void> _fire(RegunGame game, Vector2 direction, int frames) async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  registerStoreCaptures();
+}
+
+void registerStoreCaptures({bool nativeMac = false}) {
+  late Directory captureDirectory;
   setUpAll(() async {
+    if (nativeMac) {
+      expect(Platform.isMacOS, isTrue);
+      captureDirectory = await Directory.systemTemp.createTemp(
+        'regun-store-macos-',
+      );
+      // ignore: avoid_print
+      print('REGUN_MACOS_CAPTURES=${captureDirectory.path}');
+    }
     // Keep capture profiles isolated from device preferences.
     // ignore: invalid_use_of_visible_for_testing_member
     SharedPreferences.setMockInitialValues({});
@@ -102,7 +126,8 @@ void main() {
     await orbitron.load();
   });
 
-  for (final target in _sizes.entries) {
+  final sizes = nativeMac ? {'macos': (const Size(1440, 900), 2.0)} : _sizes;
+  for (final target in sizes.entries) {
     testWidgets('capture landscape ${target.key}', (tester) async {
       final (size, ratio) = target.value;
       tester.view.physicalSize = size;
@@ -118,6 +143,12 @@ void main() {
             child: MaterialApp(
               debugShowCheckedModeBanner: false,
               theme: ThemeData.dark(),
+              builder: nativeMac
+                  ? (context, child) => GamePresentation(
+                      scale: DesktopBindings.textBaseline,
+                      child: child!,
+                    )
+                  : null,
               home: RepaintBoundary(key: _frame, child: child),
             ),
           ),
@@ -138,8 +169,10 @@ void main() {
         );
         final image = await boundary.toImage(pixelRatio: ratio);
         final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-        final directory = Directory('store-artboards/sources/${target.key}')
-          ..createSync(recursive: true);
+        final directory = nativeMac
+            ? captureDirectory
+            : (Directory('store-artboards/sources/${target.key}')
+                ..createSync(recursive: true));
         await File('${directory.path}/$name.png')
             .writeAsBytes(bytes!.buffer.asUint8List());
         image.dispose();
@@ -155,7 +188,19 @@ void main() {
         await LocalPreferences.shared.saveProfile();
 
         Future<RegunGame> start(Loadout loadout) async {
-          await mount(BaseView(loadout: loadout, reviewControlledSpawns: true));
+          await mount(
+            BaseView(
+              loadout: loadout,
+              reviewControlledSpawns: true,
+              runStore: nativeMac
+                  ? RunStore(
+                      directory: Directory(
+                        '${captureDirectory.path}/checkpoints',
+                      ),
+                    )
+                  : null,
+            ),
+          );
           final game =
               tester
                       .widget<RiverpodAwareGameWidget>(
@@ -163,6 +208,7 @@ void main() {
                       )
                       .game!
                   as RegunGame;
+          if (nativeMac) expect(game.usingDesktopInput, isTrue);
           await game.loaded;
           await tester.pump();
           await game.ready();

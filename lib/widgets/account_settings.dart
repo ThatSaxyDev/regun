@@ -175,20 +175,42 @@ class _AccountSettingsState extends State<AccountSettings> {
                     onPressed: busy
                         ? null
                         : () => run(() async {
+                            final owner = account.session?.accountId;
                             final accepted = await confirmRunAction(
                               context,
                               title: 'DELETE ACCOUNT?',
                               message: 'Your cloud profile and progress will be deleted. This cannot be undone.',
                               action: 'Delete account',
+                              eyebrow: 'RE-GUN / ACCOUNT',
                               destructive: true,
                             );
-                            if (!accepted || !context.mounted) return;
-                            final verified = await showAccountFlow(
-                              context,
-                              account,
-                              reverify: true,
-                            );
-                            if (verified) await account.deleteAccount();
+                            if (!accepted ||
+                                !context.mounted ||
+                                owner == null) {
+                              return;
+                            }
+                            try {
+                              await account.deleteAccount(
+                                expectedAccount: owner,
+                              );
+                            } on AccountError catch (e) {
+                              final needsCode =
+                                  e.status == 401 ||
+                                  e.message ==
+                                      'Verify a fresh code before deleting your account';
+                              if (!needsCode ||
+                                  account.session?.accountId != owner ||
+                                  account.email.isEmpty) {
+                                rethrow;
+                              }
+                              if (context.mounted) {
+                                await showAccountFlow(
+                                  context,
+                                  account,
+                                  deleting: true,
+                                );
+                              }
+                            }
                           }),
                     child: const Text(
                       'Delete account',

@@ -1,5 +1,8 @@
 # Regun Credits — research and delivery plan
 
+**Historical proposal.** The current direction is documented in the [Scrap purchase plan](SCRAP_PURCHASE_PLAN.md).
+
+
 26 October 2026. **Planning only; implementation, store setup, deployment and sales are not authorized by this document.**
 
 The creator selected **cosmetics and optional Solo continues** as the initial Credits uses. Scrap stays earned-only; combat unlocks, mastery, XP, cores and power are not sold. This plan covers the game (`regun`), account gateway/database (`regun-server`) and operator app (`regun-admin`). Recommendations below are proposals, not accepted prices, shipped capabilities or proof of commercial viability.
