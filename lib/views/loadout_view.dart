@@ -1,3 +1,5 @@
+import 'package:regun/services/apple_scrap_store.dart';
+import 'package:regun/widgets/scrap_store_dialog.dart';
 import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/widgets/wallet_bar.dart' show walletAmount;
@@ -67,6 +69,7 @@ class _LoadoutViewState extends State<LoadoutView> {
     LocalPreferences.shared.addListener(_armoryChanged);
     if (!widget.training) {
       unawaited(_armory.refresh());
+      unawaited(AccountController.shared.sync());
       if (profile.weaponUnlocked(profile.preferredWeapon)) {
         weapon = profile.preferredWeapon;
       }
@@ -632,6 +635,17 @@ class _LoadoutViewState extends State<LoadoutView> {
           () => _unlockIssue =
               '${formatNumber(price - profile.scrap)} more Scrap needed.',
         );
+        if (AppleScrapStore.supported) {
+          await showScrapStore(context);
+          if (mounted && owner == LocalPreferences.shared.profileOwner) {
+            setState(() {
+              final balance = LocalPreferences.shared.profile.scrap;
+              _unlockIssue = balance >= price
+                  ? 'Scrap available. Confirm the weapon unlock.'
+                  : '${formatNumber(price - balance)} more Scrap needed.';
+            });
+          }
+        }
         return;
       }
       final accepted = await confirmRunAction(

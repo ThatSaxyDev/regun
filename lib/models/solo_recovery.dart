@@ -1,4 +1,4 @@
-/// Earned Solo recovery only. Eligibility reports share offline progression's
+/// Solo recovery paid from the account Scrap wallet. Eligibility reports share offline progression's
 /// device trust boundary; this is not authority for cash or ranked play.
 class SoloRecovery {
   SoloRecovery({required this.owner, required this.startingScrap});
@@ -11,11 +11,7 @@ class SoloRecovery {
   String message = '';
   bool get pending => ['offered', 'requested', 'prepared'].contains(stage);
   bool eligible(int seconds, bool training) =>
-      !training &&
-      owner != 'guest' &&
-      startingScrap >= price &&
-      seconds >= minimumSeconds &&
-      !continued;
+      !training && owner != 'guest' && seconds >= minimumSeconds && !continued;
   Map<String, dynamic> toJson() => {
     'owner': owner,
     'startingScrap': startingScrap,

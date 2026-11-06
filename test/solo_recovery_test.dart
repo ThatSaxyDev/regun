@@ -60,8 +60,8 @@ Future<void> idle(RegunGame game) async {
 }
 
 void main() {
-  test('500 banked before starting and five active minutes; no Training, guests or second revive', () {
-    final r = SoloRecovery(owner: owner, startingScrap: 500);
+  test('five active minutes; low starting balance can offer, Training and guests cannot', () {
+    final r = SoloRecovery(owner: owner, startingScrap: 0);
     expect(r.eligible(299, false), isFalse);
     expect(r.eligible(300, false), isTrue);
     expect(r.eligible(300, true), isFalse);
@@ -69,7 +69,7 @@ void main() {
     expect(r.eligible(999, false), isFalse);
     expect(
       SoloRecovery(owner: owner, startingScrap: 499).eligible(500, false),
-      isFalse,
+      isTrue,
     );
     expect(
       SoloRecovery(owner: 'guest', startingScrap: 500).eligible(500, false),
@@ -327,10 +327,10 @@ void main() {
                 .load();
           }
         });
-        for (final stage in ['offered', 'requested', 'prepared']) {
+        for (final stage in ['offered', 'shortfall', 'requested', 'prepared']) {
           final r = SoloRecovery(owner: owner, startingScrap: 1000)
-            ..stage = stage
-            ..available = stage == 'offered'
+            ..stage = stage == 'shortfall' ? 'offered' : stage
+            ..available = stage == 'offered' || stage == 'shortfall'
             ..epoch = '0';
           const key = Key('revive-render');
           await tester.pumpWidget(
@@ -347,7 +347,7 @@ void main() {
                       causeOfDeath: 'Mummy strike',
                     ),
                     recovery: r,
-                    banked: 1000,
+                    banked: stage == 'shortfall' ? 200 : 1000,
                     onBuy: () {},
                     onRetry: () {},
                     onEnd: () {},
@@ -360,6 +360,10 @@ void main() {
           await tester.pump();
           expect(tester.takeException(), isNull);
           expect(find.text('END RUN'), findsOneWidget);
+          if (stage == 'shortfall') {
+            expect(find.text('NEED 300 SCRAP'), findsOneWidget);
+            expect(find.text('RETRY CONNECTION'), findsNothing);
+          }
           expect(find.textContaining('records'), findsNothing);
           expect(find.textContaining('counts normally'), findsNothing);
           if (size.width >= 667) {

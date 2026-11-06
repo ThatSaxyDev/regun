@@ -386,4 +386,57 @@ void main() {
     expect(preferences.profile.owned.contains('moss'), isFalse);
     controller.dispose();
   });
+  test(
+    'remote wallet and weapon ownership sync without a gameplay conflict',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('regun-cross-device');
+      addTearDown(() => dir.delete(recursive: true));
+      final store = AccountLocalStore(directory: dir);
+      final initial = PlayerProfile(scrap: 100).toJson();
+      await store.write(owner, {
+        'owner': owner,
+        'profile': initial,
+        'revision': '1',
+        'epoch': '0',
+        'pending': false,
+        'operation': 'initial',
+      });
+      final preferences = LocalPreferences();
+      await preferences.activateProfile(owner);
+      final controller = AccountController(
+        api: AccountApi(
+          endpoint: Uri.parse('https://account.example'),
+          client: () => MockClient((request) async {
+            expect(request.url.path, '/account');
+            return http.Response(
+              jsonEncode({
+                'accountId': owner,
+                'username': 'rook',
+                'cloud': {
+                  'revision': '3',
+                  'epoch': '0',
+                  'payload': {
+                    ...initial,
+                    'scrap': 600,
+                    'ownedWeapons': ['beltRepeater'],
+                  },
+                },
+              }),
+              200,
+            );
+          }),
+        ),
+        secrets: Secrets(),
+        store: store,
+        preferences: preferences,
+      );
+      addTearDown(controller.dispose);
+      await controller.initialize();
+      await controller.sync();
+      expect(controller.conflict, isFalse);
+      expect(preferences.profile.scrap, 600);
+      expect(preferences.profile.ownedWeapons, contains('beltRepeater'));
+      expect((await store.read(owner))?['revision'], '3');
+    },
+  );
 }

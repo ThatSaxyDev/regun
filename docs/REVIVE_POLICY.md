@@ -1,5 +1,9 @@
 # Earned Solo revive — implementation and rollout
 
+**Scrap Store implementation update.** The local client and server check
+funds at debit. The starting balance remains in checkpoint and request
+formats for compatibility. Historical rollout notes below predate this change.
+
 24 October 2026. Implemented in app, account gateway, database module and admin.
 **The server policy defaults disabled.** This source change does not deploy or
 publish a new app. Billing, ads, charge packs and free first-use allowances remain
@@ -9,8 +13,7 @@ outside this pass.
 
 - At most one revive per normal Solo run, after **300 active seconds**. No Training,
   co-op or Versus offer. Existing legacy checkpoints acquire no new allowance.
-- **500 Scrap**, with at least500 banked before starting and500 still available at
-  server debit. Unclaimed current-run earnings cannot fund it. Requires email
+- **500 Scrap** confirmed at server debit. Unclaimed current-run earnings cannot fund it. Requires email
   sign-in and a successful online account-server confirmation. Ordinary offline
   play and use of previously owned cosmetics remain available.
 - Explicit Revive or End run. No countdown, automatic purchase, personalized price

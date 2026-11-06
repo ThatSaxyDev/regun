@@ -1,3 +1,5 @@
+import 'package:regun/services/apple_scrap_store.dart';
+import 'package:regun/widgets/scrap_store_dialog.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/widgets/account_flow.dart';
@@ -162,6 +164,14 @@ Future<void> showWallet(
                   text: 'Retry save',
                   onTap: () async {
                     await source.saveProfile();
+                  },
+                )
+              : !readOnly && AppleScrapStore.supported
+              ? ClickButton(
+                  text: 'Buy Scrap',
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    if (pageContext.mounted) await showScrapStore(pageContext);
                   },
                 )
               : !readOnly && !source.canSpend

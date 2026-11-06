@@ -2,18 +2,40 @@
 
 6 November 2026 · Planning only. This extends the [purchase plan](SCRAP_PURCHASE_PLAN.md) and [verification runbook](SCRAP_PURCHASE_VERIFICATION.md). It reflects desktop controls in `5af0c5c`, the committed startup and Mac presentation work in `7fc9a2f`, and static web build 39 in `884fbfa`. The desktop implementation and its open device checks are documented in the [desktop plan](REGUN_DESKTOP_PLAN.md).
 
+The [economy-first decision](SCRAP_PURCHASE_PLAN.md#economy-first--6-november-2026) defines the shared balance, Home checkout and weapon eligibility. The six pack sizes and saved Apple prices are agreed.
+
 ## Surface changes
 
 | Surface | Planned change |
 |---|---|
 | Home | Keep the single Scrap chip in the existing upper-right wallet slot on desktop landscape and the existing wallet row on compact layouts. Open wallet details from it. Use the existing pixel styling and give the chip a clear hover, keyboard-focus and controller-focus state. Remove the Credits cell. |
-| Wallet details | Use a capped, scrollable dialog with a pinned action area. Show confirmed Scrap, any run earnings awaiting sync separately, and a **Buy Scrap** action when sales are available. Show an owner-scoped pending purchase and **Check status** when applicable. Preserve **Sign in** and **Retry save** for their existing purposes. Keep one total after the online migration decision and label legacy amounts separately during any transition. |
-| Buy Scrap | Start with one pack. Show exact quantity and localized total before opening StoreKit, Play Billing or Bachs. Use an explicit purchase button and a Cancel/Back action. After email sign-in return to the pack screen and require a fresh confirmation. Show missing price or store unavailable states without enabling purchase. |
-| Collection and Loadout | Keep the compact Scrap chip beside the header and preserve the desktop roster/armory/kit layout. Existing item confirms still quote Scrap. On an insufficient-funds result, optionally link to the wallet from the browsing flow. After purchase, return to the same tab and selection and require a fresh item confirmation with the latest quote. |
-| Pause and Results | Keep the balance and this-run earnings readable in the existing desktop panels. Make the wallet view read-only from these surfaces. No purchase actions in Training, Online rooms, the active run, the upgrade picker, or the Solo recovery offer. |
+| Wallet details | Use a capped, scrollable dialog with a pinned action area. Show confirmed Scrap, any run earnings awaiting sync separately, and a **Buy Scrap** action when sales are available. Show an owner-scoped pending purchase and **Check status** when applicable. Preserve **Sign in** and **Retry save** for their existing purposes. Keep the existing separately labeled Online observation. |
+| Buy Scrap | Show the six agreed packs with exact quantities and localized totals before opening StoreKit, Play Billing or Bachs. Use an explicit purchase button and a Cancel/Back action. After email sign-in return to the pack screen and require a fresh confirmation. Show missing price or store unavailable states without enabling purchase. |
+| Collection and Loadout | Keep the compact Scrap chip beside the header and preserve the desktop roster/armory/kit layout. Existing item confirms still quote Scrap. When the weapon milestone is met and the balance is short, show the exact shortfall and **Buy Scrap**. After purchase, return to the same tab and selection and require a fresh item confirmation with the latest quote. |
+| Pause and Results | Keep the balance and this-run earnings readable in the existing desktop panels. Make the wallet view read-only from these surfaces. No purchase actions in Training, Online rooms, the active run, the upgrade picker, or settled Results. |
+| Eligible Solo recovery | Show **Revive · 500 Scrap** when affordable or **Buy Scrap** with the shortfall. Preserve the downed checkpoint during checkout. Return to the same offer after payment and ask for a separate revive confirmation. Keep **End run** available before the player confirms the revive spend. |
 | About | Keep attribution. Remove the Credits currency label, icon, placeholder copy and wallet accessibility labels across desktop and touch layouts. |
 
 Use the existing [WalletBar](../lib/widgets/wallet_bar.dart), [MenuHeader](../lib/widgets/menu_layout.dart), [Home layout](../lib/widgets/home_menu.dart) and [account dialog](../lib/widgets/account_flow.dart) as anchors. Trace both compact and desktop branches in [Loadout](../lib/views/loadout_view.dart) and [Pause](../lib/views/base_view.dart), the shared header in [Collection](../lib/views/collection_view.dart), and the direct chip in [Results](../lib/widgets/run_results_panel.dart). The wallet needs an explicit browsing versus read-only presentation context because it is shared with Pause and Results. Keep the current layout placements and build a common purchase-state view over platform-specific checkout adapters.
+
+## Shared store layout and platform states
+
+- Use one pack order from 500 to 15,000. Every tile shows its quantity and
+  localized cash price. Keep the wallet balance and close action pinned,
+  scroll the catalog independently, and show one explicit checkout action.
+  Preserve the originating weapon or revive quote and show its shortfall
+  separately from the pack price.
+- **iPhone:** Use the compact landscape layout, large touch targets, SafeArea
+  and visible Back. Review a small iPhone, large text, interrupted StoreKit
+  sheet and returning from the email sign-in keyboard.
+- **Mac and desktop web:** Cap content width, use a responsive pack grid and
+  visible mouse, keyboard and controller focus. Test minimum window, zoom,
+  resize and fullscreen. Match Home, Armory and revive state labels to iPhone.
+- **Web and Android before checkout:** Wallet and owned weapon screens remain
+  fully usable. Show a short checkout-unavailable state where the player
+  expects a top-up. Keep existing balance spending and account sync available.
+  A weapon already owned through the same account shows **Owned** and can
+  be equipped on the supported client regardless of purchase platform.
 
 ## What the player sees during checkout
 
@@ -27,6 +49,26 @@ Use the existing [WalletBar](../lib/widgets/wallet_bar.dart), [MenuHeader](../li
 | Account changed | Close or invalidate the old account’s panel and clear its display. An order that settles later belongs to the original account. |
 
 Keep status announcements accessible, avoid repeated screen-reader announcements during polling and respect Reduced Motion. A dialog can close while reconciliation continues. Fetch products on demand so the menu and earned progression remain usable when a provider is slow.
+
+## Return and recovery by entry point
+
+- **Home wallet.** Confirmed top-up updates the wallet and shows how much was
+  added. The player can leave immediately. They can also leave while confirmation
+  is pending and check status after signing back in.
+- **Armory.** Remember the weapon across sign-in, checkout and browser return.
+  Refresh its boss gate, ownership, price and balance. Show a fresh unlock
+  confirmation if eligible and affordable. If still short, show the remaining
+  amount and allow another explicit top-up. If the offer changed, show why.
+- **Solo recovery.** Persist the owner, run ID and downed checkpoint before
+  checkout. Cancel returns to the offer. Pending payment can be checked later.
+  Ending the run closes the offer and settles once. Late payment credits the
+  wallet. If a confirmed revive debit has an uncertain response, recover the
+  existing run receipt before another debit or settlement. Allow return to
+  Home with the recovery saved if connectivity prevents an immediate answer.
+- **Every entry point.** Canceling checkout returns to the originating screen.
+  A provider timeout leaves an owner-scoped pending order with **Check status**.
+  When a pack is insufficient, show the updated shortfall. Account switching
+  clears the old account's UI and preserves ownership of its order.
 
 ## Native macOS
 
@@ -48,4 +90,4 @@ Keep status announcements accessible, avoid repeated screen-reader announcements
 - Extend desktop and web-landscape tests for modal input isolation, held confirms, fullscreen return and wallet recovery after viewport changes. Verify no purchase activation from combat input or from a focused text field submitting an email code.
 - Capture native Mac and desktop browser screenshots for Home, pack offer, pending and granted states. Run one end-to-end pass with mouse/trackpad and keyboard, one with a controller, and a touch regression on iOS and Android. Capture native purchase sheets separately with tester details redacted. Widget fixtures prove layout and state transitions. Real payment sandbox evidence follows the [verification runbook](SCRAP_PURCHASE_VERIFICATION.md).
 
-The UI direction is ready to estimate and build once implementation is requested. Before enabling sales, approve pack size and pricing, spend scope, historical Online Scrap treatment and the reset/refund rules. Platform and merchant acceptance still need evidence.
+The UI direction is ready to estimate and build once implementation is requested. Before enabling sales, verify the localized store prices and settle paid reset/refund rules. Platform and merchant acceptance still need evidence.

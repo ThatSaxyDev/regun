@@ -361,11 +361,10 @@ class AccountController extends ChangeNotifier with WidgetsBindingObserver {
   );
 
   bool _sameGameplay(Map a, Map b) {
-    Map normalized(Map raw) =>
-        PlayerProfile.fromJson(Map<String, dynamic>.from(raw)).toJson()
-          ..remove('weaponAccessVersion')
-          ..remove('ownedWeapons')
-          ..remove('legacyWeaponClaims');
+    Map normalized(Map raw) => _withWallet(raw, b).toJson()
+      ..remove('weaponAccessVersion')
+      ..remove('ownedWeapons')
+      ..remove('legacyWeaponClaims');
     return jsonEncode(normalized(a)) == jsonEncode(normalized(b));
   }
 

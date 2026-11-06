@@ -25,11 +25,13 @@ class SoloRevivePanel extends StatelessWidget {
     required this.onRetry,
     required this.onEnd,
     required this.onMenu,
+    this.onTopUp,
   });
   final GameState state;
   final SoloRecovery recovery;
   final int banked;
   final VoidCallback onBuy, onRetry, onEnd, onMenu;
+  final VoidCallback? onTopUp;
   bool get uncertain =>
       recovery.stage == 'requested' || recovery.stage == 'prepared';
   bool get paid => recovery.stage == 'prepared';
@@ -38,6 +40,12 @@ class SoloRevivePanel extends StatelessWidget {
       banked >= SoloRecovery.price &&
       !recovery.busy &&
       !uncertain;
+  bool get needsScrap =>
+      recovery.available &&
+      banked < SoloRecovery.price &&
+      !recovery.busy &&
+      !uncertain;
+
   Text _text(
     String text, {
     double size = 12,
@@ -210,12 +218,18 @@ class SoloRevivePanel extends StatelessWidget {
                             ? 'CHECKING…'
                             : canBuy
                             ? 'REVIVE · ${formatNumber(SoloRecovery.price)}'
+                            : needsScrap
+                            ? onTopUp != null
+                                  ? 'BUY SCRAP · ${formatNumber(SoloRecovery.price - banked)} SHORT'
+                                  : 'NEED ${formatNumber(SoloRecovery.price - banked)} SCRAP'
                             : paid
                             ? 'RESUME'
                             : 'RETRY CONNECTION',
                         buttonColor: _brass,
                         onTap: recovery.busy
                             ? null
+                            : needsScrap
+                            ? onTopUp
                             : canBuy
                             ? onBuy
                             : onRetry,
