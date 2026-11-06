@@ -96,7 +96,7 @@ void drawArenaDistricts(
     return;
   }
 
-  if (marks.length != 2 || legacy) return;
+  if (marks.length != 2 || (legacy && arena != ArenaType.breach)) return;
   switch (arena) {
     case ArenaType.floodworks:
       final bed = marks.first;
@@ -107,12 +107,11 @@ void drawArenaDistricts(
       // The bypass is the intact dry stone lane south of the channel.
       // It remains continuous with the arena floor.
       break;
-    case ArenaType.breach:
-      final road = marks.first;
-      _pavers(canvas, road, visible, arena);
-      break;
     case ArenaType.relayGraveyard:
       _relayTrench(canvas, marks.first, visible);
+      break;
+    case ArenaType.breach:
+      _breachRoad(canvas, marks.first, visible);
       break;
     case ArenaType.foundry:
       break;
@@ -220,16 +219,83 @@ void _relayTrench(Canvas canvas, Rect trench, Rect visible) {
   canvas.restore();
 }
 
+void _breachRoad(Canvas canvas, Rect road, Rect visible) {
+  final bounds = road.intersect(visible);
+  if (bounds.isEmpty) return;
+
+  // Break up the silhouette where the old road has crumbled into the floor.
+  const outline = [
+    Offset(.20, 0),
+    Offset(.71, 0),
+    Offset(.71, .025),
+    Offset(.89, .025),
+    Offset(.89, .08),
+    Offset(.97, .08),
+    Offset(.97, .24),
+    Offset(.89, .24),
+    Offset(.89, .37),
+    Offset(1, .37),
+    Offset(1, .55),
+    Offset(.92, .55),
+    Offset(.92, .79),
+    Offset(.84, .79),
+    Offset(.84, .95),
+    Offset(.68, .95),
+    Offset(.68, 1),
+    Offset(.27, 1),
+    Offset(.27, .975),
+    Offset(.13, .975),
+    Offset(.13, .87),
+    Offset(.04, .87),
+    Offset(.04, .70),
+    Offset(.14, .70),
+    Offset(.14, .55),
+    Offset(0, .55),
+    Offset(0, .38),
+    Offset(.09, .38),
+    Offset(.09, .17),
+    Offset(.17, .17),
+    Offset(.17, .06),
+    Offset(.20, .06),
+  ];
+  final shape = Path()
+    ..addPolygon([
+      for (final point in outline)
+        Offset(
+          road.left + road.width * point.dx,
+          road.top + road.height * point.dy,
+        ),
+    ], true);
+
+  canvas.save();
+  canvas.clipRect(bounds);
+  canvas.clipPath(shape, doAntiAlias: false);
+  canvas.saveLayer(
+    bounds,
+    Paint()
+      ..color = const Color(0xbfFFFFFF)
+      ..colorFilter = const ColorFilter.mode(
+        Color(0xfffff5eb),
+        BlendMode.modulate,
+      ),
+  );
+  _pavers(canvas, road, bounds, ArenaType.breach);
+  canvas.restore();
+  canvas.restore();
+}
+
 void _pavers(Canvas canvas, Rect rect, Rect visible, ArenaType arena) {
   if (!visible.overlaps(rect)) return;
   final tile = RegunArt.shared.image('arenas/${arena.name}_floor');
   final material = Paint()
     ..filterQuality = FilterQuality.none
-    ..colorFilter = const ColorFilter.mode(
-      Color(0xff858371),
-      BlendMode.modulate,
-    );
-  final joint = Paint()..color = const Color(0x8c11160f);
+    ..colorFilter = arena == ArenaType.breach
+        ? MapComponent.breachGrade
+        : const ColorFilter.mode(Color(0xff858371), BlendMode.modulate);
+  final joint = Paint()
+    ..color = arena == ArenaType.breach
+        ? const Color(0x48202a35)
+        : const Color(0x8c11160f);
   canvas.save();
   canvas.clipRect(rect);
   for (var row = 0, y = rect.top; y < rect.bottom; row++, y += 44) {

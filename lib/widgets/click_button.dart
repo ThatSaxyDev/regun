@@ -20,6 +20,7 @@ class ClickButton extends ConsumerStatefulWidget {
     this.glyph,
     this.iconOnly = false,
     this.autofocus = false,
+    this.content,
   });
 
   final VoidCallback? onTap;
@@ -33,6 +34,7 @@ class ClickButton extends ConsumerStatefulWidget {
   final PixelGlyph? glyph;
   final bool iconOnly;
   final bool autofocus;
+  final Widget? content;
 
   @override
   ConsumerState<ClickButton> createState() => _ClickButtonState();
@@ -55,7 +57,7 @@ class _ClickButtonState extends ConsumerState<ClickButton> {
       label: widget.text,
       child: SizedBox(
         width: widget.width,
-        height: widget.height ?? 52,
+        height: widget.height ?? (widget.content == null ? 52 : null),
         child: InkWell(
           autofocus: widget.autofocus,
           onHover: desktopInputAvailable
@@ -83,42 +85,53 @@ class _ClickButtonState extends ConsumerState<ClickButton> {
               focused: _focused,
               hovered: _hovered && enabled,
             ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                14,
-                _pressed ? 5 : 2,
-                14,
-                _pressed ? 2 : 5,
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.glyph != null) ...[
-                      CustomPaint(
-                        size: Size.square(widget.iconOnly ? 24 : 16),
-                        painter: _GlyphPainter(widget.glyph!, accent),
+            child: widget.content != null
+                ? ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 64),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Opacity(
+                        opacity: enabled ? 1 : .55,
+                        child: ExcludeSemantics(child: widget.content!),
                       ),
-                      if (!widget.iconOnly) const SizedBox(width: 12),
-                    ],
-                    if (!widget.iconOnly)
-                      Text(
-                        widget.text.toUpperCase(),
-                        style: TextStyle(
-                          fontFamily: FontFam.pressStart,
-                          fontSize: widget.fontSize ?? 10,
-                          height: 1.4,
-                          color: enabled
-                              ? Palette.textWhite
-                              : Palette.textHintGrey,
-                          letterSpacing: 0.4,
-                        ),
+                    ),
+                  )
+                : Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      14,
+                      _pressed ? 5 : 2,
+                      14,
+                      _pressed ? 2 : 5,
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.glyph != null) ...[
+                            CustomPaint(
+                              size: Size.square(widget.iconOnly ? 24 : 16),
+                              painter: _GlyphPainter(widget.glyph!, accent),
+                            ),
+                            if (!widget.iconOnly) const SizedBox(width: 12),
+                          ],
+                          if (!widget.iconOnly)
+                            Text(
+                              widget.text.toUpperCase(),
+                              style: TextStyle(
+                                fontFamily: FontFam.pressStart,
+                                fontSize: widget.fontSize ?? 10,
+                                height: 1.4,
+                                color: enabled
+                                    ? Palette.textWhite
+                                    : Palette.textHintGrey,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                        ],
                       ),
-                  ],
-                ),
-              ),
-            ),
+                    ),
+                  ),
           ),
         ),
       ),

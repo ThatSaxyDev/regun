@@ -13,11 +13,14 @@ class GameNotice extends StatelessWidget {
     this.detail,
     this.leading,
     this.maxWidth = 500,
+    this.titleSize = 16,
+    this.messageSize = 13,
   });
-  final String eyebrow, title, message;
+  final String title;
+  final String? eyebrow, message;
   final Widget actions;
   final Widget? detail, leading;
-  final double maxWidth;
+  final double maxWidth, titleSize, messageSize;
   @override
   Widget build(BuildContext context) => Semantics(
     scopesRoute: true,
@@ -37,46 +40,50 @@ class GameNotice extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      if (leading != null) ...[
-                        leading!,
-                        const SizedBox(width: 10),
-                      ],
-                      Expanded(
-                        child: Text(
-                          eyebrow,
-                          style: const TextStyle(
-                            fontFamily: FontFam.orbitron,
-                            fontSize: 10,
-                            letterSpacing: 1.3,
-                            height: 1.5,
-                            color: Color(0xffE1BA78),
+                  if (eyebrow case final label?) ...[
+                    Row(
+                      children: [
+                        if (leading != null) ...[
+                          leading!,
+                          const SizedBox(width: 10),
+                        ],
+                        Expanded(
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              fontFamily: FontFam.orbitron,
+                              fontSize: 10,
+                              letterSpacing: 1.3,
+                              height: 1.5,
+                              color: Color(0xffE1BA78),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFam.pressStart,
-                      fontSize: 16,
+                      fontSize: titleSize,
                       height: 1.5,
-                      color: Color(0xffE5DDD1),
+                      color: const Color(0xffE5DDD1),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    message,
-                    style: const TextStyle(
-                      fontFamily: FontFam.orbitron,
-                      fontSize: 13,
-                      height: 1.65,
-                      color: Color(0xffE5DDD1),
+                  if (message case final text?) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      text,
+                      style: TextStyle(
+                        fontFamily: FontFam.orbitron,
+                        fontSize: messageSize,
+                        height: 1.65,
+                        color: const Color(0xffE5DDD1),
+                      ),
                     ),
-                  ),
+                  ],
                   if (detail != null) ...[const SizedBox(height: 12), detail!],
                   const SizedBox(height: 24),
                   actions,

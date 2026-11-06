@@ -139,56 +139,91 @@ Future<void> showWallet(
   context: pageContext,
   builder: (context) => Dialog(
     backgroundColor: Colors.transparent,
+    insetPadding: const EdgeInsets.all(16),
     child: ListenableBuilder(
       listenable: source,
-      builder: (context, _) => GameNotice(
-        eyebrow: 'SCRAP',
-        title: 'WALLET',
-        message:
-            'Scrap: ${source.profileReady ? walletAmount(source.profile.scrap) : '—'}\n'
-            '${source.profileSaveFailed
-                ? 'Save needed. Retry before spending.'
-                : source.canSpend || readOnly
-                ? 'Banked Solo Scrap.'
-                : 'Sign in with email to spend Scrap.'}\n\n'
-            'Online Scrap: ${source.onlineScrap == null ? '—' : walletAmount(source.onlineScrap!)}\n'
-            '${source.onlineScrap == null ? 'Check your balance in Online.' : 'Last checked in Online.'}\n'
-            'Separate from spendable Solo Scrap.',
-        actions: GameNoticeActions(
-          primary: ClickButton(
-            text: 'Close',
-            onTap: () => Navigator.of(context).pop(),
+      builder: (context, _) {
+        final close = ClickButton(
+          text: 'Close',
+          onTap: () => Navigator.of(context).pop(),
+        );
+        final action = source.profileSaveFailed
+            ? ClickButton(
+                text: 'Retry save',
+                onTap: () async {
+                  await source.saveProfile();
+                },
+              )
+            : !readOnly && AppleScrapStore.supported
+            ? ClickButton(
+                text: 'Buy Scrap',
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  if (pageContext.mounted) await showScrapStore(pageContext);
+                },
+              )
+            : !readOnly && !source.canSpend
+            ? ClickButton(
+                text: 'Sign in',
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  final account = AccountController.shared;
+                  await account.initialize();
+                  if (pageContext.mounted) {
+                    await showAccountFlow(pageContext, account);
+                  }
+                },
+              )
+            : null;
+        return GameNotice(
+          eyebrow: null,
+          title: 'WALLET',
+          titleSize: 20,
+          message: null,
+          detail: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Divider(color: Color(0xff51454C), height: 20),
+              const Text(
+                'Available Scrap',
+                style: TextStyle(
+                  fontFamily: FontFam.orbitron,
+                  fontSize: 14,
+                  color: _BalanceCell.color,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                source.profileReady ? walletAmount(source.profile.scrap) : '—',
+                style: const TextStyle(
+                  fontFamily: FontFam.orbitron,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xffEEE5D4),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                source.profileSaveFailed
+                    ? 'Save your balance before spending.'
+                    : !readOnly && !source.canSpend
+                    ? 'Sign in to spend Scrap.'
+                    : 'Spend Scrap on Armory weapons and eligible Solo revives.',
+                style: const TextStyle(
+                  fontFamily: FontFam.orbitron,
+                  fontSize: 16,
+                  height: 1.5,
+                  color: Color(0xffE5DDD1),
+                ),
+              ),
+            ],
           ),
-          secondary: source.profileSaveFailed
-              ? ClickButton(
-                  text: 'Retry save',
-                  onTap: () async {
-                    await source.saveProfile();
-                  },
-                )
-              : !readOnly && AppleScrapStore.supported
-              ? ClickButton(
-                  text: 'Buy Scrap',
-                  onTap: () async {
-                    Navigator.of(context).pop();
-                    if (pageContext.mounted) await showScrapStore(pageContext);
-                  },
-                )
-              : !readOnly && !source.canSpend
-              ? ClickButton(
-                  text: 'Sign in',
-                  onTap: () async {
-                    Navigator.of(context).pop();
-                    final account = AccountController.shared;
-                    await account.initialize();
-                    if (pageContext.mounted) {
-                      await showAccountFlow(pageContext, account);
-                    }
-                  },
-                )
-              : null,
-        ),
-      ),
+          actions: GameNoticeActions(
+            primary: action ?? close,
+            secondary: action == null ? null : close,
+          ),
+        );
+      },
     ),
   ),
 );

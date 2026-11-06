@@ -161,8 +161,12 @@ void main() {
       expect(find.text('1,240'), findsOneWidget);
       await tester.tap(find.text('SCRAP'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Scrap: 1,240'), findsOneWidget);
+      expect(
+        find.descendant(of: find.byType(Dialog), matching: find.text('1,240')),
+        findsOneWidget,
+      );
       expect(find.textContaining('Credits'), findsNothing);
+      expect(find.textContaining('Online Scrap'), findsNothing);
       expect(find.text('SIGN IN'), findsOneWidget);
       expect(find.text('Buy'), findsNothing);
       await tester.tap(find.text('CLOSE'));
@@ -179,7 +183,10 @@ void main() {
       );
       await tester.tap(find.text('SCRAP'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Scrap: 1,240'), findsOneWidget);
+      expect(
+        find.descendant(of: find.byType(Dialog), matching: find.text('1,240')),
+        findsOneWidget,
+      );
       expect(find.text('SIGN IN'), findsNothing);
     },
   );

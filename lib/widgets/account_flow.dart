@@ -276,7 +276,7 @@ class _AccountFlowState extends State<AccountFlow> {
       'ready' =>
         account.pending || account.issue.isNotEmpty
             ? 'Your progress is saved on this device. Cloud backup will retry when available.'
-            : 'Use this email to bring your progress to another device.',
+            : 'Sign in with the same email on another device to pick up where you left off.',
       _ =>
         widget.online
             ? 'Verify your email and choose a username to play online.'
@@ -434,17 +434,17 @@ class _AccountFlowState extends State<AccountFlow> {
           children: [
             GameNoticeActions(
               primary: ClickButton(text: label, onTap: primary, height: 48),
-              secondary: ClickButton(
-                text: step == 'ready'
-                    ? 'Close'
-                    : widget.deleting
-                    ? 'Cancel'
-                    : widget.online
-                    ? 'Back'
-                    : 'Not now',
-                height: 48,
-                onTap: () => Navigator.pop(context, false),
-              ),
+              secondary: step == 'ready'
+                  ? null
+                  : ClickButton(
+                      text: widget.deleting
+                          ? 'Cancel'
+                          : widget.online
+                          ? 'Back'
+                          : 'Not now',
+                      height: 48,
+                      onTap: () => Navigator.pop(context, false),
+                    ),
             ),
             if (step == 'conflict')
               Padding(

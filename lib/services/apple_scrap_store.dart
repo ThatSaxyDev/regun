@@ -25,9 +25,10 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
   final _packs = <String, int>{};
   String? _owner;
   bool _started = false;
-  bool _checkout = false;
+  bool _checkout = false, _checkoutInterrupted = false;
   String? _pendingProduct;
   String message = '';
+  bool canRetryConfirmation = false;
   bool get busy => _checkout || _claiming.isNotEmpty;
   bool get awaitingPayment => _pendingProduct != null;
 
@@ -41,7 +42,7 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
       (updates) => unawaited(_updates(updates)),
       onError: (Object error) {
         _checkout = false;
-        _message('Apple checkout is unavailable. Check status to retry.');
+        _message('Checkout is unavailable.');
       },
     );
   }
@@ -51,6 +52,7 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
     if (owner == _owner) return;
     _owner = owner;
     _packs.clear();
+    _checkoutInterrupted = false;
     _pendingProduct = null;
     _message('');
     if (owner != null) unawaited(recover());
@@ -61,7 +63,8 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) unawaited(recover());
   }
 
-  void _message(String value) {
+  void _message(String value, {bool retry = false}) {
+    canRetryConfirmation = retry;
     message = value;
     notifyListeners();
   }
@@ -80,11 +83,19 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
         _account.conflict) {
       throw const AccountError('Sign in and sync your Regun account.');
     }
-    final data = await _account.api.request(
-      '/apple-scrap',
-      token: await _account.accessToken(),
-      body: {'action': 'catalog'},
-    );
+    final token = await _account.accessToken();
+    final Map<String, dynamic> data;
+    try {
+      data = await _account.api.request(
+        '/apple-scrap',
+        token: token,
+        body: {'action': 'catalog'},
+      );
+    } on AccountError {
+      throw const AccountError(
+        'Scrap packs are unavailable for this account right now.',
+      );
+    }
     if (_account.session?.accountId != owner ||
         data['accountId'] != owner ||
         data['environment'] != 'Sandbox') {
@@ -104,8 +115,9 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
           (amount: packs[product.id]!, product: product),
     ]..sort((a, b) => a.amount.compareTo(b.amount));
     if (offers.isEmpty) {
-      throw const AccountError('Apple did not return any Scrap packs.');
+      throw const AccountError('No Scrap packs are available right now.');
     }
+    await recover();
     return offers;
   }
 
@@ -120,7 +132,7 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
     }
     _checkout = true;
     _pendingProduct = product.id;
-    _message('Opening Apple checkout…');
+    _message('Opening checkout…');
     try {
       if (!await _store.buyConsumable(
         purchaseParam: Sk2PurchaseParam(
@@ -129,11 +141,14 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
         ),
       )) {
         _pendingProduct = null;
-        _message('Apple checkout could not open.');
+        _message('Checkout could not open.');
       }
     } catch (_) {
-      _message('Checkout was interrupted. Check status before retrying.');
-      _pendingProduct = product.id;
+      if (_account.session?.accountId == owner) {
+        _checkoutInterrupted = true;
+        _message('Checkout was interrupted.');
+        await recover();
+      }
     } finally {
       _checkout = false;
       notifyListeners();
@@ -142,16 +157,17 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> _updates(List<PurchaseDetails> updates) async {
     for (final update in updates) {
+      _checkoutInterrupted = false;
       switch (update.status) {
         case PurchaseStatus.pending:
           _pendingProduct = update.productID;
-          _message('Payment pending. You can leave and check later.');
+          _message('Payment pending. Scrap will be added when it’s confirmed.');
         case PurchaseStatus.canceled:
           _pendingProduct = null;
           _message('Purchase canceled.');
         case PurchaseStatus.error:
           _pendingProduct = null;
-          _message('Apple could not complete this purchase.');
+          _message('Purchase could not be completed.');
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
           await recover();
@@ -159,21 +175,23 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  Future<void> recover({bool refresh = false}) async {
+  Future<void> recover() async {
     final owner = _account.session?.accountId;
     if (!supported || owner == null || !_account.attached) return;
     try {
       final unfinished = await SK2Transaction.unfinishedTransactions();
+      if (_account.session?.accountId != owner) return;
       for (final tx in unfinished) {
         final signed = tx.receiptData;
         final id = int.tryParse(tx.id);
         if (tx.appAccountToken?.toLowerCase() != owner.toLowerCase() ||
             signed == null ||
             id == null ||
-            !tx.productId.startsWith('dev.kiishi.regun.scrap.') ||
-            !_claiming.add(tx.id)) {
+            !tx.productId.startsWith('dev.kiishi.regun.scrap.')) {
           continue;
         }
+        _checkoutInterrupted = false;
+        if (!_claiming.add(tx.id)) continue;
         try {
           _pendingProduct = tx.productId;
           _message('Confirming your Scrap…');
@@ -211,15 +229,14 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
           notifyListeners();
         }
       }
-      if (refresh && _account.session?.accountId == owner && !busy) {
-        await _account.sync();
-        if (_account.session?.accountId == owner && awaitingPayment) {
-          _message('Payment is still pending. You can leave and check later.');
-        }
+      if (_account.session?.accountId == owner && _checkoutInterrupted) {
+        _checkoutInterrupted = false;
+        _pendingProduct = null;
+        _message('Checkout was interrupted. Try again.');
       }
     } catch (_) {
       if (_account.session?.accountId == owner) {
-        _message('Purchase not confirmed yet. Check status to retry.');
+        _message('Could not confirm your purchase yet.', retry: true);
       }
     }
   }

@@ -1656,7 +1656,7 @@ class _ArenaPainter extends CustomPainter {
           districtMap!,
           arena,
           Rect.fromCenter(
-            center: camera,
+            center: centerOfView,
             width: worldSize.width,
             height: worldSize.height,
           ),

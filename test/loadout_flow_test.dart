@@ -1,3 +1,8 @@
+import 'package:flutter/foundation.dart';
+import 'package:regun/services/apple_scrap_store.dart';
+import 'package:regun/models/economy/armory_catalog.dart';
+import 'package:regun/services/account/account_api.dart';
+import 'package:regun/services/economy/armory_repository.dart';
 import 'package:regun/models/player_profile.dart';
 import 'package:regun/widgets/wallet_bar.dart';
 import 'package:regun/widgets/survivor_portrait.dart';
@@ -22,6 +27,17 @@ class _Quiet extends SoloudPlay {
   Future<void> play(String asset) async {}
 }
 
+class _ArmoryApi extends AccountApi {
+  bool enabled = true;
+
+  @override
+  Future<Map<String, dynamic>> request(
+    String path, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) async => {...ArmoryCatalog.bundled.toJson(), 'enabled': enabled};
+}
+
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +57,7 @@ void main() {
     bool training = true,
     Size size = const Size(844, 390),
     double scale = 1,
+    ArmoryRepository? armory,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -64,7 +81,7 @@ void main() {
           ),
           home: RepaintBoundary(
             key: const Key('loadout-capture'),
-            child: LoadoutView(training: training),
+            child: LoadoutView(training: training, armory: armory),
           ),
         ),
       ),
@@ -122,11 +139,46 @@ void main() {
           totalBossVictories: 52,
           scrap: 15000,
         );
-        await show(tester, training: false, size: size, scale: 1.3);
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        final api = _ArmoryApi();
+        final armory = ArmoryRepository(api: api);
+        await show(
+          tester,
+          training: false,
+          size: size,
+          scale: 1.3,
+          armory: armory,
+        );
         await tester.tap(find.text('WEAPON'));
         await tester.pumpAndSettle();
         await select(tester, 'weapon-beltRepeater');
-        expect(find.text('UNLOCK / 10,000').hitTestable(), findsOneWidget);
+        expect(find.text('BUY / 10,000').hitTestable(), findsOneWidget);
+        expect(find.textContaining('Boss victories 5 / 5'), findsOneWidget);
+        LocalPreferences.shared.profile.scrap = 1464;
+        await armory.refresh();
+        await tester.pumpAndSettle();
+        expect(find.text('8,536 more Scrap needed.'), findsOneWidget);
+        expect(find.text('BUY / 10,000'), findsNothing);
+        expect(
+          find.text('BUY SCRAP').hitTestable(),
+          AppleScrapStore.supported ? findsOneWidget : findsNothing,
+        );
+        api.enabled = false;
+        for (final balance in [1464, 11554]) {
+          LocalPreferences.shared.profile.scrap = balance;
+          await armory.refresh();
+          await tester.pumpAndSettle();
+          expect(
+            find.text('Weapon purchases are currently closed.'),
+            findsOneWidget,
+          );
+          expect(find.byKey(const Key('loadout-unlock-weapon')), findsNothing);
+        }
+        api.enabled = true;
+        await armory.refresh();
+        await tester.pumpAndSettle();
+        expect(find.text('BUY / 10,000').hitTestable(), findsOneWidget);
         expect(find.text('START'), findsNothing);
         expect(
           LocalPreferences.shared.profile.weaponUnlocked(
@@ -141,6 +193,7 @@ void main() {
         await tester.pumpAndSettle();
         await capture(tester, 'armory-${size.width.toInt()}');
         RegunArt.shared.release(WeaponType.beltRepeater.atlasName);
+        debugDefaultTargetPlatformOverride = null;
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox());
       },

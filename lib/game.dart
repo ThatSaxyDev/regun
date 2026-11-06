@@ -89,6 +89,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/components/enemies/enemy_2_component.dart';
@@ -223,11 +224,17 @@ class RegunGame extends FlameGame
   final statusArt = CombatStatusArt();
   final confirmationHolding = ValueNotifier<bool>(false);
   bool get presentationHeld => upgradePresentation.holding;
+  bool get _bossRevealHolding =>
+      bossReveal.active &&
+      (!kIsWeb || bossReveal.actors.every((actor) => actor.isMounted));
+  bool get _mechanicalArrivalHolding =>
+      mechanicalArrival.active &&
+      (!kIsWeb || mechanicalArrival.actor!.isMounted);
   bool get inputBlocked =>
       playerEntrance.active ||
       presentationHeld ||
-      bossReveal.active ||
-      mechanicalArrival.active;
+      _bossRevealHolding ||
+      _mechanicalArrivalHolding;
   void _acceptedUpgrade() {
     final reward = gameNotifier.acceptedUpgrade.value;
     if (reward == null) return;
@@ -2928,8 +2935,10 @@ class RegunGame extends FlameGame
           : 3.05,
       reducedMotion: preferences.reducedMotion,
     );
-    resetInput();
-    confirmationHolding.value = true;
+    if (_mechanicalArrivalHolding) {
+      resetInput();
+      confirmationHolding.value = true;
+    }
   }
 
   Future<bool> prepareBossAssets(
@@ -3268,8 +3277,10 @@ class RegunGame extends FlameGame
         camera.viewfinder.position,
         reducedMotion: preferences.reducedMotion,
       );
-      resetInput();
-      confirmationHolding.value = true;
+      if (_bossRevealHolding) {
+        resetInput();
+        confirmationHolding.value = true;
+      }
     }
     final distant =
         liveEnemies
@@ -3707,10 +3718,17 @@ class RegunGame extends FlameGame
     if (gameState.gameplayState == GameplayState.playing) {
       _groundKickTime = max(0.0, _groundKickTime - dt);
     }
-    if (mechanicalArrival.active &&
+    if (kIsWeb &&
+        (mechanicalArrival.active || bossReveal.active) &&
+        gameState.gameplayState == GameplayState.playing) {
+      // Start pending loads without stopping combat on browser asset I/O.
+      processLifecycleEvents();
+    }
+    if (_mechanicalArrivalHolding &&
         gameState.gameplayState == GameplayState.playing) {
       resetInput();
-      processLifecycleEvents();
+      confirmationHolding.value = true;
+      if (!kIsWeb) processLifecycleEvents();
       final actor = mechanicalArrival.actor!;
       final ready =
           actor.isMounted &&
@@ -3750,10 +3768,12 @@ class RegunGame extends FlameGame
       layoutControls();
       return;
     }
-    if (bossReveal.active && gameState.gameplayState == GameplayState.playing) {
+    if (_bossRevealHolding &&
+        gameState.gameplayState == GameplayState.playing) {
       resetInput();
+      confirmationHolding.value = true;
       // Mount/load actors without invoking a zero-dt simulation or collisions.
-      processLifecycleEvents();
+      if (!kIsWeb) processLifecycleEvents();
       final before = bossReveal.elapsed;
       final done = bossReveal.advance(dt);
       final target = Vector2.zero();
@@ -4384,7 +4404,7 @@ class RegunGame extends FlameGame
   }
 
   void _updateCamera() {
-    if (bossReveal.active || mechanicalArrival.active) return;
+    if (_bossRevealHolding || _mechanicalArrivalHolding) return;
     camera.viewfinder.position = map.bounds.cameraPosition(
       myPlayer.position,
       camera.viewport.virtualSize / camera.viewfinder.zoom,

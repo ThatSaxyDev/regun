@@ -1,3 +1,4 @@
+import 'package:regun/components/map/map_component.dart';
 import 'package:regun/services/apple_scrap_store.dart';
 import 'package:regun/widgets/scrap_store_dialog.dart';
 import 'package:regun/desktop/desktop_platform.dart';
@@ -34,8 +35,9 @@ import 'package:regun/widgets/survivor_portrait.dart';
 enum _Catalog { survivor, weapon, arena }
 
 class LoadoutView extends StatefulWidget {
-  const LoadoutView({super.key, this.training = false});
+  const LoadoutView({super.key, this.training = false, this.armory});
   final bool training;
+  final ArmoryRepository? armory;
   @override
   State<LoadoutView> createState() => _LoadoutViewState();
 }
@@ -48,7 +50,7 @@ class _LoadoutViewState extends State<LoadoutView> {
   final _selectedOption = GlobalKey();
   bool _starting = false, _showLockedWeapons = false, _unlocking = false;
   String? _unlockIssue;
-  final _armory = ArmoryRepository.shared;
+  late final _armory = widget.armory ?? ArmoryRepository.shared;
   void _armoryChanged() {
     if (mounted) setState(() {});
   }
@@ -369,11 +371,7 @@ class _LoadoutViewState extends State<LoadoutView> {
                 ),
                 _Catalog.arena => ClipPath(
                   clipper: const _ArenaPreviewClip(),
-                  child: Image.asset(
-                    _floor(arena),
-                    fit: BoxFit.cover,
-                    filterQuality: FilterQuality.none,
-                  ),
+                  child: _arenaFloorPreview(arena),
                 ),
               },
             ),
@@ -434,13 +432,7 @@ class _LoadoutViewState extends State<LoadoutView> {
               selected: arena == a,
               unlocked: widget.training || profile.arenaUnlocked(a),
               lock: 'Complete a cycle',
-              art: ClipRect(
-                child: Image.asset(
-                  _floor(a),
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.none,
-                ),
-              ),
+              art: ClipRect(child: _arenaFloorPreview(a)),
               onTap: () => setState(() => arena = a),
             ),
           )
@@ -460,19 +452,20 @@ class _LoadoutViewState extends State<LoadoutView> {
               selected: weapon == w,
               unlocked: profile.weaponUnlocked(w),
               previewLocked: armoryWeapons.containsKey(w.name),
-              lock: armoryWeapons.containsKey(w.name)
-                  ? '${profile.totalBossVictories.clamp(0, w.victoryRequirement)} / ${w.victoryRequirement} bosses / ${walletAmount(_armory.catalog.prices[w.name]!)} Scrap'
-                  : switch (w) {
-                      WeaponType.burstRifle =>
-                        'Boss victories ${profile.totalBossVictories} / 3',
-                      WeaponType.carbine => 'Complete training',
-                      WeaponType.revolver => 'Defeat Shadow',
-                      WeaponType.arcCaster => 'Defeat Demon',
-                      _ =>
-                        'Boss victories ${profile.totalBossVictories} / ${w.victoryRequirement}',
-                    },
+              lock: switch (w) {
+                WeaponType.carbine => 'Complete training',
+                WeaponType.revolver => 'Defeat Shadow',
+                WeaponType.arcCaster => 'Defeat Demon',
+                _ =>
+                  'Boss victories ${profile.totalBossVictories.clamp(0, w.victoryRequirement)} / ${w.victoryRequirement}'
+                      '${armoryWeapons.containsKey(w.name) ? ' / ${walletAmount(_armory.catalog.prices[w.name]!)} Scrap' : ''}',
+              },
               art: WeaponThumbnail(w, key: ValueKey('loadout-art-${w.name}')),
-              onTap: () => setState(() => weapon = w),
+              onTap: () => setState(() {
+                if (weapon == w || _unlocking) return;
+                weapon = w;
+                _unlockIssue = null;
+              }),
             ),
           ],
         ),
@@ -565,6 +558,17 @@ class _LoadoutViewState extends State<LoadoutView> {
         : option;
   }
 
+  String? _armoryBlocker(String id) {
+    if (!_armory.live) return 'Could not load the Armory.';
+    if (!_armory.catalog.enabled) {
+      return 'Weapon purchases are currently closed.';
+    }
+    if (!_armory.catalog.available.contains(id)) {
+      return 'This weapon is currently off sale.';
+    }
+    return null;
+  }
+
   Future<void> _unlockWeapon() async {
     final account = ProviderScope.containerOf(
       context,
@@ -613,15 +617,7 @@ class _LoadoutViewState extends State<LoadoutView> {
       await _armory.refresh();
       if (!mounted || owner != LocalPreferences.shared.profileOwner) return;
       final catalog = _armory.catalog, price = catalog.prices[selected]!;
-      if (!_armory.live ||
-          !catalog.enabled ||
-          !catalog.available.contains(selected)) {
-        setState(
-          () => _unlockIssue =
-              _armory.issue ?? 'This weapon is not available to unlock yet.',
-        );
-        return;
-      }
+      if (_armoryBlocker(selected) != null) return;
       if (displayed.version != catalog.version ||
           displayed.prices[selected] != price) {
         setState(
@@ -631,30 +627,16 @@ class _LoadoutViewState extends State<LoadoutView> {
         return;
       }
       if (profile.scrap < price) {
-        setState(
-          () => _unlockIssue =
-              '${formatNumber(price - profile.scrap)} more Scrap needed.',
-        );
-        if (AppleScrapStore.supported) {
-          await showScrapStore(context);
-          if (mounted && owner == LocalPreferences.shared.profileOwner) {
-            setState(() {
-              final balance = LocalPreferences.shared.profile.scrap;
-              _unlockIssue = balance >= price
-                  ? 'Scrap available. Confirm the weapon unlock.'
-                  : '${formatNumber(price - balance)} more Scrap needed.';
-            });
-          }
-        }
+        if (AppleScrapStore.supported) await showScrapStore(context);
         return;
       }
       final accepted = await confirmRunAction(
         context,
         eyebrow: 'RE-GUN / ARMORY',
-        title: 'UNLOCK ${armoryWeapons[selected]!.title.toUpperCase()}?',
+        title: 'BUY ${armoryWeapons[selected]!.title.toUpperCase()}?',
         message:
-            'Permanent weapon unlock for ${formatNumber(price)} Scrap. ${formatNumber(profile.scrap - price)} Scrap remaining.',
-        action: 'Unlock / ${walletAmount(price)}',
+            'Keep this weapon permanently. You’ll have ${formatNumber(profile.scrap - price)} Scrap left.',
+        action: 'Buy / ${walletAmount(price)} Scrap',
       );
       if (!accepted ||
           !mounted ||
@@ -682,6 +664,27 @@ class _LoadoutViewState extends State<LoadoutView> {
 
   Widget _footer() => LayoutBuilder(
     builder: (_, box) {
+      final lockedOffer =
+          !widget.training &&
+          !profile.weaponUnlocked(weapon) &&
+          armoryWeapons.containsKey(weapon.name);
+      final price = _armory.catalog.prices[weapon.name] ?? 0;
+      final missing = price - profile.scrap;
+      final victoriesMet =
+          profile.totalBossVictories >= weapon.victoryRequirement;
+      final blocker = lockedOffer ? _armoryBlocker(weapon.name) : null;
+      final status =
+          _unlockIssue ??
+          (!lockedOffer || _unlocking
+              ? null
+              : !victoriesMet
+              ? 'Reach ${weapon.victoryRequirement} boss victories to buy this weapon.'
+              : _armory.loading
+              ? 'Loading Armory…'
+              : blocker ??
+                    (missing > 0
+                        ? '${formatNumber(missing)} more Scrap needed.'
+                        : null));
       final summary = Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -696,9 +699,9 @@ class _LoadoutViewState extends State<LoadoutView> {
               color: const Color(0xffc7b9a6),
             ),
           ),
-          if (_unlockIssue != null)
+          if (status != null)
             Text(
-              _unlockIssue!,
+              status,
               maxLines: 2,
               style: const TextStyle(
                 fontFamily: FontFam.orbitron,
@@ -709,20 +712,32 @@ class _LoadoutViewState extends State<LoadoutView> {
         ],
       );
       final actions = <Widget>[
-        if (!widget.training &&
-            !profile.weaponUnlocked(weapon) &&
-            armoryWeapons.containsKey(weapon.name))
-          ClickButton(
-            key: const Key('loadout-unlock-weapon'),
-            text: _unlocking
-                ? 'Checking'
-                : 'Unlock / ${walletAmount(_armory.catalog.prices[weapon.name]!)}',
-            width: desktopInputAvailable ? 280 : 200,
-            height: desktopInputAvailable ? 60 : 48,
-            fontSize: desktopInputAvailable ? 12 : 8,
-            onTap: _unlocking ? null : _unlockWeapon,
-          )
-        else
+        if (lockedOffer) ...[
+          if (victoriesMet &&
+              (_armory.loading ||
+                  _unlocking ||
+                  (blocker == null &&
+                      (missing <= 0 || AppleScrapStore.supported))))
+            ClickButton(
+              key: const Key('loadout-unlock-weapon'),
+              text: _unlocking || _armory.loading
+                  ? 'Checking'
+                  : missing > 0
+                  ? 'Buy Scrap'
+                  : 'Buy / ${walletAmount(price)}',
+              width: desktopInputAvailable ? 280 : 200,
+              height: desktopInputAvailable ? 60 : 48,
+              fontSize: desktopInputAvailable ? 12 : 8,
+              onTap:
+                  _unlocking ||
+                      _armory.loading ||
+                      (missing > 0 && !AppleScrapStore.supported)
+                  ? null
+                  : _unlockWeapon,
+            )
+          else if (victoriesMet && !_armory.live)
+            ClickButton(text: 'Retry', onTap: _armory.refresh),
+        ] else
           ClickButton(
             text: _starting ? 'Loading' : 'Start',
             width: desktopInputAvailable ? 180 : 120,
@@ -796,6 +811,23 @@ class _LoadoutViewState extends State<LoadoutView> {
 
 String _floor(ArenaType arena) => 'assets/art/arenas/${arena.name}_floor.png';
 
+Widget _arenaFloorPreview(ArenaType arena, {Color? shade}) {
+  final floor = Image.asset(
+    _floor(arena),
+    fit: BoxFit.cover,
+    filterQuality: FilterQuality.none,
+  );
+  final graded = arena == ArenaType.breach
+      ? ColorFiltered(colorFilter: MapComponent.breachGrade, child: floor)
+      : floor;
+  return shade == null
+      ? graded
+      : ColorFiltered(
+          colorFilter: ColorFilter.mode(shade, BlendMode.modulate),
+          child: graded,
+        );
+}
+
 class _ArenaPreviewClip extends CustomClipper<Path> {
   const _ArenaPreviewClip();
 
@@ -823,13 +855,7 @@ class _KitPreview extends StatelessWidget {
     child: Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset(
-          _floor(arena),
-          fit: BoxFit.cover,
-          filterQuality: FilterQuality.none,
-          color: const Color(0xff777078),
-          colorBlendMode: BlendMode.modulate,
-        ),
+        _arenaFloorPreview(arena, shade: const Color(0xff777078)),
         const DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
