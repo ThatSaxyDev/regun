@@ -3726,6 +3726,10 @@ class RegunGame extends FlameGame
     }
     if (_mechanicalArrivalHolding &&
         gameState.gameplayState == GameplayState.playing) {
+      if (kIsWeb && !confirmationHolding.value) {
+        mechanicalArrival.cameraFrom.setFrom(camera.viewfinder.position);
+        mechanicalArrival.zoomFrom = camera.viewfinder.zoom;
+      }
       resetInput();
       confirmationHolding.value = true;
       if (!kIsWeb) processLifecycleEvents();
@@ -3770,6 +3774,9 @@ class RegunGame extends FlameGame
     }
     if (_bossRevealHolding &&
         gameState.gameplayState == GameplayState.playing) {
+      if (kIsWeb && !confirmationHolding.value) {
+        bossReveal.cameraFrom.setFrom(camera.viewfinder.position);
+      }
       resetInput();
       confirmationHolding.value = true;
       // Mount/load actors without invoking a zero-dt simulation or collisions.
