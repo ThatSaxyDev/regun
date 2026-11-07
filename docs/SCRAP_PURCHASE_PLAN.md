@@ -119,21 +119,16 @@ $0.99, so the two cheapest packs cost the same.
 
 Every price below is a selectable App Store Connect Naira point. Naira per
 Scrap falls monotonically, so each larger pack is better value than the one
-before it. The US column is read from the live store, not estimated: Apple's
-Naira-to-dollar rounding does not follow a single rate, so the generated
-dollar price has to be observed.
+before it.
 
-| Scrap | NGN price | NGN per Scrap | Generated USD | Scrap per dollar |
-|---:|---:|---:|---:|---:|
-| 1,000 | ₦1,350 | 1.35 | $0.99 | 1,010 |
-| 2,500 | ₦2,900 | 1.16 | $1.99 | 1,256 |
-| 5,000 | ₦4,900 | 0.98 | $2.99 | 1,672 |
-| 10,000 | ₦7,900 | 0.79 | $4.99 | 2,004 |
-| 15,000 | ₦9,900 | 0.66 | $5.99 | 2,504 |
-| 25,000 | ₦14,900 | 0.60 | $7.99 | 3,129 |
-
-Scrap per dollar rises at every step, so the top pack wins against any
-combination of the smaller ones.
+| Scrap | NGN price | NGN per Scrap | Expected USD |
+|---:|---:|---:|---:|
+| 1,000 | ₦1,350 | 1.35 | $0.99 |
+| 2,500 | ₦2,900 | 1.16 | $1.99 |
+| 5,000 | ₦4,900 | 0.98 | $2.99 |
+| 10,000 | ₦7,900 | 0.79 | $4.99 |
+| 15,000 | ₦9,900 | 0.66 | $6.99 |
+| 25,000 | ₦14,900 | 0.60 | $9.99 |
 
 Confirm the generated US row on the pricing confirmation screen for each edit;
 never override an individual storefront, because doing so stops Apple from
