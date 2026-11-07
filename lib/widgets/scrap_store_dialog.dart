@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 import 'package:regun/desktop/desktop_platform.dart';
@@ -9,6 +11,13 @@ import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/account_flow.dart';
 import 'package:regun/widgets/click_button.dart';
 import 'package:regun/widgets/game_notice.dart';
+
+/// Short landscape screens cannot show stacked pack cards at full size.
+bool _shortScreen(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  return !(nativeMacDesktop && size.width >= 1200 && size.height >= 680) &&
+      size.height < 560;
+}
 
 Future<void> showScrapStore(
   BuildContext context, {
@@ -24,12 +33,32 @@ Future<void> showScrapStore(
   }
   final owner = account.session?.accountId;
   if (owner == null || !account.attached) return;
+  final tight = _shortScreen(context);
+  final window = MediaQuery.sizeOf(context);
+  final maxWidth =
+      nativeMacDesktop && window.width >= 1200 && window.height >= 680
+      ? 864.0
+      : 704.0;
   await showDialog<void>(
     context: context,
     builder: (_) => Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(16),
-      child: _ScrapStoreDialog(owner: owner),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: tight ? 8 : 16,
+      ),
+      // The notice sizes itself from its content, so on a short screen it can
+      // be taller than the dialog box. Scale the whole surface down instead of
+      // letting the bottom of it fall outside the screen.
+      child: LayoutBuilder(
+        builder: (context, constraints) => FittedBox(
+          fit: BoxFit.scaleDown,
+          child: SizedBox(
+            width: math.min(maxWidth, constraints.maxWidth),
+            child: _ScrapStoreDialog(owner: owner),
+          ),
+        ),
+      ),
     ),
   );
 }
@@ -67,6 +96,7 @@ class _ScrapStoreDialogState extends State<_ScrapStoreDialog> {
       final window = MediaQuery.sizeOf(context);
       final roomyDesktop =
           nativeMacDesktop && window.width >= 1200 && window.height >= 680;
+      final tight = _shortScreen(context);
       final sameOwner =
           _account.attached && _account.session?.accountId == widget.owner;
       return FutureBuilder(
@@ -74,8 +104,8 @@ class _ScrapStoreDialogState extends State<_ScrapStoreDialog> {
         builder: (context, snapshot) => GameNotice(
           eyebrow: 'REGUN / WALLET',
           title: 'SCRAP STORE',
-          titleSize: roomyDesktop ? 26 : 20,
-          messageSize: roomyDesktop ? 17 : 13,
+          titleSize: roomyDesktop ? 26 : (tight ? 17 : 20),
+          messageSize: roomyDesktop ? 17 : (tight ? 12 : 13),
           maxWidth: roomyDesktop ? 864 : 704,
           message: !sameOwner
               ? 'Account changed. Close and reopen the store.'
@@ -90,11 +120,20 @@ class _ScrapStoreDialogState extends State<_ScrapStoreDialog> {
               ? null
               : LayoutBuilder(
                   builder: (context, constraints) {
-                    final gap = roomyDesktop ? 16.0 : 12.0;
-                    final minPackWidth = roomyDesktop ? 230.0 : 190.0;
+                    final gap = roomyDesktop ? 16.0 : (tight ? 6.0 : 12.0);
+                    final minPackWidth = roomyDesktop
+                        ? 230.0
+                        : (tight ? 170.0 : 190.0);
                     final priceStyle = roomyDesktop
                         ? _priceStyle.copyWith(fontSize: 19)
+                        : tight
+                        ? _priceStyle.copyWith(fontSize: 13)
                         : _priceStyle;
+                    final amountSize = roomyDesktop
+                        ? 23.0
+                        : tight
+                        ? 15.0
+                        : 18.0;
                     final scale = MediaQuery.textScalerOf(context).scale(1);
                     final columns =
                         ((constraints.maxWidth + gap) /
@@ -103,7 +142,52 @@ class _ScrapStoreDialogState extends State<_ScrapStoreDialog> {
                             .clamp(1, 3);
                     final width =
                         (constraints.maxWidth - gap * (columns - 1)) / columns;
+                    final offers = snapshot.data!;
                     final enabled = !_store.busy && !_store.awaitingPayment;
+                    final grid = Wrap(
+                      spacing: gap,
+                      runSpacing: gap,
+                      children: [
+                        for (final offer in offers)
+                          ClickButton(
+                            width: width,
+                            text:
+                                'Buy ${formatNumber(offer.amount)} Scrap for ${offer.product.price}',
+                            content: Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: roomyDesktop ? 8 : 0,
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${formatNumber(offer.amount)} Scrap',
+                                    style: TextStyle(
+                                      fontFamily: FontFam.orbitron,
+                                      fontSize: amountSize,
+                                      fontWeight: FontWeight.w800,
+                                      height: 1.3,
+                                      color: const Color(0xffEEE5D4),
+                                    ),
+                                  ),
+                                  SizedBox(height: 3 * scale),
+                                  Text(
+                                    offer.product.price,
+                                    style: priceStyle,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            onTap: enabled
+                                ? () => _store.buy(
+                                    offer.product,
+                                    widget.owner,
+                                  )
+                                : null,
+                          ),
+                      ],
+                    );
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -114,51 +198,7 @@ class _ScrapStoreDialogState extends State<_ScrapStoreDialog> {
                           ),
                           const SizedBox(height: 12),
                         ],
-                        Wrap(
-                          spacing: gap,
-                          runSpacing: gap,
-                          children: [
-                            for (final offer in snapshot.data!)
-                              ClickButton(
-                                width: width,
-                                text:
-                                    'Buy ${formatNumber(offer.amount)} Scrap for ${offer.product.price}',
-                                content: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: roomyDesktop ? 8 : 0,
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '${formatNumber(offer.amount)} Scrap',
-                                        style: TextStyle(
-                                          fontFamily: FontFam.orbitron,
-                                          fontSize: roomyDesktop ? 23 : 18,
-                                          fontWeight: FontWeight.w800,
-                                          height: 1.3,
-                                          color: const Color(0xffEEE5D4),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        offer.product.price,
-                                        style: priceStyle,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                onTap: enabled
-                                    ? () => _store.buy(
-                                        offer.product,
-                                        widget.owner,
-                                      )
-                                    : null,
-                              ),
-                          ],
-                        ),
+                        grid,
                       ],
                     );
                   },

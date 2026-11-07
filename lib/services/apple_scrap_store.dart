@@ -14,7 +14,7 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
   static final shared = AppleScrapStore._();
 
   static bool get supported =>
-      const bool.fromEnvironment('REGUN_APPLE_SCRAP_SANDBOX') &&
+      const bool.fromEnvironment('REGUN_APPLE_SCRAP') &&
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS);
@@ -98,7 +98,8 @@ class AppleScrapStore extends ChangeNotifier with WidgetsBindingObserver {
     }
     if (_account.session?.accountId != owner ||
         data['accountId'] != owner ||
-        data['environment'] != 'Sandbox') {
+        (data['environment'] != 'Sandbox' &&
+            data['environment'] != 'Production')) {
       throw const AccountError('Scrap checkout is unavailable.');
     }
     final packs = Map<String, int>.from(data['packs'] as Map);

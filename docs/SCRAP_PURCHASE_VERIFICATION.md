@@ -21,26 +21,45 @@ Regun email addresses approved by the creator. Existing accounts may be enrolled
 
 | Setting | Value |
 |---|---|
-| `REGUN_APPLE_SCRAP_SANDBOX` | `1` on the identity gateway |
+| `REGUN_APPLE_SCRAP_ENV` | `sandbox` for TestFlight, `production` for the live store |
+| `REGUN_APPLE_SCRAP_SANDBOX` | Legacy alias; `1` means `sandbox` when `REGUN_APPLE_SCRAP_ENV` is unset |
+| `REGUN_APPLE_APP_ID` | Required for `production`: the numeric App Apple ID |
 | `REGUN_APPLE_ROOT_CERT_FILES` | Comma-separated filesystem paths to Apple's DER root certificates |
-| `REGUN_APPLE_SCRAP_TEST_EMAILS` | Comma-separated exact verified Regun emails approved for sandbox checkout |
-| `REGUN_APPLE_SCRAP_TEST_ACCOUNTS` | Optional comma-separated exact Regun UUIDs |
+| `REGUN_APPLE_SCRAP_TEST_EMAILS` | Required in both modes: comma-separated exact verified Regun emails for App Review and TestFlight |
+| `REGUN_APPLE_SCRAP_TEST_ACCOUNTS` | Optional exact Regun UUIDs, same purpose |
+
+Refunds arrive as `REFUND`/`REVOKE` notifications at `/apple-notifications`
+and are verified with the same root certificates. The handler debits only the
+unspent remainder of the refunded pack: Scrap already converted into an item
+is left with the player, and the wallet is floored at zero.
 
 Build both Apple targets with the existing identity endpoint and
-`--dart-define=REGUN_APPLE_SCRAP_SANDBOX=true`. Use development-signed
-sandbox installs or TestFlight. Keep this flag off in public builds.
-The server checks the account allowlist and Apple-signed owner token on
-every claim. A sandbox purchase updates the enrolled account's normal
-wallet and ownership on the existing server. Sign into that same Regun
-account on web to verify the gun. The creator may enroll their main account. It receives ordinary spendable Scrap under the same rules.
-Real-money top-ups require the production verification and refund path.
+`--dart-define=REGUN_APPLE_SCRAP=true`. Use development-signed
+sandbox installs or TestFlight against `REGUN_APPLE_SCRAP_ENV=sandbox`.
+Production builds use the same client define; the gateway decides the
+App Store environment it verifies.
+The server checks the Apple-signed owner token on every claim and only
+redeems sandbox transactions for the enrolled accounts. A sandbox purchase
+updates the enrolled account's normal wallet and ownership on the existing
+server. Sign into that same Regun account on web to verify the gun. The
+creator may enroll their main account. It receives ordinary spendable Scrap
+under the same rules. In `production`, App Store transactions are verified
+for any account while sandbox transactions stay limited to this list, so
+App Review and TestFlight checkouts keep working after launch.
+Real-money top-ups still need the refund path.
 
-The current adapter claims Apple-signed sandbox transactions and
+The current adapter claims Apple-signed sandbox or production transactions and
 reconciles unfinished transactions on account attachment, app resume and
 **Check status**. Local fixtures and unsigned builds exercise the
-implementation but do not establish real StoreKit sandbox delivery or signing.
-Production verification, refund notifications and paid reset/deletion
-handling remain release gates.
+implementation but do not establish real StoreKit delivery or signing.
+App Store Server Notifications V2 are verified at `/apple-notifications`:
+`REFUND` and `REVOKE` claw back only the Scrap still in the wallet, so a
+refund can never produce a negative balance and Scrap already spent stays
+with the player. Paid reset/deletion handling remains a release gate.
+
+Register the notifications URL in App Store Connect (App Information →
+App Store Server Notifications) for both the production and sandbox
+environments: `https://regunserver.kiishi.space/apple-notifications`.
 
 Local verification on 6 November 2026: 36 focused Flutter tests, 231
 SpacetimeDB tests and module build, and 42 gateway tests plus compiled smoke

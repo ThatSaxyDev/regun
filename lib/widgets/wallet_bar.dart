@@ -41,6 +41,7 @@ class WalletBar extends StatelessWidget {
               ? walletAmount(source.profile.scrap)
               : '—',
           pending: source.profileSaveFailed,
+          purchasable: !readOnly && AppleScrapStore.supported,
           onTap: () => showWallet(context, source, readOnly: readOnly),
         ),
       ),
@@ -54,81 +55,119 @@ class _BalanceCell extends StatelessWidget {
     required this.onTap,
     this.pending = false,
     this.showLabel = true,
+    this.purchasable = false,
   });
   final String amount;
   static const color = Color(0xffE1BA78);
   final VoidCallback onTap;
-  final bool pending, showLabel;
+  final bool pending, showLabel, purchasable;
+
+  /// Desktop windows leave the chip parked in a corner, so a fixed 48pt tall
+  /// cell reads as a passive readout. Grow the whole cell with the window
+  /// instead of only on one platform.
+  static double _scale(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    if (width >= 2200) return 2.3;
+    if (width >= 1700) return 2;
+    if (width >= 1300) return 1.6;
+    if (width >= 900) return 1.25;
+    return 1;
+  }
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    label: 'Scrap $amount${pending ? ', save needed' : ''}. Wallet details',
-    onTap: onTap,
-    excludeSemantics: true,
-    child: Material(
-      color: const Color(0xf01D2420),
-      shape: const BeveledRectangleBorder(
-        side: BorderSide(color: Color(0xff495049)),
-        borderRadius: BorderRadius.all(Radius.circular(4)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const PixelIcon(PixelGlyph.shards, color: color, size: 14),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (showLabel) ...[
-                        const Text(
-                          'SCRAP',
-                          style: TextStyle(
-                            fontFamily: FontFam.orbitron,
-                            fontSize: 8,
-                            letterSpacing: 1,
-                            color: color,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                      ],
-                      Text(
-                        amount,
-                        style: const TextStyle(
-                          fontFamily: FontFam.orbitron,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xffEEE5D4),
-                        ),
-                      ),
-                      if (pending)
-                        const Text(
-                          'SAVE NEEDED',
-                          style: TextStyle(
-                            fontFamily: FontFam.orbitron,
-                            fontSize: 8,
-                            color: Color(0xffE1BA78),
-                          ),
-                        ),
-                    ],
+  Widget build(BuildContext context) {
+    final scale = _scale(context);
+    final hint = purchasable ? ', add more Scrap' : '';
+    return Semantics(
+      button: true,
+      label: 'Scrap $amount${pending ? ', save needed' : ''}$hint. Wallet details',
+      onTap: onTap,
+      excludeSemantics: true,
+      child: Material(
+        color: const Color(0xf01D2420),
+        shape: const BeveledRectangleBorder(
+          side: BorderSide(color: Color(0xff495049)),
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: 48 * scale),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 12 * scale,
+                vertical: 8 * scale,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PixelIcon(
+                    PixelGlyph.shards,
+                    color: color,
+                    size: 14 * scale,
                   ),
-                ),
-              ],
+                  SizedBox(width: 8 * scale),
+                  Flexible(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (showLabel) ...[
+                          Text(
+                            'SCRAP',
+                            style: TextStyle(
+                              fontFamily: FontFam.orbitron,
+                              fontSize: 8 * scale,
+                              letterSpacing: 1,
+                              color: color,
+                            ),
+                          ),
+                          SizedBox(height: 3 * scale),
+                        ],
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              amount,
+                              style: TextStyle(
+                                fontFamily: FontFam.orbitron,
+                                fontSize: 13 * scale,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xffEEE5D4),
+                              ),
+                            ),
+                            if (purchasable) ...[
+                              SizedBox(width: 6 * scale),
+                              PixelIcon(
+                                PixelGlyph.plus,
+                                color: color,
+                                size: 12 * scale,
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (pending)
+                          Text(
+                            'SAVE NEEDED',
+                            style: TextStyle(
+                              fontFamily: FontFam.orbitron,
+                              fontSize: 8 * scale,
+                              color: const Color(0xffE1BA78),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 Future<void> showWallet(

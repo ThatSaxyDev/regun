@@ -92,9 +92,9 @@ points are approved for this pass. Guns are the primary value of the offer today
   explicitly confirms the revive. Keep the current price, five-active-minute
   threshold, once-per-run rule, account eligibility, and assisted records.
   Other gameplay and Scrap spend rules keep their current behavior.
-- **Smallest pack.** The lineup starts at 500 Scrap. That
-  matches the smallest existing revive bill and gives small shortfalls an
-  option. The pricing status for each pack is below.
+- **Smallest pack.** The lineup starts at 1,000 Scrap. The 500 pack was
+  dropped because its Naira price generated the same US price as the 1,000
+  pack. The pricing status for each pack is below.
 - **Economy review.** Measure actual earned and banked Scrap by the fifth
   boss win, revive spending and time to earn weapon shortfalls. The creator
   reports about 1,500 spent on three revives and a balance below 5,000. Keep
@@ -105,29 +105,36 @@ points are approved for this pass. Guns are the primary value of the offer today
 
 ### Agreed pack lineup
 
-The six pack quantities and the saved Nigerian and US price ladder below are
-approved. StoreKit provides the localized customer-facing price. The existing
-500-Scrap revive and 8,000–15,000 Scrap weapon prices inform pack sizing.
+The six pack quantities and the Naira price ladder below are approved.
+StoreKit provides the localized customer-facing price. The existing 500-Scrap
+revive and 8,000–15,000 Scrap weapon prices inform pack sizing.
 
-### App Store Connect drafts · 6 November 2026
+### App Store Connect drafts · 7 November 2026
 
 All six Apple consumable drafts use the product ID pattern
-`dev.kiishi.regun.scrap.<quantity>`. Nigeria is the base storefront and the
-drafts mirror the existing 500-pack selection of all 175 storefronts.
-The review screenshots and submission remain pending.
+`dev.kiishi.regun.scrap.<quantity>`. Nigeria is the base storefront and Apple
+generates the other 174 storefronts automatically, so the whole ladder is
+edited in Naira only. The 500 pack is removed: ₦700 and ₦1,350 both round to
+$0.99, so the two cheapest packs cost the same.
 
-| Scrap | Saved NGN price | Apple-generated USD price |
-|---:|---:|---:|
-| 500 | ₦750 | $0.99 |
-| 1,000 | ₦1,350 | $0.99 |
-| 2,500 | ₦3,000 | $1.99 |
-| 5,000 | ₦5,500 | $2.99 |
-| 10,000 | ₦10,500 | $5.99 |
-| 15,000 | ₦15,000 | $9.99 |
+Every price below is a selectable App Store Connect Naira point. Naira per
+Scrap falls monotonically, so each larger pack is better value than the one
+before it.
 
-The creator approved the Apple-generated US ladder as saved. It has two
-known overlaps: 500 and 1,000 cost the same, and a 10,000 plus 5,000 pack
-costs less than a 15,000 pack. Keep all six quantities and use store prices.
+| Scrap | NGN price | NGN per Scrap | Expected USD |
+|---:|---:|---:|---:|
+| 1,000 | ₦1,350 | 1.35 | $0.99 |
+| 2,500 | ₦2,900 | 1.16 | $1.99 |
+| 5,000 | ₦4,900 | 0.98 | $2.99 |
+| 10,000 | ₦7,900 | 0.79 | $4.99 |
+| 15,000 | ₦9,900 | 0.66 | $6.99 |
+| 25,000 | ₦14,900 | 0.60 | $9.99 |
+
+Confirm the generated US row on the pricing confirmation screen for each edit;
+never override an individual storefront, because doing so stops Apple from
+repricing that storefront automatically in future. The 500-Scrap product ID is
+removed from the server catalog entirely, so the server rejects it as an
+unknown purchase rather than advertising a pack with no draft.
 
 ### Research and implications
 
