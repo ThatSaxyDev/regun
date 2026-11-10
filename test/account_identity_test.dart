@@ -101,6 +101,40 @@ class _DeletionAccount extends AccountController {
   }
 }
 
+/// In-memory stand-in for the on-disk account store.
+///
+/// A widget test runs inside the fake-async zone, where real file futures never
+/// resolve; the local switch attach performs must therefore stay in memory.
+class _MemoryStore extends AccountLocalStore {
+  final _records = <String, Map<String, dynamic>>{};
+  @override
+  Future<Map<String, dynamic>?> read(String owner) async => _records[owner];
+  @override
+  Future<void> write(String owner, Map<String, dynamic> data) async {
+    _records[owner] = Map<String, dynamic>.from(data);
+  }
+
+  @override
+  Future<void> remove(String owner) async => _records.remove(owner);
+}
+
+class _ResumeAccount extends AccountController {
+  _ResumeAccount({super.store, super.preferences}) {
+    this.session = _reviewSession;
+    account = {'username': 'rook_12', 'email': 'player@example.com'};
+  }
+
+  static final _reviewSession = session(owner);
+
+  /// `attach` ends with a sync. Stubbing it keeps this test on the local
+  /// switch, which is the only part the resume step can hang on.
+  @override
+  Future<void> sync() async {}
+
+  @override
+  Future<void> status() async {}
+}
+
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -313,6 +347,71 @@ void main() {
     expect(stored['pending'], true);
     expect((jsonDecode(secrets.value!) as Map)['revocations'], isNotEmpty);
   });
+
+  test(
+    'attach reports a blocked connection instead of waiting for the open screen',
+    () async {
+      final account = AccountController(secrets: _Secrets());
+      addTearDown(account.dispose);
+      account.session = session(owner);
+      account.account = {'username': 'rook_12'};
+      await account.beginLocalPlay();
+      await expectLater(
+        account.attach().timeout(const Duration(seconds: 2)),
+        throwsA(
+          isA<AccountError>().having(
+            (e) => e.message,
+            'message',
+            contains('Close this screen'),
+          ),
+        ),
+      );
+      account.endLocalPlay();
+    },
+  );
+
+  testWidgets(
+    'resume step connects the signed-in account instead of waiting forever',
+    (tester) async {
+      final prefs = LocalPreferences();
+      await prefs.load();
+      // The half-connected state Apple hit: a verified account with a username,
+      // but the device profile still belongs to the guest, so nothing is
+      // backing up yet. This is the only state that shows the resume step.
+      await prefs.activateProfile('guest', initial: PlayerProfile(scrap: 42));
+      final account = _ResumeAccount(
+        store: _MemoryStore(),
+        preferences: prefs,
+      );
+      addTearDown(account.dispose);
+      expect(account.verified, isTrue);
+      expect(account.ready, isTrue);
+      expect(account.attached, isFalse);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+          child: MaterialApp(
+            home: Scaffold(body: AccountFlow(account: account)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('CONNECT YOUR PROGRESS'), findsOneWidget);
+
+      await tester.tap(find.text('CONTINUE'));
+      await tester.pumpAndSettle();
+
+      // Reaching the attached state is the whole point: before the fix this
+      // stayed on "Working..." for as long as the dialog was open.
+      expect(find.text('CONNECT YOUR PROGRESS'), findsNothing);
+      expect(find.text('Working…'), findsNothing);
+      expect(find.text('BACKUP PENDING'), findsOneWidget);
+      expect(account.attached, isTrue);
+      expect(prefs.profileOwner, owner);
+      expect(prefs.profile.scrap, 42);
+    },
+  );
 
   testWidgets(
     'email flow remains dismissible during a hung send at phone and large text sizes',

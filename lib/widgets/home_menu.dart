@@ -3,11 +3,14 @@ import 'package:regun/widgets/confirm_run_action.dart';
 import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/widgets/wallet_bar.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:regun/services/mac_store_promo.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/utils/soloud_play.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'online_coming_soon.dart';
 import 'app_build_label.dart';
@@ -220,8 +223,13 @@ class HomeMenu extends StatelessWidget {
       );
       // Large text deliberately switches to a scrollable composition rather than
       // shrinking touch targets or letting the title disappear behind a mask.
+      // The Mac download adds height in the scroll case and needs clearance in
+      // the stacked case, so the threshold accounts for it.
+      final macPromo = macStorePromoAvailable;
       final scroll =
-          portrait || box.maxHeight < (desktop ? 540 : 360) || scale > 1.25;
+          portrait ||
+          box.maxHeight < (desktop ? 540 : 360) + (macPromo ? 96 : 0) ||
+          scale > 1.25;
       return Stack(
         fit: StackFit.expand,
         children: [
@@ -265,8 +273,12 @@ class HomeMenu extends StatelessWidget {
                     const SizedBox(height: 12),
                   ],
                   Expanded(
-                    child: scroll
-                        ? SingleChildScrollView(
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: macStorePromoDismissed,
+                      builder: (context, dismissed, _) {
+                        final showPromo = macPromo && !dismissed;
+                        if (scroll) {
+                          return SingleChildScrollView(
                             child: Padding(
                               padding: EdgeInsets.only(
                                 top: portrait ? 220 : 12,
@@ -274,29 +286,78 @@ class HomeMenu extends StatelessWidget {
                               ),
                               child: Align(
                                 alignment: Alignment.centerLeft,
-                                child: navigation,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    navigation,
+                                    if (showPromo) ...[
+                                      SizedBox(height: compact ? 16 : 24),
+                                      SizedBox(
+                                        width: panelWidth,
+                                        child: const _MacStorePromo(),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                             ),
-                          )
-                        : Align(
-                            alignment: Alignment.centerLeft,
-                            child: navigation,
-                          ),
+                          );
+                        }
+                        // The column keeps its exact centred position. The Mac
+                        // download is layered into the free space beneath it
+                        // rather than joining the column, so no existing action
+                        // moves. The scroll threshold above guarantees the two
+                        // cannot meet.
+                        return Stack(
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: navigation,
+                            ),
+                            if (showPromo)
+                              Align(
+                                alignment: Alignment.bottomLeft,
+                                child: SizedBox(
+                                  width: panelWidth,
+                                  child: const _MacStorePromo(),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(height: 8),
+                  // Three zones so each keeps its intended position: score at
+                  // the left edge, the support link centred, build label at the
+                  // right edge. The two Expanded zones are equal, which is what
+                  // centres the middle child in the row.
                   Row(
                     children: [
-                      Text(
-                        bestScore > 0 ? 'BEST  ${formatNumber(bestScore)}' : '',
-                        style: const TextStyle(
-                          fontFamily: FontFam.orbitron,
-                          fontSize: 8,
-                          letterSpacing: 1.4,
-                          color: Color(0xff7f918e),
+                      Expanded(
+                        child: Text(
+                          bestScore > 0
+                              ? 'BEST  ${formatNumber(bestScore)}'
+                              : '',
+                          style: const TextStyle(
+                            fontFamily: FontFam.orbitron,
+                            fontSize: 8,
+                            letterSpacing: 1.4,
+                            color: Color(0xff7f918e),
+                          ),
                         ),
                       ),
-                      const Spacer(),
-                      const AppBuildLabel(),
+                      // Web only. `kIsWeb` is false on macOS, iOS and Android,
+                      // so no native build can ever route a player to an
+                      // external payment page.
+                      if (kIsWeb) const _SupportRegun(),
+                      const Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: AppBuildLabel(),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -591,4 +652,290 @@ class _SettingsGlyph extends CustomPainter {
       paintPixelGlyph(canvas, Offset.zero & size, PixelGlyph.settings, color);
   @override
   bool shouldRepaint(_SettingsGlyph oldDelegate) => color != oldDelegate.color;
+}
+
+/// Web-only way to back the project.
+///
+/// Sits in the low-priority meta row beside the build label, in the same
+/// Orbitron/muted treatment, so it never competes with Play. Opens in a new tab
+/// so the running game is never navigated away from; `kIsWeb` at the call site
+/// keeps every native build free of an external payment link.
+class _SupportRegun extends StatelessWidget {
+  const _SupportRegun();
+
+  static final _url = Uri.parse(
+    'https://checkout.bachs.io/pay/pl_078cbeae14f3',
+  );
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    link: true,
+    label: 'Support Regun development, opens in a new tab',
+    child: TextButton(
+      onPressed: () => launchUrl(
+        _url,
+        mode: LaunchMode.externalApplication,
+        webOnlyWindowName: '_blank',
+      ),
+      style: TextButton.styleFrom(
+        // 44px keeps the target usable even though the label is 10pt meta text.
+        minimumSize: const Size(0, 44),
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        foregroundColor: const Color(0xff7f918e),
+        overlayColor: const Color(0xffedd2a1),
+        textStyle: const TextStyle(
+          fontFamily: FontFam.orbitron,
+          fontSize: 10,
+          height: 1.4,
+          letterSpacing: 1,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      child: const Text(
+        'SUPPORT REGUN',
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.fade,
+      ),
+    ),
+  );
+}
+
+/// Web-only prompt offering the released macOS build to Mac visitors.
+///
+/// Deliberately not one of the `_HomeAction` plates: those are the game's
+/// actions, and a store link sitting among Play and Continue would read as one.
+/// This is a quieter, bordered card that hangs in the empty space beneath the
+/// column, using the same palette and cut corners so it belongs to the screen
+/// without joining the menu.
+///
+/// Never shown outside a browser on a Mac — see `mac_store_promo_stub.dart`.
+class _MacStorePromo extends ConsumerStatefulWidget {
+  const _MacStorePromo();
+
+  @override
+  ConsumerState<_MacStorePromo> createState() => _MacStorePromoState();
+}
+
+class _MacStorePromoState extends ConsumerState<_MacStorePromo> {
+  bool _pressed = false;
+  bool _hovered = false;
+  bool _focused = false;
+  bool _closeHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = MediaQuery.textScalerOf(context).scale(12) / 12;
+    // Grow with the text scale instead of clipping, capped so a large system
+    // font cannot turn this into a wall.
+    final pad = (12 * scale).clamp(12.0, 20.0);
+    return Semantics(
+      link: true,
+      label: 'Get Regun for Mac on the Mac App Store, opens in a new tab',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            if (context.mounted) ref.read(soloudPlayProvider).play('click.mp3');
+            launchUrl(
+              Uri.parse(macAppStoreUrl),
+              mode: LaunchMode.externalApplication,
+              webOnlyWindowName: '_blank',
+            );
+          },
+          onHover: (value) => setState(() => _hovered = value),
+          onFocusChange: (value) => setState(() => _focused = value),
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapUp: (_) => setState(() => _pressed = false),
+          onTapCancel: () => setState(() => _pressed = false),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          child: CustomPaint(
+            painter: _MacStorePlate(
+              pressed: _pressed,
+              highlighted: _hovered || _focused,
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(pad + 2, pad * .8, pad, pad * .8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'MAC APP STORE',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: FontFam.orbitron,
+                            fontSize: 8,
+                            height: 1.5,
+                            letterSpacing: 1.6,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xffc39b61),
+                          ),
+                        ),
+                        SizedBox(height: 2 * scale),
+                        const Text(
+                          'Get Regun for Mac',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: FontFam.orbitron,
+                            fontSize: 12,
+                            height: 1.4,
+                            letterSpacing: .4,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xffeee5d4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 8 * scale),
+                  // Dismiss is its own gesture area, so a tap here can never
+                  // also open the store. In-memory only: it lasts until the page
+                  // is reloaded, which keeps it gone when returning from a run
+                  // while still offering the app on a fresh visit.
+                  Semantics(
+                    button: true,
+                    label: 'Dismiss Mac App Store suggestion',
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: dismissMacStorePromo,
+                      onTapDown: (_) => setState(() => _closeHovered = true),
+                      onTapCancel: () => setState(() => _closeHovered = false),
+                      onTapUp: (_) => setState(() => _closeHovered = false),
+                      child: SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: Center(
+                          child: Text(
+                            '✕',
+                            style: TextStyle(
+                              fontFamily: FontFam.orbitron,
+                              fontSize: 11,
+                              height: 1.2,
+                              color: _closeHovered
+                                  ? const Color(0xffeee5d4)
+                                  : const Color(0xff7f918e),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 10 * scale),
+                  Transform.translate(
+                    offset: Offset(0, _pressed ? 1 : -1),
+                    child: SizedBox(
+                      width: 15,
+                      height: 15,
+                      child: CustomPaint(
+                        painter: _OutboundArrow(
+                          _hovered || _focused
+                              ? const Color(0xfff4d8a5)
+                              : const Color(0xffc39b61),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bordered card with the same cut corners as the control plates, plus a gold
+/// edge bar so it reads as a way out to the store rather than another menu row.
+class _MacStorePlate extends CustomPainter {
+  const _MacStorePlate({required this.pressed, required this.highlighted});
+
+  final bool pressed;
+  final bool highlighted;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final face = (Offset.zero & size).deflate(.5);
+    final path = controlPlate(face, cut: 7);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = pressed
+            ? const Color(0xff241d24)
+            : const Color(0xff1d1720).withValues(alpha: .84),
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = highlighted
+            ? const Color(0xff896c4e)
+            : const Color(0xff4d3f3d),
+    );
+    // Accent bar on the left edge, inset so the cut corners stay visible.
+    canvas.drawRect(
+      Rect.fromLTWH(face.left + 4, face.top + 10, 2, face.height - 20),
+      Paint()..color = const Color(0xffc39b61),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_MacStorePlate oldDelegate) =>
+      oldDelegate.pressed != pressed || oldDelegate.highlighted != highlighted;
+}
+
+/// The "leaves this app" arrow: a frame with a diagonal arrow breaking out of
+/// its top-right corner.
+///
+/// Drawn rather than typed. The `↗` glyph renders as whatever the platform's
+/// fallback font supplies — an emoji on some systems — which reads as cheap
+/// next to the pixel-art plates. This is stroke geometry on a 16-unit grid, so
+/// it stays crisp at any size and matches the gold used elsewhere.
+class _OutboundArrow extends CustomPainter {
+  const _OutboundArrow(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.scale(size.width / 16, size.height / 16);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.square
+      ..strokeJoin = StrokeJoin.miter;
+    // The frame, open at the top-right so the arrow appears to leave it.
+    canvas.drawPath(
+      Path()
+        ..moveTo(1.5, 6.5)
+        ..lineTo(1.5, 14.5)
+        ..lineTo(9.5, 14.5)
+        ..lineTo(9.5, 9.5),
+      paint,
+    );
+    // The arrow: shaft plus head.
+    canvas.drawPath(
+      Path()
+        ..moveTo(7.5, 8.5)
+        ..lineTo(14.5, 1.5)
+        ..moveTo(9.5, 1.5)
+        ..lineTo(14.5, 1.5)
+        ..lineTo(14.5, 6.5),
+      paint,
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_OutboundArrow oldDelegate) => color != oldDelegate.color;
 }

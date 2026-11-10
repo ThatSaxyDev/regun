@@ -1,4 +1,4 @@
-import 'package:regun/services/apple_scrap_store.dart';
+import 'package:regun/services/scrap_store.dart';
 import 'package:regun/desktop/web_landscape_prompt.dart';
 import 'package:regun/desktop/desktop_menu_cursor.dart';
 import 'package:flutter/services.dart';
@@ -42,7 +42,7 @@ void main() async {
     );
   });
   WidgetsFlutterBinding.ensureInitialized();
-  AppleScrapStore.shared.start();
+  ScrapStore.start();
   if (!kIsWeb) OnlineSession.appTokens = SecureOnlineTokens();
   OnlineSession.prepareAssets = () => RegunArt.shared.load();
   if (desktopInputAvailable) await DesktopBindings.shared.load();

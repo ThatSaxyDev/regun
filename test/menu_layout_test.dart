@@ -20,6 +20,23 @@ class _Quiet extends SoloudPlay {
 }
 
 void main() {
+  testWidgets('menu header forwards wallet sign-in to the screen', (tester) async {
+    var signIns = 0;
+    await tester.pumpWidget(ProviderScope(
+        overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+        child: MaterialApp(
+            home: Scaffold(
+                body: MenuHeader(
+                    title: 'LOADOUT',
+                    showWallet: true,
+                    onWalletSignIn: () => signIns++)))));
+    await tester.tap(find.byType(WalletBar));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('SIGN IN'));
+    await tester.pumpAndSettle();
+    expect(signIns, 1);
+  });
+
   testWidgets(
       'collection rows align, all tabs fit, and the final card clears the edge',
       (tester) async {

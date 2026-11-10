@@ -1,11 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/services/account/account_api.dart';
 import 'package:regun/services/account/account_controller.dart';
-import 'package:regun/services/apple_scrap_store.dart';
+import 'package:regun/services/scrap_store.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/account_flow.dart';
@@ -23,7 +22,7 @@ Future<void> showScrapStore(
   BuildContext context, {
   bool allowSignIn = true,
 }) async {
-  if (!AppleScrapStore.supported) return;
+  if (!ScrapStore.supported) return;
   final account = AccountController.shared;
   await account.initialize();
   if (!context.mounted) return;
@@ -79,9 +78,9 @@ class _ScrapStoreDialogState extends State<_ScrapStoreDialog> {
     color: Color(0xffE1BA78),
   );
 
-  final _store = AppleScrapStore.shared;
+  final _store = ScrapStore.shared;
   final _account = AccountController.shared;
-  late Future<List<({int amount, ProductDetails product})>> _offers;
+  late Future<List<ScrapStoreOffer>> _offers;
 
   @override
   void initState() {
@@ -152,7 +151,7 @@ class _ScrapStoreDialogState extends State<_ScrapStoreDialog> {
                           ClickButton(
                             width: width,
                             text:
-                                'Buy ${formatNumber(offer.amount)} Scrap for ${offer.product.price}',
+                                'Buy ${formatNumber(offer.amount)} Scrap for ${offer.label}',
                             content: Padding(
                               padding: EdgeInsets.symmetric(
                                 vertical: roomyDesktop ? 8 : 0,
@@ -173,17 +172,25 @@ class _ScrapStoreDialogState extends State<_ScrapStoreDialog> {
                                   ),
                                   SizedBox(height: 3 * scale),
                                   Text(
-                                    offer.product.price,
+                                    offer.label,
                                     style: priceStyle,
                                   ),
+                                  if (offer.alternate.isNotEmpty)
+                                    Text(
+                                      'or ${offer.alternate}',
+                                      style: priceStyle.copyWith(
+                                        fontSize:
+                                            (priceStyle.fontSize ?? 13) - 2,
+                                        color: priceStyle.color?.withValues(
+                                          alpha: 0.62,
+                                        ),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
                             onTap: enabled
-                                ? () => _store.buy(
-                                    offer.product,
-                                    widget.owner,
-                                  )
+                                ? () => _store.buy(offer, widget.owner)
                                 : null,
                           ),
                       ],

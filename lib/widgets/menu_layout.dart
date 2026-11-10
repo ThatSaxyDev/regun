@@ -79,9 +79,17 @@ class MenuPage extends StatelessWidget {
 /// Title and balances share one pinned header; only narrow/large-text layouts
 /// wrap the title group. Back retains its own trailing touch target.
 class MenuHeader extends StatelessWidget {
-  const MenuHeader({super.key, required this.title, this.showWallet = false});
+  const MenuHeader({
+    super.key,
+    required this.title,
+    this.showWallet = false,
+    this.onWalletSignIn,
+  });
   final String title;
   final bool showWallet;
+
+  /// Handled by the screen itself when it must close before sign-in can run.
+  final VoidCallback? onWalletSignIn;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -108,7 +116,8 @@ class MenuHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              if (showWallet) const WalletBar(showLabels: false),
+              if (showWallet)
+                WalletBar(showLabels: false, onSignIn: onWalletSignIn),
             ],
           ),
         ),

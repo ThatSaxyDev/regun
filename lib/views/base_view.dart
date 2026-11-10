@@ -1,4 +1,4 @@
-import 'package:regun/services/apple_scrap_store.dart';
+import 'package:regun/services/scrap_store.dart';
 import 'package:regun/widgets/scrap_store_dialog.dart';
 import 'package:regun/desktop/desktop_combat_kit.dart';
 import 'package:regun/desktop/web_landscape_prompt.dart';
@@ -1858,7 +1858,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       onRetry: _myGame.checkSoloRecovery,
       onEnd: _myGame.endRecoveryRun,
       onMenu: _leave,
-      onTopUp: AppleScrapStore.supported
+      onTopUp: ScrapStore.supported
           ? () async {
               if (!await _myGame.persistRecovery() || !mounted) return;
               await showScrapStore(context, allowSignIn: false);

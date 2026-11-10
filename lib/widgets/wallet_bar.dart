@@ -1,4 +1,4 @@
-import 'package:regun/services/apple_scrap_store.dart';
+import 'package:regun/services/scrap_store.dart';
 import 'package:regun/widgets/scrap_store_dialog.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/services/account/account_controller.dart';
@@ -23,9 +23,15 @@ class WalletBar extends StatelessWidget {
     this.preferences,
     this.showLabels = true,
     this.readOnly = false,
+    this.onSignIn,
   });
   final LocalPreferences? preferences;
   final bool showLabels, readOnly;
+
+  /// Screens that hold the local profile lease (the armory) cannot complete an
+  /// account attach while they are open, so they hand sign-in back to the menu
+  /// instead of raising the dialog above themselves.
+  final VoidCallback? onSignIn;
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +47,13 @@ class WalletBar extends StatelessWidget {
               ? walletAmount(source.profile.scrap)
               : '—',
           pending: source.profileSaveFailed,
-          purchasable: !readOnly && AppleScrapStore.supported,
-          onTap: () => showWallet(context, source, readOnly: readOnly),
+          purchasable: !readOnly && ScrapStore.supported,
+          onTap: () => showWallet(
+            context,
+            source,
+            readOnly: readOnly,
+            onSignIn: onSignIn,
+          ),
         ),
       ),
     );
@@ -174,6 +185,7 @@ Future<void> showWallet(
   BuildContext pageContext,
   LocalPreferences source, {
   bool readOnly = false,
+  VoidCallback? onSignIn,
 }) => showDialog<void>(
   context: pageContext,
   builder: (context) => Dialog(
@@ -193,12 +205,26 @@ Future<void> showWallet(
                   await source.saveProfile();
                 },
               )
-            : !readOnly && AppleScrapStore.supported
+            : !readOnly && ScrapStore.supported
             ? ClickButton(
                 text: 'Buy Scrap',
                 onTap: () async {
                   Navigator.of(context).pop();
-                  if (pageContext.mounted) await showScrapStore(pageContext);
+                  if (!pageContext.mounted) return;
+                  final account = AccountController.shared;
+                  await account.initialize();
+                  if (!pageContext.mounted) return;
+                  if (onSignIn != null &&
+                      (!account.attached ||
+                          account.needsSignIn ||
+                          account.conflict)) {
+                    onSignIn();
+                    return;
+                  }
+                  await showScrapStore(
+                    pageContext,
+                    allowSignIn: onSignIn == null,
+                  );
                 },
               )
             : !readOnly && !source.canSpend
@@ -206,6 +232,10 @@ Future<void> showWallet(
                 text: 'Sign in',
                 onTap: () async {
                   Navigator.of(context).pop();
+                  if (onSignIn != null) {
+                    onSignIn();
+                    return;
+                  }
                   final account = AccountController.shared;
                   await account.initialize();
                   if (pageContext.mounted) {

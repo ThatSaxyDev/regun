@@ -370,6 +370,13 @@ class AccountController extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> attach({bool useCloud = false, bool useDevice = false}) async {
     if (!ready) throw const AccountError('Choose your username first.');
+    // The account dialog can be raised above a screen that holds the local
+    // profile lease. Waiting for that lease can never finish, because the
+    // dialog blocks the route that would release it, so refuse instead of
+    // leaving the player on "Working..." forever.
+    if (_localPlays > 0) {
+      throw const AccountError('Close this screen, then connect your account.');
+    }
     final id = session!.accountId, generation = _generation;
     final previous = await _store.read(id);
     if (generation != _generation) return;

@@ -1,5 +1,5 @@
 import 'package:regun/components/map/map_component.dart';
-import 'package:regun/services/apple_scrap_store.dart';
+import 'package:regun/services/scrap_store.dart';
 import 'package:regun/widgets/scrap_store_dialog.dart';
 import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/utils/format_number.dart';
@@ -114,6 +114,7 @@ class _LoadoutViewState extends State<LoadoutView> {
                 MenuHeader(
                   title: widget.training ? 'TRAINING' : 'LOADOUT',
                   showWallet: true,
+                  onWalletSignIn: _requestSignIn,
                 ),
                 const SizedBox(height: 12),
                 IntrinsicHeight(
@@ -261,6 +262,7 @@ class _LoadoutViewState extends State<LoadoutView> {
                   MenuHeader(
                     title: widget.training ? 'TRAINING' : 'LOADOUT',
                     showWallet: true,
+                    onWalletSignIn: _requestSignIn,
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -569,6 +571,14 @@ class _LoadoutViewState extends State<LoadoutView> {
     return null;
   }
 
+  /// The armory holds the local profile lease for as long as it is open, so an
+  /// account attach raised above it can never finish. Leave the screen first
+  /// and let the menu open the account flow, which is where attach can run.
+  void _requestSignIn() {
+    if (!mounted) return;
+    Navigator.pop(context, 'sign-in');
+  }
+
   Future<void> _unlockWeapon() async {
     final account = ProviderScope.containerOf(
       context,
@@ -627,7 +637,9 @@ class _LoadoutViewState extends State<LoadoutView> {
         return;
       }
       if (profile.scrap < price) {
-        if (AppleScrapStore.supported) await showScrapStore(context);
+        if (ScrapStore.supported) {
+          await showScrapStore(context, allowSignIn: false);
+        }
         return;
       }
       final accepted = await confirmRunAction(
@@ -717,7 +729,7 @@ class _LoadoutViewState extends State<LoadoutView> {
               (_armory.loading ||
                   _unlocking ||
                   (blocker == null &&
-                      (missing <= 0 || AppleScrapStore.supported))))
+                      (missing <= 0 || ScrapStore.supported))))
             ClickButton(
               key: const Key('loadout-unlock-weapon'),
               text: _unlocking || _armory.loading
@@ -731,7 +743,7 @@ class _LoadoutViewState extends State<LoadoutView> {
               onTap:
                   _unlocking ||
                       _armory.loading ||
-                      (missing > 0 && !AppleScrapStore.supported)
+                      (missing > 0 && !ScrapStore.supported)
                   ? null
                   : _unlockWeapon,
             )

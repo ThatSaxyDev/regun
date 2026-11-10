@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/utils/soloud_play.dart';
+import 'package:regun/widgets/account_flow.dart';
 import 'package:regun/widgets/wallet_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -188,6 +189,33 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('SIGN IN'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'armory hands wallet sign-in back to the screen owner',
+    (tester) async {
+      final preferences = LocalPreferences();
+      await preferences.load();
+      var signIns = 0;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+          child: MaterialApp(
+            home: Scaffold(
+              body: WalletBar(preferences: preferences, onSignIn: () => signIns++),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('SCRAP'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('SIGN IN'));
+      await tester.pumpAndSettle();
+      expect(signIns, 1);
+      // The armory cannot complete an attach while it is open, so the dialog
+      // must never be raised from inside it.
+      expect(find.byType(AccountFlow), findsNothing);
     },
   );
 
