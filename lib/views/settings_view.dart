@@ -6,6 +6,7 @@ import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/widgets/account_settings.dart';
+import 'package:regun/widgets/notification_settings.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
 import 'package:regun/widgets/settings_section.dart';
 import 'package:regun/models/control_layout.dart';
@@ -194,7 +195,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       spacing: 24,
-                      children: [audio, gameplay],
+                      children: [audio, gameplay, const NotificationSettings()],
                     ),
                   ];
                   return Column(
@@ -233,6 +234,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   audio,
                   const SizedBox(height: 32),
                   gameplay,
+                  const SizedBox(height: 32),
+                  const NotificationSettings(),
                   const SizedBox(height: 32),
                   ...account,
                 ],

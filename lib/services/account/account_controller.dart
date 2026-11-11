@@ -11,6 +11,7 @@ import 'package:regun/models/player_profile.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/services/account/account_api.dart';
 import 'package:regun/services/account/account_storage.dart';
+import 'package:regun/services/push/push_service.dart';
 import 'package:uuid/uuid.dart';
 
 final accountProvider = Provider<AccountController>(
@@ -276,6 +277,7 @@ class AccountController extends ChangeNotifier with WidgetsBindingObserver {
       await _secrets.write(
         _revocations.isEmpty ? null : jsonEncode({'revocations': _revocations}),
       );
+      unawaited(PushService.shared.syncIdentity());
       return;
     }
     final cloud = account?['cloud'] as Map?;
@@ -302,6 +304,7 @@ class AccountController extends ChangeNotifier with WidgetsBindingObserver {
           },
       }),
     );
+    unawaited(PushService.shared.syncIdentity());
   }
 
   Future<void> status() async {
@@ -1187,6 +1190,7 @@ class AccountController extends ChangeNotifier with WidgetsBindingObserver {
       throw const AccountError('The signed-in account changed. Try again.');
     }
     await api.request('/delete', token: token, body: {});
+    await PushService.shared.forgetAccount();
     if (generation == _generation) await _clearSession();
     await _switchLocal(() async {
       await _store.remove(owner);

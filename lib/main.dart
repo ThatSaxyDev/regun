@@ -7,6 +7,7 @@ import 'package:regun/desktop/desktop_controller.dart';
 import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/services/account/account_controller.dart';
 import 'package:regun/services/player_registry.dart';
+import 'package:regun/services/push/push_service.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/services/balance_repository.dart';
 import 'package:regun/widgets/game_presentation.dart';
@@ -22,6 +23,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:logging/logging.dart';
 import 'package:regun/views/flame_splash_view.dart';
+import 'package:regun/views/base_view.dart';
+import 'package:regun/views/collection_view.dart';
+import 'package:regun/views/leaderboard_view.dart';
+import 'package:regun/views/settings_view.dart';
 import 'package:regun/multiplayer/online_session.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/multiplayer/secure_online_tokens.dart';
@@ -67,8 +72,22 @@ void main() async {
   AccountController.shared.onGuestAttached = (id) =>
       unawaited(PlayerRegistry.shared.linkGuest(id));
   unawaited(PlayerRegistry.shared.initialize());
+  PushService.pushNavigatorKey = navigatorKey;
+  PushService.pushScreenFor = (route) => switch (route) {
+    'collection' => const CollectionView(),
+    'leaderboards' => const LeaderboardView(),
+    'settings' || 'account' => const SettingsView(),
+    // Store and online have no standalone screen; both live on the menu.
+    _ => const BaseView(),
+  };
+  final push = PushService.shared;
+  push.accountId = () => AccountController.shared.session?.accountId;
+  push.accessToken = () => AccountController.shared.accessToken();
+  push.guestCredentials = () => PlayerRegistry.shared.publicCredentials();
+  unawaited(push.initialize());
   unawaited(BalanceRepository.shared.start());
   runApp(const ProviderScope(child: GameApp()));
+  WidgetsBinding.instance.addPostFrameCallback((_) => push.router.flush());
 }
 
 class GameApp extends StatefulWidget {
@@ -140,6 +159,7 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
       unawaited(_resumeAudioOutput());
       unawaited(BalanceRepository.shared.refresh());
       unawaited(PlayerRegistry.shared.refresh());
+      unawaited(PushService.shared.syncIdentity());
     }
   }
 
