@@ -1,43 +1,18 @@
 # Release build configuration
 
-`release.local.json` is the ignored, combined configuration for phone and store
-builds. The existing local Telling project key has been preserved there. On a
-fresh checkout, copy `release.example.json` to `release.local.json`, then supply
-the Regun Telling project key. This is the embedded SDK project key; Sendbyte,
-Resend, signing and administrative secrets belong only on the backend.
+Copy `release.example.json` to the ignored `release.local.json`. Use
+`RELEASE_CONFIG=path/to/config.json` to select another file in the Make targets.
 
-Run on a connected iPhone:
+- `REGUN_SERVER_HOST`, `REGUN_DATABASE` and `REGUN_SERVER_TLS` select multiplayer.
+- `REGUN_IDENTITY_URL` is the HTTPS origin for accounts, app availability and
+  announcements. Use the same environment for the game and Admin.
+- `REGUN_RELEASE_CHANNEL` is `production` by default. Set it to `beta` in
+  separately distributed test builds. Policies and announcements are independent.
+- `ONESIGNAL_APP_ID` is the public iOS and Android push app ID. Keep provider
+  secrets in the server environment.
 
-```sh
-make runRelease DEVICE=00008101-000248EC1450001E
-```
-
-Use `flutter devices` to find a different device ID. Equivalent Flutter command:
-
-```sh
-flutter run --release --dart-define-from-file=config/release.local.json -d 00008101-000248EC1450001E
-```
-
-`make buildIOS`, `make buildIPA`, `make buildAPK` and `make build` read the same
-file. Override with `RELEASE_CONFIG=path/to/config.json` if needed. Older checkouts
-with only `config/telling.local.json` remain supported by the Make targets.
-
-- `TELLING_PROJECT_KEY` / `TELLING_API_URL`: existing release/update checks.
-- `REGUN_SERVER_HOST`: multiplayer hostname, without `https://`.
-- `REGUN_DATABASE` / `REGUN_SERVER_TLS`: database and TLS selection.
-- `REGUN_IDENTITY_URL`: HTTPS origin of the email/account service, without a path.
-  Uses `https://regunserver.kiishi.space`, served by the same root backend Docker
-  deployment as multiplayer. Telling remains separate. Never substitute the
-  Sendbyte API URL. Account routes need the updated server deployment enabled.
-- `ONESIGNAL_APP_ID`: public OneSignal app id for iOS/Android push. Empty disables
-  push; the game and account flows are unaffected. Deliberately excluded from the
-  web build. The OneSignal **REST API key is server-only** and never belongs in
-  this file — set `ONESIGNAL_REST_API_KEY` in the backend runtime environment.
-
-On 22 October 2026, `https://regunserver.kiishi.space/` and `/health` returned 200,
-and `/features` reported online play enabled. Its root OIDC discovery endpoint
-returned 403, consistent with the current multiplayer-only proxy configuration;
-the root backend Docker build now packages the account service for that same
-origin. Redeploy it with the server email variables described in
-`../regun-server/deploy/ACCOUNTS.md` before testing sign-in. Offline play remains
-available while those routes are unavailable.
+Run on a connected iPhone with `make runRelease DEVICE=<device-id>`. Find the
+device ID with `flutter devices`. The same config is used by `make buildIOS`,
+`make buildIPA`, `make buildAPK` and `make build`. See the
+[update and maintenance runbook](../docs/UPDATE_CONFIGURATION.md) for server
+setup, Mac signing and live verification.

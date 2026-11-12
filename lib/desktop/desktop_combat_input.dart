@@ -21,6 +21,7 @@ class DesktopCombatInput {
   Offset? pointer;
   final movement = Vector2.zero();
   final stickAim = Vector2.zero();
+  bool stickAiming = false;
   bool _fireHeld = false;
   bool _firePressed = false;
   bool get fire => _fireHeld || _firePressed;
@@ -38,6 +39,7 @@ class DesktopCombatInput {
   void reset() {
     movement.setZero();
     stickAim.setZero();
+    stickAiming = false;
     cancelFire();
     grenade = false;
     epoch++;

@@ -52,7 +52,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
         title: 'Notifications',
         children: [
           Text(
-            'Push notifications are available in the mobile app.',
+            'Push notifications are available on iOS, Android, and supported Mac builds.',
             style: _bodyStyle,
           ),
         ],
@@ -95,7 +95,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
                     prefs['master'] == true,
                     (value) => _run(() => push.setMaster(value)),
                   ),
-                  if (prefs['master'] == true) ...[
+                  if (prefs['master'] == true && !push.mac) ...[
                     _toggle(
                       'Return reminders',
                       prefs['returnReminders'] == true,

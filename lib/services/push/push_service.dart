@@ -8,10 +8,11 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:regun/services/app_updates.dart' show releaseChannel;
 import 'package:regun/services/push/push_api.dart';
 import 'package:regun/services/push/push_router.dart';
 
-/// Mobile-only push lifecycle. Every entry point is best-effort: an unavailable
+/// Native push lifecycle. Every entry point is best-effort: an unavailable
 /// provider, missing credential or failed request never blocks gameplay.
 class PushService {
   PushService({PushApi? api, GlobalKey<NavigatorState>? navigatorKey})
@@ -54,6 +55,9 @@ class PushService {
   String? _pendingOpen;
   bool _identityReady = true;
   Future<void> _identitySync = Future.value();
+  Future<void> _macSync = Future.value();
+  static const _macChannel = MethodChannel('regun/mac_push');
+  static const _macMasterKey = 'regun.macPush.enabled';
   static const _timezoneChannel = MethodChannel('regun/push_timezone');
 
   String? get subscriptionId => _subscriptionId;
@@ -61,12 +65,15 @@ class PushService {
   static const _askedKey = 'regun.push.asked.v1';
   static const _promptedKey = 'regun.push.prompted.v1';
 
+  bool get mac => !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
+
   bool get supported =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
-          defaultTargetPlatform == TargetPlatform.android);
+          defaultTargetPlatform == TargetPlatform.android ||
+          mac);
 
-  bool get configured => supported && appId.isNotEmpty;
+  bool get configured => supported && (mac ? api.configured : appId.isNotEmpty);
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -78,6 +85,13 @@ class PushService {
       return;
     }
     try {
+      if (mac) {
+        _macChannel.setMethodCallHandler((call) async {
+          if (call.method == 'changed') await _syncMac();
+        });
+        await _syncMac();
+        return;
+      }
       await OneSignal.initialize(appId);
       OneSignal.Notifications.addClickListener((event) {
         final data = event.notification.additionalData;
@@ -89,7 +103,10 @@ class PushService {
         }
       });
       OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-        if (_suppressForeground) event.preventDefault();
+        if (_suppressForeground ||
+            (router.navigatorKey?.currentState?.canPop() ?? false)) {
+          event.preventDefault();
+        }
       });
       OneSignal.Notifications.addPermissionObserver((granted) {
         unawaited(_report());
@@ -104,7 +121,16 @@ class PushService {
   }
 
   /// True while a run is active; foreground banners are then suppressed.
-  set suppressForeground(bool value) => _suppressForeground = value;
+  set suppressForeground(bool value) {
+    _suppressForeground = value;
+    if (mac && configured) {
+      unawaited(
+        _macChannel
+            .invokeMethod<void>('suppress', value)
+            .catchError((Object _) {}),
+      );
+    }
+  }
 
   Future<void> _refreshStatus([bool? granted]) async {
     if (!configured) return;
@@ -125,7 +151,7 @@ class PushService {
   /// permission never decided, and the player has not already been asked.
   /// A denied permission never re-offers the banner.
   Future<bool> shouldOfferPrompt() async {
-    if (!configured) return false;
+    if (!configured || mac) return false;
     if (status.value != PushStatus.notDetermined) return false;
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_promptedKey) != true;
@@ -142,6 +168,12 @@ class PushService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_askedKey, true);
     try {
+      if (mac) {
+        final granted =
+            await _macChannel.invokeMethod<bool>('request') ?? false;
+        await _syncMac();
+        return granted;
+      }
       final granted = await OneSignal.Notifications.requestPermission(true);
       await _refreshStatus(granted);
       if (granted) {
@@ -158,6 +190,14 @@ class PushService {
     final next = {...preferences.value, 'master': enabled};
     preferences.value = next;
     if (!configured) return;
+    if (mac) {
+      await (await SharedPreferences.getInstance()).setBool(
+        _macMasterKey,
+        enabled,
+      );
+      await _syncMac();
+      return;
+    }
     try {
       if (enabled) {
         await OneSignal.User.pushSubscription.optIn();
@@ -324,6 +364,10 @@ class PushService {
       };
     }
     _identitySync = _identitySync.then((_) async {
+      if (mac) {
+        await _syncMac();
+        return;
+      }
       await _syncIdentity();
       await _loadPreferences();
       await _reportOpen();
@@ -354,11 +398,71 @@ class PushService {
 
   /// The deletion reducer has already removed the account's subscriptions.
   Future<void> forgetAccount() async {
-    if (!configured) return;
+    if (!configured || mac) return;
     try {
       await OneSignal.logout();
     } catch (_) {
       // The next identity sync can still restore the guest alias.
+    }
+  }
+
+  Future<void> _syncMac() => _macSync = _macSync.then((_) => _reportMac());
+
+  Future<void> _reportMac() async {
+    try {
+      final native = await _macChannel.invokeMapMethod<String, dynamic>(
+        'status',
+      );
+      if (native?['opened'] == true) {
+        router.handle({'route': 'home', 'availability': 'true'});
+      }
+      final environment = native?['environment'];
+      if (environment != 'production' && environment != 'sandbox') {
+        status.value = PushStatus.unconfigured;
+        return;
+      }
+      final store = await SharedPreferences.getInstance();
+      final enabled = store.getBool(_macMasterKey) ?? true;
+      final permission = native?['permission'];
+      final pushToken = native?['token'];
+      preferences.value = {...preferences.value, 'master': enabled};
+      status.value = switch (permission) {
+        'denied' => PushStatus.denied,
+        'granted' when !enabled => PushStatus.optedOut,
+        'granted' when native?['registrationError'] == true =>
+          PushStatus.unavailable,
+        'granted' => PushStatus.enabled,
+        _ => PushStatus.notDetermined,
+      };
+      if (!_identityReady || pushToken is! String || pushToken.isEmpty) return;
+      final initialAccount = accountId?.call();
+      final credential = await _credential();
+      if (credential == null || accountId?.call() != initialAccount) return;
+      final info = await PackageInfo.fromPlatform();
+      final build = int.tryParse(info.buildNumber);
+      if (build == null || accountId?.call() != initialAccount) return;
+      final result = await api.request(
+        '/app/v1/mac-subscription',
+        token: credential.token,
+        body: {
+          'apnsToken': pushToken,
+          'environment': environment,
+          'channel': releaseChannel,
+          'version': info.version,
+          'build': build,
+          'optedIn': enabled && permission == 'granted',
+          if (credential.deviceId != null) 'deviceId': credential.deviceId,
+          if (credential.deviceSecret != null)
+            'deviceSecret': credential.deviceSecret,
+        },
+      );
+      if (accountId?.call() == initialAccount && result['id'] is String) {
+        _subscriptionId = result['id'] as String;
+      } else if (enabled && permission == 'granted') {
+        status.value = PushStatus.unavailable;
+      }
+    } catch (_) {
+      status.value = PushStatus.unavailable;
     }
   }
 

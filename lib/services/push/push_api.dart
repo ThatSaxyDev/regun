@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:regun/services/app_updates.dart' show releaseChannel;
 
 /// Notification registration and preferences. Same origin, TLS and bounds as
 /// [AccountApi]; every call is detached from gameplay and may fail silently.
@@ -87,6 +88,7 @@ class PushApi {
       'subscriptionId': subscriptionId,
       'platform': platform,
       'appVersion': appVersion,
+      'releaseChannel': releaseChannel,
       'locale': locale,
       'timezone': timezone,
       'permission': permission,

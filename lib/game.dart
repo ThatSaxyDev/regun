@@ -168,6 +168,9 @@ class RegunGame extends FlameGame
     final input = desktopInput!;
     final point = input.pointer;
     if (point == null) {
+      if (input.controller && !input.stickAiming && !input.fire) {
+        return Vector2.zero();
+      }
       return input.stickAim.isZero() && input.fire
           ? myPlayer.aimDirection
           : input.stickAim;
@@ -193,8 +196,15 @@ class RegunGame extends FlameGame
     if (acceptsDesktopInput) boostButtonComponent.requestDash();
   }
 
-  Vector2 get desktopGrenadeDirection =>
-      aimIntent.isZero() ? quickGrenadeDirection : aimIntent;
+  Vector2 get desktopGrenadeDirection {
+    final input = desktopInput;
+    // Keep the grenade's last heading through release even when primary aim rests.
+    if (input != null && input.controller && !input.stickAim.isZero()) {
+      return input.stickAim;
+    }
+    final aim = aimIntent;
+    return aim.isZero() ? quickGrenadeDirection : aim;
+  }
 
   final BuildContext context;
   Loadout loadout;

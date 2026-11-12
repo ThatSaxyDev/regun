@@ -1,62 +1,50 @@
-"""Resolve mobile download destinations from the Regun Telling release policy."""
+"""Resolve mobile download destinations from Regun's published release policies."""
 
 import json
-import subprocess
+import re
 import sys
 from pathlib import Path
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlsplit
+from urllib.request import urlopen
 
 
-STORE_HOSTS = {
+STORES = {
     "ios": {"apps.apple.com", "testflight.apple.com"},
-    "android": {
-        "play.google.com",
-        "appdistribution.firebase.dev",
-        "appdistribution.firebase.google.com",
-    },
+    "android": {"play.google.com", "appdistribution.firebase.dev"},
 }
-
-
-def store_link(endpoint, key, platform):
-    query = urlencode({"platform": platform, "version": "0.0.0", "build": "0"})
-    # Read the header from stdin so the project key stays out of the process args.
-    response = subprocess.run(
-        ["curl", "--fail", "--silent", "--show-error", "--max-time", "8",
-         "--header", "@-", f"{endpoint}/project/version-check?{query}"],
-        input=f"x-api-key: {key}\n",
-        text=True,
-        capture_output=True,
-    )
-    if response.returncode:
-        raise ValueError(f"Telling could not resolve the {platform} release policy")
-    value = json.loads(response.stdout).get("storeUrl")
-    if not isinstance(value, str) or not value.strip():
-        return None
-    value = value.strip()
-    uri = urlsplit(value)
-    if (uri.scheme != "https" or uri.hostname not in STORE_HOSTS[platform]
-            or uri.username is not None or uri.port is not None or uri.fragment):
-        raise ValueError(f"Telling returned an invalid {platform} store URL")
-    return value
 
 
 def main():
     config_path, output_path = map(Path, sys.argv[1:])
     config = json.loads(config_path.read_text())
-    endpoint = config.get(
-        "TELLING_API_URL", "https://telling-api.kiishi.space/api/v1"
-    ).rstrip("/")
+    endpoint = config.get("REGUN_IDENTITY_URL", "https://regunserver.kiishi.space")
     uri = urlsplit(endpoint)
-    key = config.get("TELLING_PROJECT_KEY", "").strip()
     if (uri.scheme != "https" or not uri.hostname or uri.username is not None
-            or uri.query or uri.fragment or not key or "\r" in key or "\n" in key):
-        raise ValueError("Configure an HTTPS Telling endpoint and project key")
-    links = {platform: store_link(endpoint, key, platform) for platform in STORE_HOSTS}
+            or uri.query or uri.fragment or uri.path.rstrip("/")):
+        raise ValueError("Configure an HTTPS Regun identity origin")
+    with urlopen(f"{endpoint.rstrip('/')}/app/v1/downloads", timeout=8) as response:
+        data = json.loads(response.read(8192))
+    links = {}
+    for platform, hosts in STORES.items():
+        value = data.get(platform)
+        if value is None:
+            links[platform] = None
+            continue
+        if not isinstance(value, str):
+            raise ValueError(f"Invalid {platform} download link")
+        link = urlsplit(value)
+        if (link.scheme != "https" or link.hostname not in hosts or
+                link.username is not None or link.port is not None or link.fragment or
+                (link.hostname == "appdistribution.firebase.dev" and
+                 not re.fullmatch(r"/i/[A-Za-z0-9_-]{6,}/?", link.path)) or
+                (link.hostname == "testflight.apple.com" and
+                 not re.fullmatch(r"/join/[A-Za-z0-9]{8}/?", link.path))):
+            raise ValueError(f"Invalid {platform} download link")
+        links[platform] = value
     temporary = output_path.with_suffix(".tmp")
     temporary.write_text(json.dumps(links) + "\n")
     temporary.replace(output_path)
-    print("Telling store destinations resolved for " +
-          ", ".join(platform for platform, link in links.items() if link))
+    print("Regun store destinations refreshed.")
 
 
 if __name__ == "__main__":

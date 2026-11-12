@@ -104,7 +104,10 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
       ..clear()
       ..addAll(held);
     input.movement.setFrom(move);
-    if (aim.length2 > 0) {
+    input.stickAiming = aim.length2 > 0;
+    input.fire = held.contains(ControllerAction.fire);
+    input.grenade = held.contains(ControllerAction.grenade);
+    if (input.stickAiming) {
       final heading = aim.normalized();
       if (input.stickAim.length2 == 0) {
         input.stickAim.setFrom(heading);
@@ -115,8 +118,12 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
               .normalized(),
         );
       }
-    } else if (input.stickAim.length2 == 0) {
-      input.stickAim.setFrom(game.myPlayer.aimDirection);
+    } else if (input.fire || input.grenade || previousGrenade) {
+      if (input.stickAim.length2 == 0) {
+        input.stickAim.setFrom(game.myPlayer.aimDirection);
+      }
+    } else {
+      input.stickAim.setZero();
     }
     if (fresh.contains(ControllerAction.pause)) {
       _cancel();
@@ -125,13 +132,14 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
     }
     if (fresh.contains(ControllerAction.dash)) game.requestDash();
     if (fresh.contains(ControllerAction.reload)) game.requestReload();
+    final heading = input.stickAiming || input.fire || input.grenade
+        ? input.stickAim
+        : game.myPlayer.aimDirection;
     final projected = game.camera.localToGlobal(
-      game.myPlayer.position + input.stickAim * 150,
+      game.myPlayer.position + heading * 150,
     );
     final target = Offset(projected.x, projected.y);
     _pointer.value = game.controlCanvasRect.contains(target) ? target : null;
-    input.fire = held.contains(ControllerAction.fire);
-    input.grenade = held.contains(ControllerAction.grenade);
     if (previousGrenade && !input.grenade) {
       game.throwGrenade(aim: game.desktopGrenadeDirection);
     }

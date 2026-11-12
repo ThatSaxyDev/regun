@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:regun/services/app_updates.dart';
 import 'package:regun/services/online_availability.dart';
 import 'package:regun/services/local_preferences.dart';
 import 'package:regun/utils/soloud_play.dart';
@@ -40,6 +41,9 @@ void main() {
           ProviderScope(
             overrides: [
               onlineAvailabilityProvider.overrideWithValue(policy),
+              appUpdatesProvider.overrideWithValue(
+                AppUpdates(platform: TargetPlatform.linux, web: false),
+              ),
               soloudPlayProvider.overrideWithValue(_Quiet()),
             ],
             child: MaterialApp(
@@ -51,13 +55,22 @@ void main() {
             ),
           ),
         );
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        for (
+          var attempt = 0;
+          attempt < 100 && find.text('PLAY').evaluate().isEmpty;
+          attempt++
+        ) {
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          await tester.pump();
+        }
       });
       await tester.pumpAndSettle();
       expect(find.text('PLAY').hitTestable(), findsOneWidget);
       expect(find.text('CHECKING…'), findsOneWidget);
       await tester.runAsync(() async {
-        pending.complete(http.Response('{"schemaVersion":1,"onlinePlay":true}', 200));
+        pending.complete(
+          http.Response('{"schemaVersion":1,"onlinePlay":true}', 200),
+        );
         await policy.refresh();
       });
       await tester.pumpAndSettle();
@@ -65,7 +78,9 @@ void main() {
       pending = Completer<http.Response>();
       await tester.runAsync(() async {
         final recheck = policy.refresh();
-        pending.complete(http.Response('{"schemaVersion":1,"onlinePlay":false}', 200));
+        pending.complete(
+          http.Response('{"schemaVersion":1,"onlinePlay":false}', 200),
+        );
         await recheck;
       });
       await tester.pumpAndSettle();

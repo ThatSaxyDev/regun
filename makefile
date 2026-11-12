@@ -1,6 +1,6 @@
 FLUTTER ?= flutter
 DART ?= dart
-RELEASE_CONFIG ?= $(if $(wildcard config/release.local.json),config/release.local.json,config/telling.local.json)
+RELEASE_CONFIG ?= config/release.local.json
 RELEASE_DEFINES = $(if $(wildcard $(RELEASE_CONFIG)),--dart-define-from-file=$(RELEASE_CONFIG),)
 DEVICE ?=
 
@@ -41,7 +41,7 @@ buildIPA:
 
 buildWeb:
 	@tmp=$$(mktemp -d) && trap 'rm -f "$$tmp/web.json"; rmdir "$$tmp"' EXIT && \
-		python3 -c 'import json, sys; data = json.load(open(sys.argv[1])); names = ("REGUN_SERVER_HOST", "REGUN_DATABASE", "REGUN_SERVER_TLS", "REGUN_IDENTITY_URL", "REGUN_WEB_SCRAP"); print(json.dumps({name: data[name] for name in names if name in data}))' "$(RELEASE_CONFIG)" > "$$tmp/web.json" && \
+		python3 -c 'import json, sys; data = json.load(open(sys.argv[1])); names = ("REGUN_SERVER_HOST", "REGUN_DATABASE", "REGUN_SERVER_TLS", "REGUN_IDENTITY_URL", "REGUN_RELEASE_CHANNEL", "REGUN_WEB_SCRAP"); print(json.dumps({name: data[name] for name in names if name in data}))' "$(RELEASE_CONFIG)" > "$$tmp/web.json" && \
 		$(FLUTTER) build web --release --dart-define-from-file="$$tmp/web.json"
 	python3 tool/prepare_web_art.py build/web
 	$(MAKE) refreshWebStoreLinks

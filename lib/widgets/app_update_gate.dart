@@ -5,15 +5,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/services/app_updates.dart';
+import 'package:regun/services/availability_focus.dart';
+import 'package:regun/services/push/push_service.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/click_button.dart';
 
 /// Lives on the home route: never interrupts a live run or an upgrade choice.
 class AppUpdateGate extends ConsumerStatefulWidget {
-  const AppUpdateGate({super.key, required this.child, this.onBusyChanged});
+  const AppUpdateGate({
+    super.key,
+    required this.child,
+    this.onBusyChanged,
+    this.onBlockingChanged,
+  });
   final Widget child;
-  final ValueChanged<bool>? onBusyChanged;
+  final ValueChanged<bool>? onBusyChanged, onBlockingChanged;
   @override
   ConsumerState<AppUpdateGate> createState() => _AppUpdateGateState();
 }
@@ -21,36 +28,98 @@ class AppUpdateGate extends ConsumerStatefulWidget {
 class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
     with WidgetsBindingObserver {
   VersionCheckResult? _prompt;
-  bool _checking = false, _opening = false;
-  String? _error;
+  bool _checking = false, _opening = false, _webConfirmed = false;
+  bool _requestRunning = false, _homeCurrent = false, _foreground = true;
+  bool _announcementPending = false, _cacheRestored = false;
+  String? _error, _maintenance;
+  Timer? _poll;
+  late final AppUpdates _service;
+  void Function()? _stopWatchingFocus;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checking = ref.read(appUpdatesProvider).enabled;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _check());
+    final service = _service = ref.read(appUpdatesProvider);
+    _checking = service.enabled;
+    PushService.shared.router.availabilityRefresh.addListener(_announcement);
+    if (!service.enabled) {
+      _cacheRestored = true;
+      return;
+    }
+    _stopWatchingFocus = watchAvailabilityFocus(_checkAtHome);
+    _poll = Timer.periodic(const Duration(minutes: 1), (_) => _checkAtHome());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _restoreAndCheck());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isHome = ModalRoute.isCurrentOf(context) ?? true;
+    if (isHome && !_homeCurrent && !_checking) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _checkAtHome());
+    }
+    _homeCurrent = isHome;
+  }
+
+  Future<void> _restoreAndCheck() async {
+    if (!mounted) return;
+    String? cached;
+    try {
+      cached = await ref.read(appUpdatesProvider).cachedMaintenance();
+    } catch (_) {
+      // A failed cache read leaves the fresh network check available.
+    }
+    if (!mounted) return;
+    setState(() {
+      _cacheRestored = true;
+      _maintenance = cached;
+    });
+    widget.onBlockingChanged?.call(_blocking);
+    _checkAtHome();
   }
 
   @override
   void dispose() {
+    _poll?.cancel();
+    _service.cancelCheck();
+    _stopWatchingFocus?.call();
+    PushService.shared.router.availabilityRefresh.removeListener(_announcement);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed &&
-        (ModalRoute.of(context)?.isCurrent ?? false)) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) _checkAtHome();
+  }
+
+  void _announcement() {
+    _announcementPending = true;
+    _checkAtHome();
+  }
+
+  void _checkAtHome() {
+    if (mounted && _foreground && _homeCurrent && _cacheRestored) {
       unawaited(_check());
     }
   }
 
+  bool get _blocking =>
+      _maintenance != null ||
+      _prompt != null ||
+      (ref.read(appUpdatesProvider).web && !_webConfirmed);
+
   Future<void> _check() async {
-    if (!mounted) return;
+    if (!mounted || !_homeCurrent || !_cacheRestored) return;
     final service = ref.read(appUpdatesProvider);
     if (!service.enabled || _requestRunning) return;
     _requestRunning = true;
+    if (_announcementPending) {
+      _announcementPending = false;
+      service.reviewAnnouncement();
+    }
     widget.onBusyChanged?.call(true);
     setState(() {
       _checking = true;
@@ -59,25 +128,29 @@ class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
     try {
       final result = await service.check();
       if (!mounted) return;
-      setState(() => _prompt = result.requiresUpdate ? result : null);
+      setState(() {
+        _webConfirmed = true;
+        _maintenance = result.maintenance;
+        _prompt = result.requiresUpdate ? result : null;
+      });
     } catch (_) {
-      // Offline first launch still plays. A known required update remains visible
-      // until a successful response explicitly lifts it or the app is updated.
-      if (mounted && _prompt != null) {
-        setState(
-          () => _error = 'Couldn’t check. Try again when you’re online.',
-        );
+      if (mounted && _blocking) {
+        setState(() {
+          _error = _maintenance != null
+              ? 'Regun will keep checking for you.'
+              : 'Regun will refresh when it can connect.';
+        });
       }
     } finally {
       _requestRunning = false;
       if (mounted) {
         setState(() => _checking = false);
-        widget.onBusyChanged?.call(_prompt != null);
+        widget.onBusyChanged?.call(_blocking);
+        widget.onBlockingChanged?.call(_blocking);
+        if (_announcementPending) _checkAtHome();
       }
     }
   }
-
-  bool _requestRunning = false;
 
   Future<void> _later() async {
     final prompt = _prompt;
@@ -90,6 +163,7 @@ class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
     if (mounted && identical(_prompt, prompt)) {
       setState(() => _prompt = null);
       widget.onBusyChanged?.call(false);
+      widget.onBlockingChanged?.call(_blocking);
     }
   }
 
@@ -109,21 +183,21 @@ class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
 
   @override
   Widget build(BuildContext context) => PopScope(
-    canPop: _prompt == null,
+    canPop: !_blocking && _cacheRestored,
     child: Stack(
       fit: StackFit.expand,
       children: [
         ExcludeFocus(
-          excluding: _prompt != null,
+          excluding: _blocking || !_cacheRestored,
           child: ExcludeSemantics(
-            excluding: _prompt != null,
+            excluding: _blocking || !_cacheRestored,
             child: IgnorePointer(
-              ignoring: _prompt != null,
+              ignoring: _blocking || !_cacheRestored,
               child: widget.child,
             ),
           ),
         ),
-        if (_prompt == null && _checking)
+        if (!_blocking && _checking)
           const Positioned(
             left: 0,
             right: 0,
@@ -148,29 +222,62 @@ class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
               ),
             ),
           ),
-        if (_prompt != null) ...[
+        if (_blocking) ...[
           const ModalBarrier(dismissible: false, color: Color(0xD9100D14)),
           SafeArea(
             minimum: const EdgeInsets.all(16),
             child: Center(
-              child: UpdateNotice(
-                result: _prompt!,
-                storeAvailable:
-                    ref.read(appUpdatesProvider).storeUri(_prompt!.storeUrl) !=
-                    null,
-                checking: _checking,
-                opening: _opening,
-                error: _error,
-                onLater: _later,
-                onUpdate: _update,
-                onRetry: _check,
-              ),
+              child:
+                  _maintenance != null ||
+                      (ref.read(appUpdatesProvider).web && !_webConfirmed)
+                  ? _availabilityNotice()
+                  : UpdateNotice(
+                      result: _prompt!,
+                      storeAvailable:
+                          ref
+                              .read(appUpdatesProvider)
+                              .storeUri(_prompt!.storeUrl) !=
+                          null,
+                      checking: _checking,
+                      opening: _opening,
+                      error: _error,
+                      onLater: _later,
+                      onUpdate: _update,
+                    ),
             ),
           ),
         ],
       ],
     ),
   );
+
+  Widget _availabilityNotice() {
+    final maintenance = _maintenance;
+    return GameNotice(
+      eyebrow: 'RE-GUN / AVAILABILITY',
+      title: maintenance != null
+          ? 'Maintenance in progress'
+          : _checking
+          ? 'Checking game availability'
+          : 'Can’t check game availability',
+      message:
+          maintenance ??
+          (_checking
+              ? 'Checking whether Regun is available.'
+              : 'Regun couldn’t check availability. Please try again shortly.'),
+      detail: maintenance != null && _error != null
+          ? Semantics(liveRegion: true, child: Text(_error!))
+          : null,
+      actions: maintenance == null && !_checking
+          ? ClickButton(
+              text: 'Try again',
+              glyph: PixelGlyph.reload,
+              height: 48,
+              onTap: _check,
+            )
+          : null,
+    );
+  }
 }
 
 class UpdateNotice extends StatelessWidget {
@@ -179,14 +286,13 @@ class UpdateNotice extends StatelessWidget {
     required this.result,
     required this.onUpdate,
     required this.onLater,
-    required this.onRetry,
     this.checking = false,
     this.opening = false,
     this.storeAvailable = true,
     this.error,
   });
   final VersionCheckResult result;
-  final VoidCallback onUpdate, onLater, onRetry;
+  final VoidCallback onUpdate, onLater;
   final bool checking, opening, storeAvailable;
   final String? error;
   @override
@@ -198,7 +304,7 @@ class UpdateNotice extends StatelessWidget {
         ? Semantics(
             liveRegion: true,
             child: Text(
-              error ?? 'The update link isn’t ready yet. Please check again shortly.',
+              error ?? 'The update link isn’t ready yet. Regun will refresh automatically.',
               style: const TextStyle(
                 fontFamily: FontFam.orbitron,
                 fontSize: 11,
@@ -216,19 +322,13 @@ class UpdateNotice extends StatelessWidget {
         height: 48,
         onTap: opening || !storeAvailable ? null : onUpdate,
       ),
-      secondary: result.isRequired && storeAvailable
+      secondary: result.isRequired
           ? null
           : ClickButton(
-              text: result.isRequired
-                  ? (checking ? 'Checking…' : 'Check again')
-                  : 'Later',
+              text: 'Later',
               buttonColor: const Color(0xffA79AA9),
               height: 48,
-              onTap: checking || opening
-                  ? null
-                  : result.isRequired
-                  ? onRetry
-                  : onLater,
+              onTap: checking || opening ? null : onLater,
             ),
     ),
   );

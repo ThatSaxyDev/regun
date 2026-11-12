@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:regun/services/app_updates.dart';
 import 'package:regun/services/online_availability.dart';
 
 import 'dart:ui' as ui;
@@ -45,6 +46,9 @@ Future<void> start(
       ProviderScope(
         overrides: [
           onlineAvailabilityProvider.overrideWithValue(startupPolicy),
+          appUpdatesProvider.overrideWithValue(
+            AppUpdates(platform: TargetPlatform.linux, web: false),
+          ),
         ],
         child: const MaterialApp(
           home: RepaintBoundary(

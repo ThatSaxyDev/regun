@@ -1,5 +1,6 @@
 import 'package:regun/desktop/web_landscape_prompt.dart';
 import 'package:regun/desktop/desktop_bindings.dart';
+import 'package:regun/desktop/desktop_controller.dart';
 import 'package:regun/widgets/game_presentation.dart';
 import 'package:flame/components.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
@@ -12,6 +13,7 @@ import 'package:regun/data/loadout.dart';
 import 'package:regun/desktop/desktop_frame_pacer.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +24,43 @@ class _Quiet extends SoloudPlay {
 
   @override
   Future<void> playMusic(String theme) async {}
+}
+
+Future<RegunGame> _mountTraining(WidgetTester tester) async {
+  SharedPreferences.setMockInitialValues({});
+  tester.view.physicalSize = const Size(960, 540);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  late RegunGame game;
+  await tester.runAsync(() async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+        child: MaterialApp(
+          builder: (_, child) => GamePresentation(
+            scale: DesktopBindings.textBaseline,
+            child: WebLandscapePrompt(child: child!),
+          ),
+          home: const BaseView(loadout: Loadout(training: true)),
+        ),
+      ),
+    );
+    game =
+        tester
+                .widget<RiverpodAwareGameWidget>(
+                  find.byType(RiverpodAwareGameWidget),
+                )
+                .game!
+            as RegunGame;
+    await game.loaded;
+    await tester.pump();
+    await game.ready();
+    game.update(2);
+  });
+  await tester.pump();
+  return game;
 }
 
 void main() {
@@ -45,39 +84,7 @@ void main() {
   testWidgets('desktop hover aims without firing and pause clears held input', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
-    tester.view.physicalSize = const Size(960, 540);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    late RegunGame game;
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
-          child: MaterialApp(
-            builder: (_, child) => GamePresentation(
-              scale: DesktopBindings.textBaseline,
-              child: WebLandscapePrompt(child: child!),
-            ),
-            home: const BaseView(loadout: Loadout(training: true)),
-          ),
-        ),
-      );
-      game =
-          tester
-                  .widget<RiverpodAwareGameWidget>(
-                    find.byType(RiverpodAwareGameWidget),
-                  )
-                  .game!
-              as RegunGame;
-      await game.loaded;
-      await tester.pump();
-      await game.ready();
-      game.update(2);
-    });
-    await tester.pump();
+    final game = await _mountTraining(tester);
     expect(
       game.camera.viewport.virtualSize.x / game.camera.viewport.virtualSize.y,
       closeTo(16 / 9, .001),
@@ -169,4 +176,65 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.takeException(), isNull);
   }, variant: const TargetPlatformVariant({TargetPlatform.macOS}));
+
+  testWidgets(
+    'controller returns to running direction after aim and fire release',
+    (tester) async {
+      final game = await _mountTraining(tester);
+      final dispatch = DesktopController.handlers.last;
+      ControllerFrame frame(
+        double moveX,
+        double aimX, {
+        double fire = 0,
+        double grenade = 0,
+      }) => ControllerFrame(
+        List<double>.filled(20, 0)
+          ..[0] = moveX
+          ..[2] = aimX
+          ..[10] = grenade
+          ..[11] = fire,
+      );
+      void advance(ControllerFrame input, int frames) {
+        for (var i = 0; i < frames; i++) {
+          expect(dispatch(input), isTrue);
+          game.update(1 / 60);
+        }
+      }
+
+      final survivor = game.loadout.character.name;
+      Sprite? pose() => game.myPlayer.animation?.frames.first.sprite;
+      dispatch(frame(0, 0));
+      advance(frame(1, -1, fire: 1), 1);
+      expect(game.shotsFired, 1);
+      expect(game.myPlayer.aimDirection.x, -1);
+      expect(pose(), same(RegunArt.shared.survivorRunFrame(survivor, 2, 0)));
+
+      advance(frame(1, 0, fire: 1), 45);
+      expect(game.fireIntent, isTrue);
+      expect(game.myPlayer.aimDirection.x, -1);
+
+      advance(frame(1, 0), 1);
+      expect(game.movementIntent.x, 1);
+      expect(game.fireIntent, isFalse);
+      expect(game.aimIntent.isZero(), isTrue);
+      expect(pose(), same(RegunArt.shared.survivorRunFrame(survivor, 0, 0)));
+      advance(frame(1, 0), 35);
+      expect(game.myPlayer.aimDirection.x, -1);
+      advance(frame(1, 0), 40);
+      expect(game.myPlayer.aimDirection.x, closeTo(1, .001));
+
+      advance(frame(1, -1), 1);
+      expect(game.myPlayer.aimDirection.x, -1);
+      expect(game.fireIntent, isFalse);
+      advance(frame(1, -1, grenade: 1), 1);
+      advance(frame(1, 0, grenade: 1), 45);
+      expect(game.aimIntent.isZero(), isTrue);
+      expect(game.desktopGrenadeDirection.x, -1);
+      final grenadesBeforeRelease = game.grenades.charges;
+      advance(frame(1, 0), 1);
+      expect(game.grenades.charges, grenadesBeforeRelease - 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: const TargetPlatformVariant({TargetPlatform.macOS}),
+  );
 }

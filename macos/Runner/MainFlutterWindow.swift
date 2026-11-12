@@ -21,6 +21,7 @@ class MainFlutterWindow: NSWindow {
     center()
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    (NSApp.delegate as? AppDelegate)?.registerPushChannel(flutterViewController.engine.binaryMessenger)
     let controller = FlutterMethodChannel(
       name: "regun/controller", binaryMessenger: flutterViewController.engine.binaryMessenger)
     controller.setMethodCallHandler { call, result in

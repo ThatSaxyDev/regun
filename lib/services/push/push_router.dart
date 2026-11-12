@@ -31,6 +31,7 @@ class PushRouter {
   final Widget? Function(String route)? screenFor;
   Map<String, dynamic>? _pending;
   bool _waitingForHome = false;
+  final availabilityRefresh = ValueNotifier<int>(0);
 
   void waitForHome() => _waitingForHome = true;
 
@@ -44,6 +45,10 @@ class PushRouter {
     if (_waitingForHome || navigator == null) {
       // Cold start: the tap can arrive before the first frame.
       _pending = data;
+      return;
+    }
+    if (route == PushRoute.home && data['availability'] == 'true') {
+      availabilityRefresh.value++;
       return;
     }
     if (navigator.canPop()) return; // Mid-run or mid-flow; do not interrupt.

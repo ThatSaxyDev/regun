@@ -1,175 +1,139 @@
-# Regun app updates and release announcements
+# Regun updates, maintenance, and announcements
 
-Draft for review · 12 November 2026
+## 1. Update settings
 
-Regun Admin publishes an update for one platform. The Regun server becomes the
-source of truth for that platform's update banner and queues its push
-announcement. Admin can resend the current announcement to players who still
-qualify.
+In Regun Admin, open **App updates → Updates** and select **Edit update**
+under iOS, Android, or macOS. Each platform saves independently. The
+production and beta channels keep separate settings.
 
-## 1. Scope and current behavior
+- **Minimum version** and **Minimum build** are independent. A device below
+  either configured number sees the update prompt. Leave a field blank to
+  skip its check.
+- **Require update** on blocks entry until the device meets both configured
+  minimums. Off lets the player choose **Later**.
+- **Update link** opens the store or distribution invite. A player message
+  is optional. iOS supports the App Store and TestFlight. Android supports
+  Google Play and short Firebase App Distribution invites.
+- **Save** applies the edited platform's settings. Lower a minimum in the
+  same form. Clear both minimums to turn off the prompt.
 
-- Give **iOS, Android, and macOS** independent controls, version thresholds, and
-  download links. This plan covers those three native distribution targets.
-  The model can add other platforms with their own download and delivery
-  support.
-- Move the web build's iOS and Android download links to the Regun server as
-  part of the Telling cutover. The browser continues to serve its deployed web
-  build.
-- Today [AppUpdates](../lib/services/app_updates.dart) calls Telling for iOS
-  and Android. macOS reads the iOS policy using the Mac app's installed
-  version. [AppUpdateGate](../lib/widgets/app_update_gate.dart) owns the Home
-  banner, and [the web build script](../tool/refresh_web_store_links.py) reads
-  Telling's mobile download links.
-- Use the existing iOS and Android push delivery. Add native macOS APNs
-  registration and delivery through the Regun server. The
-  [OneSignal Flutter SDK](https://github.com/OneSignal/OneSignal-Flutter-SDK)
-  covers iOS and Android. Apple documents separate registration and signing
-  requirements in its [APNs registration guide](https://developer.apple.com/documentation/usernotifications/registering-your-app-with-apns).
+Production starts with iOS **1.0.1 (44)**, Android **1.0.0 (44)**, and macOS
+**1.0.1 (43)** prefilled in the editor for platforms without a saved policy.
+An existing policy remains in force until that platform is saved in the new
+form. The game checks on Home entry and resume, and refreshes while Home
+is visible. A failed refresh keeps a visible required prompt in place.
 
-## 2. What the operator does
+## 2. Announcements
 
-Add **App updates** to Regun Admin as its own destination. The landing screen
-shows one row per platform with its published build, whether any players are
-required to update, and the last announcement status. Selecting a row opens
-that platform's editor.
+Raising either minimum, or switching an active prompt from optional to
+required, queues an announcement for eligible devices on that platform and
+channel. Lowering or clearing a minimum, or editing the link or message,
+uses the same Save action without queuing another announcement.
 
-### First publish
+The announcement uses the same version and build comparison as the Home
+prompt. Delivery respects notification permissions, player preferences, and
+quiet hours. **Resend announcement** uses the current settings and audience.
+View delivery attempts in **Notifications → App announcements**. Provider
+acceptance can be checked there, and device receipt can be verified on the
+physical device.
 
-Pre-fill the first production draft for each platform from these confirmed
-release baselines. Use these values even when a privately installed candidate
-has a higher build number.
+## 3. Maintenance
 
-| Platform | Latest version | Build |
-| --- | --- | --- |
-| iOS | 1.0.1 | 44 |
-| macOS | 1.0.1 | 43 |
-| Android | 1.0.0 | 44 |
+### Controls in Admin
 
-The **Update link** starts blank. It is the only field the operator needs to
-enter before reviewing and publishing. The platform, production channel,
-version, and build are already filled in. The minimum supported version starts
-unset, so the first banner is optional. Regun generates the banner and push
-copy from the platform and version. Operators can override the copy or set a
-minimum when needed. Seeding drafts does not activate a policy or queue push.
-The first confirmed publish queues the platform's announcement.
+Add **Maintenance** beside the platform update controls. Show an **All
+platforms** switch and separate **iOS**, **Android**, **macOS**, and **Web**
+switches. Each row shows the effective state and whether the global switch,
+its platform switch, or both are keeping it in maintenance. The rule is
+`effective maintenance = global switch OR platform switch`.
 
-### Later releases
+Review the affected platforms before applying a change. The review shows the
+Home message, the estimated push audience for each supported platform, and
+which platforms will only display the in-game gate. An optional operator
+note belongs in the audit. Show the default player copy in the preview and
+keep it editable as an override. Publishing a maintenance change updates the
+gate immediately. A push failure leaves the gate in its published state.
 
-Pre-fill the next version and build from release metadata supplied by the
-trusted build or distribution pipeline. A locally built or privately signed
-artifact must never replace the production baseline automatically. Admin
-shows the source and build before review, and the operator confirms that it
-is available from the selected download destination. Carry forward the last
-published minimum and update link. Ask for a fresh link when the previous
-one points to a specific older build. Generate the default copy for the new
-version.
-
-1. **Save draft** prepares the update for review. Drafts never affect players.
-2. **Review update** shows the platform, old and new builds, optional or
-   required banner behavior, download destination, and estimated audience.
-3. **Publish update** confirms the change. Admin shows the live policy and
-   whether an announcement was queued or whether the edit only changed the
-   banner.
-4. **Resend announcement** previews the current audience again. Confirming
-   creates a new send for the selected platform and current published update.
-5. **History** shows who published or resent, the version, and the outcome.
-   Use plain states such as **Queued**, **Accepted by push service**,
-   **No eligible devices**, and **Failed**. Show a failure reason and keep
-   provider acceptance distinct from confirmed device delivery.
-
-On phones, the platform list opens one editor at a time. On tablets and Macs,
-the list can sit alongside the editor. Keep announcement history collapsed
-behind the current status. A failed request keeps the operator's draft and
-offers retry. A stale editor must reload the current revision before it can
-publish.
-
-## 3. Update policy and player experience
-
-Store versioned policies by **platform and distribution channel**. Production
-and beta settings have separate histories and audiences. A client's release
-channel comes from its build configuration. Never infer it from a store URL,
-version number, or operating system alias. Confirm the actual production and
-beta destinations before seeding. Disable push for a beta channel until the
-server can reliably identify its registered installs.
-
-Compare numeric version components, then the numeric build when versions
-match. Validate a complete version and build pair for each threshold. The
-minimum must be at or below the latest build. Use the same comparison in the
-banner decision and notification audience. Unknown installed versions should
-be skipped for targeted push. A malformed client version must not receive a
-required-update decision.
-
-Expose a small public, read-only update check on the Regun identity origin.
-The request carries platform, channel, installed version, and build. It
-requires neither an account nor a Telling key. The server returns the active
-revision, the target and download link, and a current, optional, or required
-decision. Use authenticated Admin routes for all writes and retain a revision
-history. Validate platform-specific HTTPS destinations on publication and
-again before the client opens them. An invalid or unavailable destination
-must block publishing a new required policy.
-
-Keep the existing Home experience.
-
-- Check when Home opens or resumes, with the existing bounded request and
-  passive checking state. Keep gameplay and other routes uninterrupted.
-- Optional updates retain **Update** and **Later**. A snooze lasts one day and
-  matches the platform, channel, and target build. A required update overrides
-  a snooze.
-- Required updates retain **Update** and **Check again**. A failed first check
-  permits offline play. A failed retry leaves a known required prompt in
-  place for that session. A valid response that lowers or withdraws the
-  requirement clears it. A failed download launch keeps the prompt and offers
-  retry.
-- A notification tap returns to the update flow at Home and checks current
-  policy. It must neither interrupt combat nor launch an old download URL
-  embedded in a notification. A player who already updated sees no prompt.
-
-## 4. Automatic push and resend
-
-| Published change | Automatic announcement |
+| Change | Effective result |
 | --- | --- |
-| First confirmed publish for a platform and channel | One release announcement for eligible installs below the seeded build. |
-| Latest build increases | One release announcement for eligible installs below that build. |
-| Minimum increases and latest stays the same | One required-update notice for eligible installs newly below the minimum. |
-| Latest and minimum increase together | One release announcement for eligible installs below latest. The in-game policy determines who must update. |
-| Draft save, copy or link edit, import, rollback, or lowered minimum | Banner policy only. |
+| Enable a platform switch | That platform enters maintenance. |
+| Enable **All platforms** | Every platform enters maintenance, including web. Platforms already in maintenance remain there. |
+| Disable a platform switch while **All platforms** is on | That platform remains in maintenance. |
+| Disable **All platforms** | Only platforms with their own switch still on remain in maintenance. |
 
-Save the policy revision and insert the announcement job atomically. Give the
-automatic job a unique key derived from platform, channel, and published
-revision. Publishing twice through a retry must create only one job. A failed
-push does not undo the update policy.
+Store global and per-platform settings independently from app versions. Apply
+the switch change, effective transitions, audit entry, and announcement jobs
+in one database operation. Use a revision check to prevent two operators or
+browser tabs from overwriting each other's changes. Keep test environments
+isolated from production settings and push audiences.
 
-Reuse the notification worker and audit trail with an app-update message type.
-Queue immediately after publishing and dispatch when the existing notification
-quiet-hours policy permits it. Before dispatch, check that the update is still
-current and re-resolve the eligible audience. Cancel superseded jobs. Respect
-OS permission, subscription availability, and the in-app push master switch.
-The **Return reminders** preference and re-engagement rollout apply to
-recurring reminders. Publishing an app update is the operator's explicit send
-decision.
+### Home gate on native and web
 
-Resolve the target platform and channel before deduplicating recipients. Pick
-one eligible install per owner on that platform and channel. An account's iPhone
-must never win selection for an Android update. Use each install's last
-reported version and refresh registration on upgrades. A device that upgraded
-without reconnecting can have an older reported version, so every notification
-tap checks the latest policy again.
+Use the forced-update panel's layout and accessibility behavior. The default
+player copy is:
 
-**Resend announcement** is a separate, confirmed send for the current update.
-Use a new request ID for a deliberate resend and reuse it for retries of that
-action. Apply a send cap and recheck eligibility. If the published revision
-changes after the preview, require a fresh preview. Retain the original
-announcement and the resend as separate audit entries. Record an ambiguous
-provider result as unconfirmed and apply provider-specific retry handling to
-avoid duplicate sends.
+| Element | Copy |
+| --- | --- |
+| Heading | Maintenance in progress |
+| Body | Regun is temporarily unavailable while we make improvements. |
+| Failed recheck | Regun will keep checking for you. |
 
-For macOS, validate signed release entitlements, register through APNs, and
-associate the token with the Mac install and its reported build. Keep push
-credentials on the server. Use the same targeting, permission checks, and
-Admin history for all three platforms.
+Maintenance takes precedence over an app update. The gate blocks Play,
+Continue, Training, and Online from Home. Back, outside taps, keyboard
+shortcuts, and deep links cannot enter a run while the gate is active. Runs
+already in progress continue. When a player returns to Home, check again.
+After maintenance clears, evaluate the latest version policy and show a
+required update if it still applies.
 
-## 5. Telling cutover
+Read maintenance through a lightweight Regun availability endpoint that
+stays reachable while gameplay services are paused. Check on Home entry,
+resume, and browser focus. Refresh periodically while Home is visible.
+Keep a known active gate across reloads
+and failed requests until the server confirms maintenance has ended.
+
+The playable **web** entry waits for an authoritative availability check
+before allowing game entry. If a fresh browser cannot reach the endpoint,
+show **Can’t check game availability** with **Try again**. A valid inactive
+response lets the player enter. A browser identifies itself as web even when
+it runs on iOS or Android. Revalidate the availability response on reload so
+a cached web build or service worker cannot reuse a stale inactive response.
+On native, preserve offline play when no maintenance policy has ever been
+received. A previously confirmed active gate remains until a successful
+check clears it.
+
+### Announcements in Notifications
+
+Add maintenance to **Regun Admin → Notifications** with its own entries in
+announcement history. When applying a change, **Send announcement** is on
+by default for affected platforms with a push path. The operator can clear
+it for a silent change. Preview the affected platforms and delivery type
+before confirming.
+
+| Effective change | Push title | Push body |
+| --- | --- | --- |
+| Available → Maintenance | Maintenance in progress | Regun is temporarily unavailable while we make improvements. |
+| Maintenance → Available | Regun is back online | Maintenance is complete. You can play again. |
+
+- Queue one job per affected platform and transition. An overlapping switch
+  that leaves a platform's effective state unchanged queues nothing for it.
+  Retrying the same Admin action never creates another job.
+- Target the affected platform and channel. Maintenance applies regardless
+  of app version. Honor OS permission and the in-app push master switch.
+  The re-engagement rollout and Return reminders preference do not apply.
+- Recheck effective maintenance before dispatch. If maintenance ends before
+  the start notice can send, expire that job. Expire a queued restoration
+  notice if maintenance restarts before it can send. Use the announcement
+  history to show queued, accepted, expired, failed, and in-game-only results.
+- **Resend maintenance notice** uses the current effective status and a
+  fresh audience preview. Confirm it separately and apply the same resend
+  protections as release announcements. A push tap opens Regun at Home and
+  checks the latest state.
+- Web must display the gate in the browser from the first release. The
+  current plan treats web as **In-game banner only** in Notifications.
+  Background browser push would need its own subscriptions and permission
+  flow. Admin should never count web banner coverage as push delivery.
+
+## 4. Telling cutover
 
 1. Seed the three confirmed platform baselines as unpublished drafts with
    blank links. Review the old Telling policies for legacy-client continuity.
@@ -184,45 +148,21 @@ Admin history for all three platforms.
    configuration. Retire the legacy service after confirming which old
    binaries still need it.
 
-## 6. Joint acceptance checklist
+## 5. Acceptance checklist
 
-For each check, record the environment, platform, installed build, policy
-revision, expected result, observed result, and evidence in the review.
+- [ ] Open iOS and Android editors from the same settings. Save both and
+  confirm each platform keeps its own minimums.
+- [ ] Set minimum build **45** and verify that **44** sees the prompt, including
+  when its version is newer than the configured version. Verify a version
+  below the minimum still prompts when its build meets the minimum.
+- [ ] Toggle **Require update**, lower the minimum, and clear both fields.
+  Verify **Later** for optional updates and automatic recovery at Home.
+- [ ] Open the App Store, TestFlight, or Android distribution link on a device.
+  Check compact landscape, large text, and desktop.
+- [ ] Confirm a raised threshold sends to eligible opted-in installs only.
+  Verify resend and provider status. Confirm lowering the threshold sends
+  no new announcement.
+- [ ] Test Web-only and global maintenance, overlap, offline recovery, and an
+  active run. Confirm effective transitions are reflected in announcements.
 
-- [ ] **Independent platforms.** Publish an Android update. iOS and macOS keep
-  their prior policies and receive no Android announcement. Repeat for iOS
-  and macOS, including one account signed in on multiple platforms.
-- [ ] **First-publish form.** Each platform shows the exact seeded version
-  and build. Enter only its update link, review the generated copy and
-  optional banner, then publish. Verify that loading the drafts queues
-  nothing and that a private build never changes the production baseline.
-- [ ] **Banner decisions.** On each physical device, test a build below
-  minimum, a build between minimum and latest, and the latest build. Check
-  the destination, Later, Check again, and a rollback that clears a required
-  prompt. Include phone landscape, enlarged text, and a resized Mac window.
-- [ ] **First publish.** One version publication creates one announcement.
-  Retrying the same publish and changing banner copy or link create no
-  additional send. A staging or beta update reaches only its own audience.
-- [ ] **Push receipt.** A physical iPhone, Android phone, and signed Mac release
-  each receive the correct announcement. A current build, opted-out device,
-  and device on another platform receive none. Confirm the tap on warm and
-  cold app launches and verify that an active run stays uninterrupted.
-- [ ] **Resend.** Install the new build on one test device, report its new
-  version, then resend. Only the still-outdated eligible device receives it.
-  Confirm the new audit entry and try a stale preview.
-- [ ] **Failure and recovery.** Simulate a lost response after publishing,
-  provider failure, invalid download link, stale Admin revision, and a
-  superseded queued notification. Confirm the policy, queue, and history
-  remain consistent. Check offline Home and a failed retry on a visible
-  required prompt.
-- [ ] **Cutover.** A new build reads Regun, an older build still checks Telling,
-  and the web download page resolves the correct iOS and Android links.
-
-## 7. Decisions to confirm in review
-
-- iOS, Android, and macOS are the initial native distribution targets.
-- First publish, a newer build, or a raised minimum automatically queues an
-  announcement. Drafts and copy-only edits leave delivery unchanged.
-- Announcements respect quiet hours. Admin shows when a send is queued.
-- Confirm the real Mac distribution link and signed build that will be used
-  for physical APNs acceptance.
+See the [operations runbook](UPDATE_CONFIGURATION.md) for rollout steps.

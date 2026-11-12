@@ -9,7 +9,7 @@ class GameNotice extends StatelessWidget {
     required this.eyebrow,
     required this.title,
     required this.message,
-    required this.actions,
+    this.actions,
     this.detail,
     this.leading,
     this.maxWidth = 500,
@@ -18,7 +18,7 @@ class GameNotice extends StatelessWidget {
   });
   final String title;
   final String? eyebrow, message;
-  final Widget actions;
+  final Widget? actions;
   final Widget? detail, leading;
   final double maxWidth, titleSize, messageSize;
   @override
@@ -85,8 +85,10 @@ class GameNotice extends StatelessWidget {
                     ),
                   ],
                   if (detail != null) ...[const SizedBox(height: 12), detail!],
-                  const SizedBox(height: 24),
-                  actions,
+                  if (actions case final controls?) ...[
+                    const SizedBox(height: 24),
+                    controls,
+                  ],
                 ],
               ),
             ),

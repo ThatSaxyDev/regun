@@ -20,7 +20,7 @@ class _Quiet extends SoloudPlay {
 }
 
 class _Updates extends AppUpdates {
-  _Updates() : super(apiKey: 'test', platform: TargetPlatform.iOS);
+  _Updates() : super(platform: TargetPlatform.iOS, channel: 'beta');
   int checks = 0;
   bool required = true;
   @override
