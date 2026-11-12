@@ -66,8 +66,14 @@ void main() async {
   } catch (error) {
     Logger('main').severe('Soloud player starting error: $error');
   }
-  LocalPreferences.shared.onProfileSaved = (owner, snapshot) =>
-      unawaited(PlayerRegistry.shared.record(owner, snapshot));
+  LocalPreferences.shared.onProfileSaved = (owner, snapshot) => unawaited(
+    PlayerRegistry.shared.record(
+      owner,
+      snapshot,
+      active:
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
+    ),
+  );
   AccountController.shared.onGuestAttached = (id) =>
       unawaited(PlayerRegistry.shared.linkGuest(id));
   unawaited(PlayerRegistry.shared.initialize());
@@ -84,10 +90,10 @@ void main() async {
   push.accountId = () => AccountController.shared.session?.accountId;
   push.accessToken = () => AccountController.shared.accessToken();
   push.guestCredentials = () => PlayerRegistry.shared.publicCredentials();
+  push.deferIdentityUntilHome();
   unawaited(push.initialize());
   unawaited(BalanceRepository.shared.start());
   runApp(const ProviderScope(child: GameApp()));
-  WidgetsBinding.instance.addPostFrameCallback((_) => push.router.flush());
 }
 
 class GameApp extends StatefulWidget {

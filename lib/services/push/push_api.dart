@@ -43,10 +43,22 @@ class PushApi {
           await (method == 'GET'
                   ? client.get(uri, headers: headers)
                   : method == 'DELETE'
-                  ? client.delete(uri, headers: headers, body: jsonEncode(body ?? {}))
-                  : client.post(uri, headers: headers, body: jsonEncode(body ?? {})))
+                  ? client.delete(
+                      uri,
+                      headers: headers,
+                      body: jsonEncode(body ?? {}),
+                    )
+                  : client.post(
+                      uri,
+                      headers: headers,
+                      body: jsonEncode(body ?? {}),
+                    ))
               .timeout(const Duration(seconds: 12));
-      if (response.bodyBytes.length > 300000) return const {'ok': false};
+      if (response.statusCode < 200 ||
+          response.statusCode >= 300 ||
+          response.bodyBytes.length > 300000) {
+        return const {'ok': false};
+      }
       final value = jsonDecode(response.body);
       if (value is Map<String, dynamic>) return value;
       return const {'ok': false};
@@ -100,8 +112,16 @@ class PushApi {
     },
   );
 
-  Future<Map<String, dynamic>> preferences({String? token}) =>
-      request('/notifications/preferences', method: 'GET', token: token);
+  Future<Map<String, dynamic>> preferences({
+    String? token,
+    String? deviceId,
+    String? deviceSecret,
+  }) => token != null
+      ? request('/notifications/preferences', method: 'GET', token: token)
+      : request(
+          '/notifications/preferences/read',
+          body: {'deviceId': deviceId, 'deviceSecret': deviceSecret},
+        );
 
   Future<Map<String, dynamic>> setPreferences({
     required Map<String, bool> values,

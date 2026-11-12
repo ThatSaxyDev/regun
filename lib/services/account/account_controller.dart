@@ -1163,7 +1163,12 @@ class AccountController extends ChangeNotifier with WidgetsBindingObserver {
     final original = session, generation = _generation;
     if (original != null) {
       try {
-        await api.request('/signout', token: await accessToken(), body: {});
+        final subscription = PushService.shared.subscriptionId;
+        await api.request(
+          '/signout',
+          token: await accessToken(),
+          body: {if (subscription != null) 'pushSubscriptionId': subscription},
+        );
       } catch (_) {
         // Local disconnect is available offline; revoke the opaque credential on reconnection.
         final refresh = generation == _generation

@@ -47,5 +47,14 @@ import AVFAudio
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    FlutterMethodChannel(
+      name: "regun/push_timezone", binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    ).setMethodCallHandler { call, result in
+      if call.method == "current" {
+        result(TimeZone.autoupdatingCurrent.identifier)
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
 }

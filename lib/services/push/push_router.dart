@@ -30,6 +30,9 @@ class PushRouter {
   final GlobalKey<NavigatorState>? navigatorKey;
   final Widget? Function(String route)? screenFor;
   Map<String, dynamic>? _pending;
+  bool _waitingForHome = false;
+
+  void waitForHome() => _waitingForHome = true;
 
   void handle(Map<String, dynamic>? data) {
     if (data == null) return;
@@ -38,7 +41,7 @@ class PushRouter {
     final param = data['routeParam'];
     if (param != null && (param is! String || param.length > 64)) return;
     final navigator = navigatorKey?.currentState;
-    if (navigator == null) {
+    if (_waitingForHome || navigator == null) {
       // Cold start: the tap can arrive before the first frame.
       _pending = data;
       return;
@@ -49,8 +52,9 @@ class PushRouter {
     navigator.push(GamePageRoute(builder: (_) => screen));
   }
 
-  /// Called after the first frame so a cold-start tap is not lost.
+  /// Called once the menu is visible so startup cannot cover a tap destination.
   void flush() {
+    _waitingForHome = false;
     final pending = _pending;
     _pending = null;
     if (pending != null) handle(pending);

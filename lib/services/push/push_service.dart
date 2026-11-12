@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -15,10 +16,7 @@ import 'package:regun/services/push/push_router.dart';
 class PushService {
   PushService({PushApi? api, GlobalKey<NavigatorState>? navigatorKey})
     : api = api ?? PushApi(),
-      router = PushRouter(
-        navigatorKey ?? pushNavigatorKey,
-        pushScreenFor,
-      );
+      router = PushRouter(navigatorKey ?? pushNavigatorKey, pushScreenFor);
 
   static final shared = PushService();
 
@@ -39,6 +37,7 @@ class PushService {
     'leaderboards': false,
     'events': false,
     'reengagement': false,
+    'returnReminders': false,
   });
 
   /// Injected by the composition root to avoid a controller import cycle.
@@ -50,6 +49,14 @@ class PushService {
   bool _suppressForeground = false;
   String? _subscriptionId;
   String? _lastReported;
+  DateTime? _reportedAt;
+  String? _preferenceOwner;
+  String? _pendingOpen;
+  bool _identityReady = true;
+  Future<void> _identitySync = Future.value();
+  static const _timezoneChannel = MethodChannel('regun/push_timezone');
+
+  String? get subscriptionId => _subscriptionId;
 
   static const _askedKey = 'regun.push.asked.v1';
   static const _promptedKey = 'regun.push.prompted.v1';
@@ -65,14 +72,22 @@ class PushService {
     if (_initialized) return;
     _initialized = true;
     if (!configured) {
-      status.value = supported ? PushStatus.unconfigured : PushStatus.unsupported;
+      status.value = supported
+          ? PushStatus.unconfigured
+          : PushStatus.unsupported;
       return;
     }
     try {
       await OneSignal.initialize(appId);
-      OneSignal.Notifications.addClickListener(
-        (event) => router.handle(event.notification.additionalData),
-      );
+      OneSignal.Notifications.addClickListener((event) {
+        final data = event.notification.additionalData;
+        router.handle(data);
+        final id = data?['messageId'];
+        if (data?['system'] == 'true' && id is String) {
+          _pendingOpen = id;
+          unawaited(_reportOpen());
+        }
+      });
       OneSignal.Notifications.addForegroundWillDisplayListener((event) {
         if (_suppressForeground) event.preventDefault();
       });
@@ -82,8 +97,7 @@ class PushService {
       });
       OneSignal.User.pushSubscription.addObserver((_) => unawaited(_report()));
       await _refreshStatus(OneSignal.Notifications.permission);
-      await _syncIdentity();
-      unawaited(_loadPreferences());
+      await syncIdentity();
     } catch (_) {
       status.value = PushStatus.unavailable;
     }
@@ -153,7 +167,7 @@ class PushService {
     } catch (_) {
       /* Provider state is authoritative; the report below still records it. */
     }
-    await _pushPreferences(next);
+    await _pushPreferences({'master': enabled});
     await _report();
     await _refreshStatus();
   }
@@ -174,28 +188,107 @@ class PushService {
     }
   }
 
+  Future<void> setReturnReminders(bool enabled) async {
+    final initialAccount = accountId?.call();
+    final credential = await _credential();
+    if (credential == null || accountId?.call() != initialAccount) return;
+    final owner = _ownerKey(credential.deviceId);
+    if (owner == null) return;
+    _preferenceOwner = owner;
+    final store = await SharedPreferences.getInstance();
+    await store.setBool('regun.push.pendingReminder.$owner', enabled);
+    if (_preferenceOwner == owner) {
+      preferences.value = {
+        ...preferences.value,
+        'returnReminders': enabled,
+        'returnRemindersPending': true,
+      };
+    }
+    await _loadPreferences();
+  }
+
+  String? _ownerKey(String? deviceId) {
+    final account = accountId?.call();
+    if (account != null && account.isNotEmpty) return 'account:$account';
+    return deviceId == null ? null : 'guest:$deviceId';
+  }
+
   Future<void> _loadPreferences() async {
     if (!configured) return;
+    final initialAccount = accountId?.call();
     try {
       final credential = await _credential();
-      if (credential == null) return;
-      final result = await api.preferences(token: credential.token);
+      if (credential == null || accountId?.call() != initialAccount) return;
+      final owner = _ownerKey(credential.deviceId);
+      if (owner == null) return;
+      if (owner != _preferenceOwner) {
+        _preferenceOwner = owner;
+        preferences.value = {
+          ...preferences.value,
+          'returnReminders': false,
+          'returnRemindersPending': false,
+        };
+      }
+      final store = await SharedPreferences.getInstance();
+      final pendingKey = 'regun.push.pendingReminder.$owner';
+      final pending = store.getBool(pendingKey);
+      final result = pending == null
+          ? await api.preferences(
+              token: credential.token,
+              deviceId: credential.deviceId,
+              deviceSecret: credential.deviceSecret,
+            )
+          : await api.setPreferences(
+              values: {'returnReminders': pending},
+              token: credential.token,
+              deviceId: credential.deviceId,
+              deviceSecret: credential.deviceSecret,
+            );
+      if (pending != null &&
+          result['returnReminders'] == pending &&
+          store.getBool(pendingKey) == pending) {
+        await store.remove(pendingKey);
+      }
+      if (accountId?.call() != initialAccount || _preferenceOwner != owner) {
+        return;
+      }
       if (result['master'] is bool) {
         preferences.value = {
-          for (final key in const ['master', 'security', 'leaderboards', 'events', 'reengagement'])
+          for (final key in const [
+            'master',
+            'security',
+            'leaderboards',
+            'events',
+            'reengagement',
+            'returnReminders',
+          ])
             key: result[key] is bool
                 ? result[key] as bool
                 : (key == 'master' || key == 'security'),
+          if (store.getBool(pendingKey) case final bool pending) ...{
+            'returnReminders': pending,
+            'returnRemindersPending': true,
+          },
         };
       }
     } catch (_) {
-      /* Keep the local mirror. */
+      /* Owner-scoped pending preference is retried on resume. */
     }
   }
 
-  Future<({String? token, String? deviceId, String? deviceSecret})?> _credential() async {
-    final token = await accessToken?.call();
-    if (token != null) return (token: token, deviceId: null, deviceSecret: null);
+  Future<({String? token, String? deviceId, String? deviceSecret})?>
+  _credential() async {
+    if (accountId?.call() != null) {
+      try {
+        final token = await accessToken?.call();
+        if (token != null) {
+          return (token: token, deviceId: null, deviceSecret: null);
+        }
+      } catch (_) {
+        // Account credentials can be unavailable while offline.
+      }
+      return null;
+    }
     final guest = await guestCredentials?.call();
     final id = guest?['id'];
     final secret = guest?['secret'];
@@ -205,8 +298,38 @@ class PushService {
     return null;
   }
 
+  void deferIdentityUntilHome() {
+    _identityReady = false;
+    router.waitForHome();
+  }
+
+  void homeReady() {
+    final wasWaiting = !_identityReady;
+    _identityReady = true;
+    router.flush();
+    if (wasWaiting) unawaited(syncIdentity());
+  }
+
   /// Called after every account transition: verify, attach, sign-out, delete.
-  Future<void> syncIdentity() => _syncIdentity();
+  Future<void> syncIdentity() {
+    if (!_identityReady) return Future.value();
+    final account = accountId?.call();
+    if (_preferenceOwner?.startsWith('account:') == true &&
+        _preferenceOwner != 'account:$account') {
+      _preferenceOwner = null;
+      preferences.value = {
+        ...preferences.value,
+        'returnReminders': false,
+        'returnRemindersPending': false,
+      };
+    }
+    _identitySync = _identitySync.then((_) async {
+      await _syncIdentity();
+      await _loadPreferences();
+      await _reportOpen();
+    });
+    return _identitySync;
+  }
 
   Future<void> _syncIdentity() async {
     if (!configured) return;
@@ -229,64 +352,100 @@ class PushService {
     }
   }
 
-  /// Called when the account is deleted: drop the subscription and the alias.
+  /// The deletion reducer has already removed the account's subscriptions.
   Future<void> forgetAccount() async {
     if (!configured) return;
     try {
-      final subscriptionId = _subscriptionId;
-      final credential = await _credential();
-      if (subscriptionId != null && credential != null) {
-        await api.unregister(
-          subscriptionId: subscriptionId,
-          token: credential.token,
-          deviceId: credential.deviceId,
-          deviceSecret: credential.deviceSecret,
-        );
-      }
       await OneSignal.logout();
     } catch (_) {
-      /* Local session cleanup already completed on the account side. */
+      // The next identity sync can still restore the guest alias.
     }
   }
 
   Future<void> _report() async {
-    if (!configured) return;
+    if (!configured || !_identityReady) return;
     final subscriptionId = OneSignal.User.pushSubscription.id;
     if (subscriptionId == null || subscriptionId.isEmpty) return;
     _subscriptionId = subscriptionId;
     final permission = OneSignal.Notifications.permission;
     final optedIn = OneSignal.User.pushSubscription.optedIn ?? true;
-    final fingerprint = '$subscriptionId:$permission:$optedIn';
-    if (fingerprint == _lastReported) return;
+    final initialAccount = accountId?.call();
     try {
       final credential = await _credential();
+      if (credential == null || accountId?.call() != initialAccount) return;
+      final timezone = await _timezone();
+      final fingerprint =
+          '${_ownerKey(credential.deviceId)}:$subscriptionId:$permission:$optedIn:$timezone';
+      final reportedAt = _reportedAt;
+      if (fingerprint == _lastReported &&
+          reportedAt != null &&
+          DateTime.now().difference(reportedAt) < const Duration(hours: 6)) {
+        return;
+      }
       final info = await PackageInfo.fromPlatform();
+      if (accountId?.call() != initialAccount) return;
       final result = await api.register(
         subscriptionId: subscriptionId,
-        platform: defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
+        platform: defaultTargetPlatform == TargetPlatform.iOS
+            ? 'ios'
+            : 'android',
         appVersion: '${info.version}+${info.buildNumber}',
         locale: _locale(),
-        timezone: _timezone(),
+        timezone: timezone,
         permission: permission ? 'granted' : 'denied',
         optedIn: optedIn,
-        token: credential?.token,
-        deviceId: credential?.deviceId,
-        deviceSecret: credential?.deviceSecret,
+        token: credential.token,
+        deviceId: credential.deviceId,
+        deviceSecret: credential.deviceSecret,
       );
-      if (result['ok'] != false) _lastReported = fingerprint;
+      if (result['owner'] == _ownerKey(credential.deviceId)) {
+        _lastReported = fingerprint;
+        _reportedAt = DateTime.now();
+      }
     } catch (_) {
       /* Bounded retry happens on the next subscription or resume event. */
     }
   }
 
-  static String _locale() {
-    final locale = WidgetsBinding.instance.platformDispatcher.locale;
-    final tag = locale.languageCode +
-        (locale.countryCode == null ? '' : '-${locale.countryCode}');
-    return tag.replaceAll(RegExp(r'[^A-Za-z0-9-]'), '').substring(0, tag.length.clamp(0, 16));
+  Future<void> _reportOpen() async {
+    final messageId = _pendingOpen;
+    if (!_identityReady || messageId == null) return;
+    final credential = await _credential();
+    final subscriptionId = OneSignal.User.pushSubscription.id;
+    if (credential == null || subscriptionId == null) return;
+    final result = await api.request(
+      '/notifications/opened',
+      token: credential.token,
+      body: {
+        'messageId': messageId,
+        'subscriptionId': subscriptionId,
+        if (credential.deviceId != null) 'deviceId': credential.deviceId,
+        if (credential.deviceSecret != null)
+          'deviceSecret': credential.deviceSecret,
+      },
+    );
+    if (result['ok'] == true && _pendingOpen == messageId) _pendingOpen = null;
   }
 
-  static String _timezone() {
+  static String _locale() {
+    final locale = WidgetsBinding.instance.platformDispatcher.locale;
+    final tag =
+        locale.languageCode +
+        (locale.countryCode == null ? '' : '-${locale.countryCode}');
+    return tag
+        .replaceAll(RegExp(r'[^A-Za-z0-9-]'), '')
+        .substring(0, tag.length.clamp(0, 16));
+  }
+
+  static Future<String> _timezone() async {
+    try {
+      final name = await _timezoneChannel.invokeMethod<String>('current');
+      if (name != null && (name.contains('/') || name == 'UTC')) return name;
+    } on PlatformException {
+      // The offset is sufficient for a recently registered install.
+    } on MissingPluginException {
+      // Older host builds can still register with an offset.
+    }
     final minutes = DateTime.now().timeZoneOffset.inMinutes;
     return 'UTC${minutes >= 0 ? '+' : '-'}${minutes.abs()}';
   }

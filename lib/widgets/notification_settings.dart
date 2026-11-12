@@ -60,48 +60,56 @@ class _NotificationSettingsState extends State<NotificationSettings> {
     }
     return ValueListenableBuilder<PushStatus>(
       valueListenable: push.status,
-      builder: (context, status, _) => ValueListenableBuilder<Map<String, bool>>(
-        valueListenable: push.preferences,
-        builder: (context, prefs, _) => SettingsSection(
-          title: 'Notifications',
-          children: [
-            // The toggle already shows the state, so the status line only
-            // appears where there is no toggle to read.
-            if (status == PushStatus.notDetermined) ...[
-              _statusLine(status),
-              ClickButtonM(
-                text: _busy ? 'Asking…' : 'Enable notifications',
-                width: 240,
-                height: 48,
-                onTap: () => _run(() => push.requestPermission()),
-              ),
-            ],
-            if (status == PushStatus.denied) ...[
-              _statusLine(status),
-              const GameNoticeStrip(
-                message: 'Turn notifications on in system settings to receive alerts.',
-              ),
-            ],
-            if (status == PushStatus.unconfigured ||
-                status == PushStatus.unavailable)
-              const GameNoticeStrip(
-                message: 'Notifications are unavailable in this build.',
-              ),
-            if (status == PushStatus.enabled || status == PushStatus.optedOut) ...[
-              _toggle(
-                'Allow notifications',
-                prefs['master'] == true,
-                (value) => _run(() => push.setMaster(value)),
-              ),
-              const Text(
-                'Leaderboards, events, reminders and account alerts all arrive '
-                'while notifications are on.',
-                style: _captionStyle,
-              ),
-            ],
-          ],
-        ),
-      ),
+      builder: (context, status, _) =>
+          ValueListenableBuilder<Map<String, bool>>(
+            valueListenable: push.preferences,
+            builder: (context, prefs, _) => SettingsSection(
+              title: 'Notifications',
+              children: [
+                // The toggle already shows the state, so the status line only
+                // appears where there is no toggle to read.
+                if (status == PushStatus.notDetermined) ...[
+                  _statusLine(status),
+                  ClickButtonM(
+                    text: _busy ? 'Asking…' : 'Enable notifications',
+                    width: 240,
+                    height: 48,
+                    onTap: () => _run(() => push.requestPermission()),
+                  ),
+                ],
+                if (status == PushStatus.denied) ...[
+                  _statusLine(status),
+                  const GameNoticeStrip(
+                    message: 'Turn notifications on in system settings to receive alerts.',
+                  ),
+                ],
+                if (status == PushStatus.unconfigured ||
+                    status == PushStatus.unavailable)
+                  const GameNoticeStrip(
+                    message: 'Notifications are unavailable in this build.',
+                  ),
+                if (status == PushStatus.enabled ||
+                    status == PushStatus.optedOut) ...[
+                  _toggle(
+                    'Allow notifications',
+                    prefs['master'] == true,
+                    (value) => _run(() => push.setMaster(value)),
+                  ),
+                  if (prefs['master'] == true) ...[
+                    _toggle(
+                      'Return reminders',
+                      prefs['returnReminders'] == true,
+                      (value) => _run(() => push.setReturnReminders(value)),
+                    ),
+                    const Text(
+                      'Leaderboard changes and reminders after time away.',
+                      style: _captionStyle,
+                    ),
+                  ],
+                ],
+              ],
+            ),
+          ),
     );
   }
 
@@ -127,7 +135,11 @@ class _NotificationSettingsState extends State<NotificationSettings> {
       SettingsChoice(
         label: label,
         options: [
-          PixelOption(label: 'Off', selected: !value, onTap: () => update(false)),
+          PixelOption(
+            label: 'Off',
+            selected: !value,
+            onTap: () => update(false),
+          ),
           PixelOption(label: 'On', selected: value, onTap: () => update(true)),
         ],
       );

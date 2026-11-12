@@ -56,6 +56,9 @@ class _MenuViewState extends ConsumerState<MenuView>
       }
     });
     PushService.shared.status.addListener(_pushStatusChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) PushService.shared.homeReady();
+    });
     unawaited(_refreshPushPrompt());
     unawaited(_refresh());
   }
@@ -158,6 +161,7 @@ class _MenuViewState extends ConsumerState<MenuView>
       PlayerRegistry.shared.record(
         LocalPreferences.shared.profileOwner,
         LocalPreferences.shared.profile.toJson(),
+        active: _foreground,
       ),
     );
     final saved = await RunStore.shared.read(validate: RunCheckpoint.valid);
