@@ -28,7 +28,7 @@ abstract final class PushRoute {
 class PushRouter {
   PushRouter(this.navigatorKey, this.screenFor);
   final GlobalKey<NavigatorState>? navigatorKey;
-  final Widget Function(String route)? screenFor;
+  final Widget? Function(String route)? screenFor;
   Map<String, dynamic>? _pending;
 
   void handle(Map<String, dynamic>? data) {

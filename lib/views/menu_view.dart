@@ -27,6 +27,8 @@ import 'package:regun/views/collection_view.dart';
 import 'package:regun/views/settings_view.dart';
 import 'package:regun/views/online_view.dart';
 import 'package:regun/widgets/home_menu.dart';
+import 'package:regun/widgets/push_prompt.dart';
+import 'package:regun/services/push/push_service.dart';
 
 class MenuView extends ConsumerStatefulWidget {
   const MenuView({super.key});
@@ -42,6 +44,7 @@ class _MenuViewState extends ConsumerState<MenuView>
   bool _foreground = true, _openingOnline = false;
   Map<String, dynamic>? _saved;
   bool _ready = false;
+  bool _showPushPrompt = false;
   @override
   void initState() {
     super.initState();
@@ -52,7 +55,18 @@ class _MenuViewState extends ConsumerState<MenuView>
         unawaited(_online.refresh());
       }
     });
+    PushService.shared.status.addListener(_pushStatusChanged);
+    unawaited(_refreshPushPrompt());
     unawaited(_refresh());
+  }
+
+  void _pushStatusChanged() => unawaited(_refreshPushPrompt());
+
+  Future<void> _refreshPushPrompt() async {
+    final show = await PushService.shared.shouldOfferPrompt();
+    if (mounted && show != _showPushPrompt) {
+      setState(() => _showPushPrompt = show);
+    }
   }
 
   void _policyChanged() {
@@ -74,6 +88,7 @@ class _MenuViewState extends ConsumerState<MenuView>
     _policyTimer?.cancel();
     _accountIssueTimer?.cancel();
     _online.removeListener(_policyChanged);
+    PushService.shared.status.removeListener(_pushStatusChanged);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -300,6 +315,13 @@ class _MenuViewState extends ConsumerState<MenuView>
             onCollection: () => _open(const CollectionView()),
             onSettings: () =>
                 _open(const SettingsView(allowProgressReset: true)),
+            pushPrompt: _showPushPrompt
+                ? PushPrompt(
+                    onSettled: () {
+                      if (mounted) setState(() => _showPushPrompt = false);
+                    },
+                  )
+                : null,
           ),
           if (_accountIssue != null)
             Positioned(

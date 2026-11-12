@@ -4,6 +4,11 @@ platform :ios, '15.0'
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
+# Regun never uses location. Without this, OneSignal bundles OneSignalLocation
+# and App Store validation rejects the upload for a missing
+# NSLocationWhenInUseUsageDescription purpose string.
+ENV['ONESIGNAL_DISABLE_LOCATION'] = 'true'
+
 project 'Runner', {
   'Debug' => :debug,
   'Profile' => :release,

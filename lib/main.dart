@@ -23,7 +23,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:logging/logging.dart';
 import 'package:regun/views/flame_splash_view.dart';
-import 'package:regun/views/base_view.dart';
 import 'package:regun/views/collection_view.dart';
 import 'package:regun/views/leaderboard_view.dart';
 import 'package:regun/views/settings_view.dart';
@@ -77,8 +76,9 @@ void main() async {
     'collection' => const CollectionView(),
     'leaderboards' => const LeaderboardView(),
     'settings' || 'account' => const SettingsView(),
-    // Store and online have no standalone screen; both live on the menu.
-    _ => const BaseView(),
+    // Home, store and the online gate are part of the menu. Never push the
+    // in-game overlay for them: BaseView is a live match, not the menu.
+    _ => null,
   };
   final push = PushService.shared;
   push.accountId = () => AccountController.shared.session?.accountId;

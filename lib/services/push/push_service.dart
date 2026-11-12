@@ -24,7 +24,7 @@ class PushService {
 
   /// Assigned from `main.dart` before `shared` is first touched.
   static GlobalKey<NavigatorState>? pushNavigatorKey;
-  static Widget Function(String route)? pushScreenFor;
+  static Widget? Function(String route)? pushScreenFor;
 
   static const appId = String.fromEnvironment('ONESIGNAL_APP_ID');
 
@@ -52,6 +52,7 @@ class PushService {
   String? _lastReported;
 
   static const _askedKey = 'regun.push.asked.v1';
+  static const _promptedKey = 'regun.push.prompted.v1';
 
   bool get supported =>
       !kIsWeb &&
@@ -106,6 +107,22 @@ class PushService {
         : PushStatus.enabled;
   }
 
+  /// True only when the banner should be offered: mobile build with a provider,
+  /// permission never decided, and the player has not already been asked.
+  /// A denied permission never re-offers the banner.
+  Future<bool> shouldOfferPrompt() async {
+    if (!configured) return false;
+    if (status.value != PushStatus.notDetermined) return false;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_promptedKey) != true;
+  }
+
+  /// Recorded on either answer so the banner never returns automatically.
+  Future<void> markPrompted() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_promptedKey, true);
+  }
+
   Future<bool> requestPermission() async {
     if (!configured) return false;
     final prefs = await SharedPreferences.getInstance();
@@ -139,15 +156,6 @@ class PushService {
     await _pushPreferences(next);
     await _report();
     await _refreshStatus();
-  }
-
-  Future<void> setCategory(String category, bool enabled) async {
-    if (!const ['security', 'leaderboards', 'events', 'reengagement'].contains(category)) {
-      return;
-    }
-    final next = {...preferences.value, category: enabled};
-    preferences.value = next;
-    await _pushPreferences(next);
   }
 
   Future<void> _pushPreferences(Map<String, bool> values) async {

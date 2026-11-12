@@ -29,6 +29,10 @@ with only `config/telling.local.json` remain supported by the Make targets.
   Uses `https://regunserver.kiishi.space`, served by the same root backend Docker
   deployment as multiplayer. Telling remains separate. Never substitute the
   Sendbyte API URL. Account routes need the updated server deployment enabled.
+- `ONESIGNAL_APP_ID`: public OneSignal app id for iOS/Android push. Empty disables
+  push; the game and account flows are unaffected. Deliberately excluded from the
+  web build. The OneSignal **REST API key is server-only** and never belongs in
+  this file — set `ONESIGNAL_REST_API_KEY` in the backend runtime environment.
 
 On 22 October 2026, `https://regunserver.kiishi.space/` and `/health` returned 200,
 and `/features` reported online play enabled. Its root OIDC discovery endpoint

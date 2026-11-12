@@ -32,11 +32,16 @@ class HomeMenu extends StatelessWidget {
     this.bestScore = 0,
     this.onlineAvailable = false,
     this.onlineChecking = false,
+    this.pushPrompt,
   });
   final bool ready, reducedMotion, onlineAvailable, onlineChecking;
   final int bestScore;
   final VoidCallback onPlay, onOnline, onTraining, onCollection, onSettings;
   final VoidCallback? onContinue, onLeaderboards;
+
+  /// One-time notification offer. It shares the leaderboards row so the menu
+  /// does not grow a new block; the leaderboards button keeps its place below.
+  final Widget? pushPrompt;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -165,7 +170,10 @@ class HomeMenu extends StatelessWidget {
                   online,
                   training,
                   collection,
-                  if (onLeaderboards != null) leaderboards,
+                  if (pushPrompt != null)
+                    pushPrompt!
+                  else if (onLeaderboards != null)
+                    leaderboards,
                 ],
               ),
               const Divider(height: 20, color: Color(0x667d6856)),
@@ -197,7 +205,10 @@ class HomeMenu extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               online,
-              if (onLeaderboards != null) ...[
+              if (pushPrompt != null) ...[
+                const SizedBox(height: 10),
+                pushPrompt!,
+              ] else if (onLeaderboards != null) ...[
                 const SizedBox(height: 10),
                 leaderboards,
               ],

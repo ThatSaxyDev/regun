@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
 
 import 'package:regun/services/push/push_service.dart';
+import 'package:regun/utils/constants.dart';
 import 'package:regun/widgets/click_button.dart';
 import 'package:regun/widgets/control_settings.dart';
 import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/widgets/settings_section.dart';
+
+const _ink = Color(0xffDED4C5);
+const _quiet = Color(0xff9A9086);
+
+const _bodyStyle = TextStyle(
+  fontFamily: FontFam.orbitron,
+  fontSize: 13,
+  height: 1.5,
+  color: _ink,
+);
+const _captionStyle = TextStyle(
+  fontFamily: FontFam.orbitron,
+  fontSize: 12,
+  height: 1.5,
+  color: _quiet,
+);
 
 /// Notification controls. Only rendered where push exists; the master switch is
 /// mirrored locally and on the server, and the OS permission always wins.
@@ -36,7 +53,7 @@ class _NotificationSettingsState extends State<NotificationSettings> {
         children: [
           Text(
             'Push notifications are available in the mobile app.',
-            style: TextStyle(fontSize: 13, color: Color(0xffB9AE9C)),
+            style: _bodyStyle,
           ),
         ],
       );
@@ -48,20 +65,25 @@ class _NotificationSettingsState extends State<NotificationSettings> {
         builder: (context, prefs, _) => SettingsSection(
           title: 'Notifications',
           children: [
-            _statusLine(status),
-            if (status == PushStatus.notDetermined)
+            // The toggle already shows the state, so the status line only
+            // appears where there is no toggle to read.
+            if (status == PushStatus.notDetermined) ...[
+              _statusLine(status),
               ClickButtonM(
                 text: _busy ? 'Asking…' : 'Enable notifications',
                 width: 240,
                 height: 48,
                 onTap: () => _run(() => push.requestPermission()),
               ),
-            if (status == PushStatus.denied)
+            ],
+            if (status == PushStatus.denied) ...[
+              _statusLine(status),
               const GameNoticeStrip(
-                message:
-                    'Notifications are off in system settings. Turn them on there to receive alerts.',
+                message: 'Turn notifications on in system settings to receive alerts.',
               ),
-            if (status == PushStatus.unconfigured || status == PushStatus.unavailable)
+            ],
+            if (status == PushStatus.unconfigured ||
+                status == PushStatus.unavailable)
               const GameNoticeStrip(
                 message: 'Notifications are unavailable in this build.',
               ),
@@ -71,24 +93,10 @@ class _NotificationSettingsState extends State<NotificationSettings> {
                 prefs['master'] == true,
                 (value) => _run(() => push.setMaster(value)),
               ),
-              _toggle(
-                'Leaderboards',
-                prefs['leaderboards'] == true,
-                (value) => _run(() => push.setCategory('leaderboards', value)),
-              ),
-              _toggle(
-                'Events and updates',
-                prefs['events'] == true,
-                (value) => _run(() => push.setCategory('events', value)),
-              ),
-              _toggle(
-                'Come-back reminders',
-                prefs['reengagement'] == true,
-                (value) => _run(() => push.setCategory('reengagement', value)),
-              ),
               const Text(
-                'Account and purchase notices are always sent when needed for security.',
-                style: TextStyle(fontSize: 12, color: Color(0xff8A8175)),
+                'Leaderboards, events, reminders and account alerts all arrive '
+                'while notifications are on.',
+                style: _captionStyle,
               ),
             ],
           ],
@@ -100,22 +108,17 @@ class _NotificationSettingsState extends State<NotificationSettings> {
   Widget _statusLine(PushStatus status) {
     final (text, color) = switch (status) {
       PushStatus.enabled => ('On', const Color(0xff9BD49B)),
-      PushStatus.optedOut => ('Off', const Color(0xffB9AE9C)),
+      PushStatus.optedOut => ('Off', _quiet),
       PushStatus.denied => ('Off in system settings', const Color(0xffD49B9B)),
-      PushStatus.notDetermined => ('Not enabled', const Color(0xffB9AE9C)),
-      PushStatus.unconfigured => ('Not configured', const Color(0xffB9AE9C)),
-      PushStatus.unsupported => ('Unavailable', const Color(0xffB9AE9C)),
+      PushStatus.notDetermined => ('Not enabled', _quiet),
+      PushStatus.unconfigured => ('Not configured', _quiet),
+      PushStatus.unsupported => ('Unavailable', _quiet),
       PushStatus.unavailable => ('Unavailable', const Color(0xffD49B9B)),
     };
     return Row(
       children: [
-        const Expanded(
-          child: Text(
-            'Status',
-            style: TextStyle(fontSize: 13, color: Color(0xffE5DDD1)),
-          ),
-        ),
-        Text(text, style: TextStyle(fontSize: 13, color: color)),
+        const Expanded(child: Text('Status', style: _bodyStyle)),
+        Text(text, style: _bodyStyle.copyWith(color: color)),
       ],
     );
   }

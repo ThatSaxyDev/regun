@@ -11,6 +11,48 @@ PODS:
     - FlutterMacOS
   - integration_test (0.0.1):
     - Flutter
+  - onesignal_flutter (5.8.0):
+    - Flutter
+    - OneSignalXCFramework/OneSignal (= 5.8.1)
+    - OneSignalXCFramework/OneSignalInAppMessages (= 5.8.1)
+  - OneSignalXCFramework/OneSignal (5.8.1):
+    - OneSignalXCFramework/OneSignalCore
+    - OneSignalXCFramework/OneSignalExtension
+    - OneSignalXCFramework/OneSignalLiveActivities
+    - OneSignalXCFramework/OneSignalNotifications
+    - OneSignalXCFramework/OneSignalOSCore
+    - OneSignalXCFramework/OneSignalOutcomes
+    - OneSignalXCFramework/OneSignalUser
+  - OneSignalXCFramework/OneSignalCore (5.8.1)
+  - OneSignalXCFramework/OneSignalExtension (5.8.1):
+    - OneSignalXCFramework/OneSignalCore
+    - OneSignalXCFramework/OneSignalOSCore
+    - OneSignalXCFramework/OneSignalOutcomes
+  - OneSignalXCFramework/OneSignalInAppMessages (5.8.1):
+    - OneSignalXCFramework/OneSignalCore
+    - OneSignalXCFramework/OneSignalNotifications
+    - OneSignalXCFramework/OneSignalOSCore
+    - OneSignalXCFramework/OneSignalOutcomes
+    - OneSignalXCFramework/OneSignalUser
+  - OneSignalXCFramework/OneSignalLiveActivities (5.8.1):
+    - OneSignalXCFramework/OneSignalCore
+    - OneSignalXCFramework/OneSignalOSCore
+    - OneSignalXCFramework/OneSignalUser
+  - OneSignalXCFramework/OneSignalNotifications (5.8.1):
+    - OneSignalXCFramework/OneSignalCore
+    - OneSignalXCFramework/OneSignalExtension
+    - OneSignalXCFramework/OneSignalOSCore
+    - OneSignalXCFramework/OneSignalOutcomes
+  - OneSignalXCFramework/OneSignalOSCore (5.8.1):
+    - OneSignalXCFramework/OneSignalCore
+  - OneSignalXCFramework/OneSignalOutcomes (5.8.1):
+    - OneSignalXCFramework/OneSignalCore
+    - OneSignalXCFramework/OneSignalOSCore
+  - OneSignalXCFramework/OneSignalUser (5.8.1):
+    - OneSignalXCFramework/OneSignalCore
+    - OneSignalXCFramework/OneSignalNotifications
+    - OneSignalXCFramework/OneSignalOSCore
+    - OneSignalXCFramework/OneSignalOutcomes
   - package_info_plus (0.4.5):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -26,9 +68,14 @@ DEPENDENCIES:
   - flutter_soloud (from `.symlinks/plugins/flutter_soloud/ios`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - onesignal_flutter (from `.symlinks/plugins/onesignal_flutter/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+
+SPEC REPOS:
+  trunk:
+    - OneSignalXCFramework
 
 EXTERNAL SOURCES:
   device_info_plus:
@@ -43,6 +90,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/in_app_purchase_storekit/darwin"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
+  onesignal_flutter:
+    :path: ".symlinks/plugins/onesignal_flutter/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   shared_preferences_foundation:
@@ -57,10 +106,12 @@ SPEC CHECKSUMS:
   flutter_soloud: 9e634ca684bac957fe75764cc31cecf0c371be0c
   in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+  onesignal_flutter: d6ce1684d2a5273a1868816e84d55332cbbd0bf3
+  OneSignalXCFramework: 51f314691a5326cb1440d49d0ec32213997be4ca
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
-PODFILE CHECKSUM: 2f13fd1da209920c0b1e6f9602086c308c554e51
+PODFILE CHECKSUM: fe5d990f1e596cf9d47665cb8cd24d7375e01b83
 
 COCOAPODS: 1.16.2

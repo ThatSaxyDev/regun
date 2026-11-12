@@ -6,5 +6,6 @@
   "REGUN_SERVER_TLS": true,
   "REGUN_IDENTITY_URL": "https://regunserver.kiishi.space",
   "REGUN_APPLE_SCRAP": true,
-  "REGUN_WEB_SCRAP": false
+  "REGUN_WEB_SCRAP": false,
+  "ONESIGNAL_APP_ID": ""
 }
