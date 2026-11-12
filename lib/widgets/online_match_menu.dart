@@ -1,3 +1,4 @@
+import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/navigation/game_page_route.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
 import 'package:regun/widgets/game_notice.dart';
@@ -51,7 +52,13 @@ class _OnlineMatchMenuState extends State<OnlineMatchMenu> {
   }
 
   @override
-  Widget build(BuildContext context) => ColoredBox(
+  Widget build(BuildContext context) => ControllerMenuScope(
+    onBack: widget.resume,
+    onResume: widget.resume,
+    child: _panel(context),
+  );
+
+  Widget _panel(BuildContext context) => ColoredBox(
     color: const Color(0xe8141117),
     child: Center(
       child: ConstrainedBox(
@@ -81,7 +88,11 @@ class _OnlineMatchMenuState extends State<OnlineMatchMenu> {
                 ),
               ),
               const SizedBox(height: 20),
-              ClickButton(text: 'Return to match', onTap: widget.resume),
+              ClickButton(
+                text: 'Return to match',
+                autofocus: true,
+                onTap: widget.resume,
+              ),
               const SizedBox(height: 12),
               ClickButton(
                 text: 'Settings',

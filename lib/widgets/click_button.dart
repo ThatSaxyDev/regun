@@ -2,6 +2,7 @@ import 'package:regun/desktop/desktop_platform.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/theme/palette.dart';
+import 'package:regun/theme/menu_focus.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/utils/soloud_play.dart';
@@ -59,6 +60,7 @@ class _ClickButtonState extends ConsumerState<ClickButton> {
         width: widget.width,
         height: widget.height ?? (widget.content == null ? 52 : null),
         child: InkWell(
+          canRequestFocus: enabled,
           autofocus: widget.autofocus,
           onHover: desktopInputAvailable
               ? (value) => setState(() => _hovered = value)
@@ -77,6 +79,7 @@ class _ClickButtonState extends ConsumerState<ClickButton> {
           onTapCancel: () => setState(() => _pressed = false),
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
+          focusColor: Colors.transparent,
           child: CustomPaint(
             painter: _ButtonPlate(
               accent: accent,
@@ -240,13 +243,7 @@ class _ButtonPlate extends CustomPainter {
         ..strokeWidth = 1,
     );
     if (focused && enabled) {
-      canvas.drawPath(
-        controlPlate(rect.deflate(2)),
-        Paint()
-          ..color = const Color(0xfff4dfaf)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
+      paintMenuFocus(canvas, rect);
     }
     final rivet = Paint()
       ..color = accent.withValues(alpha: enabled ? 0.8 : 0.2)

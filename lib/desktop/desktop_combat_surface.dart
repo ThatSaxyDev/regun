@@ -44,21 +44,32 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
     DesktopController.handlers.add(_controllerHandler);
   }
 
-  bool _controller(ControllerFrame? frame) {
+  bool _controller(ControllerFrame? frame, {bool disconnected = false}) {
+    if (!mounted) return false;
     _sync();
-    if (!mounted ||
-        ModalRoute.of(context)?.isCurrent != true ||
-        !game.acceptsDesktopInput) {
-      _controllerArmed = false;
-      return false;
-    }
     if (frame == null) {
       if (_controllerActive) {
-        _controllerActive = false;
         _cancel();
+        if (disconnected) {
+          _controllerActive = false;
+          input.controller = false;
+        }
+        if (disconnected &&
+            widget.playing &&
+            ModalRoute.of(context)?.isCurrent == true) {
+          game.pauseGame();
+        }
       }
       _controllerArmed = false;
       return false;
+    }
+    if (!widget.playing || ModalRoute.of(context)?.isCurrent != true) {
+      _controllerArmed = false;
+      return false;
+    }
+    if (!game.acceptsDesktopInput) {
+      _controllerArmed = false;
+      return true;
     }
     final held = {
       for (final action in ControllerAction.values)
@@ -81,14 +92,14 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
     final move = stick(_bindings.swapSticks ? 2 : 0);
     final aim = stick(_bindings.swapSticks ? 0 : 2);
     if (!_controllerArmed) {
-      _controllerArmed = held.isEmpty && move.length2 == 0 && aim.length2 == 0;
-      return _controllerActive;
+      _controllerArmed = frame.neutral;
+      return true;
     }
     if (!_controllerActive &&
         held.isEmpty &&
         move.length2 == 0 &&
         aim.length2 == 0) {
-      return false;
+      return true;
     }
     if (!_controllerActive) {
       _cancel();

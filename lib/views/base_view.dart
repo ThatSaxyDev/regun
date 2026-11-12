@@ -1,3 +1,4 @@
+import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/services/scrap_store.dart';
 import 'package:regun/widgets/scrap_store_dialog.dart';
 import 'package:regun/desktop/desktop_combat_kit.dart';
@@ -353,9 +354,14 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                             if (!_trainingIntro &&
                                 state.gameplayState != GameplayState.gameOver &&
                                 state.gameplayState != GameplayState.paused)
-                              _hud(
-                                state,
-                                ref.read(gameNotifierProvider.notifier),
+                              ExcludeFocus(
+                                excluding:
+                                    state.gameplayState !=
+                                    GameplayState.playing,
+                                child: _hud(
+                                  state,
+                                  ref.read(gameNotifierProvider.notifier),
+                                ),
                               ),
                             if (!_trainingIntro &&
                                 state.gameplayState == GameplayState.playing)
@@ -395,16 +401,18 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                               SafeArea(
                                 minimum: const EdgeInsets.all(16),
                                 child: Center(
-                                  child: TrainingNotice(
-                                    ready:
-                                        state.gameplayState ==
-                                        GameplayState.paused,
-                                    skipping: _skippingTraining,
-                                    onStart: () {
-                                      setState(() => _trainingIntro = false);
-                                      _myGame.gameNotifier.playGame();
-                                    },
-                                    onSkip: _skipTrainingIntro,
+                                  child: ControllerMenuScope(
+                                    child: TrainingNotice(
+                                      ready:
+                                          state.gameplayState ==
+                                          GameplayState.paused,
+                                      skipping: _skippingTraining,
+                                      onStart: () {
+                                        setState(() => _trainingIntro = false);
+                                        _myGame.gameNotifier.playGame();
+                                      },
+                                      onSkip: _skipTrainingIntro,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1006,6 +1014,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     );
     return Positioned.fill(
       child: DesktopFieldFrame(
+        onBack: _myGame.resumeGame,
+        onResume: _myGame.resumeGame,
         openCenter: MediaQuery.sizeOf(context).width >= 840,
         child: LayoutBuilder(
           builder: (context, box) {
@@ -1850,23 +1860,25 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   );
 
   Widget _recoveryPanel() => Positioned.fill(
-    child: SoloRevivePanel(
-      state: _myGame.gameState,
-      recovery: _myGame.recovery,
-      banked: _myGame.preferences.profile.scrap,
-      onBuy: _myGame.buySoloRecovery,
-      onRetry: _myGame.checkSoloRecovery,
-      onEnd: _myGame.endRecoveryRun,
-      onMenu: _leave,
-      onTopUp: ScrapStore.supported
-          ? () async {
-              if (!await _myGame.persistRecovery() || !mounted) return;
-              await showScrapStore(context, allowSignIn: false);
-              if (mounted && _myGame.recovery.pending) {
-                await _myGame.checkSoloRecovery();
+    child: ControllerMenuScope(
+      child: SoloRevivePanel(
+        state: _myGame.gameState,
+        recovery: _myGame.recovery,
+        banked: _myGame.preferences.profile.scrap,
+        onBuy: _myGame.buySoloRecovery,
+        onRetry: _myGame.checkSoloRecovery,
+        onEnd: _myGame.endRecoveryRun,
+        onMenu: _leave,
+        onTopUp: ScrapStore.supported
+            ? () async {
+                if (!await _myGame.persistRecovery() || !mounted) return;
+                await showScrapStore(context, allowSignIn: false);
+                if (mounted && _myGame.recovery.pending) {
+                  await _myGame.checkSoloRecovery();
+                }
               }
-            }
-          : null,
+            : null,
+      ),
     ),
   );
 
@@ -1878,7 +1890,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           _myGame.preferences.profile,
           armory: ArmoryRepository.shared.catalog,
         ).next;
-        return RunResultsPanel(
+        final panel = RunResultsPanel(
           state: state,
           earnedScrap: _myGame.earnedScrap,
           scrapBreakdown: _myGame.scrapReward.breakdown,
@@ -1900,6 +1912,9 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           onRestart: _myGame.restartGame,
           onMenu: _leave,
         );
+        return _myGame.recovery.pending
+            ? ExcludeFocus(child: panel)
+            : ControllerMenuScope(child: panel);
       },
     ),
   );

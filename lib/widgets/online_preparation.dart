@@ -1,3 +1,4 @@
+import 'package:regun/theme/menu_focus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:regun/theme/pixel_glyph.dart';
@@ -170,7 +171,7 @@ class OnlinePlate extends CustomPainter {
 }
 
 /// Selected options carry both a physical marker and accessible selected state.
-class OnlineOption extends StatelessWidget {
+class OnlineOption extends StatefulWidget {
   const OnlineOption({
     super.key,
     required this.label,
@@ -181,45 +182,60 @@ class OnlineOption extends StatelessWidget {
   final bool selected;
   final VoidCallback? onTap;
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    selected: selected,
-    enabled: onTap != null,
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.zero,
-      child: CustomPaint(
-        painter: OnlinePlate(focused: selected),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ExcludeSemantics(
-                child: Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: selected ? onlineBrass : Colors.transparent,
-                    border: Border.all(color: onlineBrass),
+  State<OnlineOption> createState() => _OnlineOptionState();
+}
+
+class _OnlineOptionState extends State<OnlineOption> {
+  bool _focused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final OnlineOption(:label, :selected, :onTap) = widget;
+    return Semantics(
+      button: true,
+      selected: selected,
+      enabled: onTap != null,
+      child: InkWell(
+        onTap: onTap,
+        onFocusChange: (focused) => setState(() => _focused = focused),
+        focusColor: Colors.transparent,
+        borderRadius: BorderRadius.zero,
+        child: CustomPaint(
+          painter: OnlinePlate(focused: selected),
+          foregroundPainter: _focused && onTap != null
+              ? const MenuFocusPainter()
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ExcludeSemantics(
+                  child: Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: selected ? onlineBrass : Colors.transparent,
+                      border: Border.all(color: onlineBrass),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: FontFam.orbitron,
-                    color: onTap == null ? onlineMuted : onlineInk,
-                    fontSize: 13,
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: FontFam.orbitron,
+                      color: onTap == null ? onlineMuted : onlineInk,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

@@ -38,6 +38,17 @@ class SoloudPlay {
     () => _soloud.loadAsset('assets/audio/$asset'),
   );
 
+  Future<void> warmControllerMenu() async {
+    if (!_soloud.isInitialized) return;
+    for (final asset in ['menu_move.wav', 'menu_back.wav', 'click.mp3']) {
+      try {
+        await _source(asset);
+      } on Object {
+        _sources.remove(asset);
+      }
+    }
+  }
+
   Future<void> warmCombat(WeaponType weapon) async {
     try {
       if (!_soloud.isInitialized) return;
@@ -351,6 +362,8 @@ class SoloudPlay {
           ? 85
           : assetPath == 'upgrade_pulse.wav'
           ? 120
+          : assetPath == 'menu_move.wav' || assetPath == 'menu_back.wav'
+          ? 85
           : assetPath == 'blast.wav'
           ? 120
           : assetPath.startsWith('sentry_')
@@ -396,6 +409,10 @@ class SoloudPlay {
             ? .48
             : assetPath == 'upgrade_pulse.wav'
             ? .35
+            : assetPath == 'menu_move.wav'
+            ? .32
+            : assetPath == 'menu_back.wav'
+            ? .38
             : assetPath == 'blast.wav'
             ? .65
             : assetPath == 'grenade_throw.wav' ||

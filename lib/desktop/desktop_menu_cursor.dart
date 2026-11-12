@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:regun/desktop/controller_menu.dart';
 
 /// A passive pointer layer above the navigator. Combat claims the pointer
 /// only while it supplies its own reticle.
@@ -24,7 +25,9 @@ class _DesktopMenuCursorState extends State<DesktopMenuCursor> {
       widget.child,
       Positioned.fill(
         child: IgnorePointer(
-          child: CustomPaint(painter: _MenuPointer(_position)),
+          child: ControllerMenuMode.of(context)
+              ? const SizedBox.shrink()
+              : CustomPaint(painter: _MenuPointer(_position)),
         ),
       ),
       Positioned.fill(

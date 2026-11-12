@@ -199,8 +199,10 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
           : GamePresentation(child: child!),
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(useMaterial3: true)
-          .copyWith(pageTransitionsTheme: gamePageTransitionsTheme),
+      theme: ThemeData.dark(useMaterial3: true).copyWith(
+        pageTransitionsTheme: gamePageTransitionsTheme,
+        focusColor: desktopInputAvailable ? const Color(0x60e1ba78) : null,
+      ),
       home: widget.reviewHome ?? const FlameSplashView(),
       // home: kDebugMode ? const BaseView() : const FlameSplashView(),
     );

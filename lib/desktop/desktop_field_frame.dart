@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:regun/desktop/controller_menu.dart';
 
 /// Full-window margins and contrast for screens that sit over the arena.
 class DesktopFieldFrame extends StatelessWidget {
@@ -6,10 +7,13 @@ class DesktopFieldFrame extends StatelessWidget {
     super.key,
     required this.child,
     this.openCenter = false,
+    this.onBack,
+    this.onResume,
   });
 
   final Widget child;
   final bool openCenter;
+  final VoidCallback? onBack, onResume;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
@@ -31,14 +35,18 @@ class DesktopFieldFrame extends StatelessWidget {
               colors: [Color(0xee181a15), Color(0x88181a15), Color(0xf2181a15)],
             ),
     ),
-    child: SafeArea(
-      child: LayoutBuilder(
-        builder: (context, box) => Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: (box.maxWidth * .05).clamp(16, 112),
-            vertical: (box.maxHeight * .045).clamp(12, 56),
+    child: ControllerMenuScope(
+      onBack: onBack,
+      onResume: onResume,
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, box) => Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: (box.maxWidth * .05).clamp(16, 112),
+              vertical: (box.maxHeight * .045).clamp(12, 56),
+            ),
+            child: child,
           ),
-          child: child,
         ),
       ),
     ),

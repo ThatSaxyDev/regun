@@ -1,3 +1,4 @@
+import 'package:regun/desktop/controller_menu.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/theme/pixel_glyph.dart';
@@ -38,6 +39,7 @@ class TrainingNotice extends StatelessWidget {
         text: ready
             ? 'Start training'
             : (kIsWeb ? 'Preparing arena…' : 'Loading arena…'),
+        autofocus: ready && ControllerMenuMode.of(context),
         glyph: PixelGlyph.play,
         height: 48,
         onTap: ready && !skipping ? onStart : null,

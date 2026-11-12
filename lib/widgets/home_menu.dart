@@ -1,3 +1,4 @@
+import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/desktop/desktop_display.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
 import 'package:regun/desktop/desktop_platform.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/services/mac_store_promo.dart';
 import 'package:regun/theme/pixel_glyph.dart';
+import 'package:regun/theme/menu_focus.dart';
 import 'package:regun/utils/constants.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -427,6 +429,7 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
+    final controller = ControllerMenuMode.of(context);
     final ink = widget.muted
         ? const Color(0xff99979c)
         : widget.primary || widget.gear
@@ -442,6 +445,8 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
+            canRequestFocus: enabled,
+            autofocus: desktopInputAvailable && widget.primary && enabled,
             onTap: !enabled
                 ? null
                 : () {
@@ -459,6 +464,7 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
             onTapCancel: () => setState(() => _pressed = false),
             splashColor: Colors.transparent,
             highlightColor: Colors.transparent,
+            focusColor: Colors.transparent,
             child: CustomPaint(
               painter: _HomePlate(
                 primary: widget.primary,
@@ -466,7 +472,8 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
                 utility: widget.utility,
                 pressed: _pressed,
                 enabled: enabled && !widget.muted,
-                highlighted: enabled && (_hovered || _focused),
+                highlighted: enabled && _hovered && !controller,
+                focused: enabled && _focused,
               ),
               child: Container(
                 constraints: BoxConstraints(
@@ -562,13 +569,14 @@ class _HomePlate extends CustomPainter {
     required this.pressed,
     required this.enabled,
     required this.highlighted,
+    required this.focused,
     required this.quiet,
   });
-  final bool primary, utility, pressed, enabled, highlighted, quiet;
+  final bool primary, utility, pressed, enabled, highlighted, focused, quiet;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (quiet && !highlighted && !pressed) return;
+    if (quiet && !highlighted && !pressed && !focused) return;
     final face = Rect.fromLTWH(
       1,
       pressed ? 3 : 0,
@@ -602,6 +610,8 @@ class _HomePlate extends CustomPainter {
             ? const Color(0xff242327)
             : primary
             ? const Color(0xff49382e)
+            : focused
+            ? const Color(0xff352c26)
             : utility
             ? const Color(0xff252027)
             : const Color(0xff30272e),
@@ -643,6 +653,9 @@ class _HomePlate extends CustomPainter {
         paint..color = rim.withValues(alpha: enabled ? .9 : .3),
       );
     }
+    if (focused) {
+      paintMenuFocus(canvas, face);
+    }
   }
 
   @override
@@ -652,6 +665,7 @@ class _HomePlate extends CustomPainter {
       oldDelegate.utility != utility ||
       oldDelegate.pressed != pressed ||
       oldDelegate.enabled != enabled ||
+      oldDelegate.focused != focused ||
       oldDelegate.highlighted != highlighted;
 }
 
@@ -813,8 +827,10 @@ class _MacStorePromoState extends ConsumerState<_MacStorePromo> {
                   Semantics(
                     button: true,
                     label: 'Dismiss Mac App Store suggestion',
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
+                    child: InkWell(
+                      excludeFromSemantics: true,
+                      onFocusChange: (focused) =>
+                          setState(() => _closeHovered = focused),
                       onTap: dismissMacStorePromo,
                       onTapDown: (_) => setState(() => _closeHovered = true),
                       onTapCancel: () => setState(() => _closeHovered = false),

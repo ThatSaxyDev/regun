@@ -2,6 +2,8 @@ import 'package:regun/components/map/map_component.dart';
 import 'package:regun/services/scrap_store.dart';
 import 'package:regun/widgets/scrap_store_dialog.dart';
 import 'package:regun/desktop/desktop_platform.dart';
+import 'package:regun/desktop/controller_menu.dart';
+import 'package:regun/theme/menu_focus.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/widgets/wallet_bar.dart' show walletAmount;
 import 'package:regun/models/economy/armory_catalog.dart';
@@ -47,7 +49,8 @@ class _LoadoutViewState extends State<LoadoutView> {
   CharacterType character = CharacterType.rook;
   ArenaType arena = ArenaType.breach;
   _Catalog _catalog = _Catalog.survivor;
-  final _selectedOption = GlobalKey();
+  final _optionKeys = <Enum, GlobalKey>{};
+  final _preview = ValueNotifier<Enum?>(null);
   bool _starting = false, _showLockedWeapons = false, _unlocking = false;
   String? _unlockIssue;
   late final _armory = widget.armory ?? ArmoryRepository.shared;
@@ -57,6 +60,7 @@ class _LoadoutViewState extends State<LoadoutView> {
 
   @override
   void dispose() {
+    _preview.dispose();
     _armory.removeListener(_armoryChanged);
     LocalPreferences.shared.removeListener(_armoryChanged);
     super.dispose();
@@ -86,9 +90,15 @@ class _LoadoutViewState extends State<LoadoutView> {
 
   void _browse(_Catalog catalog) {
     if (_catalog == catalog) return;
+    _preview.value = null;
     setState(() => _catalog = catalog);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final selected = _selectedOption.currentContext;
+      final item = switch (catalog) {
+        _Catalog.survivor => character,
+        _Catalog.weapon => weapon,
+        _Catalog.arena => arena,
+      };
+      final selected = _optionKeys[item]?.currentContext;
       if (mounted && selected != null) {
         Scrollable.ensureVisible(selected, alignment: .15);
       }
@@ -288,7 +298,11 @@ class _LoadoutViewState extends State<LoadoutView> {
                             children: [
                               SizedBox(
                                 width: (box.maxWidth * .37).clamp(280.0, 460.0),
-                                child: _desktopSelection(),
+                                child: ValueListenableBuilder<Enum?>(
+                                  valueListenable: _preview,
+                                  builder: (_, preview, _) =>
+                                      _desktopSelection(preview),
+                                ),
                               ),
                               const VerticalDivider(
                                 width: 1,
@@ -310,22 +324,31 @@ class _LoadoutViewState extends State<LoadoutView> {
     ),
   );
 
-  Widget _desktopSelection() {
+  Widget _desktopSelection(Enum? preview) {
+    final shownCharacter = preview is CharacterType ? preview : character;
+    final shownWeapon = preview is WeaponType ? preview : weapon;
+    final shownArena = preview is ArenaType ? preview : arena;
     final status = switch (_catalog) {
-      _Catalog.survivor => 'SELECTED SURVIVOR',
+      _Catalog.survivor =>
+        shownCharacter == character ? 'SELECTED SURVIVOR' : 'SURVIVOR PREVIEW',
       _Catalog.weapon =>
-        profile.weaponUnlocked(weapon) ? 'SELECTED WEAPON' : 'LOCKED WEAPON',
-      _Catalog.arena => 'SELECTED ARENA',
+        shownWeapon != weapon
+            ? 'WEAPON PREVIEW'
+            : profile.weaponUnlocked(weapon)
+            ? 'SELECTED WEAPON'
+            : 'LOCKED WEAPON',
+      _Catalog.arena =>
+        shownArena == arena ? 'SELECTED ARENA' : 'ARENA PREVIEW',
     };
     final description = switch (_catalog) {
-      _Catalog.survivor => character.description,
-      _Catalog.weapon => weapon.description,
-      _Catalog.arena => arena.description,
+      _Catalog.survivor => shownCharacter.description,
+      _Catalog.weapon => shownWeapon.description,
+      _Catalog.arena => shownArena.description,
     };
     final details = switch (_catalog) {
       _Catalog.survivor =>
-        '${character.role}  /  ${character.health} HP  /  ${WeaponMobility.speed(weapon, character.speed).round()} SPEED',
-      _Catalog.weapon => WeaponMobility.label(weapon),
+        '${shownCharacter.role}  /  ${shownCharacter.health} HP  /  ${WeaponMobility.speed(weapon, shownCharacter.speed).round()} SPEED',
+      _Catalog.weapon => WeaponMobility.label(shownWeapon),
       _Catalog.arena => '',
     };
     return LayoutBuilder(
@@ -344,7 +367,11 @@ class _LoadoutViewState extends State<LoadoutView> {
             ),
             const SizedBox(height: 8),
             Text(
-              _selection(_catalog),
+              switch (_catalog) {
+                _Catalog.survivor => shownCharacter.title,
+                _Catalog.weapon => shownWeapon.title,
+                _Catalog.arena => shownArena.title,
+              },
               style: const TextStyle(
                 fontFamily: FontFam.orbitron,
                 color: Color(0xffeadfc9),
@@ -359,7 +386,7 @@ class _LoadoutViewState extends State<LoadoutView> {
                 _Catalog.survivor => SurvivorPortrait(
                   key: const Key('loadout-kit-preview'),
                   animated: true,
-                  character: character,
+                  character: shownCharacter,
                   weapon: weapon,
                   style: profile.cosmetic,
                   maxArtSize: 154,
@@ -368,12 +395,12 @@ class _LoadoutViewState extends State<LoadoutView> {
                   child: SizedBox(
                     width: 300,
                     height: 132,
-                    child: WeaponThumbnail(weapon),
+                    child: WeaponThumbnail(shownWeapon),
                   ),
                 ),
                 _Catalog.arena => ClipPath(
                   clipper: const _ArenaPreviewClip(),
-                  child: _arenaFloorPreview(arena),
+                  child: _arenaFloorPreview(shownArena),
                 ),
               },
             ),
@@ -411,6 +438,7 @@ class _LoadoutViewState extends State<LoadoutView> {
           .map(
             (c) => _option(
               id: 'survivor-${c.name}',
+              item: c,
               title: c.title,
               description: desktopInputAvailable
                   ? '${c.role} / ${c.health} HP / ${WeaponMobility.speed(weapon, c.speed).round()} speed'
@@ -429,6 +457,7 @@ class _LoadoutViewState extends State<LoadoutView> {
           .map(
             (a) => _option(
               id: 'arena-${a.name}',
+              item: a,
               title: a.title,
               description: a.description,
               selected: arena == a,
@@ -448,6 +477,7 @@ class _LoadoutViewState extends State<LoadoutView> {
           children: [
             _option(
               id: 'weapon-${w.name}',
+              item: w,
               title: w.title,
               description:
                   '${w.description}${WeaponMobility.label(w).isEmpty ? '' : '\n${WeaponMobility.label(w)}'}',
@@ -476,6 +506,7 @@ class _LoadoutViewState extends State<LoadoutView> {
 
   Widget _option({
     required String id,
+    required Enum item,
     required String title,
     required String description,
     required bool selected,
@@ -495,6 +526,15 @@ class _LoadoutViewState extends State<LoadoutView> {
         enabled: unlocked || previewLocked,
         child: _SoundTap(
           onTap: unlocked || previewLocked ? onTap : null,
+          onFocus: desktop
+              ? (focused) {
+                  if (focused) {
+                    _preview.value = item;
+                  } else if (_preview.value == item) {
+                    _preview.value = null;
+                  }
+                }
+              : null,
           child: CustomPaint(
             painter: _SlotPlate(selected: selected, desktop: desktop),
             child: Padding(
@@ -555,9 +595,10 @@ class _LoadoutViewState extends State<LoadoutView> {
         ),
       ),
     );
-    return selected
-        ? KeyedSubtree(key: _selectedOption, child: option)
-        : option;
+    return KeyedSubtree(
+      key: _optionKeys.putIfAbsent(item, GlobalKey.new),
+      child: option,
+    );
   }
 
   String? _armoryBlocker(String id) {
@@ -728,8 +769,7 @@ class _LoadoutViewState extends State<LoadoutView> {
           if (victoriesMet &&
               (_armory.loading ||
                   _unlocking ||
-                  (blocker == null &&
-                      (missing <= 0 || ScrapStore.supported))))
+                  (blocker == null && (missing <= 0 || ScrapStore.supported))))
             ClickButton(
               key: const Key('loadout-unlock-weapon'),
               text: _unlocking || _armory.loading
@@ -924,6 +964,7 @@ class _CatalogTab extends StatelessWidget {
     button: true,
     child: _SoundTap(
       onTap: onTap,
+      autofocus: desktopInputAvailable && active,
       child: CustomPaint(
         painter: _SlotPlate(selected: active),
         child: Padding(
@@ -965,19 +1006,33 @@ class _CatalogTab extends StatelessWidget {
 }
 
 class _SoundTap extends ConsumerStatefulWidget {
-  const _SoundTap({required this.child, required this.onTap});
+  const _SoundTap({
+    required this.child,
+    required this.onTap,
+    this.autofocus = false,
+    this.onFocus,
+  });
   final Widget child;
   final VoidCallback? onTap;
+  final bool autofocus;
+  final ValueChanged<bool>? onFocus;
 
   @override
   ConsumerState<_SoundTap> createState() => _SoundTapState();
 }
 
 class _SoundTapState extends ConsumerState<_SoundTap> {
-  bool _hovered = false;
+  bool _hovered = false, _focused = false;
 
   @override
   Widget build(BuildContext context) => InkWell(
+    autofocus: widget.autofocus,
+    onFocusChange: desktopInputAvailable
+        ? (value) {
+            setState(() => _focused = value);
+            widget.onFocus?.call(value);
+          }
+        : null,
     onTap: widget.onTap == null
         ? null
         : () {
@@ -989,8 +1044,13 @@ class _SoundTapState extends ConsumerState<_SoundTap> {
         : null,
     highlightColor: const Color(0x246f5341),
     splashColor: Colors.transparent,
+    focusColor: Colors.transparent,
     child: CustomPaint(
-      foregroundPainter: _hovered && widget.onTap != null
+      foregroundPainter: widget.onTap == null
+          ? null
+          : _focused
+          ? const MenuFocusPainter()
+          : _hovered && !ControllerMenuMode.of(context)
           ? const _SlotHover()
           : null,
       child: widget.child,
@@ -1006,9 +1066,9 @@ class _SlotHover extends CustomPainter {
     canvas.drawPath(
       controlPlate((Offset.zero & size).deflate(1), cut: 4),
       Paint()
-        ..color = const Color(0xffe1ba78)
+        ..color = const Color(0xffbf995f)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
+        ..strokeWidth = 1,
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/utils/format_number.dart';
 import 'package:regun/widgets/support_thumbnail.dart';
 import 'package:regun/systems/support_rewards.dart';
@@ -20,7 +21,7 @@ class OnlineUpgradePicker extends StatelessWidget {
     final gun = session.gun!;
     final source = gun.progress['source'] as String? ?? '';
     final fusion = source == 'fusion';
-    return ColoredBox(
+    final panel = ColoredBox(
       color: const Color(0xe8141117),
       child: Center(
         child: ConstrainedBox(
@@ -78,6 +79,7 @@ class OnlineUpgradePicker extends StatelessWidget {
         ),
       ),
     );
+    return ControllerMenuScope(child: panel);
   }
 
   String _delta(String id) {

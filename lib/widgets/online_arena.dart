@@ -174,17 +174,18 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     }
   }
 
-  bool _controller(ControllerFrame? frame) {
-    if (!mounted ||
-        _viewportBlocked ||
-        ModalRoute.of(context)?.isCurrent != true ||
-        !session.controlsEnabled) {
+  bool _controller(ControllerFrame? frame, {bool disconnected = false}) {
+    if (!mounted) return false;
+    if (frame == null) {
+      if (_controllerActive) clear();
+      if (disconnected) _controllerActive = false;
       _controllerArmed = false;
       return false;
     }
-    if (frame == null) {
-      if (_controllerActive) clear();
-      _controllerActive = _controllerArmed = false;
+    if (_viewportBlocked ||
+        ModalRoute.of(context)?.isCurrent != true ||
+        !session.controlsEnabled) {
+      _controllerArmed = false;
       return false;
     }
     final held = {
@@ -207,13 +208,14 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
 
     final move = stick(_bindings.swapSticks ? 2 : 0);
     final aim = stick(_bindings.swapSticks ? 0 : 2);
-    final neutral = held.isEmpty && move == Offset.zero && aim == Offset.zero;
     if (!_controllerArmed) {
-      _controllerArmed = neutral;
-      return _controllerActive;
+      _controllerArmed = frame.neutral;
+      return true;
     }
     if (!_controllerActive) {
-      if (neutral) return false;
+      if (held.isEmpty && move == Offset.zero && aim == Offset.zero) {
+        return true;
+      }
       clear();
       _controllerActive = _controllerArmed = true;
       if (!_desktop) setState(() => _desktop = true);

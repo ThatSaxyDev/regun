@@ -337,8 +337,12 @@ class _ControllerCaptureState extends State<_ControllerCapture> {
   bool done = false;
   late final ControllerHandler handler = _capture;
 
-  bool _capture(ControllerFrame? frame) {
-    if (frame == null || done) return true;
+  bool _capture(ControllerFrame? frame, {bool disconnected = false}) {
+    if (frame == null) {
+      armed = false;
+      return true;
+    }
+    if (done) return true;
     final held = [
       for (var i = 0; i < desktopControllerButtons.length; i++)
         if (frame.pressed(i)) i,

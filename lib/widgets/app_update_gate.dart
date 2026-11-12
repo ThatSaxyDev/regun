@@ -1,3 +1,4 @@
+import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/widgets/game_notice.dart';
 
 import 'dart:async';
@@ -227,23 +228,28 @@ class _AppUpdateGateState extends ConsumerState<AppUpdateGate>
           SafeArea(
             minimum: const EdgeInsets.all(16),
             child: Center(
-              child:
-                  _maintenance != null ||
-                      (ref.read(appUpdatesProvider).web && !_webConfirmed)
-                  ? _availabilityNotice()
-                  : UpdateNotice(
-                      result: _prompt!,
-                      storeAvailable:
-                          ref
-                              .read(appUpdatesProvider)
-                              .storeUri(_prompt!.storeUrl) !=
-                          null,
-                      checking: _checking,
-                      opening: _opening,
-                      error: _error,
-                      onLater: _later,
-                      onUpdate: _update,
-                    ),
+              child: ControllerMenuScope(
+                onBack: _maintenance == null && _prompt?.isRequired == false
+                    ? _later
+                    : null,
+                child:
+                    _maintenance != null ||
+                        (ref.read(appUpdatesProvider).web && !_webConfirmed)
+                    ? _availabilityNotice()
+                    : UpdateNotice(
+                        result: _prompt!,
+                        storeAvailable:
+                            ref
+                                .read(appUpdatesProvider)
+                                .storeUri(_prompt!.storeUrl) !=
+                            null,
+                        checking: _checking,
+                        opening: _opening,
+                        error: _error,
+                        onLater: _later,
+                        onUpdate: _update,
+                      ),
+              ),
             ),
           ),
         ],

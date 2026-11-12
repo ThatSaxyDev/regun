@@ -1,6 +1,7 @@
 import 'package:regun/desktop/web_landscape_prompt.dart';
 import 'package:regun/desktop/desktop_bindings.dart';
 import 'package:regun/desktop/desktop_controller.dart';
+import 'package:regun/desktop/controller_device.dart';
 import 'package:regun/widgets/game_presentation.dart';
 import 'package:flame/components.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
@@ -18,6 +19,7 @@ import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/systems/grenades.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/views/base_view.dart';
+import 'package:regun/views/settings_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _Quiet extends SoloudPlay {
@@ -28,7 +30,10 @@ class _Quiet extends SoloudPlay {
   Future<void> playMusic(String theme) async {}
 }
 
-Future<RegunGame> _mountTraining(WidgetTester tester) async {
+Future<RegunGame> _mountTraining(
+  WidgetTester tester, {
+  Future<List<ControllerDevice>?> Function()? readDevices,
+}) async {
   SharedPreferences.setMockInitialValues({});
   tester.view.physicalSize = const Size(960, 540);
   tester.view.devicePixelRatio = 1;
@@ -43,9 +48,19 @@ Future<RegunGame> _mountTraining(WidgetTester tester) async {
         child: MaterialApp(
           builder: (_, child) => GamePresentation(
             scale: DesktopBindings.textBaseline,
-            child: WebLandscapePrompt(child: child!),
+            child: readDevices == null
+                ? WebLandscapePrompt(child: child!)
+                : DesktopController(readDevices: readDevices, child: child!),
           ),
-          home: const BaseView(loadout: Loadout(training: true)),
+          home: readDevices == null
+              ? const BaseView(loadout: Loadout(training: true))
+              : const Scaffold(body: Text('Training closed')),
+          initialRoute: readDevices == null ? null : '/training',
+          routes: {
+            if (readDevices != null)
+              '/training': (_) =>
+                  const BaseView(loadout: Loadout(training: true)),
+          },
         ),
       ),
     );
@@ -298,6 +313,94 @@ void main() {
         closeTo(GrenadeSpec.speed, .001),
       );
       await mouse.removePointer();
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: const TargetPlatformVariant({TargetPlatform.macOS}),
+  );
+  testWidgets(
+    'controller pause, settings, resume and disconnect during grenade aim',
+    (tester) async {
+      List<ControllerDevice> devices = [];
+      final game = await _mountTraining(
+        tester,
+        readDevices: () async => devices,
+      );
+      Future<void> frame({int? button, double move = 0, double aim = 0}) async {
+        devices = [
+          ControllerDevice(
+            'pad',
+            'DualSense',
+            List<double>.filled(20, 0)
+              ..[0] = move
+              ..[2] = aim
+              ..[4 + (button ?? 0)] = button == null ? 0 : 1,
+          ),
+        ];
+        await tester.pump(const Duration(milliseconds: 17));
+        await tester.pump();
+      }
+
+      Future<void> press(int button) async {
+        await frame(button: button);
+        await frame();
+      }
+
+      await frame();
+      await press(9);
+      expect(game.gameState.gameplayState, GameplayState.paused);
+      expect(find.text('RESUME'), findsOneWidget);
+      await press(13);
+      await press(0);
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+      expect(find.byType(SettingsView), findsOneWidget);
+      await press(1);
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(SettingsView), findsNothing);
+      expect(game.gameState.gameplayState, GameplayState.paused);
+
+      await press(1);
+      expect(game.gameState.gameplayState, GameplayState.playing);
+      await frame();
+      await frame(button: 6, move: 1, aim: .6);
+      expect(game.desktopInput!.grenade, isTrue);
+      expect(game.movementIntent.x, 1);
+      final charges = game.grenades.charges;
+      devices = [];
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump();
+      expect(game.gameState.gameplayState, GameplayState.paused);
+      expect(game.desktopInput!.grenade, isFalse);
+      expect(game.fireIntent, isFalse);
+      expect(game.movementIntent.length2, 0);
+      expect(game.grenades.charges, charges);
+      expect(find.text('Controller disconnected · DualSense'), findsOneWidget);
+
+      await frame(button: 0);
+      expect(game.gameState.gameplayState, GameplayState.paused);
+      await frame();
+      await press(13);
+      await press(13);
+      await press(13);
+      await press(0);
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump();
+      expect(find.text('RETURN TO MENU?'), findsOneWidget);
+      await press(1);
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(find.text('RETURN TO MENU?'), findsNothing);
+      expect(game.gameState.gameplayState, GameplayState.paused);
+      await press(0);
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(find.text('RETURN TO MENU?'), findsOneWidget);
+      await press(15);
+      await press(0);
+      await tester.pump(const Duration(milliseconds: 450));
+      await tester.pump(const Duration(milliseconds: 450));
+      expect(find.text('Training closed'), findsOneWidget);
+      expect(find.byType(BaseView), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
     },
     variant: const TargetPlatformVariant({TargetPlatform.macOS}),

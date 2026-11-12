@@ -1,7 +1,9 @@
+import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/presentation/game_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/theme/pixel_glyph.dart';
+import 'package:regun/theme/menu_focus.dart';
 import 'package:regun/utils/constants.dart';
 
 const _accent = Color(0xffE1BA78);
@@ -114,6 +116,7 @@ class PixelOptionState extends State<PixelOption> {
         onFocusChange: (value) => setState(() => _focused = value),
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
+        focusColor: Colors.transparent,
         child: CustomPaint(
           painter: _SelectionPlate(
             selected: widget.selected,
@@ -174,11 +177,9 @@ class _SelectionPlate extends CustomPainter {
     canvas.drawPath(
       controlPlate(rect.deflate(0.75)),
       Paint()
-        ..color = selected || focused || hovered
-            ? _accent
-            : const Color(0xff665A68)
+        ..color = selected || hovered ? _accent : const Color(0xff665A68)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = focused ? 2 : 1.5,
+        ..strokeWidth = 1.5,
     );
     final mark = Rect.fromLTWH(10, rect.center.dy - 4, 8, 8);
     canvas.drawRect(
@@ -199,6 +200,7 @@ class _SelectionPlate extends CustomPainter {
         Paint()..color = _accent,
       );
     }
+    if (focused) paintMenuFocus(canvas, rect);
   }
 
   @override
@@ -209,7 +211,7 @@ class _SelectionPlate extends CustomPainter {
       hovered != oldDelegate.hovered;
 }
 
-class ControlSlider extends StatelessWidget {
+class ControlSlider extends StatefulWidget {
   const ControlSlider({
     super.key,
     required this.label,
@@ -222,72 +224,114 @@ class ControlSlider extends StatelessWidget {
   final double value, minimum, maximum;
   final ValueChanged<double> onChanged;
 
-  String _format(double v, {double displayScale = 1}) => maximum <= 1
+  @override
+  State<ControlSlider> createState() => _ControlSliderState();
+}
+
+class _ControlSliderState extends State<ControlSlider> {
+  final _focus = FocusNode();
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  String _format(double v, {double displayScale = 1}) => widget.maximum <= 1
       ? '${(v * 100).round()}%'
-      : label == 'Sensitivity'
+      : widget.label == 'Sensitivity'
       ? '${v.toStringAsFixed(2)}×'
       : '${(v * displayScale).round()} px';
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontFamily: FontFam.orbitron,
-                color: _ink,
-                fontSize: 13,
-                height: 1.5,
+  Widget build(BuildContext context) {
+    final ControlSlider(:label, :value, :minimum, :maximum, :onChanged) =
+        widget;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: FontFam.orbitron,
+                  color: _ink,
+                  fontSize: 13,
+                  height: 1.5,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            _format(
-              value,
-              displayScale: GameLayout.uiScale(MediaQuery.sizeOf(context)),
-            ),
-            style: const TextStyle(
-              fontFamily: FontFam.orbitron,
-              color: _accent,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 4),
-      SizedBox(
-        height: 48,
-        child: Semantics(
-          label: label,
-          child: SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 4,
-              activeTrackColor: _accent,
-              inactiveTrackColor: const Color(0xff4A3D48),
-              thumbColor: _accent,
-              overlayShape: SliderComponentShape.noOverlay,
-              thumbShape: const _PixelSliderThumb(),
-              trackShape: const RectangularSliderTrackShape(),
-            ),
-            child: Slider(
-              value: value,
-              min: minimum,
-              max: maximum,
-              onChanged: onChanged,
-              semanticFormatterCallback: (v) => _format(
-                v,
+            const SizedBox(width: 12),
+            Text(
+              _format(
+                value,
                 displayScale: GameLayout.uiScale(MediaQuery.sizeOf(context)),
+              ),
+              style: const TextStyle(
+                fontFamily: FontFam.orbitron,
+                color: _accent,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 48,
+          child: Actions(
+            actions: {
+              ControllerAdjustIntent: CallbackAction<ControllerAdjustIntent>(
+                onInvoke: (intent) {
+                  final next = (value + (maximum - minimum) / 20 * intent.step)
+                      .clamp(minimum, maximum);
+                  if (next == value) return false;
+                  onChanged(next);
+                  return true;
+                },
+              ),
+            },
+            child: ListenableBuilder(
+              listenable: _focus,
+              builder: (context, child) => CustomPaint(
+                foregroundPainter: _focus.hasFocus && desktopInputAvailable
+                    ? const MenuFocusPainter()
+                    : null,
+                child: child,
+              ),
+              child: Semantics(
+                label: label,
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 4,
+                    activeTrackColor: _accent,
+                    inactiveTrackColor: const Color(0xff4A3D48),
+                    thumbColor: _accent,
+                    overlayShape: SliderComponentShape.noOverlay,
+                    thumbShape: const _PixelSliderThumb(),
+                    trackShape: const RectangularSliderTrackShape(),
+                  ),
+                  child: Slider(
+                    focusNode: _focus,
+                    value: value,
+                    min: minimum,
+                    max: maximum,
+                    onChanged: onChanged,
+                    semanticFormatterCallback: (v) => _format(
+                      v,
+                      displayScale: GameLayout.uiScale(
+                        MediaQuery.sizeOf(context),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }
 
 class _PixelSliderThumb extends SliderComponentShape {
