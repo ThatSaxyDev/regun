@@ -9,11 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:regun/components/weapons/grenade_component.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/desktop/desktop_frame_pacer.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/presentation/regun_art.dart';
+import 'package:regun/systems/grenades.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -227,12 +229,75 @@ void main() {
       expect(game.myPlayer.aimDirection.x, -1);
       expect(game.fireIntent, isFalse);
       advance(frame(1, -1, grenade: 1), 1);
+      expect(game.desktopGrenadePower, 1);
+      advance(frame(1, -.55, grenade: 1), 1);
+      final power = game.desktopGrenadePower;
+      expect(power, inExclusiveRange(.4, 1));
       advance(frame(1, 0, grenade: 1), 45);
       expect(game.aimIntent.isZero(), isTrue);
       expect(game.desktopGrenadeDirection.x, -1);
+      expect(game.desktopGrenadePower, power);
       final grenadesBeforeRelease = game.grenades.charges;
-      advance(frame(1, 0), 1);
+      expect(dispatch(frame(1, 0)), isTrue);
       expect(game.grenades.charges, grenadesBeforeRelease - 1);
+      await tester.runAsync(() async {
+        game.update(0);
+        await game.ready();
+      });
+      final grenade = game.world.children.whereType<GrenadeComponent>().single;
+      expect(
+        grenade.flight.velocity.dx,
+        closeTo(-GrenadeSpec.speed * power, .001),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+    variant: const TargetPlatformVariant({TargetPlatform.macOS}),
+  );
+
+  testWidgets(
+    'mouse position sets grenade range for mouse and keyboard release',
+    (tester) async {
+      final game = await _mountTraining(tester);
+      final mouse = await tester.createGesture(
+        kind: PointerDeviceKind.mouse,
+        buttons: kSecondaryMouseButton,
+      );
+      Offset at(double distance) => game.camera
+          .localToGlobal(game.myPlayer.position + Vector2(distance, 0))
+          .toOffset();
+      final near = at(230);
+      await mouse.addPointer(location: near);
+      await mouse.moveTo(near);
+      await mouse.down(near);
+      final shortPower = game.desktopGrenadePower;
+      expect(shortPower, inExclusiveRange(.4, 1));
+      expect(game.grenades.charges, 2);
+      await mouse.up();
+      await tester.runAsync(() async {
+        game.update(0);
+        await game.ready();
+      });
+      final grenades = game.world.children.whereType<GrenadeComponent>();
+      expect(
+        grenades.single.flight.velocity.dx,
+        closeTo(GrenadeSpec.speed * shortPower, .001),
+      );
+
+      game.update(.3);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyG);
+      await mouse.moveTo(at(500));
+      expect(game.desktopGrenadePower, 1);
+      expect(game.grenades.charges, 1);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyG);
+      await tester.runAsync(() async {
+        game.update(0);
+        await game.ready();
+      });
+      expect(
+        grenades.last.flight.velocity.dx,
+        closeTo(GrenadeSpec.speed, .001),
+      );
+      await mouse.removePointer();
       await tester.pumpWidget(const SizedBox.shrink());
     },
     variant: const TargetPlatformVariant({TargetPlatform.macOS}),

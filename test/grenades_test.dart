@@ -115,6 +115,25 @@ void main() {
       }
     },
   );
+  test(
+    'mouse range reaches the selected open-ground distance within bounds',
+    () {
+      final power = GrenadeSpec.powerForDistance(210);
+      expect(power, inExclusiveRange(.4, 1));
+      final flight = GrenadeFlight(
+        const Offset(GrenadeSpec.releaseOffset, 0),
+        Offset(GrenadeSpec.speed * power, 0),
+      );
+      final path = grenadePreview(
+        flight,
+        blocked: (_, _) => false,
+        contact: (_, _) => false,
+      );
+      expect(path.last.ground.dx, closeTo(210, .001));
+      expect(GrenadeSpec.powerForDistance(0), .4);
+      expect(GrenadeSpec.powerForDistance(1000), 1);
+    },
+  );
   testWidgets(
     'online grenade control holds outside bounds, rejects second pointer and cancels',
     (tester) async {
@@ -147,11 +166,17 @@ void main() {
       await first.up();
       expect(released.length, 1);
       expect(released.single, (const Offset(0, -1), 1.0));
+      final short = await tester.startGesture(at, pointer: 74);
+      await short.moveBy(const Offset(0, -25));
+      final shortPower = aim.power(56 * .85);
+      expect(shortPower, inExclusiveRange(.4, 1));
+      await short.up();
+      expect(released.last, (const Offset(0, -1), shortPower));
       final cancel = await tester.startGesture(at, pointer: 73);
       await cancel.moveBy(const Offset(-20, 0));
       await cancel.cancel();
       expect(aim.active, isFalse);
-      expect(released.length, 1);
+      expect(released.length, 2);
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );

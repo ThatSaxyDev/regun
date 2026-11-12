@@ -246,17 +246,6 @@ class _DesktopControlsViewState extends State<DesktopControlsView> {
               () => bindings.swapMouseButtons = !bindings.swapMouseButtons,
             ),
           ),
-          Text(
-            bindings.swapMouseButtons
-                ? 'Hold left click or the grenade key to aim.'
-                : 'Hold right click or the grenade key to aim.',
-            style: const TextStyle(
-              fontFamily: FontFam.orbitron,
-              fontSize: 12,
-              height: 1.5,
-              color: Color(0xffc7b9a6),
-            ),
-          ),
           ClickButton(
             text:
                 'Crosshair size · ${(bindings.crosshairScale * 100).round()}%',
@@ -272,6 +261,17 @@ class _DesktopControlsViewState extends State<DesktopControlsView> {
                 _change(() => bindings.highContrast = !bindings.highContrast),
           ),
         ],
+        Text(
+          controller
+              ? 'Hold Grenade. Push the aim stick farther for a longer throw.'
+              : 'Hold ${bindings.swapMouseButtons ? 'left' : 'right'} click or the grenade key. Move the cursor to set range.',
+          style: const TextStyle(
+            fontFamily: FontFam.orbitron,
+            fontSize: 12,
+            height: 1.5,
+            color: Color(0xffc7b9a6),
+          ),
+        ),
         ClickButton(
           text: 'Reset defaults',
           onTap: () => _change(() {

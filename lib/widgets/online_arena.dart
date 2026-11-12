@@ -119,7 +119,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
   Rect _worldFrame = Rect.zero;
   double _worldScale = 1;
   bool _mouseFire = false, _mouseGrenade = false, _desktopGrenade = false;
-  static const _desktopGrenadeId = -1;
+  ({Offset direction, double power})? _desktopGrenadeTarget;
   DesktopBindings get _bindings => DesktopBindings.shared;
 
   void _projection(Rect frame, Offset center, double scale) {
@@ -132,6 +132,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     if (!_desktop || _controllerActive || !session.controlsEnabled) return;
     final point = _mouse, center = _worldCenter;
     if (point == null || center == null || !_worldFrame.contains(point)) {
+      if (!_desktopGrenade) _desktopGrenadeTarget = null;
       if (DesktopMenuCursor.combatPointer.value == this) {
         DesktopMenuCursor.combatPointer.value = null;
       }
@@ -147,32 +148,21 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
       session.aimX = direction.dx / direction.distance;
       session.aimY = direction.dy / direction.distance;
     }
-    _previewDesktopGrenade();
-  }
-
-  void _previewDesktopGrenade() {
-    if (!_desktopGrenade ||
-        !session.grenadeAimingAvailable ||
-        (session.gun?.grenadeCharges ?? 0) <= 0) {
-      return;
-    }
-    if (!grenadeAim.active) grenadeAim.begin(_desktopGrenadeId, Offset.zero);
-    grenadeAim.move(
-      _desktopGrenadeId,
-      Offset(session.aimX, session.aimY) * 150,
+    _desktopGrenadeTarget = (
+      direction: Offset(session.aimX, session.aimY),
+      power: GrenadeSpec.powerForDistance(direction.distance),
     );
   }
 
   void _setGrenade(bool held) {
     final released = _desktopGrenade && !held;
     _desktopGrenade = held;
-    if (held) {
-      _previewDesktopGrenade();
-    } else if (released) {
-      final direction =
-          grenadeAim.direction ?? Offset(session.aimX, session.aimY);
-      grenadeAim.cancel();
-      if (session.controlsEnabled) session.throwGrenade(aim: direction);
+    final target =
+        _desktopGrenadeTarget ??
+        (direction: Offset(session.aimX, session.aimY), power: 1.0);
+    if (held) _desktopGrenadeTarget = target;
+    if (released && session.controlsEnabled) {
+      session.throwGrenade(aim: target.direction, power: target.power);
     }
   }
 
@@ -247,7 +237,15 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     if (fresh.contains(ControllerAction.reload)) session.reload();
     session.firing =
         session.match != null && held.contains(ControllerAction.fire);
-    _setGrenade(held.contains(ControllerAction.grenade));
+    final grenadeHeld = held.contains(ControllerAction.grenade);
+    if (aim != Offset.zero && (grenadeHeld || _desktopGrenade)) {
+      _desktopGrenadeTarget = (
+        direction: aim / aim.distance,
+        power: GrenadeSpec.powerForDeflection(aim.distance),
+      );
+    }
+    _setGrenade(grenadeHeld);
+    if (!grenadeHeld) _desktopGrenadeTarget = null;
     return true;
   }
 
@@ -915,6 +913,7 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
     _controllerArmed = false;
     _mouse = null;
     _mouseFire = _mouseGrenade = _desktopGrenade = false;
+    _desktopGrenadeTarget = null;
     grenadeAim.cancel();
     pointers.clear();
     origins.clear();
@@ -978,6 +977,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
         shotTimes: shotTimes,
         hurtTimes: hurtTimes,
         grenadeAim: grenadeAim,
+        desktopGrenadeTarget:
+            _desktopGrenade &&
+                session.grenadeAimingAvailable &&
+                (session.gun?.grenadeCharges ?? 0) > 0
+            ? _desktopGrenadeTarget
+            : null,
+        touchInsets: MediaQuery.paddingOf(context),
         restingAim: restingAim,
         mummyWalks: mummyWalks,
         scorpionGaits: scorpionGaits,
@@ -1129,7 +1135,13 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                           _mouseGrenade =
                               event.buttons & _bindings.mouseGrenade != 0;
                           session.firing = session.match != null && _mouseFire;
-                          _setGrenade(_mouseGrenade);
+                          _setGrenade(
+                            _mouseGrenade ||
+                                _bindings.held(
+                                  DesktopAction.grenade,
+                                  _desktopKeys,
+                                ),
+                          );
                           return;
                         }
                         if (_desktop && event.kind == PointerDeviceKind.touch) {
@@ -1190,11 +1202,12 @@ class _OnlineArenaState extends ConsumerState<OnlineArena>
                               );
                           if (!_worldFrame.contains(event.localPosition)) {
                             _desktopGrenade = false;
-                            grenadeAim.cancel();
+                            _desktopGrenadeTarget = null;
                           } else {
                             _setGrenade(
-                              _desktopKeys.contains(
-                                _bindings.key(DesktopAction.grenade),
+                              _bindings.held(
+                                DesktopAction.grenade,
+                                _desktopKeys,
                               ),
                             );
                           }
@@ -1519,6 +1532,8 @@ class _ArenaPainter extends CustomPainter {
     required this.shotTimes,
     required this.hurtTimes,
     required this.grenadeAim,
+    required this.desktopGrenadeTarget,
+    required this.touchInsets,
     required this.restingAim,
     required this.mummyWalks,
     required this.scorpionGaits,
@@ -1532,6 +1547,8 @@ class _ArenaPainter extends CustomPainter {
   final OnlineSession session;
   final OnlineBossPresentation bossPresentation;
   final GrenadeAim grenadeAim;
+  final ({Offset direction, double power})? desktopGrenadeTarget;
+  final EdgeInsets touchInsets;
   final Map<String, Offset> restingAim;
   final Map<String, MummyWalk> mummyWalks;
   final Map<String, TravelGait> scorpionGaits;
@@ -1788,11 +1805,24 @@ class _ArenaPainter extends CustomPainter {
         reducedMotion: LocalPreferences.shared.reducedMotion,
       );
     }
-    if (grenadeAim.active &&
-        !grenadeAim.cancelled &&
-        session.controlsEnabled &&
-        mine != null) {
-      final direction = grenadeAim.direction ?? session.quickGrenadeDirection;
+    final grenadeTarget = desktop
+        ? desktopGrenadeTarget
+        : grenadeAim.active && !grenadeAim.cancelled
+        ? (
+            direction: grenadeAim.direction ?? session.quickGrenadeDirection,
+            power: grenadeAim.power(
+              LocalPreferences.shared.controls.displayButtonSize(
+                    Size(
+                      size.width - touchInsets.horizontal,
+                      size.height - touchInsets.vertical,
+                    ),
+                  ) *
+                  .85,
+            ),
+          )
+        : null;
+    if (grenadeTarget != null && session.controlsEnabled && mine != null) {
+      final direction = grenadeTarget.direction;
       final start = positions[session.identity] ?? Offset(mine.x, mine.y),
           d = direction.distance < .001
               ? const Offset(1, 0)
@@ -1809,15 +1839,11 @@ class _ArenaPainter extends CustomPainter {
               r.inflate(8),
             ),
           );
-      var origin = start + d * 36;
+      var origin = start + d * GrenadeSpec.releaseOffset;
       if (blocked(start, origin)) origin = start;
       final flight = GrenadeFlight(
         origin,
-        d *
-            GrenadeSpec.speed *
-            grenadeAim.power(
-              LocalPreferences.shared.controls.displayButtonSize(size) * .85,
-            ),
+        d * GrenadeSpec.speed * grenadeTarget.power,
       );
       final targets = <(Offset, double)>[
         for (final e in session.scene.where(

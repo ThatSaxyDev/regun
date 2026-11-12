@@ -34,6 +34,7 @@ class DesktopCombatInput {
   void cancelFire() => _fireHeld = _firePressed = false;
 
   bool grenade = false;
+  double controllerGrenadePower = 1;
   int epoch = 0;
 
   void reset() {
@@ -42,6 +43,7 @@ class DesktopCombatInput {
     stickAiming = false;
     cancelFire();
     grenade = false;
+    controllerGrenadePower = 1;
     epoch++;
   }
 }

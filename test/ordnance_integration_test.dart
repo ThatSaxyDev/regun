@@ -18,6 +18,7 @@ import 'package:regun/game.dart';
 import 'package:regun/models/run_checkpoint.dart';
 import 'package:regun/presentation/grenade_art.dart';
 import 'package:regun/presentation/regun_art.dart';
+import 'package:regun/systems/grenades.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/views/base_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -247,13 +248,22 @@ void main() {
         2,
         reason: 'Holding must not throw or start recharge',
       );
-      await gesture.moveBy(const Offset(-45, 0));
-      await gesture.moveBy(const Offset(-15, 0));
+      await gesture.moveBy(const Offset(-18, 0));
+      await gesture.moveBy(const Offset(-8, 0));
       expect(game.grenadeButtonComponent.aim.direction!.dx, lessThan(-.99));
+      final shortPower = game.grenadeButtonComponent.aim.power(
+        game.controlButtonSize * .85,
+      );
+      expect(shortPower, inExclusiveRange(.4, 1));
       expect(game.grenades.charges, 2);
-      final secondTouch=await tester.startGesture(button,pointer:55);
-      await secondTouch.moveBy(const Offset(0,-30));await secondTouch.cancel();
-      expect(game.grenadeButtonComponent.aim.active,isTrue,reason:'Other fingers cannot cancel an existing throw');
+      final secondTouch = await tester.startGesture(button, pointer: 55);
+      await secondTouch.moveBy(const Offset(0, -30));
+      await secondTouch.cancel();
+      expect(
+        game.grenadeButtonComponent.aim.active,
+        isTrue,
+        reason: 'Other fingers cannot cancel an existing throw',
+      );
       expect(game.weaponJoystick.relativeDelta.isZero(), isTrue);
       expect(game.movementJoystick.relativeDelta.x, greaterThan(0));
       await tester.pump();
@@ -274,6 +284,10 @@ void main() {
         await game.ready();
       });
       final shot = game.world.children.whereType<GrenadeComponent>().single;
+      expect(
+        shot.flight.velocity.distance,
+        closeTo(GrenadeSpec.speed * shortPower, .001),
+      );
       expect(
         shot.flight.velocity.dx,
         lessThan(0),
@@ -315,6 +329,10 @@ void main() {
         reason: 'Quick throw follows movement',
       );
       expect(throws.last.flight.velocity.dx, closeTo(0, .001));
+      expect(
+        throws.last.flight.velocity.distance,
+        closeTo(GrenadeSpec.speed, .001),
+      );
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpWidget(const SizedBox.shrink());
       expect(tester.takeException(), isNull);

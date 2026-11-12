@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:regun/desktop/desktop_combat_input.dart';
 import 'package:regun/game.dart';
+import 'package:regun/systems/grenades.dart';
 
 class DesktopCombatSurface extends StatefulWidget {
   const DesktopCombatSurface({
@@ -107,6 +108,9 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
     input.stickAiming = aim.length2 > 0;
     input.fire = held.contains(ControllerAction.fire);
     input.grenade = held.contains(ControllerAction.grenade);
+    if (input.stickAiming && (input.grenade || previousGrenade)) {
+      input.controllerGrenadePower = GrenadeSpec.powerForDeflection(aim.length);
+    }
     if (input.stickAiming) {
       final heading = aim.normalized();
       if (input.stickAim.length2 == 0) {
@@ -141,7 +145,11 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
     final target = Offset(projected.x, projected.y);
     _pointer.value = game.controlCanvasRect.contains(target) ? target : null;
     if (previousGrenade && !input.grenade) {
-      game.throwGrenade(aim: game.desktopGrenadeDirection);
+      game.throwGrenade(
+        aim: game.desktopGrenadeDirection,
+        power: game.desktopGrenadePower,
+      );
+      input.controllerGrenadePower = 1;
     }
     return true;
   }
@@ -232,7 +240,10 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
     input.grenade =
         _grenadePointer != null || _bindings.held(DesktopAction.grenade, _keys);
     if (wasHeld && !input.grenade && game.acceptsDesktopInput) {
-      game.throwGrenade(aim: game.desktopGrenadeDirection);
+      game.throwGrenade(
+        aim: game.desktopGrenadeDirection,
+        power: game.desktopGrenadePower,
+      );
     }
   }
 

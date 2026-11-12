@@ -85,6 +85,19 @@ class GrenadeInventory {
 
 class GrenadeSpec {
   static const fuse = 1.4, arm = .18, speed = 600.0;
+  static const releaseOffset = 36.0;
+  // With no walls, ground travel scales linearly with release speed.
+  static final _openTravel =
+      (GrenadeFlight(Offset.zero, const Offset(speed, 0))
+            ..advance(fuse, blocked: (_, _) => false, contact: (_, _) => false))
+          .position
+          .dx;
+
+  static double powerForDistance(double distance) =>
+      ((distance - releaseOffset) / _openTravel).clamp(.4, 1);
+  static double powerForDeflection(double fraction) =>
+      .4 + .6 * fraction.clamp(0, 1);
+
   static double damage(double rank) => 8 * (1 + rank * .2);
   static double radius(double rank) => 205 * (1 + rank * .08);
   static double recharge(double rank) => (18 - rank * 1.5).clamp(10, 18);
@@ -202,7 +215,7 @@ class GrenadeAim {
   Offset? get direction => delta.distance < 8 ? null : delta / delta.distance;
   double power(double radius) => direction == null
       ? 1
-      : (.4 + .6 * ((delta.distance - 8) / radius).clamp(0, 1));
+      : GrenadeSpec.powerForDeflection((delta.distance - 8) / radius);
   void cancel() {
     pointer = null;
     delta = Offset.zero;

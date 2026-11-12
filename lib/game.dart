@@ -175,8 +175,7 @@ class RegunGame extends FlameGame
           ? myPlayer.aimDirection
           : input.stickAim;
     }
-    final direction =
-        camera.globalToLocal(Vector2(point.dx, point.dy)) - myPlayer.position;
+    final direction = _desktopPointerDelta(point);
     return direction.isZero() ? direction : direction.normalized();
   }
 
@@ -204,6 +203,18 @@ class RegunGame extends FlameGame
     }
     final aim = aimIntent;
     return aim.isZero() ? quickGrenadeDirection : aim;
+  }
+
+  Vector2 _desktopPointerDelta(Offset point) =>
+      camera.globalToLocal(Vector2(point.dx, point.dy)) - myPlayer.position;
+
+  double get desktopGrenadePower {
+    final input = desktopInput!;
+    if (input.controller) return input.controllerGrenadePower;
+    final point = input.pointer;
+    return point == null
+        ? 1
+        : GrenadeSpec.powerForDistance(_desktopPointerDelta(point).length);
   }
 
   final BuildContext context;
@@ -1492,7 +1503,7 @@ class RegunGame extends FlameGame
   GrenadeFlight grenadeFlight(Vector2 direction, double power) {
     direction = direction.normalized();
     if (direction.isZero()) direction.setValues(1, 0);
-    final start = myPlayer.position + direction * 36;
+    final start = myPlayer.position + direction * GrenadeSpec.releaseOffset;
     if (geometry.solids.any(
       (r) => ArenaGeometry.crosses(myPlayer.position, start, r.inflate(8)),
     )) {

@@ -26,7 +26,7 @@ A player can start a run, aim and fight, choose upgrades, pause, continue, and r
 | Fire | Primary click or hold, interpreted by the weapon | Right trigger with separate press and release thresholds |
 | Dash | Space | Left bumper (LB / L1) |
 | Reload | R | West face button (X / Square) |
-| Aim and throw grenade | Hold secondary click or G to preview, release to throw | Hold left trigger (LT / L2) to preview, aim with right stick, release to throw |
+| Aim and throw grenade | Hold secondary click or G, position the cursor to set range, then release | Hold LT / L2, tilt the right stick farther for more range, then release LT / L2 |
 | Pause | Esc | Menu / Options |
 | Menu navigation | Mouse, Tab / Shift+Tab, or arrow keys | D-pad or left stick |
 | Confirm / back | Enter / Esc | South / east face buttons (A / Cross and B / Circle) |

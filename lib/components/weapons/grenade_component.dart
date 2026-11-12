@@ -234,7 +234,9 @@ class GrenadeAimPreview extends PositionComponent
           : direction == null
           ? game.quickGrenadeDirection
           : Vector2(direction.dx, direction.dy),
-      desktop ? 1 : input.power(game.controlButtonSize * .85),
+      desktop
+          ? game.desktopGrenadePower
+          : input.power(game.controlButtonSize * .85),
     );
     final points = grenadePreview(
       flight,

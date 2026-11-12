@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
+import 'package:regun/desktop/desktop_controller.dart';
 import 'package:regun/widgets/online_match_menu.dart';
 import 'package:regun/widgets/game_notice.dart';
 import 'package:regun/views/settings_view.dart';
@@ -17,6 +19,7 @@ import 'package:regun/multiplayer/generated/room.dart';
 import 'package:regun/presentation/control_art.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/services/local_preferences.dart';
+import 'package:regun/systems/grenades.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/widgets/online_arena.dart';
 
@@ -27,6 +30,15 @@ class _LeavingSession extends FakeSession {
   @override
   Future<void> leave() async {
     left = true;
+  }
+}
+
+class _GrenadeSession extends FakeSession {
+  final throws = <(Offset?, double)>[];
+
+  @override
+  void throwGrenade({Offset? aim, double power = 1}) {
+    throws.add((aim, power));
   }
 }
 
@@ -232,8 +244,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
 
-    final s = FakeSession()
+    final s = _GrenadeSession()
       ..connected = true
+      ..grenadesAvailable = true
+      ..grenadeAimingAvailable = true
       ..identity = id(1).toHexString
       ..room = Room.fromJson(
         room().toJson()
@@ -286,10 +300,32 @@ void main() {
     expect(s.firing, isTrue);
     await mouse.up();
     expect(s.firing, isFalse);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyG);
+    expect(s.throws, isEmpty);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.keyG);
+    expect(s.throws.single.$1!.dx, closeTo(1, .01));
+    expect(s.throws.single.$2, inExclusiveRange(.4, 1));
     await mouse.down(const Offset(10, 270));
     expect(s.firing, isFalse);
     await mouse.up();
     await mouse.removePointer();
+
+    final dispatch = DesktopController.handlers.last;
+    ControllerFrame frame(double stick, double trigger) => ControllerFrame(
+      List<double>.filled(20, 0)
+        ..[2] = stick
+        ..[10] = trigger,
+    );
+    dispatch(frame(0, 0));
+    expect(dispatch(frame(-.55, 1)), isTrue);
+    expect(dispatch(frame(0, 1)), isTrue);
+    expect(s.throws.length, 1);
+    expect(dispatch(frame(0, 0)), isTrue);
+    expect(s.throws.last.$1, const Offset(-1, 0));
+    expect(
+      s.throws.last.$2,
+      closeTo(GrenadeSpec.powerForDeflection((.55 - .18) / (1 - .18)), .001),
+    );
 
     if (kIsWeb) {
       const screen = Size(844, 390);
