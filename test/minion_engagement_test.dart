@@ -162,13 +162,21 @@ void main() {
       final hp = game.gameState.health;
       await ticks(tester, game, .6);
       expect(mummy.isAttacking, false);
-      expect(mummy.position.x, closeTo(73, 1));
+      expect(
+        130 - mummy.position.x,
+        closeTo(
+          Enemy2Component.pursuitSpeed * RegunGame.ordinaryEnemyPace * .6,
+          1,
+        ),
+      );
       expect(
         game.gameState.health,
         hp,
         reason: 'no attack pose or damage while still approaching',
       );
-      await ticks(tester, game, .5);
+      for (var step = 0; step < 60 && !mummy.isAttacking; step++) {
+        await ticks(tester, game, 1 / 120);
+      }
       expect(mummy.isAttacking, true);
       expect(
         game.gameState.health,

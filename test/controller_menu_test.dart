@@ -231,6 +231,49 @@ void main() {
   );
 
   testWidgets(
+    'controller Back dismisses a dialog without a custom Back action',
+    (tester) async {
+      final pads = _Pads()..devices = [_Pads().pad()];
+      await tester.pumpWidget(
+        pads.app(
+          Scaffold(
+            body: Builder(
+              builder: (context) => ClickButton(
+                text: 'Expedition',
+                autofocus: true,
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (context) => Dialog(
+                    child: ControllerMenuScope(
+                      child: ClickButton(
+                        text: 'Continue',
+                        autofocus: true,
+                        onTap: () => Navigator.pop(context),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          _MenuAudio(),
+        ),
+      );
+      await pads.frame(tester);
+      await pads.press(tester, 0);
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump();
+      expect(find.text('CONTINUE'), findsOneWidget);
+      await pads.press(tester, 1);
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump();
+      expect(find.text('CONTINUE'), findsNothing);
+      expect(_focused(find.text('EXPEDITION'), tester), isTrue);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
     'home to loadout tabs and a separate arena preview with controller',
     (tester) async {
       final pads = _Pads()..devices = [_Pads().pad()];
@@ -262,7 +305,7 @@ void main() {
         ),
       );
       await pads.frame(tester);
-      expect(_focused(find.text('PLAY'), tester), isTrue);
+      expect(_focused(find.text('ARENA'), tester), isTrue);
       final settingsPosition = tester.getTopLeft(
         find.byKey(const Key('home-settings')),
       );

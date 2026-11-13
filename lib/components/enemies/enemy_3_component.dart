@@ -100,7 +100,12 @@ class Enemy3Component extends SpriteAnimationComponent
       if (_windup >= .4) {
         if (distance < 540 && !game.segmentBlocked(position, playerPosition)) {
           game.audio.play('enemy3projectile.wav');
-          game.world.add(Enemy3Projectile(position: position.clone()));
+          game.world.add(
+            Enemy3Projectile(
+              position: position.clone(),
+              damage: game.expedition?.enemyDamage() ?? 1,
+            ),
+          );
         }
         isAttacking = false;
         _windup = 0;

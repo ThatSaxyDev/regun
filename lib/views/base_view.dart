@@ -1,3 +1,7 @@
+import 'package:regun/services/expedition_progress.dart';
+import 'package:regun/services/expedition_release.dart';
+import 'package:regun/systems/expedition_signature.dart';
+import 'package:regun/systems/expedition.dart';
 import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/services/scrap_store.dart';
 import 'package:regun/widgets/scrap_store_dialog.dart';
@@ -77,11 +81,19 @@ class BaseView extends StatefulWidget {
     this.resumeSnapshot,
     this.runStore,
     this.recoveryTransport,
+    this.expeditionMode = false,
+    this.expeditionThreat = 0,
+    this.expeditionStaging = false,
+    this.stagingAtArmory = false,
+    this.stagingLoadout,
   });
+  final bool expeditionMode, expeditionStaging, stagingAtArmory;
+  final int expeditionThreat;
   final RunStore? runStore;
   final Future<Map<String, dynamic>> Function(Map<String, dynamic>)?
   recoveryTransport;
   final Loadout loadout;
+  final Loadout? stagingLoadout;
   final UpgradeFeelMode upgradeFeelMode;
   final bool upgradeFeelReview;
   final bool reviewControlledSpawns;
@@ -102,6 +114,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
   bool _skippingTraining = false;
   bool _gameLoadFailed = false;
   bool _changingWeapon = false;
+  bool _usingStagingStation = false;
 
   @override
   void initState() {
@@ -119,13 +132,22 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     _myGame = RegunGame(
       context,
       startPaused: _trainingIntro,
-      desktopInput: desktopInputAvailable ? DesktopCombatInput() : null,
+      desktopInput:
+          desktopInputAvailable ||
+              (nativeIosController &&
+                  (widget.expeditionStaging || widget.expeditionMode))
+          ? (DesktopCombatInput()..active = desktopInputAvailable)
+          : null,
       loadout: widget.loadout,
       upgradeFeelMode: widget.upgradeFeelMode,
       reviewControlledSpawns: widget.reviewControlledSpawns,
       resumeSnapshot: widget.resumeSnapshot,
       runStore: widget.runStore,
       recoveryTransport: widget.recoveryTransport,
+      expeditionMode: widget.expeditionMode,
+      expeditionThreat: widget.expeditionThreat,
+      expeditionStaging: widget.expeditionStaging,
+      stagingAtArmory: widget.stagingAtArmory,
     );
   }
 
@@ -183,8 +205,175 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     if (mounted) Navigator.of(context).pop();
   }
 
+  Future<void> _replaceExpeditionScreen(BaseView screen) async {
+    final completion = Completer<void>();
+    try {
+      final next = await Navigator.of(context)
+          .pushReplacement<dynamic, Future<void>>(
+            GamePageRoute<dynamic>(builder: (_) => screen),
+            result: completion.future,
+          );
+      if (next is Future<void>) await next;
+    } finally {
+      completion.complete();
+    }
+  }
+
+  Future<void> _returnToStaging() async {
+    if (_leaving) return;
+    _leaving = true;
+    await _myGame.leaveRun();
+    if (!mounted) return;
+    if (_myGame.saveIssue != null) {
+      setState(() => _leaving = false);
+      return;
+    }
+    await _replaceExpeditionScreen(
+      BaseView(
+        expeditionStaging: true,
+        runStore: widget.runStore,
+        loadout: widget.stagingLoadout ?? widget.loadout,
+      ),
+    );
+  }
+
+  Future<void> _stageLoadout() async {
+    if (_usingStagingStation || !_myGame.stagingReady) return;
+    _usingStagingStation = true;
+    _myGame.pauseGame();
+    try {
+      final selected = await Navigator.of(context).push<Loadout>(
+        GamePageRoute<Loadout>(
+          builder: (_) => LoadoutView(
+            expedition: true,
+            initialLoadout: _myGame.loadout,
+            selectOnly: true,
+          ),
+        ),
+      );
+      if (!mounted || selected == null) return;
+      if (selected.character == _myGame.loadout.character &&
+          selected.weapon == _myGame.loadout.weapon) {
+        return;
+      }
+      await _replaceExpeditionScreen(
+        BaseView(
+          expeditionStaging: true,
+          stagingAtArmory: true,
+          runStore: widget.runStore,
+          loadout: selected,
+        ),
+      );
+    } finally {
+      _usingStagingStation = false;
+      if (mounted && ModalRoute.of(context)?.isCurrent == true) {
+        _myGame.resumeGame();
+      }
+    }
+  }
+
+  Future<void> _stageDeployment() async {
+    if (_usingStagingStation || !_myGame.stagingAtGate) return;
+    _usingStagingStation = true;
+    _myGame.pauseGame();
+    try {
+      if (!ExpeditionRelease.privateBuild &&
+          !ExpeditionRelease.current.enabled) {
+        return;
+      }
+      final progress = await ExpeditionProgress.shared.read(
+        LocalPreferences.shared.profileOwner,
+      );
+      if (!mounted) return;
+      final highest = progress['highestThreat'] as int? ?? -1;
+      final threat = highest < 0
+          ? 0
+          : await showDialog<int>(
+              context: context,
+              builder: (context) => Dialog(
+                backgroundColor: Colors.transparent,
+                child: ControllerMenuScope(
+                  child: GameNotice(
+                    eyebrow: 'EXPEDITION',
+                    title: 'CHOOSE THREAT',
+                    message: 'Higher threats add enemies to each room.',
+                    actions: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (
+                          var level = 0;
+                          level <= (highest + 1).clamp(0, 2);
+                          level++
+                        )
+                          ClickButton(
+                            text: 'Threat ${level + 1}',
+                            onTap: () => Navigator.pop(context, level),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+      if (!mounted || threat == null) return;
+      await _replaceExpeditionScreen(
+        BaseView(
+          expeditionMode: true,
+          expeditionThreat: threat,
+          stagingLoadout: _myGame.loadout,
+          runStore: widget.runStore,
+          loadout: _myGame.loadout,
+        ),
+      );
+    } finally {
+      _usingStagingStation = false;
+      if (mounted && ModalRoute.of(context)?.isCurrent == true) {
+        _myGame.resumeGame();
+      }
+    }
+  }
+
+  void _interactAtOutpost() {
+    if (_myGame.stagingStation == null) return;
+    if (_myGame.stagingAtGate) {
+      unawaited(_stageDeployment());
+    } else {
+      unawaited(_stageLoadout());
+    }
+  }
+
+  Widget _stagingPrompt() => ValueListenableBuilder<int>(
+    valueListenable: _myGame.revision,
+    builder: (context, _, _) {
+      final station = _myGame.stagingStation;
+      if (station == null) return const SizedBox.shrink();
+      return Positioned(
+        top: 64,
+        left: 16,
+        right: 16,
+        child: Center(
+          child: ClickButton(
+            text: _myGame.stagingAtGate
+                ? (ControllerMenuMode.of(context)
+                      ? 'A / Cross  Deploy'
+                      : 'Deploy')
+                : (ControllerMenuMode.of(context)
+                      ? 'A / Cross  Open loadout'
+                      : 'Open loadout'),
+            onTap: _myGame.stagingAtGate ? _stageDeployment : _stageLoadout,
+          ),
+        ),
+      );
+    },
+  );
+
   Future<void> _requestRunAction({bool restart = false}) async {
     if (_confirmingAction || _leaving) return;
+    if (widget.expeditionStaging) {
+      await _leave();
+      return;
+    }
     if (_myGame.gameState.gameplayState == GameplayState.gameOver) {
       if (restart) {
         _myGame.restartGame();
@@ -313,6 +502,9 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                         ),
                         builder: (context, ref, child) => DesktopCombatSurface(
                           game: _myGame,
+                          onInteract: widget.expeditionStaging
+                              ? _interactAtOutpost
+                              : null,
                           playing:
                               !_trainingIntro &&
                               ref.watch(
@@ -379,13 +571,22 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                         ),
                                 ),
                               ),
+                            if (widget.expeditionStaging &&
+                                state.gameplayState == GameplayState.playing)
+                              _stagingPrompt(),
                             if (state.gameplayState == GameplayState.powerup)
                               _upgradePicker(state),
                             if (!_trainingIntro &&
                                 state.gameplayState == GameplayState.paused)
                               _pauseMenu(),
                             if (state.gameplayState == GameplayState.gameOver)
-                              _results(state),
+                              if (widget.expeditionMode)
+                                _expeditionOverlay()
+                              else
+                                _results(state)
+                            else if (widget.expeditionMode &&
+                                state.gameplayState == GameplayState.playing)
+                              _expeditionOverlay(),
                             ValueListenableBuilder<int>(
                               valueListenable: _myGame.revision,
                               builder: (context, _, child) =>
@@ -447,14 +648,15 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     minimum: _desktopHudInsets,
     child: Column(
       children: [
-        IgnorePointer(
-          child: LinearProgressIndicator(
-            value: (state.xP / state.noOfCoinsToUpgrade.floor()).clamp(0, 1),
-            minHeight: 3,
-            color: _brass,
-            backgroundColor: const Color(0x66352A35),
+        if (!widget.expeditionMode && !widget.expeditionStaging)
+          IgnorePointer(
+            child: LinearProgressIndicator(
+              value: (state.xP / state.noOfCoinsToUpgrade.floor()).clamp(0, 1),
+              minHeight: 3,
+              color: _brass,
+              backgroundColor: const Color(0x66352A35),
+            ),
           ),
-        ),
         _hudHeader(
           Row(
             children: [
@@ -477,10 +679,19 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-              _readout(runTime(state.survivalSeconds), 'SURVIVAL'),
+              if (!widget.expeditionStaging)
+                _readout(runTime(state.survivalSeconds), 'SURVIVAL'),
               const Spacer(),
               Text(
-                'L${state.currentLevel} / C${state.bosses ~/ 3 + 1}',
+                widget.expeditionStaging
+                    ? 'THE OUTPOST'
+                    : widget.expeditionMode
+                    ? (_myGame.expedition?.bossRoom == true
+                          ? ''
+                          : (_myGame.expedition?.region.arena.title ??
+                                    'Expedition')
+                                .toUpperCase())
+                    : 'L${state.currentLevel} / C${state.bosses ~/ 3 + 1}',
                 style: TextStyle(
                   fontFamily: FontFam.pressStart,
                   fontSize: desktopInputAvailable ? 12 : 10,
@@ -565,7 +776,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 ),
               ),
               const SizedBox(width: 18),
-              _readout(formatNumber(state.kills), 'KILLS'),
+              if (!widget.expeditionStaging)
+                _readout(formatNumber(state.kills), 'KILLS'),
               const SizedBox(width: 12),
             ],
           ),
@@ -935,6 +1147,38 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
+  Widget _expeditionBuild(Expedition run) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    spacing: 8,
+    children: [
+      const Text(
+        'EXPEDITION BUILD',
+        style: TextStyle(color: _brass, fontSize: 12),
+      ),
+      for (final entry in run.signatures.entries)
+        Text(
+          '${entry.key.title}  ${supportTierLabels[entry.value]}',
+          style: const TextStyle(color: _paper),
+        ),
+      for (final fusion in run.fusions)
+        Text(fusion.title, style: const TextStyle(color: _brass)),
+      if (run.generator >= 10 && run.fusions.length < 2)
+        for (final fusion
+            in ExpeditionFusion.values
+                .where(
+                  (fusion) =>
+                      !run.fusions.contains(fusion) &&
+                      (run.signatures.containsKey(fusion.first) ||
+                          run.signatures.containsKey(fusion.second)),
+                )
+                .take(4))
+          Text(
+            '${fusion.title} · ${fusion.first.title} II + ${fusion.second.title} II',
+            style: const TextStyle(color: _muted, fontSize: 11),
+          ),
+    ],
+  );
+
   Widget _pauseMenu() =>
       desktopInputAvailable ? _desktopPauseMenu() : _mobilePauseMenu();
 
@@ -961,13 +1205,16 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
           buttonColor: _muted,
           onTap: _openSettings,
         ),
-        ClickButton(
-          text: 'Restart',
-          height: 60,
-          fontSize: 14,
-          buttonColor: _muted,
-          onTap: () => _requestRunAction(restart: true),
-        ),
+        if (!widget.expeditionMode)
+          ClickButton(
+            text: widget.expeditionStaging ? 'Loadout' : 'Restart',
+            height: 60,
+            fontSize: 14,
+            buttonColor: _muted,
+            onTap: widget.expeditionStaging
+                ? _stageLoadout
+                : () => _requestRunAction(restart: true),
+          ),
         ClickButtonM(
           key: const Key('pause-menu-home'),
           text: 'Menu',
@@ -1010,6 +1257,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             loadout: _myGame.loadout,
             reloadSeconds: _myGame.gameNotifier.reloadRemainingSeconds,
           ),
+        if (_myGame.expedition case final run? when run.signatures.isNotEmpty)
+          _expeditionBuild(run),
       ],
     );
     return Positioned.fill(
@@ -1176,15 +1425,21 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
-                      child: ClickButton(
-                        onTap: () => _requestRunAction(restart: true),
-                        buttonColor: _muted,
-                        text: 'Restart',
-                        height: 48,
+                    if (!widget.expeditionMode) ...[
+                      Expanded(
+                        child: ClickButton(
+                          onTap: widget.expeditionStaging
+                              ? _stageLoadout
+                              : () => _requestRunAction(restart: true),
+                          buttonColor: _muted,
+                          text: widget.expeditionStaging
+                              ? 'Loadout'
+                              : 'Restart',
+                          height: 48,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
+                      const SizedBox(width: 12),
+                    ],
                     Expanded(
                       child: ClickButton(
                         onTap: _openSettings,
@@ -1233,6 +1488,9 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                             reloadSeconds:
                                 _myGame.gameNotifier.reloadRemainingSeconds,
                           ),
+                        if (_myGame.expedition case final run?
+                            when run.signatures.isNotEmpty)
+                          _expeditionBuild(run),
                       ],
                     ),
                   ),
@@ -1750,6 +2008,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     Widget? copy,
     Widget? artwork,
     PixelGlyph glyph = PixelGlyph.star,
+    Color accent = _brass,
   }) => SizedBox(
     key: ValueKey('upgrade-card-$title'),
     width: 210,
@@ -1765,7 +2024,9 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             minHeight: desktopInputAvailable ? 220 : 148,
           ),
           decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xff75604C)),
+            border: Border.all(
+              color: Color.lerp(const Color(0xff514238), accent, .48)!,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1797,10 +2058,10 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                         const SizedBox(height: 6),
                         Text(
                           category,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontFam.orbitron,
                             fontSize: 9,
-                            color: _brass,
+                            color: accent,
                           ),
                         ),
                       ],
@@ -1879,6 +2140,379 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
               }
             : null,
       ),
+    ),
+  );
+
+  Widget _expeditionDropPicker(String id, List<PowerUp> boons) {
+    final support = SupportCard.read(id);
+    final weapon = id.startsWith('weapon:')
+        ? WeaponType.values.byName(id.substring(7))
+        : null;
+    final title = support?.title ?? weapon?.title ?? 'Field Repair';
+    final description =
+        support?.description(
+          _myGame.gameNotifier.weaponPower.snapshot?.values ?? {},
+        ) ??
+        (weapon == null
+            ? 'Recover two hearts.'
+            : 'Swap to this weapon with a full magazine.');
+    return ColoredBox(
+      color: const Color(0xe2111411),
+      child: SafeArea(
+        minimum: const EdgeInsets.all(12),
+        child: Center(
+          child: ControllerMenuScope(
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'AIRDROP',
+                      style: TextStyle(
+                        fontFamily: FontFam.pressStart,
+                        color: _brass,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    MenuCardGrid(
+                      minColumnWidth: 195,
+                      children: [
+                        _upgradeCard(
+                          title,
+                          description,
+                          weapon != null ? 'WEAPON SWAP' : 'AIRDROP',
+                          () => _myGame.claimExpeditionDrop(id),
+                        ),
+                        for (final boon in boons)
+                          _upgradeCard(
+                            boon.title,
+                            upgradeDescription(
+                              boon,
+                              rank: _myGame.gameState.rank(boon),
+                            ),
+                            'BOON',
+                            () => _myGame.claimExpeditionDrop(boon.name),
+                            glyph: boon.glyph,
+                          ),
+                      ],
+                    ),
+                    if (_myGame.expeditionDropClaiming)
+                      const Text('EQUIPPING…', style: TextStyle(color: _paper)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _expeditionOverlay() => Positioned.fill(
+    child: ValueListenableBuilder<int>(
+      valueListenable: _myGame.revision,
+      builder: (context, _, _) {
+        final run = _myGame.expedition;
+        if (run == null || _myGame.crossingExpedition) {
+          return const SizedBox.shrink();
+        }
+        final region = run.region.arena.title.toUpperCase();
+        if (run.dropSpecial case final id?
+            when !_myGame.expeditionCommitFailed && !_myGame.expeditionSaving) {
+          return _expeditionDropPicker(id, run.dropBoons);
+        }
+        if (_myGame.expeditionDropCanSkip) {
+          return Align(
+            alignment: Alignment.topCenter,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 54),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'CLAIM AIRDROP',
+                      style: TextStyle(
+                        color: _brass,
+                        fontFamily: FontFam.orbitron,
+                        fontSize: 11,
+                        shadows: [Shadow(color: Colors.black, blurRadius: 5)],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ClickButton(
+                      text: 'Leave airdrop',
+                      onTap: _myGame.skipExpeditionDrop,
+                      height: 40,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        if (run.phase == ExpeditionPhase.combat &&
+            !_myGame.expeditionCommitFailed) {
+          final ready = [
+            if (run.breachChargeReady) 'BREACH CHARGE',
+            if (run.coldSnapReady) 'COLD SNAP',
+            if (run.quickdrawReady) 'QUICKDRAW',
+          ];
+          if (ready.isEmpty) return const SizedBox.shrink();
+          return Align(
+            alignment: Alignment.topCenter,
+            child: IgnorePointer(
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(top: run.bossRoom ? 106 : 58),
+                  child: Text(
+                    '${ready.join(' · ')} READY',
+                    style: const TextStyle(
+                      color: _brass,
+                      fontFamily: FontFam.orbitron,
+                      fontSize: 9,
+                      shadows: [Shadow(color: Colors.black, blurRadius: 5)],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+        if (run.phase == ExpeditionPhase.exit &&
+            !_myGame.expeditionCommitFailed &&
+            !_myGame.expeditionSaving) {
+          return Align(
+            alignment: Alignment.topCenter,
+            child: IgnorePointer(
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 54),
+                  child: Text(
+                    run.exits.isEmpty
+                        ? run.bossRoom
+                              ? 'HEAD NORTH TO THE NEXT REGION'
+                              : 'HEAD NORTH TO ${run.boss.title.toUpperCase()}'
+                        : 'HEAD NORTH TO CHOOSE A DOOR',
+                    style: const TextStyle(
+                      fontFamily: FontFam.orbitron,
+                      fontSize: 11,
+                      color: _paper,
+                      shadows: [Shadow(color: Colors.black, blurRadius: 5)],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+        return ColoredBox(
+          color: const Color(0xc9111411),
+          child: SafeArea(
+            minimum: const EdgeInsets.all(16),
+            child: Center(
+              child: ControllerMenuScope(
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 820),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _myGame.expeditionCommitFailed
+                              ? 'SAVE INTERRUPTED'
+                              : _myGame.expeditionSaving
+                              ? 'SAVING…'
+                              : run.phase == ExpeditionPhase.victory
+                              ? 'EXPEDITION COMPLETE'
+                              : run.phase == ExpeditionPhase.defeat
+                              ? 'EXPEDITION LOST'
+                              : run.bossRoom
+                              ? '${run.boss.title.toUpperCase()} DEFEATED'
+                              : run.reward == ExpeditionBoon.repair
+                              ? 'FIELD REPAIR'
+                              : run.opening && run.signatureDraft.length == 3
+                              ? 'CHOOSE YOUR SIGNATURE'
+                              : '${run.reward.label} BOON',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontFamily: FontFam.pressStart,
+                            fontSize: 16,
+                            height: 1.4,
+                            color: _paper,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (_myGame.expeditionCommitFailed)
+                          ClickButton(
+                            text: 'Retry save',
+                            onTap: _myGame.commitExpedition,
+                          )
+                        else if (!_myGame.expeditionSaving && run.terminal) ...[
+                          Text(
+                            '$region${run.bossRoom ? ' / ${run.boss.title.toUpperCase()}' : ''}'
+                            '  •  ${runTime(_myGame.gameState.survivalSeconds)}',
+                            style: const TextStyle(
+                              color: _paper,
+                              fontFamily: FontFam.orbitron,
+                            ),
+                          ),
+                          if (run.phase == ExpeditionPhase.victory &&
+                              run.threat < 2)
+                            const Padding(
+                              padding: EdgeInsets.only(top: 8),
+                              child: Text(
+                                'Higher threat unlocked',
+                                style: TextStyle(color: _brass),
+                              ),
+                            ),
+                          const SizedBox(height: 12),
+                          Text(
+                            [
+                              if (run.hasSynergy) 'Overclock',
+                              ...run.fusions.map((fusion) => fusion.title),
+                              for (final entry in run.signatures.entries)
+                                '${entry.key.title} ×${entry.value}',
+                              for (final entry
+                                  in _myGame.gameState.ranks.entries)
+                                '${entry.key.title} ×${entry.value}',
+                              for (final recipe in fusionRecipes)
+                                if (_myGame.gameState.fused(recipe.id))
+                                  recipe.title,
+                            ].join('  •  '),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: _muted),
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            children: [
+                              ClickButton(
+                                text: 'Return to Outpost',
+                                onTap: _returnToStaging,
+                              ),
+                            ],
+                          ),
+                        ] else if (!_myGame.expeditionSaving) ...[
+                          MenuCardGrid(
+                            minColumnWidth: 200,
+                            children: [
+                              for (final fusion in run.forgeChoices)
+                                _upgradeCard(
+                                  fusion.title,
+                                  fusion.description,
+                                  'FORGE · ${fusion.first.title} + ${fusion.second.title}',
+                                  () => _myGame.forgeExpeditionFusion(fusion),
+                                  glyph: PixelGlyph.link,
+                                  accent: const Color(0xffa6d8dc),
+                                ),
+                              if (run.offersSynergy)
+                                _upgradeCard(
+                                  'Overclock',
+                                  'Signature bursts gain 25% damage and radius.',
+                                  'BOSS FORGE',
+                                  _myGame.forgeExpeditionSynergy,
+                                  glyph: PixelGlyph.link,
+                                ),
+                              for (final signature in run.signatureDraft)
+                                _upgradeCard(
+                                  signature.title,
+                                  signature.descriptionAt(
+                                    (run.signatures[signature] ?? 0) + 1,
+                                  ),
+                                  'SIGNATURE / RANK ${(run.signatures[signature] ?? 0) + 1}',
+                                  () => _myGame.chooseExpeditionSignature(
+                                    signature,
+                                  ),
+                                  accent: switch (signature) {
+                                    ExpeditionSignature.coldSnap => const Color(
+                                      0xffa6d8dc,
+                                    ),
+                                    ExpeditionSignature.thunderstep =>
+                                      const Color(0xff91cbd6),
+                                    ExpeditionSignature.flashpoint ||
+                                    ExpeditionSignature.fuseLink => const Color(
+                                      0xffe89470,
+                                    ),
+                                    ExpeditionSignature.bloodTax => const Color(
+                                      0xffabc797,
+                                    ),
+                                    _ => _brass,
+                                  },
+                                  glyph: switch (signature) {
+                                    ExpeditionSignature.breachCharge =>
+                                      PixelGlyph.shards,
+                                    ExpeditionSignature.thunderstep =>
+                                      PixelGlyph.bolt,
+                                    ExpeditionSignature.flashpoint =>
+                                      PixelGlyph.fire,
+                                    ExpeditionSignature.coldSnap =>
+                                      PixelGlyph.shards,
+                                    ExpeditionSignature.shatterstep =>
+                                      PixelGlyph.dash,
+                                    ExpeditionSignature.fuseLink =>
+                                      PixelGlyph.mine,
+                                    ExpeditionSignature.bloodTax =>
+                                      PixelGlyph.heart,
+                                    ExpeditionSignature.deadeye =>
+                                      PixelGlyph.crosshair,
+                                    ExpeditionSignature.ironCurtain =>
+                                      PixelGlyph.shield,
+                                    ExpeditionSignature.thermite =>
+                                      PixelGlyph.fire,
+                                    ExpeditionSignature.backlash =>
+                                      PixelGlyph.bounce,
+                                    ExpeditionSignature.quickdraw =>
+                                      PixelGlyph.round,
+                                  },
+                                ),
+                              for (final recipe in fusionRecipes)
+                                if (run.capstones.contains(recipe.id))
+                                  _upgradeCard(
+                                    recipe.title,
+                                    recipe.description,
+                                    'CAPSTONE',
+                                    () => _myGame.chooseExpeditionCapstone(
+                                      recipe.id,
+                                    ),
+                                    glyph: fusionGlyph(recipe.id),
+                                  ),
+                              for (final choice in run.draft)
+                                _upgradeCard(
+                                  choice == PowerUp.salvage
+                                      ? 'Field repair'
+                                      : choice.title,
+                                  choice == PowerUp.salvage
+                                      ? run.reward == ExpeditionBoon.repair
+                                            ? 'Recover up to ${(_myGame.gameState.maxHealth * run.release.repairPercent / 100).ceil()} hearts.'
+                                            : 'Recover one heart.'
+                                      : upgradeDescription(
+                                          choice,
+                                          rank: _myGame.gameState.rank(choice),
+                                        ),
+                                  run.bossRoom ? 'BOSS REWARD' : 'ROOM REWARD',
+                                  () => _myGame.chooseExpeditionBoon(choice),
+                                  glyph: choice.glyph,
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ClickButton(text: 'Save & leave', onTap: _leave),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     ),
   );
 

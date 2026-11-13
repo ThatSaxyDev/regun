@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import AVFAudio
+import GameController
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -47,6 +48,34 @@ import AVFAudio
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    FlutterMethodChannel(
+      name: "regun/controller", binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    ).setMethodCallHandler { call, result in
+      guard call.method == "read" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      let devices = GCController.controllers().compactMap { controller -> [String: Any]? in
+        guard let pad = controller.extendedGamepad else { return nil }
+        let values: [Float] = [
+          pad.leftThumbstick.xAxis.value, -pad.leftThumbstick.yAxis.value,
+          pad.rightThumbstick.xAxis.value, -pad.rightThumbstick.yAxis.value,
+          pad.buttonA.value, pad.buttonB.value, pad.buttonX.value, pad.buttonY.value,
+          pad.leftShoulder.value, pad.rightShoulder.value,
+          pad.leftTrigger.value, pad.rightTrigger.value,
+          pad.buttonOptions?.value ?? 0, pad.buttonMenu.value,
+          pad.leftThumbstickButton?.value ?? 0, pad.rightThumbstickButton?.value ?? 0,
+          pad.dpad.up.value, pad.dpad.down.value, pad.dpad.left.value, pad.dpad.right.value
+        ]
+        return [
+          "id": String(describing: ObjectIdentifier(controller)),
+          "name": controller.vendorName ?? "",
+          "values": values.map { NSNumber(value: $0) },
+        ]
+      }
+      result(devices)
+    }
+
     FlutterMethodChannel(
       name: "regun/push_timezone", binaryMessenger: engineBridge.applicationRegistrar.messenger()
     ).setMethodCallHandler { call, result in

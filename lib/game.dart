@@ -1,3 +1,8 @@
+import 'package:regun/components/map/expedition_staging.dart';
+import 'package:regun/components/enemies/expedition_veteran_enemy.dart';
+import 'package:regun/presentation/ariet_art.dart';
+import 'package:regun/components/enemies/expedition_walker.dart';
+import 'package:regun/presentation/walker_art.dart';
 import 'package:regun/desktop/desktop_bindings.dart';
 import 'package:regun/desktop/desktop_frame_pacer.dart';
 import 'package:regun/desktop/desktop_combat_input.dart';
@@ -107,7 +112,14 @@ import 'package:regun/notifiers/game_notifier.dart';
 import 'package:regun/systems/repeating_action.dart';
 import 'package:regun/utils/soloud_play.dart';
 
+import 'package:regun/systems/expedition.dart';
+import 'package:regun/systems/expedition_signature.dart';
+import 'package:regun/services/expedition_progress.dart';
+import 'package:regun/services/expedition_release.dart';
+import 'package:regun/components/map/expedition_doors.dart';
+
 part 'systems/solo_recovery_runtime.dart';
+part 'systems/expedition_runtime.dart';
 
 class RegunGame extends FlameGame
     with HasCollisionDetection, HasDecorator, HasTimeScale, RiverpodGameMixin {
@@ -121,13 +133,34 @@ class RegunGame extends FlameGame
     RunStore? runStore,
     this.recoveryTransport,
     this.desktopInput,
-  }) : runStore = runStore ?? RunStore.shared,
+    this.expeditionMode = false,
+    this.expeditionThreat = 0,
+    this.expeditionStaging = false,
+    this.stagingAtArmory = false,
+  }) : runStore =
+           runStore ?? (expeditionMode ? RunStore.expedition : RunStore.shared),
        super(
          camera: CameraComponent(
-           viewport: ArenaViewport(desktop: desktopInput != null),
+           viewport: ArenaViewport(desktop: desktopInput?.active ?? false),
          ),
        );
 
+  final bool expeditionMode, expeditionStaging, stagingAtArmory;
+  Offset? stagingStation;
+  bool get stagingReady => _started && myPlayer.isMounted;
+  bool get stagingAtGate => stagingStation == ExpeditionStaging.gate;
+  final expeditionWalkerAssets = WalkerAssets();
+  final expeditionArietAssets = ArietAssets();
+  final int expeditionThreat;
+  Expedition? expedition;
+  ExpeditionRoom? expeditionRoom;
+  bool expeditionSaving = false;
+  static const expeditionPassageMidpoint = .36;
+  double? expeditionPassage;
+  double expeditionDoorProgress = 0;
+  bool get crossingExpedition => expeditionPassage != null;
+  ArenaType get currentArena => expedition?.region.arena ?? loadout.arena;
+  bool expeditionCommitFailed = false;
   final DesktopCombatInput? desktopInput;
   final desktopKitStatus = ValueNotifier((
     dash: 1,
@@ -255,10 +288,15 @@ class RegunGame extends FlameGame
       playerEntrance.active ||
       presentationHeld ||
       _bossRevealHolding ||
-      _mechanicalArrivalHolding;
+      _mechanicalArrivalHolding ||
+      crossingExpedition ||
+      expeditionDropOffer ||
+      expeditionSaving ||
+      expeditionCommitFailed ||
+      expedition?.phase == ExpeditionPhase.reward;
   void _acceptedUpgrade() {
     final reward = gameNotifier.acceptedUpgrade.value;
-    if (reward == null) return;
+    if (reward == null || expeditionMode) return;
     _upgradePulsePending = true;
     if (upgradePresentation.accept(
       reward,
@@ -709,6 +747,10 @@ class RegunGame extends FlameGame
       ? 500
       : enemy is ArietBoss
       ? ArietHull.enclosingRadius
+      : enemy is ExpeditionWalker
+      ? ExpeditionWalker.radius
+      : enemy is ExpeditionVeteranEnemy
+      ? enemy.bodyRadius
       : enemy is ArietEscort
       ? 88 * ArietEscort.rigScale
       : enemy is ShootableOrdnance
@@ -992,6 +1034,10 @@ class RegunGame extends FlameGame
   final crowdOccupancy = CrowdOccupancy();
   double crowdRadius(PositionComponent actor) => actor is ArietBoss
       ? ArietRig.navigationRadius
+      : actor is ExpeditionWalker
+      ? ExpeditionWalker.radius
+      : actor is ExpeditionVeteranEnemy
+      ? actor.bodyRadius
       : actor is ArietEscort
       ? 88 * ArietEscort.rigScale
       : actor is WalkerBoss
@@ -1053,6 +1099,8 @@ class RegunGame extends FlameGame
     );
   }
 
+  static const ordinaryEnemyPace = 1.14;
+
   void moveActor(
     PositionComponent actor,
     Vector2 direction,
@@ -1070,7 +1118,12 @@ class RegunGame extends FlameGame
       // Committed leaps retain their exact travel timing; ordinary pursuit is
       // braked by the stronger response, never multiplicatively immobilized.
       final fieldStride = avoidCrowd ? arsenal?.sporeStride(actor) ?? 1.0 : 1.0;
-      speed *= min(actor.impactStride, fieldStride);
+      final groundEnemy = !actor.isBoss && !airborne;
+      final pace = groundEnemy ? ordinaryEnemyPace : 1.0;
+      final pursuit = groundEnemy ? expedition?.enemyPursuitScale ?? 1.0 : 1.0;
+      // Keep the field's tuned traversal speed when open-ground pursuit rises.
+      final fieldPace = fieldStride < 1 ? fieldStride : pace;
+      speed *= pursuit * min(actor.impactStride * pace, fieldPace);
     }
     if (actor is CombatEnemy && !actor.isBoss && avoidCrowd) {
       if (!_advancingMinions) _rebuildNavigation(dt);
@@ -1167,6 +1220,7 @@ class RegunGame extends FlameGame
     for (final enemy in liveEnemies.toList()) {
       if (enemy is CombatEnemy &&
           !enemy.isBoss &&
+          enemy is! ExpeditionWalker &&
           shape.hits(
             enemy.position,
             progress,
@@ -1185,10 +1239,15 @@ class RegunGame extends FlameGame
             pow(radius + crowdRadius(e), 2) &&
         !segmentBlocked(from, e.position);
     for (final warning in _spawnWarnings.toList()) {
-      if (touches(warning.enemy)) warning.cancel();
+      if (warning.enemy is! ExpeditionWalker && touches(warning.enemy)) {
+        warning.cancel();
+      }
     }
     for (final enemy in liveEnemies.toList()) {
-      if (enemy is CombatEnemy && !enemy.isBoss && touches(enemy)) {
+      if (enemy is CombatEnemy &&
+          !enemy.isBoss &&
+          enemy is! ExpeditionWalker &&
+          touches(enemy)) {
         enemy.crushByBoss();
       }
     }
@@ -1200,12 +1259,14 @@ class RegunGame extends FlameGame
     double radius, {
     bool crushMinions = false,
     bool slide = false,
+    Vector2 Function(Vector2 from, Vector2 to)? clipStep,
   }) => crowdOccupancy.move(
     actor,
     target - actor.position,
     radius: crowdRadius(actor),
     constrain: (point) {
       _constrainEnemyMove(actor, point, max(radius, crowdRadius(actor)));
+      if (clipStep != null) point.setFrom(clipStep(actor.position, point));
     },
     slide: slide,
     reserve: !isAirborneActor(actor),
@@ -1631,7 +1692,7 @@ class RegunGame extends FlameGame
 
   int _weaponImpacts = 0;
   bool claimWeaponImpact() => _weaponImpacts++ < 8;
-  late final MapComponent map;
+  late MapComponent map;
   late GameNotifier gameNotifier;
   ProviderSubscription<GameplayState>? _phaseSubscription;
 
@@ -1710,6 +1771,15 @@ class RegunGame extends FlameGame
   bool disposed = false;
   final supplyDrops = SupplyDrops();
   bool _landingSupply = false;
+  bool expeditionDropClaiming = false;
+  bool _expeditionDropExitShown = false;
+  bool get expeditionDropOffer => expedition?.dropSpecial != null;
+  bool get expeditionDropCanSkip =>
+      expedition?.supplyRoom == true &&
+      supplyDrops.drop?.phase == SupplyPhase.active &&
+      expedition!.spawned == expedition!.pack.length &&
+      !_enemies.any(_expeditionEnemyAlive);
+  final _expeditionDropGuards = <PositionComponent>{};
   bool _supplyArtWanted = false,
       _supplyArtHeld = false,
       _supplyArtLoading = false;
@@ -1736,6 +1806,9 @@ class RegunGame extends FlameGame
         _supplyArtLoading = false;
         supplyDrops.drop = null;
         supplyDrops.nextIn = 3;
+        if (expedition case final run? when run.dropGuards == 0) {
+          run.dropStarted = false;
+        }
         _syncSupplyArt(false);
         debugPrint('Supply art unavailable: $error');
       },
@@ -1789,7 +1862,37 @@ class RegunGame extends FlameGame
     }
     controls = preferences.controls;
 
-    map = await MapComponent.loadMap();
+    if (expeditionMode) {
+      await expeditionWalkerAssets.load(
+        combat: true,
+        partsWidth: 768,
+        arsenalWidth: 512,
+      );
+      if (disposed) {
+        expeditionWalkerAssets.dispose();
+        return;
+      }
+      expedition = resumeSnapshot == null
+          ? Expedition(
+              random.state,
+              threat: expeditionThreat,
+              release: ExpeditionRelease.current,
+            )
+          : Expedition.read(resumeSnapshot!['expedition']);
+      await expeditionArietAssets.load(combat: true, includeWalker: false);
+      if (disposed) {
+        expeditionArietAssets.dispose();
+        return;
+      }
+      _configureExpeditionRoom();
+    } else if (expeditionStaging) {
+      map = MapComponent.expedition(ExpeditionStaging.size, loadout.arena, [
+        const Rect.fromLTWH(-550, 45, 220, 85),
+        const Rect.fromLTWH(333, -224, 244, 24),
+      ]);
+    } else {
+      map = await MapComponent.loadMap();
+    }
     if (disposed) return;
     world = _CombatWorld(this);
     _legacyArena =
@@ -1814,7 +1917,8 @@ class RegunGame extends FlameGame
       SupportStatusHud(),
       FreezeFocusView(),
       UpgradeConfirmationView(),
-      if (loadout.arena == ArenaType.breach) SupplyDropLocator(),
+      if (expeditionMode || loadout.arena == ArenaType.breach)
+        SupplyDropLocator(),
     ]);
   }
 
@@ -1824,14 +1928,18 @@ class RegunGame extends FlameGame
     gameNotifier = ref.read(gameNotifierProvider.notifier);
     audio.configure(music: preferences.musicVolume, sfx: preferences.sfxVolume);
     unawaited(audio.warmCombat(loadout.weapon));
-    if (loadout.arena == ArenaType.breach) unawaited(audio.warmSupply());
-    unawaited(audio.playMusic(loadout.arena.name));
+    if (expeditionMode || loadout.arena == ArenaType.breach) {
+      unawaited(audio.warmSupply());
+    }
+    unawaited(audio.playMusic(currentArena.name));
     _phaseSubscription = ref.listenManual(
       gameNotifierProvider.select((state) => state.gameplayState),
       (previous, phase) {
         if (phase == GameplayState.gameOver) {
           supportCombat.clear();
-          _settlement = handleSoloDeath();
+          _settlement = expeditionMode
+              ? _finishExpedition()
+              : handleSoloDeath();
         }
         if (_started && phase != GameplayState.gameOver) {
           scheduleMicrotask(() {
@@ -1870,7 +1978,15 @@ class RegunGame extends FlameGame
     );
     gameNotifier.acceptedUpgrade.addListener(_acceptedUpgrade);
     _startRun(clearSave: resumeSnapshot == null);
-    if (resumeSnapshot != null) restoreRun(resumeSnapshot!);
+    if (resumeSnapshot != null && restoreRun(resumeSnapshot!)) {
+      if (expedition?.next != null) _enterCommittedExpeditionRoom();
+      if (expedition?.terminal == true &&
+          gameState.gameplayState != GameplayState.gameOver) {
+        gameNotifier.finishExpedition();
+      } else if (expeditionMode) {
+        resumeGame();
+      }
+    }
     if (startPaused) gameNotifier.pauseGame();
   }
 
@@ -1881,18 +1997,19 @@ class RegunGame extends FlameGame
   List<ArenaMachine> arenaMachines = const [];
 
   List<ArenaMachine> _createArenaMachines() {
-    if (_legacyArena) return const [];
-    switch (loadout.arena) {
+    if (_legacyArena || expedition?.bossRoom == true) return const [];
+    switch (currentArena) {
       case ArenaType.breach:
         return const [];
       case ArenaType.foundry:
         return [
           for (final body in map.regions('foundry_obstacles'))
-            ArenaMachine(
-              ArenaMachineKind.press,
-              body,
-              Rect.fromLTWH(body.center.dx - 77, body.bottom, 154, 88),
-            ),
+            if (!expeditionMode || body.width >= 300)
+              ArenaMachine(
+                ArenaMachineKind.press,
+                body,
+                Rect.fromLTWH(body.center.dx - 77, body.bottom, 154, 88),
+              ),
         ];
       case ArenaType.floodworks:
         final body = map.regions('floodworks_gate').firstOrNull;
@@ -1913,11 +2030,12 @@ class RegunGame extends FlameGame
       case ArenaType.relayGraveyard:
         return [
           for (final body in map.regions('relayGraveyard_obstacles'))
-            ArenaMachine(
-              ArenaMachineKind.relay,
-              body,
-              Rect.fromLTWH(body.center.dx - 43, body.bottom, 86, 430),
-            ),
+            if (!expeditionMode || body.height >= 200)
+              ArenaMachine(
+                ArenaMachineKind.relay,
+                body,
+                Rect.fromLTWH(body.center.dx - 43, body.bottom, 86, 430),
+              ),
         ];
     }
   }
@@ -1934,7 +2052,8 @@ class RegunGame extends FlameGame
   SoloudPlay? _arenaAudio;
 
   void _configureArenaGeometry() {
-    foundryRails = loadout.arena == ArenaType.foundry && !_legacyArena
+    foundryRails =
+        !expeditionMode && loadout.arena == ArenaType.foundry && !_legacyArena
         ? [
             for (final (index, track) in map.foundryTracks.indexed)
               FoundryRail(track, offset: index * FoundryRail.stagger),
@@ -1942,7 +2061,7 @@ class RegunGame extends FlameGame
         : const [];
     geometry = ArenaGeometry(
       map.bounds,
-      obstacles: map.obstacles(loadout.arena, legacy: _legacyArena),
+      obstacles: map.obstacles(currentArena, legacy: _legacyArena),
       dynamicObstacles: () sync* {
         final drop = supplyDrops.drop;
         if (!_landingSupply && drop != null && drop.solid) yield drop.footprint;
@@ -1991,7 +2110,9 @@ class RegunGame extends FlameGame
     mechanicalArrival.reset();
     camera.viewfinder.zoom = 1;
     saveIssue = null;
-    if (clearSave && !loadout.training) unawaited(runStore.clear());
+    if (clearSave && !loadout.training && !expeditionStaging) {
+      unawaited(runStore.clear());
+    }
     timeScale = 1;
     director = EncounterDirector(
       bossWins: loadout.training ? null : preferences.profile.bossWins,
@@ -2041,7 +2162,11 @@ class RegunGame extends FlameGame
     _hazards.clear();
     _bursts.clear();
     resetInput();
-    gameNotifier.resetRun(loadout: loadout, seed: random.state);
+    gameNotifier.resetRun(
+      loadout: loadout,
+      seed: random.state,
+      startingHealth: expedition?.release.startingHearts,
+    );
     supportCombat.clear();
     combat = CombatSystem(this);
     arsenal?.dispose();
@@ -2052,6 +2177,8 @@ class RegunGame extends FlameGame
     _ventClock = 0;
     arenaMachines = _createArenaMachines();
     supplyDrops.reset(random.state ^ 0x51a7);
+    _expeditionDropGuards.clear();
+    _expeditionDropExitShown = false;
     _syncSupplyArt(false);
     defeatedBosses.clear();
     bossWinCounts.clear();
@@ -2060,10 +2187,44 @@ class RegunGame extends FlameGame
     scorpionKills = 0;
     eliteKills = 0;
     boostButtonComponent.reset();
-    final landing = loadout.arena == ArenaType.floodworks
+    expeditionPassage = expeditionMode && clearSave
+        ? expeditionPassageMidpoint
+        : null;
+    final stagingOrigin = stagingAtArmory
+        ? ExpeditionStaging.armory
+        : ExpeditionStaging.arrival;
+    final landing = expeditionStaging
+        ? Vector2(stagingOrigin.dx, stagingOrigin.dy)
+        : expeditionMode
+        ? _expeditionEntrance(
+            atGate: crossingExpedition && !preferences.reducedMotion,
+          )
+        : loadout.arena == ArenaType.floodworks
         ? Vector2(-375, -290)
         : Vector2.zero();
     _trainingOrigin.setFrom(landing);
+    _mountRoom(landing);
+    _started = true;
+    _updateCamera();
+    if (expeditionMode || expeditionStaging) {
+      playerEntrance.cancel();
+    } else {
+      playerEntrance.begin(
+        respawn: false,
+        reducedMotion: preferences.reducedMotion,
+        camera: camera.viewfinder.position,
+        target: landing,
+      );
+    }
+    layoutControls();
+    if (walkerTrial && loadout.training) _placeWalker();
+    if (arietTrial && loadout.training) _placeAriet();
+    if (lodestarTrial && loadout.training) _placeLodestar();
+    revision.value++;
+    resumeEngine();
+  }
+
+  void _mountRoom(Vector2 landing) {
     world.add(myPlayer = PlayerComponent(position: landing.clone()));
     world.addAll([
       BossPortalFloor(),
@@ -2076,33 +2237,27 @@ class RegunGame extends FlameGame
       SupportRoundsView(),
       ArenaScenery(),
       for (final rail in foundryRails) FoundryCartView(rail),
-      if (loadout.arena == ArenaType.breach) ...[
+      if (expeditionMode) ExpeditionDoors(),
+      if (expeditionStaging) ...[
+        ExpeditionStagingArt(),
+        ExpeditionRangeTarget(),
+      ],
+      if (!expeditionStaging &&
+          (expeditionMode || loadout.arena == ArenaType.breach)) ...[
         SupplyDropField(),
         SupplyDropBody(),
       ],
     ]);
-    _started = true;
-    _updateCamera();
-    playerEntrance.begin(
-      respawn: false,
-      reducedMotion: preferences.reducedMotion,
-      camera: camera.viewfinder.position,
-      target: landing,
-    );
-    layoutControls();
-    if (walkerTrial && loadout.training) _placeWalker();
-    if (arietTrial && loadout.training) _placeAriet();
-    if (lodestarTrial && loadout.training) _placeLodestar();
-    revision.value++;
-    resumeEngine();
   }
 
   Map<String, dynamic> checkpoint() {
     syncGrenadeCapacity();
+    if (expeditionMode) boostButtonComponent.syncCapacity();
     Map<String, dynamic> actor(PositionComponent entity) {
       final enemy = entity as CombatEnemy;
       return {
         'kind': enemyId(entity),
+        if (_expeditionDropGuards.contains(entity)) 'dropGuard': true,
         if (entity is WalkerBoss) 'walker': entity.checkpointState,
         if (entity is ArietBoss) 'ariet': entity.checkpointState,
         if (entity is LodestarBoss) 'lodestar': entity.checkpointState,
@@ -2133,6 +2288,18 @@ class RegunGame extends FlameGame
 
     return {
       'schema': 2,
+      if (expedition case final run?) 'expedition': run.toJson(),
+      if (expeditionMode)
+        'expeditionPending': [
+          for (final enemy in _enemies)
+            if (!enemy.isLoaded && !enemy.isRemoving && !enemy.isRemoved)
+              [
+                enemyId(enemy),
+                enemy.position.x,
+                enemy.position.y,
+                if (_expeditionDropGuards.contains(enemy)) true,
+              ],
+        ],
       'recovery': recovery.toJson(),
       'recordOwner': _recordOwner,
       'recordEpoch': _recordEpoch,
@@ -2220,6 +2387,10 @@ class RegunGame extends FlameGame
   Future<bool> saveCheckpoint() async {
     if (disposed ||
         !_started ||
+        expeditionStaging ||
+        crossingExpedition ||
+        expeditionSaving ||
+        expeditionCommitFailed ||
         _settled ||
         loadout.training ||
         (gameState.health <= 0 && !recovery.pending)) {
@@ -2366,6 +2537,24 @@ class RegunGame extends FlameGame
 
   Future<void> leaveRun() async {
     resetInput();
+    if (expeditionStaging) return;
+    if (expeditionMode) {
+      await _settlement;
+      if (expeditionSaving || expeditionDropClaiming) {
+        saveIssue = 'Expedition is saving. Try again in a moment.';
+        return;
+      }
+      if (expeditionCommitFailed && !await commitExpedition()) return;
+      if (expedition!.terminal) {
+        await runStore.clear(expectedRunId: runId);
+      } else {
+        pauseGame();
+        if (!await saveCheckpoint()) {
+          saveIssue = 'Expedition could not be saved.';
+        }
+      }
+      return;
+    }
     if (recovery.pending) {
       await persistRecovery();
       return;
@@ -2417,7 +2606,8 @@ class RegunGame extends FlameGame
           recovery.owner != 'guest') {
         throw const FormatException('Recovery belongs to another account');
       }
-      if (stateSnapshot.health <= 0 &&
+      if (!expeditionMode &&
+          stateSnapshot.health <= 0 &&
           !['offered', 'requested', 'ended'].contains(recovery.stage)) {
         throw const FormatException('Finished run');
       }
@@ -2492,17 +2682,26 @@ class RegunGame extends FlameGame
               ? record['bossHit'] == true
               : snapshot['bossWasHit'] == true;
         } else {
-          entity = switch (EnemyKind.values.byName(kind)) {
-            EnemyKind.scorpion => EnemyComponent(position: position),
-            EnemyKind.mummy => Enemy2Component(position: position),
-            EnemyKind.ranged => Enemy3Component(position: position),
-            final kind => ArenaEnemy(
-              kind,
-              position: position,
-              elite: record['elite'] == true,
-            ),
-          };
+          entity =
+              expeditionMode &&
+                  ExpeditionVeteran.values.any(
+                    (variant) => variant.name == kind,
+                  )
+              ? _createExpeditionEnemy(kind, position)
+              : switch (EnemyKind.values.byName(kind)) {
+                  EnemyKind.scorpion => EnemyComponent(position: position),
+                  EnemyKind.mummy => Enemy2Component(position: position),
+                  EnemyKind.ranged => Enemy3Component(position: position),
+                  final kind => ArenaEnemy(
+                    kind,
+                    position: position,
+                    elite: record['elite'] == true,
+                  ),
+                };
           _enemies.add(entity);
+        }
+        if (expeditionMode && record['dropGuard'] == true) {
+          _expeditionDropGuards.add(entity);
         }
         final enemy = entity as CombatEnemy;
         enemy.combatId = record['combatId'] as int? ?? _nextCombatId++;
@@ -2609,7 +2808,7 @@ class RegunGame extends FlameGame
       );
       if (snapshot['grenadeInventory'] case final Map raw) {
         grenades.restore(Map<String, dynamic>.from(raw));
-        if (grenades.capacity != gameState.grenadeCapacity) {
+        if (grenades.capacity != stateSnapshot.grenadeCapacity) {
           throw const FormatException('Grenade capacity disagrees with build');
         }
       }
@@ -2659,12 +2858,11 @@ class RegunGame extends FlameGame
       if (snapshot['supplyDrops'] case final Map supply) {
         supplyDrops.restore(Map<String, dynamic>.from(supply));
         final drop = supplyDrops.drop;
+        final clearance = expeditionMode ? 85.0 : SupplyDrop.radius;
         if (drop != null &&
-            (!map.bounds.floor
-                    .deflate(SupplyDrop.radius)
-                    .contains(drop.position) ||
+            (!map.bounds.floor.deflate(clearance).contains(drop.position) ||
                 geometry.obstacles.any(
-                  (r) => r.inflate(SupplyDrop.radius).contains(drop.position),
+                  (r) => r.inflate(clearance).contains(drop.position),
                 ))) {
           throw const FormatException('Invalid supply placement');
         }
@@ -2672,18 +2870,49 @@ class RegunGame extends FlameGame
       _syncSupplyArt(supplyDrops.drop != null && !bossRush);
       gameNotifier.restoreCheckpoint(
         snapshot,
-        allowDead: recovery.stage != 'alive',
+        allowDead: expedition?.terminal == true || recovery.stage != 'alive',
       );
       supportCombat.restore(snapshot['supportRuntime']);
+      if (expeditionMode) {
+        for (final entry in snapshot['expeditionPending'] as List) {
+          final record = entry as List;
+          final id = record[0] as String;
+          final at = Vector2(
+            (record[1] as num).toDouble(),
+            (record[2] as num).toDouble(),
+          );
+          final guard = record.length == 4;
+          if (!_stageExpeditionEnemy(
+            id,
+            at,
+            restoring: true,
+            dropGuard: guard,
+          )) {
+            if (guard) {
+              expedition!.dropGuards--;
+            } else if (expedition!.bossRoom) {
+              expedition!.bossAdds = max(0, expedition!.bossAdds - 1);
+            } else {
+              expedition!.spawned = max(0, expedition!.spawned - 1);
+            }
+          }
+        }
+      }
       _updateCamera();
       revision.value++;
       // Restored attacks restart at anticipation; old flying shots/hazards are
       // discarded. No offline simulation or invisible active hitbox is restored.
       return true;
-    } on Object {
+    } on Object catch (error) {
+      if (expeditionMode) {
+        debugPrint('Expedition checkpoint could not be restored: $error');
+        expedition = Expedition(random.state);
+        _configureExpeditionRoom();
+        _configureArenaGeometry();
+      }
       world = _CombatWorld(this);
       world.add(map);
-      _startRun();
+      _startRun(clearSave: !expeditionMode);
       saveIssue = 'Saved run could not be restored.';
       return false;
     }
@@ -2714,6 +2943,9 @@ class RegunGame extends FlameGame
       gameNotifier.survivor.forgetVictim(enemy.combatId);
     }
     _enemies.remove(enemy);
+    if (_expeditionDropGuards.remove(enemy) && isMounted && !disposed) {
+      revision.value++;
+    }
     crowdOccupancy.forget(enemy);
     if (enemy is CombatEnemy &&
         identical(_navigationOwners[enemy.combatId], enemy)) {
@@ -2826,10 +3058,12 @@ class RegunGame extends FlameGame
     if (enemy is ArenaEnemy && enemy.elite) eliteKills++;
     gameNotifier.recordKill(score: score, boss: boss);
     combat.onKill(enemy);
-    if (!bossRush) dropXP(enemy.position, loadout.training ? 7 : xp);
+    if (!bossRush && !expeditionMode) {
+      dropXP(enemy.position, loadout.training ? 7 : xp);
+    }
     if (boss) {
       final bossKind = (enemy as BossEncounter).kind;
-      gameNotifier.awardBossHealth();
+      if (!expeditionMode) gameNotifier.awardBossHealth();
       bossVictory.show(bossKind);
       if (enemy is! WalkerBoss &&
           enemy is! ArietBoss &&
@@ -2851,10 +3085,10 @@ class RegunGame extends FlameGame
       bossEncounter.remove(enemy);
       if (bosses.isEmpty) {
         director.defeatBoss();
-        unawaited(audio.playMusic(loadout.arena.name));
+        unawaited(audio.playMusic(currentArena.name));
         if (bossRush) bossRushWait = 2.8;
       }
-      if (!bossRush) gameNotifier.awardBossCore();
+      if (!bossRush && !expeditionMode) gameNotifier.awardBossCore();
       revision.value++;
     }
   }
@@ -2883,8 +3117,11 @@ class RegunGame extends FlameGame
   String enemyId(PositionComponent enemy) => switch (enemy) {
     LodestarBoss() => 'lodestar',
     ArietBoss() => 'ariet',
+    ExpeditionWalker() => 'miniWalker',
+    ExpeditionVeteranEnemy(:final kind) => kind.name,
     ArietEscort() => 'arietEscort',
     WalkerBoss() => 'walker',
+    ExpeditionRangeTarget() => 'rangeTarget',
     EnemyComponent() => 'scorpion',
     Enemy2Component() => 'mummy',
     Enemy3Component() => 'ranged',
@@ -2913,7 +3150,7 @@ class RegunGame extends FlameGame
       : kind == BossKind.ariet
       ? 230
       : kind == BossKind.walker || kind == BossKind.saint
-      ? 220
+      ? WalkerBoss.stanceRadius
       : max(kind.bodyRadius, kind.spriteSize * .28);
 
   bool _bossSiteLegal(Vector2 at, double radius) =>
@@ -2992,7 +3229,7 @@ class RegunGame extends FlameGame
       }
       director.bossActive = bosses.isNotEmpty;
       if (!director.bossActive) {
-        unawaited(audio.playMusic(loadout.arena.name));
+        unawaited(audio.playMusic(currentArena.name));
         if (bossRush) bossRushWait = 1;
       }
       revision.value++;
@@ -3235,7 +3472,7 @@ class RegunGame extends FlameGame
     _ => createExpansionBoss(kind, position, health),
   };
 
-  void spawnBoss(BossKind kind, {bool companion = false}) {
+  void spawnBoss(BossKind kind, {bool companion = false, bool center = false}) {
     if (kind == BossKind.saint) kind = BossKind.walker;
     if ((kind.mechanical) && bosses.isNotEmpty ||
         bosses.any(
@@ -3249,25 +3486,31 @@ class RegunGame extends FlameGame
         gameState.gameplayState != GameplayState.playing) {
       return;
     }
-    final lodestarSite = kind == BossKind.lodestar ? _lodestarSite() : null;
-    final position = kind == BossKind.lodestar
+    final middle = map.bounds.interior.center;
+    final central = Vector2(middle.dx, middle.dy);
+    final lodestarSite = kind == BossKind.lodestar
+        ? center
+              ? (position: central, heading: 0.0)
+              : _lodestarSite()
+        : null;
+    final position = center
+        ? central
+        : kind == BossKind.lodestar
         ? lodestarSite?.position
         : _bossSite(kind, companion: companion);
     if (position == null) return;
     _bossWasHit = false;
     final scaling = bossRush ? 0.0 : 180 * pow(director.cycle - 1, 1.3);
+    final health =
+        (center ? expedition?.bossHealth : null) ?? kind.baseHealth + scaling;
     final actor = kind == BossKind.lodestar
-        ? _createLodestar(
-            position,
-            kind.baseHealth + scaling,
-            heading: lodestarSite!.heading,
-          )
-        : _createBoss(kind, position, kind.baseHealth + scaling);
+        ? _createLodestar(position, health, heading: lodestarSite!.heading)
+        : _createBoss(kind, position, health);
     if (!reserveEnemySpace(
           actor,
-          minPlayerDistance: BossSpawn.minimumDistance,
+          minPlayerDistance: center ? 0 : BossSpawn.minimumDistance,
         ) ||
-        !_bossSiteLegal(actor.position, _bossFootprint(kind))) {
+        (!center && !_bossSiteLegal(actor.position, _bossFootprint(kind)))) {
       crowdOccupancy.forget(actor);
       if (actor is LodestarBoss) {
         actor.retire();
@@ -3436,8 +3679,16 @@ class RegunGame extends FlameGame
     bossReveal.reset();
     mechanicalArrival.reset();
     confirmationHolding.value = false;
+    return _changeRunWeapon(next);
+  }
+
+  Future<bool> _changeRunWeapon(
+    WeaponType next, {
+    bool fromDrop = false,
+  }) async {
     if (next == loadout.weapon) return true;
     final epoch = ++_trainingWeaponEpoch;
+    final changingRun = runId;
     final names = [
       if (next.hasLeasedArt) next.atlasName,
       if (next == WeaponType.cinderHose) 'effects/cinder_flame',
@@ -3457,8 +3708,11 @@ class RegunGame extends FlameGame
     }
     if (disposed ||
         epoch != _trainingWeaponEpoch ||
+        changingRun != runId ||
         !preferences.profile.weaponUnlocked(next) ||
-        gameState.gameplayState != GameplayState.paused) {
+        (fromDrop
+            ? !expeditionDropOffer
+            : gameState.gameplayState != GameplayState.paused)) {
       for (final name in names) {
         RegunArt.shared.release(name);
       }
@@ -3477,12 +3731,12 @@ class RegunGame extends FlameGame
       weapon: next,
       character: loadout.character,
       arena: loadout.arena,
-      training: true,
+      training: loadout.training,
     );
     _weaponArtHeld = next.hasLeasedArt;
     _cinderArtHeld = next == WeaponType.cinderHose;
     _ringArtHeld = next == WeaponType.ringCaster;
-    gameNotifier.changeTrainingWeapon(next);
+    gameNotifier.changeRunWeapon(next);
     arsenal = ArsenalSystem(this);
     burstFire.reset();
     _fireCooldown = 0;
@@ -3733,6 +3987,7 @@ class RegunGame extends FlameGame
         }
         resetInput();
         _updateCamera();
+        if (expeditionMode) unawaited(saveCheckpoint());
       }
       return;
     }
@@ -3840,6 +4095,20 @@ class RegunGame extends FlameGame
     }
     bossEncounter.advance(_lingeringBossAttack);
     _weaponImpacts = 0;
+    if (crossingExpedition) {
+      processLifecycleEvents();
+      if (gameState.gameplayState == GameplayState.playing) {
+        _advanceExpeditionPassage(dt);
+      }
+      return;
+    }
+    if (expeditionSaving ||
+        expeditionCommitFailed ||
+        expeditionDropOffer ||
+        expedition?.phase == ExpeditionPhase.reward) {
+      processLifecycleEvents();
+      return;
+    }
     final phase = gameState.gameplayState;
     if (phase == GameplayState.paused || phase == GameplayState.gameOver) {
       return;
@@ -3860,9 +4129,23 @@ class RegunGame extends FlameGame
     _reloadWasActive = gameState.reloading;
     final finishFlourish = _reloadWasActive && !gameNotifier.reloadTactical;
     final reloadWait = gameNotifier.reloadRemainingSeconds;
-    gameNotifier.advanceTime(dt * timeScale);
+    gameNotifier.advanceTime(dt * timeScale, scoreTime: !expeditionStaging);
     if (_reloadWasActive && !gameState.reloading) {
       _breachCharged = true;
+      final run = expedition;
+      if (run != null &&
+          run.signatures.containsKey(ExpeditionSignature.breachCharge)) {
+        run.breachChargeReady = true;
+        revision.value++;
+      }
+      if (run?.signatures.containsKey(ExpeditionSignature.coldSnap) == true) {
+        run!.coldSnapReady = true;
+        revision.value++;
+      }
+      if (run?.signatures[ExpeditionSignature.ironCurtain] case final rank?
+          when run!.phase == ExpeditionPhase.combat) {
+        combat.expeditionScreen(myPlayer.position, 115 + 33.0 * rank);
+      }
       if (finishFlourish &&
           phase == GameplayState.playing &&
           !preferences.reducedMotion) {
@@ -3979,6 +4262,7 @@ class RegunGame extends FlameGame
         ? null
         : myPlayer.position.toOffset();
     final escapeHealthBefore = gameState.health;
+    final expeditionBefore = expeditionMode ? myPlayer.position.clone() : null;
     _advanceOrdinaryMinions(dt);
     try {
       super.update(dt);
@@ -4002,6 +4286,23 @@ class RegunGame extends FlameGame
       _steppedMinions.clear();
     }
     final state = gameState;
+    if (expeditionStaging) {
+      if (state.gameplayState == GameplayState.playing) {
+        final position = myPlayer.position.toOffset();
+        final station = [ExpeditionStaging.armory, ExpeditionStaging.gate]
+            .where(
+              (anchor) =>
+                  (position - anchor).distance < ExpeditionStaging.range,
+            )
+            .firstOrNull;
+        if (stagingStation != station) {
+          stagingStation = station;
+          revision.value++;
+        }
+        _followPlayerCamera(dt);
+      }
+      return;
+    }
     if (state.gameplayState == GameplayState.playing) {
       final nearby = _crowdCueActor;
       if (nearby != null && !(nearby as CombatEnemy).combatHealth.isDead) {
@@ -4012,6 +4313,11 @@ class RegunGame extends FlameGame
       if (_checkpointElapsed >= 15) {
         _checkpointElapsed = 0;
         unawaited(saveCheckpoint());
+      }
+      if (expeditionMode) {
+        _advanceExpedition(dt, expeditionBefore!);
+        _followPlayerCamera(dt);
+        return;
       }
       _advanceRush(dt);
       final reinforce = director.advance(dt);
@@ -4110,6 +4416,10 @@ class RegunGame extends FlameGame
       );
     }
     _syncSupplyArt(supplyDrops.drop != null && !bossRush);
+    _followPlayerCamera(dt);
+  }
+
+  void _followPlayerCamera(double dt) {
     final targetZoom = encounterCameraZoom;
     camera.viewfinder.zoom = preferences.reducedMotion
         ? targetZoom
@@ -4501,7 +4811,8 @@ class RegunGame extends FlameGame
   }
 
   bool damagePlayer({int amount = 1, String cause = 'The horde'}) {
-    if (inputBlocked ||
+    if (expeditionStaging ||
+        inputBlocked ||
         boostButtonComponent.tapped ||
         (loadout.training && !trainingDamage)) {
       return false;
@@ -4532,6 +4843,23 @@ class RegunGame extends FlameGame
     if (gameState.health < health) {
       myPlayer.hurtFlash = 0.48;
       damageFeedback.trigger(amount: health - gameState.health);
+      final run = expedition;
+      if (gameState.health > 0 &&
+          run?.phase == ExpeditionPhase.combat &&
+          run!.signatures.containsKey(ExpeditionSignature.backlash)) {
+        final rank = run.signatures[ExpeditionSignature.backlash]!;
+        final radius = 130 + rank * 24.0;
+        combat.expeditionBurst(
+          myPlayer.position,
+          radius: radius,
+          damage: 2.0 + rank * 2,
+          targets: 4 + rank,
+          shove: 110,
+        );
+        if (run.fusions.contains(ExpeditionFusion.countermeasure)) {
+          combat.expeditionScreen(myPlayer.position, radius);
+        }
+      }
       if (activeBoss != null) {
         _bossWasHit = true;
         for (final boss in bosses) {
@@ -4580,6 +4908,18 @@ class RegunGame extends FlameGame
         !_settlementSaved) {
       if (!_waitingToRestart) unawaited(_restartAfterSettlement());
       return;
+    }
+    if (expeditionSaving || crossingExpedition || expeditionDropClaiming) {
+      return;
+    }
+    if (expeditionMode) {
+      expedition = Expedition(
+        DateTime.now().microsecondsSinceEpoch & 0x7fffffff,
+        threat: expedition!.threat,
+        release: ExpeditionRelease.current,
+      );
+      _configureExpeditionRoom();
+      expeditionCommitFailed = false;
     }
     final restartRush = bossRush;
     for (final departure in world.children.whereType<BossDeparture>()) {
@@ -4647,6 +4987,8 @@ class RegunGame extends FlameGame
     _steppedMinions.clear();
     _temporaryCoverRouter.clear();
     statusArt.clear();
+    expeditionWalkerAssets.dispose();
+    expeditionArietAssets.dispose();
     upgradePresentation.cancel();
     bossReveal.reset();
     mechanicalArrival.reset();

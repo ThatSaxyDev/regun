@@ -162,8 +162,8 @@ void main() {
       }
       final start = slowEnemy.position.clone();
       game.update(1);
-      // Scorpion speed is 60 units/sec: one real second advances only 6 units.
-      expect(slowEnemy.position.distanceTo(start), closeTo(6, 0.001));
+      final slowedTravel = slowEnemy.position.distanceTo(start);
+      expect(slowedTravel, greaterThan(0));
       expect(game.gameState.health, 6);
       final offers = game.gameState.powerUpChoices;
       notifier.applyPowerUp(offers.first);
@@ -171,6 +171,10 @@ void main() {
       game.update(2); // Resume active-clock assertions after the confirmation.
       expect(game.paused, isFalse);
       expect(game.timeScale, 1);
+      final resumed = slowEnemy.position.clone();
+      game.update(.1);
+      // Equal active time yields equal travel even as balance tuning changes.
+      expect(slowEnemy.position.distanceTo(resumed), closeTo(slowedTravel, .02));
       game.myPlayer.position.setValues(-9999, 9999);
       game.update(1 / 60);
       expect(

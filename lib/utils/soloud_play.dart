@@ -13,7 +13,7 @@ class SoloudPlay {
   final _lastPlayed = <String, int>{};
   final _clock = Stopwatch()..start();
   SoundHandle? _musicHandle;
-  SoundHandle? _movementVoice, _crowdVoice, _warningVoice;
+  SoundHandle? _movementVoice, _crowdVoice, _warningVoice, _arrivalVoice;
   int _lastWarning = -1000;
   final _weaponLoops = <String, SoundHandle>{};
   final _loopRequests = <String, int>{};
@@ -90,6 +90,7 @@ class SoloudPlay {
         'dash_land.wav',
         'enemy_scuttle.wav',
         'enemy_skitter_warn.wav',
+        'enemy_arrival.wav',
         for (final kind in ['press', 'sluice', 'relay'])
           'machine_${kind}_charge.wav',
         'machine_press_hit.wav',
@@ -300,13 +301,16 @@ class SoloudPlay {
   }) async {
     if (!_soloud.isInitialized || _sfxVolume == 0 || proximity <= 0) return;
     final warning = asset == 'enemy_skitter_warn.wav';
+    final arrival = asset == 'enemy_arrival.wav';
     final crowd = asset == 'enemy_scuttle.wav';
     if (warning) _lastWarning = _clock.elapsedMilliseconds;
     try {
       final source = await _source(asset);
       if (!_soloud.isInitialized || _sfxVolume == 0) return;
       if (crowd && _clock.elapsedMilliseconds - _lastWarning < 500) return;
-      final previous = warning
+      final previous = arrival
+          ? _arrivalVoice
+          : warning
           ? _warningVoice
           : crowd
           ? _crowdVoice
@@ -321,7 +325,9 @@ class SoloudPlay {
           _soloud.setVolume(ambient, 0);
         }
       }
-      final gain = warning
+      final gain = arrival
+          ? .68
+          : warning
           ? .48
           : crowd
           ? .20
@@ -333,7 +339,9 @@ class SoloudPlay {
         volume: _sfxVolume * gain * proximity,
         pan: pan,
       );
-      if (warning) {
+      if (arrival) {
+        _arrivalVoice = handle;
+      } else if (warning) {
         _warningVoice = handle;
       } else if (crowd) {
         _crowdVoice = handle;

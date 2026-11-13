@@ -1,3 +1,5 @@
+import 'package:regun/services/expedition_progress.dart';
+import 'package:regun/services/run_store.dart';
 import 'package:regun/models/player_profile.dart';
 
 import 'dart:convert';
@@ -261,6 +263,8 @@ class LocalPreferences extends ChangeNotifier {
 
   Future<void> resetProgress() async {
     await _saving;
+    await RunStore.expedition.clearOwner(profileOwner);
+    await ExpeditionProgress.shared.clear(profileOwner);
     profile = PlayerProfile();
     bestScore = 0;
     bestSeconds = 0;

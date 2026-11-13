@@ -37,8 +37,20 @@ import 'package:regun/widgets/survivor_portrait.dart';
 enum _Catalog { survivor, weapon, arena }
 
 class LoadoutView extends StatefulWidget {
-  const LoadoutView({super.key, this.training = false, this.armory});
-  final bool training;
+  const LoadoutView({
+    super.key,
+    this.training = false,
+    this.armory,
+    this.expedition = false,
+    this.selectOnly = false,
+    this.expeditionThreat = 0,
+    this.initialLoadout,
+    this.runStore,
+  });
+  final bool training, expedition, selectOnly;
+  final int expeditionThreat;
+  final Loadout? initialLoadout;
+  final RunStore? runStore;
   final ArmoryRepository? armory;
   @override
   State<LoadoutView> createState() => _LoadoutViewState();
@@ -76,13 +88,17 @@ class _LoadoutViewState extends State<LoadoutView> {
     if (!widget.training) {
       unawaited(_armory.refresh());
       unawaited(AccountController.shared.sync());
-      if (profile.weaponUnlocked(profile.preferredWeapon)) {
-        weapon = profile.preferredWeapon;
+      final preferredWeapon =
+          widget.initialLoadout?.weapon ?? profile.preferredWeapon;
+      final preferredCharacter =
+          widget.initialLoadout?.character ?? profile.preferredCharacter;
+      if (profile.weaponUnlocked(preferredWeapon)) {
+        weapon = preferredWeapon;
       }
-      if (profile.characterUnlocked(profile.preferredCharacter)) {
-        character = profile.preferredCharacter;
+      if (profile.characterUnlocked(preferredCharacter)) {
+        character = preferredCharacter;
       }
-      if (profile.arenaUnlocked(profile.preferredArena)) {
+      if (!widget.expedition && profile.arenaUnlocked(profile.preferredArena)) {
         arena = profile.preferredArena;
       }
     }
@@ -122,7 +138,11 @@ class _LoadoutViewState extends State<LoadoutView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 MenuHeader(
-                  title: widget.training ? 'TRAINING' : 'LOADOUT',
+                  title: widget.expedition
+                      ? 'EXPEDITION'
+                      : widget.training
+                      ? 'TRAINING'
+                      : 'LOADOUT',
                   showWallet: true,
                   onWalletSignIn: _requestSignIn,
                 ),
@@ -131,7 +151,9 @@ class _LoadoutViewState extends State<LoadoutView> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (final catalog in _Catalog.values) ...[
+                      for (final catalog in _Catalog.values.where(
+                        (item) => !widget.expedition || item != _Catalog.arena,
+                      )) ...[
                         if (catalog.index > 0) const SizedBox(width: 8),
                         Expanded(
                           child: _CatalogTab(
@@ -270,7 +292,11 @@ class _LoadoutViewState extends State<LoadoutView> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   MenuHeader(
-                    title: widget.training ? 'TRAINING' : 'LOADOUT',
+                    title: widget.expedition
+                        ? 'EXPEDITION'
+                        : widget.training
+                        ? 'TRAINING'
+                        : 'LOADOUT',
                     showWallet: true,
                     onWalletSignIn: _requestSignIn,
                   ),
@@ -278,7 +304,9 @@ class _LoadoutViewState extends State<LoadoutView> {
                   Row(
                     spacing: 8,
                     children: [
-                      for (final item in _Catalog.values)
+                      for (final item in _Catalog.values.where(
+                        (item) => !widget.expedition || item != _Catalog.arena,
+                      ))
                         Expanded(
                           child: _CatalogTab(
                             label: item.name.toUpperCase(),
@@ -791,7 +819,11 @@ class _LoadoutViewState extends State<LoadoutView> {
             ClickButton(text: 'Retry', onTap: _armory.refresh),
         ] else
           ClickButton(
-            text: _starting ? 'Loading' : 'Start',
+            text: _starting
+                ? 'Loading'
+                : widget.selectOnly
+                ? 'Equip'
+                : 'Start',
             width: desktopInputAvailable ? 180 : 120,
             height: desktopInputAvailable ? 60 : 48,
             fontSize: desktopInputAvailable ? 14 : 10,
@@ -801,8 +833,18 @@ class _LoadoutViewState extends State<LoadoutView> {
                     if (!profile.weaponUnlocked(weapon)) {
                       return;
                     }
+                    if (widget.selectOnly) {
+                      Navigator.of(context).pop(
+                        Loadout(
+                          weapon: weapon,
+                          character: character,
+                          arena: arena,
+                        ),
+                      );
+                      return;
+                    }
                     setState(() => _starting = true);
-                    if (!widget.training) {
+                    if (!widget.training && !widget.expedition) {
                       profile.preferredWeapon = weapon;
                       profile.preferredCharacter = character;
                       profile.preferredArena = arena;
@@ -816,6 +858,9 @@ class _LoadoutViewState extends State<LoadoutView> {
                           .pushReplacement<void, Future<void>>(
                             GamePageRoute<void>(
                               builder: (_) => BaseView(
+                                expeditionMode: widget.expedition,
+                                expeditionThreat: widget.expeditionThreat,
+                                runStore: widget.runStore,
                                 loadout: Loadout(
                                   weapon: weapon,
                                   character: character,

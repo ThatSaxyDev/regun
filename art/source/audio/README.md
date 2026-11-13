@@ -149,6 +149,6 @@ natural tail. Run `python3 tool/generate_movement_audio.py` with FFmpeg installe
 `tool/generate_movement_audio.py` cuts and filters these CC0 recordings for the
 machine warning and release phases.
 
-- `press.mp3` — [Kettlebell on concrete, rsellick](https://freesound.org/people/rsellick/sounds/545544/), recorded metal drag and contact.
+- `press.mp3` — [Kettlebell on concrete, rsellick](https://freesound.org/people/rsellick/sounds/545544/), recorded metal drag and contact. Expedition’s enemy arrival layers the same recording’s scrape and impact at reduced pitch.
 - `sluice.mp3` — [Sluice of the Canal du Midi, LPA134](https://freesound.org/people/LPA134/sounds/547231/), recorded water rushing through a working sluice.
 - `relay.mp3` — [Electrical Buzz, Craig Smith](https://freesound.org/people/craigsmith/sounds/438501/), a recorded electrical hum and hiss.

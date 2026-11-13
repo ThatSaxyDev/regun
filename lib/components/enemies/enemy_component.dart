@@ -68,15 +68,18 @@ class EnemyComponent extends SpriteAnimationComponent
     final direction = game.enemyIntent(this, EnemyKind.scorpion);
 
     //! MOVE ENEMY TOWARDS PLAYER
-    const speed = 60;
-    game.moveActor(this, direction, speed.toDouble(), dt);
+    const speed = 63.0;
+    game.moveActor(this, direction, speed, dt);
     gait.sample(position.toOffset(), statusClock);
     playing = false;
     animationTicker?.currentIndex = gait.frame;
     const contact = 25.5 + PlayerHurtGeometry.radius;
     if (position.distanceToSquared(playerPosition) <= contact * contact &&
         !game.segmentBlocked(position, playerPosition)) {
-      game.damagePlayer(cause: 'Scorpion');
+      game.damagePlayer(
+        amount: game.expedition?.enemyDamage() ?? 1,
+        cause: 'Scorpion',
+      );
     }
 
     if (playerPosition.x > position.x) {

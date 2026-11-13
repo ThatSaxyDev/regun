@@ -95,7 +95,7 @@ void main() {
         );
         await Future<void>.delayed(const Duration(milliseconds: 50));
       });
-      for (var i = 0; i < 40 && find.text('PLAY').evaluate().isEmpty; i++) {
+      for (var i = 0; i < 40 && find.text('ARENA').evaluate().isEmpty; i++) {
         await tester.runAsync(() async {
           await Future<void>.delayed(const Duration(milliseconds: 50));
         });
@@ -103,7 +103,7 @@ void main() {
       }
 
       expect(accountCalls, 1);
-      expect(find.text('PLAY').hitTestable(), findsOneWidget);
+      expect(find.text('ARENA').hitTestable(), findsOneWidget);
       expect(find.text('TRAINING').hitTestable(), findsOneWidget);
       await tester.tap(find.byKey(const Key('home-settings')));
       await tester.pump();
@@ -113,7 +113,7 @@ void main() {
       await tester.tap(find.text('BACK'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
-      await tester.tap(find.text('PLAY'));
+      await tester.tap(find.text('ARENA'));
       await tester.pump();
       for (
         var i = 0;

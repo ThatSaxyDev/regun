@@ -264,6 +264,17 @@ void main() {
         grenade.flight.velocity.dx,
         closeTo(-GrenadeSpec.speed * power, .001),
       );
+      final touch = await tester.startGesture(
+        const Offset(450, 250),
+        kind: PointerDeviceKind.touch,
+      );
+      expect(game.usingDesktopInput, isFalse);
+      await touch.up();
+      dispatch(frame(0, 0));
+      advance(frame(-1, 0), 1);
+      expect(game.usingDesktopInput, isTrue);
+      expect(game.movementIntent.x, -1);
+      await tester.pump(const Duration(milliseconds: 60));
       await tester.pumpWidget(const SizedBox.shrink());
     },
     variant: const TargetPlatformVariant({TargetPlatform.macOS}),

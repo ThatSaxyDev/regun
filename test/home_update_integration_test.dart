@@ -79,7 +79,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(updates.checks, 1);
     expect(find.text('UPDATE REQUIRED'), findsOneWidget);
-    expect(find.text('PLAY').hitTestable(), findsNothing);
+    expect(find.text('ARENA').hitTestable(), findsNothing);
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.text('UPDATE REQUIRED'), findsOneWidget);

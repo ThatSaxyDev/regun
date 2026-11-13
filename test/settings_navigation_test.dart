@@ -44,7 +44,7 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 20));
       });
       await tester.pumpAndSettle();
-      for (var i = 0; i < 40 && find.text('PLAY').evaluate().isEmpty; i++) {
+      for (var i = 0; i < 40 && find.text('ARENA').evaluate().isEmpty; i++) {
         await tester.runAsync(() async {
           await Future<void>.delayed(const Duration(milliseconds: 50));
         });
@@ -57,7 +57,7 @@ void main() {
       expect(tester.getRect(settings).top, greaterThan(200));
       expect(
         tester.getRect(find.text('TRAINING')).top -
-            tester.getRect(find.text('PLAY')).bottom,
+            tester.getRect(find.text('ARENA')).bottom,
         greaterThan(28),
       );
       await tester.tap(settings);

@@ -172,7 +172,14 @@ class ArenaEnemy extends PositionComponent
                   ) <
                   PlayerHurtGeometry.reach(52) * PlayerHurtGeometry.reach(52) &&
               !game.segmentBlocked(position, game.myPlayer.position)) {
-            game.damagePlayer(cause: kind.title);
+            game.damagePlayer(
+              amount:
+                  game.expedition?.enemyDamage(
+                    heavy: kind != EnemyKind.runner,
+                  ) ??
+                  1,
+              cause: kind.title,
+            );
           }
           if (clock >= _lungeDuration) {
             phase = 3;
@@ -192,7 +199,14 @@ class ArenaEnemy extends PositionComponent
           }
         } else if (phase == 1 && clock > 0.75) {
           if (distance < PlayerHurtGeometry.reach(140)) {
-            game.damagePlayer(cause: kind.title);
+            game.damagePlayer(
+              amount:
+                  game.expedition?.enemyDamage(
+                    heavy: kind != EnemyKind.runner,
+                  ) ??
+                  1,
+              cause: kind.title,
+            );
           }
           game.addCombatEffect(
             CombatEffect(
@@ -224,7 +238,14 @@ class ArenaEnemy extends PositionComponent
           }
         } else if (clock >= 0.9) {
           if (distance < PlayerHurtGeometry.reach(150)) {
-            game.damagePlayer(cause: kind.title);
+            game.damagePlayer(
+              amount:
+                  game.expedition?.enemyDamage(
+                    heavy: kind != EnemyKind.runner,
+                  ) ??
+                  1,
+              cause: kind.title,
+            );
           }
           combatHealth.damage(
             combatHealth.maximum,
@@ -263,6 +284,7 @@ class ArenaEnemy extends PositionComponent
             game.myPlayer.position.clone(),
             radius: 120,
             warning: 1.0,
+            damage: game.expedition?.enemyDamage(heavy: true) ?? 1,
             cause: kind.title,
             ownerHealth: combatHealth,
           );

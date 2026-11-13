@@ -91,6 +91,7 @@ class SupplyDrops {
         } else if (inside &&
             current.capture + 1e-8 >= SupplyDrop.captureSeconds &&
             onReward()) {
+          current.capture = SupplyDrop.captureSeconds;
           current.phase = SupplyPhase.opened;
           current.claimed = true;
           current.elapsed = 0;

@@ -9,6 +9,7 @@ import 'package:regun/desktop/controller_backend.dart';
 import 'package:regun/desktop/controller_device.dart';
 import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/desktop/desktop_bindings.dart';
+import 'package:regun/desktop/desktop_platform.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/widgets/game_notice.dart';
 
@@ -77,7 +78,7 @@ class _DesktopControllerState extends ConsumerState<DesktopController>
       unawaited(_poll(elapsed));
     })..start();
     unawaited(ref.read(soloudPlayProvider).warmControllerMenu());
-    if (widget.readDevices == null) {
+    if (widget.readDevices == null && !nativeIosController) {
       _connections = controllerConnectionChanges().listen(
         (_) => _poll(_elapsed),
         onError: (Object _) {},

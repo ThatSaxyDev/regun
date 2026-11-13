@@ -123,6 +123,7 @@ class LodestarBoss extends PositionComponent
             rig: rig,
             bounds: game.map.bounds.interior,
             clear: clear,
+            recoveryClear: _recoveryClear,
             poseLegal: _legal,
             hurt: (damage, cause) =>
                 game.damagePlayer(amount: damage, cause: cause),
@@ -166,6 +167,19 @@ class LodestarBoss extends PositionComponent
             r.inflate(radius),
           ),
         );
+  }
+
+  bool _recoveryClear(Offset a, Offset b, double radius) {
+    if (!clear(a, b, radius)) return false;
+    final lane = TargetCapsule(a, b, radius);
+    return !game.liveEnemies.any(
+      (e) =>
+          !identical(e, this) &&
+          e is CombatEnemy &&
+          !e.isRemoving &&
+          !e.combatHealth.isDead &&
+          lane.distance(e.position.toOffset()) < game.crowdRadius(e) + 4,
+    );
   }
 
   bool _legalSweep(List<LodestarPose> from, List<LodestarPose> to) {
@@ -382,7 +396,7 @@ class LodestarBoss extends PositionComponent
       }
       game.unregisterEnemy(this);
       removeFromParent();
-      game.audio.playMusic(game.loadout.arena.name);
+      game.audio.playMusic(game.currentArena.name);
       game.revision.value++;
     }
   }
@@ -431,11 +445,11 @@ class _LodestarLayer extends Component {
     final art = LodestarBattleArt(owner.assets),
         reduced = owner.game.preferences.reducedMotion;
     if (layer == -10) {
-      art.floor(c, owner.fight, owner.game.loadout.arena, reduced);
+      art.floor(c, owner.fight, owner.game.currentArena, reduced);
     } else if (layer == 10000) {
       art.body(c, owner.fight, reduced, section: section);
     } else {
-      art.ordnance(c, owner.fight, owner.game.loadout.arena, reduced);
+      art.ordnance(c, owner.fight, owner.game.currentArena, reduced);
     }
   }
 }

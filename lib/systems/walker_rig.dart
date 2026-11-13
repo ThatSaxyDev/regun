@@ -137,6 +137,25 @@ class WalkerRig {
     }
   }
 
+  /// The folded feet already rotate with the chassis in the air. Plant them
+  /// at the landing heading instead of restoring the pre-rush stance.
+  void plantAfterRush() {
+    for (final leg in legs) {
+      final hip = ground(leg.mount);
+      final rest = ground(leg.rest);
+      final bounded = Offset(
+        rest.dx.clamp(footBounds.left + 20, footBounds.right - 20),
+        rest.dy.clamp(footBounds.top + 20, footBounds.bottom - 20),
+      );
+      final foot = footResolver?.call(hip, bounded) ?? bounded;
+      leg.foot = leg.from = leg.destination = foot;
+      leg.footYaw = yaw + math.atan2(leg.rest.dy, leg.rest.dx);
+      leg.swing = -1;
+      leg.lift = 0;
+      leg.plantedFor = 0;
+    }
+  }
+
   void advance(double dt) {
     if (paused || !dt.isFinite || dt <= 0) return;
     _accumulator += dt;

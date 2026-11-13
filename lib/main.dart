@@ -196,7 +196,11 @@ class _GameAppState extends State<GameApp> with WidgetsBindingObserver {
                 child: child!,
               ),
             )
-          : GamePresentation(child: child!),
+          : GamePresentation(
+              child: nativeIosController
+                  ? DesktopController(child: child!)
+                  : child!,
+            ),
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true).copyWith(

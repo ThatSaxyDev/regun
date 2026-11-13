@@ -1252,3 +1252,102 @@ Skitter leaps stop at the same footprint. The channel and its flush edge
 trim are walkable. Watch the current before a surge and check that Reduced
 Motion holds it still. Breach's open ground uses only floor detail and its
 landed supply pod for interior cover.
+
+## Expedition · private four-region playtest
+
+Open **Expedition** from the shelter to enter the Outpost. Fire at the
+target on the right to see hit damage. Walk up to the loadout bench on the
+left, then choose Open loadout and Equip. Approach the north gate and Deploy.
+The gate offers Continue if a run is saved. After a defeat or final boss
+clear, Return to Outpost brings you back here. A clear records the result
+and unlocks the next threat when available.
+
+On a fresh run, watch your survivor walk through the first south gate before
+enemies spawn.
+Clear each room, claim its boon and walk through a north door. Watch for the
+red lock lamp to change as the panels slide into the wall. The exit sign
+shows the reward family in the next room. Rook walks through the passage and
+emerges from the next room's south gate. Reduced Motion uses a short fade.
+Health, ammo, cooldowns, and upgrades travel with you.
+
+Breach ends at **Walker**, then Foundry at **Demon**, Floodworks at
+**Ariet**, and Relay Graveyard at **Lodestar**. A full clear unlocks the
+next threat tier. Retry starts a new seed. A repair door trades an upgrade for
+health. For a capstone, reach rank II in the first listed ingredient and rank I
+in the second, then choose the capstone after a regional boss.
+
+Try two runs with different branches. Compare how the layout changes your
+reload, dash and retreat choices. Save and leave at a boon draft, after claiming
+it, and during Walker. Open **Expedition** again to check the saved choices and
+health. Test pausing during a passage and reopening after the door commits.
+Use Pause → Menu to save the current Expedition. On the main menu, tap
+**Expedition** and choose **Continue** to resume immediately or **New run** to
+visit the Outpost. Deploying a new run replaces the checkpoint.
+
+The game test traverses all four regions with staged damage to verify the
+runtime path and settlement. Physical balance, pacing and presentation still
+need playtesting. Campaign progress is device-local. The server and admin
+implement release settings for admission, extra enemies and repair amount.
+Staging/deployment, run analytics and cloud progression remain separate work.
+
+Run locally with `make runExpedition DEVICE=macos` or build the signed phone app
+with `make buildExpeditionIOS`. Public admission defaults off.
+See [the V1 plan](REGUN_ROGUELITE_V1_PLAN.md) for the remaining scope.
+
+### Expedition airdrops
+
+A pod can land during combat in each region. Listen for the incoming signal,
+look for the drop marker and the three guards that arrive around it.
+Hold inside the capture ring for eight seconds. Capture starts even while
+guards are alive.
+The charge sounds and progress match Arena. Stepping out pauses the hold.
+Once secured, claim one card. One card offers Sentry Gun, Aura Salad,
+or a randomly selected unlocked weapon, alongside up to two regular boons.
+A weapon swap keeps the build and refills the new weapon. Save during a guard
+wave or on the reward screen, then Continue to verify the same reward and guards.
+After clearing a room, Leave airdrop lets you continue past an unclaimed pod.
+Arena uses its existing capture and reward rules.
+
+### Expedition combat and room feel
+
+Start a fresh Expedition to play the revised room generator. Continue retains
+the generator version stored in its checkpoint. The new sequence deals four
+different chamber shapes before repeating one. Galleries give enemies wide
+approaches, service tunnels compress their approach, crossings split sightlines,
+and muster courts leave room to group enemies. Breach opens with Scorpions
+and Mummies in groups of three. Revenants, Skitters, and heavier roles join over the
+following rooms. Each region has five to eight combat rooms before the boss.
+Each combat room has three to five waves. In the first two Breach rooms, a new wave can begin when one enemy remains. Foundry opens with larger, overlapping waves,
+faster pursuit and harder heavy hits. Mini Walkers recur in its waves and fire
+three-shot bursts. Floodworks introduces mini Demons with marked slams, and
+Relay introduces Ariet scouts with spread volleys. Each successor region
+keeps some mini Walkers in its mix. Look for mirrored layouts, offset entries,
+and alternate cover arrangements. Wall textures repeat across long surfaces.
+An amber ground flare and a low directional mechanical cue mark an incoming
+enemy. Some rooms have pressure plates that warn before bursting. Try drawing
+enemies onto one. The four bosses enter at the center of tighter rooms and
+have more health. Walker can bring zero, one or two mini Walkers into the
+fight. Their spawn warnings stay clear of the center and of Walker. Walker’s
+attacks pass over its mini Walkers without damaging them. The boss health strip identifies the fight.
+
+Clear the first room and choose one of three signatures drawn from twelve.
+The named exits let you develop an existing signature or pursue another.
+Look in Pause for your build and the rank-II pairings that lead to fusions.
+Boss rewards can advance signatures, offer a capstone, or forge one of nine
+fusions when both ingredients reach rank II. Equip up to two fusions per run.
+
+Try Cold Snap into Shatterstep with Brittle Steel, Thunderstep into a loaded
+shot with Arc Primer, or Thermite into Slag Trail to leave burning ground on
+dash landings. Iron Curtain clears rounds on reload. Backlash answers health
+loss with a shove, and Countermeasure adds a projectile sweep. Quickdraw
+chambers a round and primes a shock on dash landing. Compare the frost shards,
+ground impact, thermal bursts, and the Blood Tax heal against crowded combat. Blood Tax restores one heart every
+70, 65 or 60 kills at ranks I, II and III.
+
+Try the Outpost bench and gate with A/Cross or E and cancel each menu once.
+
+The main references were [Hades' Hammer and boon changes](https://www.supergiantgames.com/blog/hades-long-winter-update-patch-notes/)
+and [Cinderia's build combinations and encounter variation](https://store.steampowered.com/app/3214610/Cinderia/).
+The four chambers use existing Regun materials with distinct floor markings.
+Native power, readability and pacing still need a hands-on comparison across
+several fresh seeds.

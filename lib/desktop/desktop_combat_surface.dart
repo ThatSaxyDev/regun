@@ -8,18 +8,21 @@ import 'package:flutter/services.dart';
 import 'package:regun/desktop/desktop_combat_input.dart';
 import 'package:regun/game.dart';
 import 'package:regun/systems/grenades.dart';
+import 'package:regun/systems/expedition.dart';
 
 class DesktopCombatSurface extends StatefulWidget {
   const DesktopCombatSurface({
     super.key,
     required this.game,
     required this.playing,
+    this.onInteract,
 
     required this.child,
   });
 
   final RegunGame game;
   final bool playing;
+  final VoidCallback? onInteract;
   final Widget child;
 
   @override
@@ -34,6 +37,7 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
   int _epoch = -1;
   bool _controllerActive = false;
   bool _controllerArmed = false;
+  bool _interactHeld = false;
   final _controllerHeld = <ControllerAction>{};
   late final ControllerHandler _controllerHandler = _controller;
   DesktopBindings get _bindings => DesktopBindings.shared;
@@ -47,6 +51,9 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
   bool _controller(ControllerFrame? frame, {bool disconnected = false}) {
     if (!mounted) return false;
     _sync();
+    final interact = frame?.pressed(0) ?? false;
+    final pressedInteract = interact && !_interactHeld;
+    _interactHeld = interact;
     if (frame == null) {
       if (_controllerActive) {
         _cancel();
@@ -69,7 +76,8 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
     }
     if (!game.acceptsDesktopInput) {
       _controllerArmed = false;
-      return true;
+      return !(game.expeditionDropOffer ||
+          game.expedition?.phase == ExpeditionPhase.reward);
     }
     final held = {
       for (final action in ControllerAction.values)
@@ -93,6 +101,13 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
     final aim = stick(_bindings.swapSticks ? 0 : 2);
     if (!_controllerArmed) {
       _controllerArmed = frame.neutral;
+      return true;
+    }
+    if (pressedInteract &&
+        game.stagingStation != null &&
+        widget.onInteract != null) {
+      _cancel();
+      widget.onInteract!();
       return true;
     }
     if (!_controllerActive &&
@@ -273,6 +288,15 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
       return KeyEventResult.ignored;
     }
     final key = event.physicalKey;
+    if (event is KeyDownEvent &&
+        key == PhysicalKeyboardKey.keyE &&
+        game.stagingStation != null &&
+        widget.onInteract != null &&
+        game.acceptsDesktopInput) {
+      _cancel();
+      widget.onInteract!();
+      return KeyEventResult.handled;
+    }
     if (!DesktopAction.values.any(
           (action) => _bindings.matchesKey(action, key),
         ) ||
@@ -315,9 +339,15 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
       },
       onExit: (_) => _cancelPointer(),
       child: Listener(
-        behavior: HitTestBehavior.opaque,
+        behavior: HitTestBehavior.deferToChild,
         onPointerDown: (event) {
           if (event.kind == PointerDeviceKind.touch) {
+            if (_controllerActive) {
+              _controllerActive = false;
+              _controllerArmed = false;
+              input.controller = false;
+              _cancel();
+            }
             game.setDesktopInputActive(false);
             _pointer.value = null;
             return;

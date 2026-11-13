@@ -18,6 +18,9 @@ class Enemy3Projectile extends PositionComponent
     this.maxTravelDistance = 900,
     this.speed = 300,
     this.startPosition,
+    this.direction,
+    this.cause = 'Revenant shot',
+    this.damage = 1,
     super.angle,
   }) : super(
          size: Vector2.all(bulletRadius * 2),
@@ -29,6 +32,9 @@ class Enemy3Projectile extends PositionComponent
 
   final double bulletRadius;
   final double speed;
+  final Vector2? direction;
+  final String cause;
+  final int damage;
   final double maxTravelDistance;
   Vector2? startPosition;
   final _velocity = Vector2.zero();
@@ -40,7 +46,9 @@ class Enemy3Projectile extends PositionComponent
       return;
     }
     add(CircleHitbox(collisionType: CollisionType.passive));
-    _velocity.setFrom((game.myPlayer.position - position).normalized() * speed);
+    _velocity.setFrom(
+      (direction ?? (game.myPlayer.position - position)).normalized() * speed,
+    );
   }
 
   @override
@@ -124,7 +132,7 @@ class Enemy3Projectile extends PositionComponent
             ) <=
             contact * contact &&
         !game.segmentBlocked(before, game.myPlayer.position)) {
-      game.damagePlayer(cause: 'Revenant shot');
+      game.damagePlayer(amount: damage, cause: cause);
       removeFromParent();
       return;
     }

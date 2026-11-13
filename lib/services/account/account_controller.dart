@@ -1,3 +1,4 @@
+import 'package:regun/services/expedition_progress.dart';
 import 'package:regun/models/economy/armory_catalog.dart';
 import 'package:regun/services/run_store.dart';
 
@@ -1201,6 +1202,8 @@ class AccountController extends ChangeNotifier with WidgetsBindingObserver {
       await _store.remove(owner);
       await preferences.removeAccountProfile(owner);
       await RunStore.shared.clearOwner(owner);
+      await RunStore.expedition.clearOwner(owner);
+      await ExpeditionProgress.shared.clear(owner);
     });
   }
 

@@ -167,7 +167,7 @@ abstract class ExpansionBoss extends PositionComponent
       animation: _idle,
     );
     add(body);
-    body.paint.colorFilter = BossArt.ambient(game.loadout.arena);
+    body.paint.colorFilter = BossArt.ambient(game.currentArena);
     add(
       CircleHitbox(
         radius: kind.bodyRadius,
@@ -462,7 +462,7 @@ abstract class ExpansionBoss extends PositionComponent
     final center = (size / 2).toOffset();
     final vfx = BossVfx(
       kind: kind,
-      ambient: BossArt.ambient(game.loadout.arena),
+      ambient: BossArt.ambient(game.currentArena),
       reducedMotion: game.preferences.reducedMotion,
     );
     BossArt.contactShadow(
@@ -476,7 +476,7 @@ abstract class ExpansionBoss extends PositionComponent
         canvas,
         center,
         85,
-        ambient: BossArt.ambient(game.loadout.arena),
+        ambient: BossArt.ambient(game.currentArena),
         warning: true,
         progress: (clock / 1.8).clamp(0, 1),
       );
@@ -487,7 +487,7 @@ abstract class ExpansionBoss extends PositionComponent
   void render(Canvas canvas) {
     final vfx = BossVfx(
       kind: kind,
-      ambient: BossArt.ambient(game.loadout.arena),
+      ambient: BossArt.ambient(game.currentArena),
       reducedMotion: game.preferences.reducedMotion,
     );
     super.render(canvas);
@@ -509,7 +509,7 @@ abstract class ExpansionBoss extends PositionComponent
           beamAim.toOffset(),
           kind.spriteSize,
         ),
-        ambient: BossArt.ambient(game.loadout.arena),
+        ambient: BossArt.ambient(game.currentArena),
       );
     }
 

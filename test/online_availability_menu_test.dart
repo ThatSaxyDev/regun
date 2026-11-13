@@ -57,7 +57,7 @@ void main() {
         );
         for (
           var attempt = 0;
-          attempt < 100 && find.text('PLAY').evaluate().isEmpty;
+          attempt < 100 && find.text('ARENA').evaluate().isEmpty;
           attempt++
         ) {
           await Future<void>.delayed(const Duration(milliseconds: 20));
@@ -65,7 +65,7 @@ void main() {
         }
       });
       await tester.pumpAndSettle();
-      expect(find.text('PLAY').hitTestable(), findsOneWidget);
+      expect(find.text('ARENA').hitTestable(), findsOneWidget);
       expect(find.text('CHECKING…'), findsOneWidget);
       await tester.runAsync(() async {
         pending.complete(
@@ -88,7 +88,7 @@ void main() {
       await tester.tap(find.text('ONLINE'));
       await tester.pumpAndSettle();
       expect(find.byType(Dialog), findsOneWidget);
-      expect(find.text('PLAY'), findsOneWidget);
+      expect(find.text('ARENA'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );

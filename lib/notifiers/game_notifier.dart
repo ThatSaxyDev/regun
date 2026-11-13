@@ -121,7 +121,11 @@ class GameNotifier extends Notifier<GameState> {
     return GameState();
   }
 
-  void resetRun({Loadout loadout = const Loadout(), int seed = 1}) {
+  void resetRun({
+    Loadout loadout = const Loadout(),
+    int seed = 1,
+    int? startingHealth,
+  }) {
     cancelPendingActions();
     runStatistics = RunStatistics();
     _rewardGeneration++;
@@ -137,13 +141,14 @@ class GameNotifier extends Notifier<GameState> {
     support = SupportProgress();
     weaponPower = WeaponPowerBalance.live(BalanceRepository.shared.current);
     _offerRandom.state = seed;
+    final startingHearts = startingHealth ?? weaponPower.health(character);
     state = GameState(
       upgradeStrengths: weaponPower.upgradeStrengths,
       rankCurves: weaponPower.rankCurves,
       maxBullets: weaponPower.capacity(weapon),
       noOfBullets: weaponPower.capacity(weapon),
-      maxHealth: weaponPower.health(character),
-      health: weaponPower.health(character),
+      maxHealth: startingHearts,
+      health: startingHearts,
       movementSpeed: weaponPower.movement(character),
       bulletRange: weaponPower.range(weapon),
       bulletSpeed: weaponPower.speed(weapon),
@@ -152,8 +157,7 @@ class GameNotifier extends Notifier<GameState> {
     );
   }
 
-  void changeTrainingWeapon(WeaponType next) {
-    if (state.gameplayState != GameplayState.paused) return;
+  void changeRunWeapon(WeaponType next) {
     final old = weapon;
     final rank = state.rank(PowerUp.maxBulletsIncrease);
     final extra = (state.rankTotal(
@@ -261,6 +265,7 @@ class GameNotifier extends Notifier<GameState> {
       'supply',
       'fusion',
       'practice',
+      'expedition',
     ].contains(restoredSource)) {
       throw const FormatException('Invalid offer source');
     }
@@ -515,7 +520,7 @@ class GameNotifier extends Notifier<GameState> {
   void fastReloadBullets() => reloadBullets();
 
   /// Called only by the game simulation: engine pause also freezes these clocks.
-  void advanceTime(double dt) {
+  void advanceTime(double dt, {bool scoreTime = true}) {
     if (state.gameplayState != GameplayState.playing || dt <= 0) return;
     survivor.advance(dt);
     if (character == CharacterType.suture &&
@@ -535,7 +540,7 @@ class GameNotifier extends Notifier<GameState> {
         quickRefillProgress.value = -1;
       }
     }
-    _activeSeconds += dt;
+    if (scoreTime) _activeSeconds += dt;
     if (_activeSeconds.floor() != state.survivalSeconds) {
       state = state.copyWith(
         survivalSeconds: _activeSeconds.floor(),
@@ -795,6 +800,64 @@ class GameNotifier extends Notifier<GameState> {
       evolutionChoices: const [],
     );
     return true;
+  }
+
+  bool applyExpeditionSupport(SupportCard card) {
+    support.offer = card;
+    final granted = support.confirm(card.id);
+    support.offer = null;
+    return granted;
+  }
+
+  List<PowerUp> get expeditionChoices => eligiblePowerUps(
+    state,
+    weapon: weapon,
+    character: character,
+    power: weaponPower,
+  );
+
+  Iterable<String> get expeditionCapstones sync* {
+    if (state.evolutions.length >= 2) return;
+    for (final recipe in fusionRecipes) {
+      if (!state.fused(recipe.id) &&
+          state.rank(recipe.first) >= 2 &&
+          state.rank(recipe.second) >= 1) {
+        yield recipe.id;
+      }
+    }
+  }
+
+  bool applyExpeditionCapstone(String id) {
+    if (!expeditionCapstones.contains(id)) return false;
+    final before = state;
+    offerSource = 'expedition';
+    state = state.copyWith(
+      evolutions: Set.unmodifiable({...state.evolutions, id}),
+    );
+    _publishReward(id, before);
+    offerSource = 'none';
+    return true;
+  }
+
+  bool applyExpeditionBoon(PowerUp choice) {
+    if (state.gameplayState != GameplayState.playing ||
+        (choice != PowerUp.salvage && !expeditionChoices.contains(choice))) {
+      return false;
+    }
+    offerSource = 'expedition';
+    final offer = state.offerId + 1;
+    state = state.copyWith(
+      gameplayState: GameplayState.powerup,
+      offerId: offer,
+      powerUpChoices: [choice],
+    );
+    applyPowerUp(choice, offerId: offer);
+    offerSource = 'none';
+    return state.gameplayState == GameplayState.playing;
+  }
+
+  void finishExpedition() {
+    state = state.copyWith(gameplayState: GameplayState.gameOver);
   }
 
   void applyPowerUp(PowerUp powerUp, {int? offerId}) {

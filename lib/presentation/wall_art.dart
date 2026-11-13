@@ -35,6 +35,7 @@ class WallArt {
     Rect solid, {
     bool iron = false,
     Iterable<Offset> actors = const [],
+    bool tileSurface = false,
   }) {
     if (!canvas.getLocalClipBounds().inflate(60).overlaps(solid)) return;
     final vertical = solid.height > solid.width * 1.4;
@@ -102,12 +103,30 @@ class WallArt {
       ..color = Color.fromRGBO(210, 218, 203, occludes ? .48 : 1);
     for (var y = 0; y < 3; y++) {
       for (var x = 0; x < 3; x++) {
-        canvas.drawImageRect(
-          image,
-          Rect.fromLTRB(sx[x], sy[y], sx[x + 1], sy[y + 1]),
-          Rect.fromLTRB(dx[x], dy[y], dx[x + 1], dy[y + 1]),
-          paint,
-        );
+        final patch = Rect.fromLTRB(sx[x], sy[y], sx[x + 1], sy[y + 1]);
+        final target = Rect.fromLTRB(dx[x], dy[y], dx[x + 1], dy[y + 1]);
+        if (tileSurface && (x == 1 || y == 1)) {
+          // Repeat the face at one scale and crop the final piece to the edge.
+          final width = x == 1 ? 92.0 : target.width;
+          final height = y == 1
+              ? width * patch.height / patch.width
+              : target.height;
+          canvas.save();
+          canvas.clipRect(target);
+          for (var top = target.top; top < target.bottom; top += height) {
+            for (var left = target.left; left < target.right; left += width) {
+              canvas.drawImageRect(
+                image,
+                patch,
+                Rect.fromLTWH(left, top, width, height),
+                paint,
+              );
+            }
+          }
+          canvas.restore();
+        } else {
+          canvas.drawImageRect(image, patch, target, paint);
+        }
       }
     }
     canvas.drawRect(

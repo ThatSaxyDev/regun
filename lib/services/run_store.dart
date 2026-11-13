@@ -12,13 +12,16 @@ import 'package:path_provider/path_provider.dart';
 /// background write cannot resurrect a run after its results have settled.
 class RunStore {
   static final shared = RunStore();
-  RunStore({this._directory});
+  static final expedition = RunStore(expeditionSlot: true);
+  RunStore({this._directory, this.expeditionSlot = false});
+  final bool expeditionSlot;
+  String get _slot => expeditionSlot ? 'expedition' : 'run';
   Directory? _directory;
   Future<void> _pending = Future.value();
 
   bool _validOwner(String owner) =>
       owner == 'guest' || RegExp(r'^[a-f0-9-]{36}$').hasMatch(owner);
-  String _webKey(String owner) => 'regun.web.run.v1.$owner';
+  String _webKey(String owner) => 'regun.web.$_slot.v1.$owner';
 
   Future<File?> _file(String owner) async {
     if (!_validOwner(owner)) {
@@ -28,7 +31,7 @@ class RunStore {
       _directory ??= await getApplicationSupportDirectory();
       await _directory!.create(recursive: true);
       final suffix = owner == 'guest' ? '' : '-$owner';
-      return File('${_directory!.path}/regun-run-v1$suffix.json');
+      return File('${_directory!.path}/regun-$_slot-v1$suffix.json');
     } on MissingPluginException {
       return null;
     } on PlatformException {
@@ -77,6 +80,7 @@ class RunStore {
   ) {
     if (map is! Map ||
         map['settled'] == true ||
+        (map.containsKey('expedition') != expeditionSlot) ||
         ![1, 2].contains(map['schema']) ||
         map['state'] is! Map ||
         map['player'] is! List ||

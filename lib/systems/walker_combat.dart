@@ -102,6 +102,8 @@ class WalkerCombat {
     required this.hurt,
     required this.signal,
     this.moveCharge,
+    this.clipRushPath,
+    this.onRushLanding,
     this.steer,
     this.minions,
     this.crushMinion,
@@ -120,6 +122,8 @@ class WalkerCombat {
   final WalkerHurt hurt;
   final void Function(WalkerSignal event) signal;
   final WalkerMoveResolver? moveCharge;
+  final WalkerMoveResolver? clipRushPath;
+  final void Function()? onRushLanding;
   final Offset Function(Offset desired, double dt)? steer;
   final RunRandom _choices, _recoilRandom;
   WalkerPhase? _lastAttack;
@@ -516,6 +520,7 @@ class WalkerCombat {
           }
           _clearMinions(rig.position, rushRadius);
           signal(WalkerSignal.land);
+          onRushLanding?.call();
           _enter(WalkerPhase.recovery);
         }
       case WalkerPhase.recovery:
@@ -601,8 +606,9 @@ class WalkerCombat {
     final distance = delta.distance;
     final side = Offset(-toward.dy, toward.dx) * (sequence.isEven ? 1 : -1);
     // Hysteresis separates deliberate pursuit from an anchored firing stance.
-    if (distance > 680) pursuing = true;
-    if (distance < 480 && pursuing) {
+    final behindCover = !clear(rig.position, player, 0);
+    if (distance > 680 || behindCover) pursuing = true;
+    if (distance < 480 && pursuing && !behindCover) {
       pursuing = false;
       rig.desiredYaw = rig.yaw;
     }
@@ -627,7 +633,10 @@ class WalkerCombat {
       }
     }
     final forward = pursuing
-        ? ((distance - 420) * 2).clamp(0.0, enraged ? 260.0 : 230.0)
+        ? ((distance - 420) * 2).clamp(
+            behindCover ? 100.0 : 0.0,
+            enraged ? 260.0 : 230.0,
+          )
         : distance < 260
         ? -140.0
         : 0.0;
@@ -636,9 +645,7 @@ class WalkerCombat {
       toward * forward + side * lateral,
       rig.maxSpeed,
     );
-    if (rig.command.distance > 0) {
-      rig.command = steer?.call(rig.command, WalkerRig.tick) ?? rig.command;
-    }
+    rig.command = steer?.call(rig.command, WalkerRig.tick) ?? rig.command;
   }
 
   void _ramContact(Offset before, Offset next) {
@@ -660,6 +667,7 @@ class WalkerCombat {
         ? ((locked - rig.position).distance + 180).clamp(720.0, 1200.0)
         : math.max(0.0, chargeReach - chargeDistance);
     final endpoint = rig.position + chargeDirection * (remaining + 28);
+    if (clipRushPath case final clip?) return clip(rig.position, endpoint);
     var lo = 0.0, hi = 1.0;
     if (clear(rig.position, endpoint, bodyRadius)) return endpoint;
     for (var i = 0; i < 12; i++) {

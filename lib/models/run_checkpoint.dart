@@ -1,3 +1,4 @@
+import 'package:regun/systems/expedition.dart';
 import 'package:regun/systems/lodestar/lodestar_combat.dart';
 import 'package:regun/systems/ariet_combat.dart';
 import 'package:regun/systems/walker_combat.dart';
@@ -23,6 +24,35 @@ import 'package:regun/notifiers/game_notifier.dart';
 class RunCheckpoint {
   static bool valid(Map<String, dynamic> map) {
     try {
+      final expedition = map.containsKey('expedition')
+          ? Expedition.read(map['expedition'])
+          : null;
+      if (expedition != null) {
+        final pending = map['expeditionPending'];
+        if (pending is! List ||
+            pending.length >
+                (expedition.bossRoom
+                    ? 20
+                    : expedition.spawned + expedition.dropGuards) ||
+            pending.any(
+              (raw) =>
+                  raw is! List ||
+                  (raw.length != 3 &&
+                      (raw.length != 4 ||
+                          raw[3] != true ||
+                          expedition.dropGuards == 0)) ||
+                  (!ExpeditionVeteran.values.any(
+                        (kind) => kind.name == raw[0],
+                      ) &&
+                      !EnemyKind.values.any((kind) => kind.name == raw[0])) ||
+                  raw
+                      .skip(1)
+                      .take(2)
+                      .any((value) => value is! num || !value.isFinite),
+            )) {
+          return false;
+        }
+      }
       RunStatistics.read(map['runStatistics']);
       final opening = (map['director'] as Map?)?['openingBossWins'];
       if (opening != null && !BossHistory.valid(opening)) {
@@ -60,6 +90,10 @@ class RunCheckpoint {
       final loadout = Loadout.fromJson(
         Map<String, dynamic>.from(map['loadout'] as Map),
       );
+      if (expedition != null &&
+          (loadout.training || loadout.arena != ArenaType.breach)) {
+        return false;
+      }
       final power = WeaponPowerBalance.read(
         map['weaponPowerBalance'],
         map['balanceSnapshot'],
@@ -192,7 +226,9 @@ class RunCheckpoint {
           recovery != null &&
           !loadout.training &&
           ['offered', 'requested', 'ended'].contains(recovery.stage);
-      if ((state.health <= 0 && !deadRecovery) ||
+      if ((state.health <= 0 &&
+              !deadRecovery &&
+              expedition?.phase != ExpeditionPhase.defeat) ||
           state.health < 0 ||
           state.health > 1000000 ||
           state.maxHealth <= 0 ||
@@ -260,7 +296,9 @@ class RunCheckpoint {
       for (final raw in enemies) {
         final enemy = raw as Map;
         final id = enemy['kind'];
-        if (!EnemyKind.values.any((e) => e.name == id) &&
+        if (!(expedition != null &&
+                ExpeditionVeteran.values.any((kind) => kind.name == id)) &&
+            !EnemyKind.values.any((e) => e.name == id) &&
             !BossKind.values.any((e) => e.name == id)) {
           return false;
         }

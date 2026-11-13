@@ -1500,18 +1500,19 @@ class ArsenalOverlay extends PositionComponent
           if (sight == null) return;
           final from = sight.$1, end = sight.$2;
           final distance = from.distanceTo(end);
+          final rail = weapon == WeaponType.railLance;
+          final sniper = weapon == WeaponType.longwatchSniper;
+          final color = sniper
+              ? const Color(0xF5FFE5AC)
+              : rail
+              ? const Color(0xB0AAB6A3)
+              : const Color(0x779DAD9F);
           for (var d = 12.0; d < distance; d += 28) {
             final point = (from + direction * d).toOffset();
-            final rail = weapon == WeaponType.railLance;
-            if (rail) {
+            if (rail || sniper) {
               AttackVfx.chip(canvas, point, 5, const Color(0x99171E19));
             }
-            AttackVfx.chip(
-              canvas,
-              point,
-              rail ? 3 : 2,
-              rail ? const Color(0xB0AAB6A3) : const Color(0x779DAD9F),
-            );
+            AttackVfx.chip(canvas, point, rail || sniper ? 3 : 2, color);
           }
         } else {
           final end = system.previewLanding(direction), delta = end - from;

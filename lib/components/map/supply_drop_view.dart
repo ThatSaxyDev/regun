@@ -27,6 +27,7 @@ class SupplyDropField extends PositionComponent
     }
     canvas.save();
     canvas.translate(d.position.dx, d.position.dy);
+    const radius = SupplyDrop.radius;
     final breaking = d.phase == SupplyPhase.breaking;
     final fade = breaking ? (1 - d.elapsed / 1.3).clamp(0.0, 1.0) : 1.0;
     final active = d.phase == SupplyPhase.active;
@@ -38,7 +39,7 @@ class SupplyDropField extends PositionComponent
       for (var i = 0; i < 40; i++) {
         final angle = i * math.pi / 20;
         final p = AttackVfx.snap(
-          Offset(math.cos(angle), math.sin(angle)) * SupplyDrop.radius,
+          Offset(math.cos(angle), math.sin(angle)) * radius,
         );
         if (i == 0) {
           polygon.moveTo(p.dx, p.dy);
@@ -54,21 +55,18 @@ class SupplyDropField extends PositionComponent
       canvas.save();
       canvas.rotate(a);
       canvas.drawRect(
-        const Rect.fromLTWH(SupplyDrop.radius - 9, -3, 15, 6),
+        const Rect.fromLTWH(radius - 9, -3, 15, 6),
         ink..color = const Color(0xff17141c).withValues(alpha: .8 * fade),
       );
       canvas.drawRect(
-        const Rect.fromLTWH(SupplyDrop.radius - 7, -2, 11, 4),
+        const Rect.fromLTWH(radius - 7, -2, 11, 4),
         ink..color = color.withValues(alpha: (lit ? .95 : .48) * fade),
       );
       canvas.restore();
     }
     for (final x in [-1.0, 1.0]) {
       for (final y in [-1.0, 1.0]) {
-        final p = Offset(
-          x * SupplyDrop.radius * .69,
-          y * SupplyDrop.radius * .69,
-        );
+        final p = Offset(x * radius * .69, y * radius * .69);
         canvas.drawPath(
           controlPlate(
             Rect.fromCenter(center: p, width: 17, height: 17),
@@ -342,9 +340,9 @@ class SupplyDropLocator extends PositionComponent
     );
     canvas.restore();
     final text = TextPainter(
-      text: const TextSpan(
-        text: 'AIRDROP',
-        style: TextStyle(
+      text: TextSpan(
+        text: game.expeditionMode ? 'GUARDED DROP' : 'AIRDROP',
+        style: const TextStyle(
           fontFamily: 'PressStart2P',
           fontSize: 14,
           color: Color(0xffE1BA78),

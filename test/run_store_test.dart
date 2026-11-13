@@ -66,6 +66,28 @@ void main() {
     expect((await store.read())!['id'], 'new');
   });
 
+  test(
+    'Expedition critical saves and clears use an independent slot',
+    () async {
+      final expedition = RunStore(directory: directory, expeditionSlot: true);
+      await store.write({...snapshot(1), 'id': 'arena'});
+      expect(
+        await expedition.writeRecovery({
+          ...snapshot(2),
+          'id': 'expedition',
+          'expedition': {'next': 1},
+        }),
+        isTrue,
+      );
+      await File('${directory.path}/regun-expedition-v1.json')
+          .writeAsString('broken');
+      expect((await expedition.read())!['expedition']['next'], 1);
+      await expedition.clear(expectedRunId: 'expedition');
+      expect(await expedition.read(), isNull);
+      expect((await store.read())!['id'], 'arena');
+    },
+  );
+
   test('semantically invalid primary uses the valid backup', () async {
     await store.write(snapshot(1));
     await store.write(snapshot(2));

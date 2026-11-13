@@ -121,6 +121,16 @@ class PlayerComponent extends SpriteAnimationComponent
     );
   }
 
+  void walkExpeditionPassage(Vector2 target, double dt) {
+    position.setFrom(target);
+    lastMovement.setValues(0, -1);
+    aimDirection.setValues(0, -1);
+    if (!isLoaded) return;
+    _facingRow = 3;
+    animation = _run[_facingRow];
+    animationTicker?.update(dt);
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
@@ -290,7 +300,7 @@ class PlayerComponent extends SpriteAnimationComponent
       );
       if (variant != null) {
         final surface = game.map.footstepSurface(
-          game.loadout.arena,
+          game.currentArena,
           Offset(position.x, position.y + size.y * .3),
           legacy: game.legacyArena,
         );

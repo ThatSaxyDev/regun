@@ -49,3 +49,32 @@ extract("machine_sluice_charge", "sluice", 1.0, 1.6, 790, 9500, attack=.48, rele
 extract("machine_sluice_flow", "sluice", 3.0, 2.7, 3300, 17000, attack=.13, release=.57)
 extract("machine_relay_charge", "relay", 6.25, 1.05, 1450, 11000, attack=.19, release=.09)
 extract("machine_relay_pulse", "relay", 17.88, .39, 2800, 15200, attack=.025, release=.14)
+
+# Expedition arrival: a low, continuous mechanical scrape with a planted clunk.
+# Both layers are recorded metal-on-concrete from the press source.
+def generate_arrival():
+    source = OUTPUT.parent.parent / "art/source/audio/movement/press.mp3"
+    filters = (
+        "[0:a]atrim=start=3.20:duration=0.56,asetpts=PTS-STARTPTS,"
+        "asetrate=35280,aresample=44100,highpass=f=78,lowpass=f=1300,"
+        "afade=t=in:d=0.04,afade=t=out:st=0.45:d=0.25[drag];"
+        "[0:a]atrim=start=18.48:duration=0.28,asetpts=PTS-STARTPTS,"
+        "asetrate=37485,aresample=44100,highpass=f=90,lowpass=f=1600,"
+        "afade=t=in:d=0.008,afade=t=out:st=0.18:d=0.14,adelay=345[clunk];"
+        "[drag][clunk]amix=inputs=2:weights='0.85 1':normalize=0,"
+        "acompressor=threshold=0.026:ratio=4:attack=0.5:release=40[out]"
+    )
+    pcm = subprocess.check_output([
+        "ffmpeg", "-v", "error", "-i", str(source), "-ar", str(RATE),
+        "-filter_complex", filters, "-map", "[out]", "-ac", "1", "-f", "s16le", "-",
+    ])
+    samples = [sample for sample, in struct.iter_unpack("<h", pcm)]
+    scale = 18500 / max(map(abs, samples))
+    with wave.open(str(OUTPUT / "enemy_arrival.wav"), "wb") as out:
+        out.setparams((1, 2, RATE, 0, "NONE", "not compressed"))
+        out.writeframes(struct.pack(f"<{len(samples)}h", *(
+            round(sample * scale) for sample in samples
+        )))
+
+
+generate_arrival()

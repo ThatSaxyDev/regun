@@ -3,6 +3,7 @@ DART ?= dart
 RELEASE_CONFIG ?= config/release.local.json
 RELEASE_DEFINES = $(if $(wildcard $(RELEASE_CONFIG)),--dart-define-from-file=$(RELEASE_CONFIG),)
 DEVICE ?=
+EXPEDITION_DEFINE = --dart-define=REGUN_EXPEDITION=true
 
 FIREBASE_APP_ID ?= 1:225712394437:android:a774f7de7e22d0abd0e0ac
 DIST_TESTERS ?=
@@ -10,7 +11,7 @@ DIST_GROUPS ?=
 DIST_NOTES ?= Regun $(shell sed -n 's/^version: //p' pubspec.yaml)
 APK_PATH ?= build/app/outputs/flutter-apk/app-release.apk
 
-.PHONY: analyze test soak verify runRelease build buildAPK buildIOS buildIPA buildWeb refreshWebStoreLinks cleanAndGet pubGet createLauncherIcons createSplashScreen distribute
+.PHONY: analyze test soak verify runExpedition buildExpeditionIOS runRelease build buildAPK buildIOS buildIPA buildWeb refreshWebStoreLinks cleanAndGet pubGet createLauncherIcons createSplashScreen distribute
 
 analyze:
 	$(FLUTTER) analyze
@@ -22,6 +23,12 @@ soak:
 	$(FLUTTER) test --dart-define=REGUN_SOAK=true test/soak_test.dart
 
 verify: analyze test
+
+runExpedition:
+	$(FLUTTER) run --release $(RELEASE_DEFINES) $(EXPEDITION_DEFINE) $(if $(DEVICE),-d $(DEVICE),)
+
+buildExpeditionIOS:
+	$(FLUTTER) build ios --release $(RELEASE_DEFINES) $(EXPEDITION_DEFINE)
 
 runRelease:
 	$(FLUTTER) run --release $(RELEASE_DEFINES) $(if $(DEVICE),-d $(DEVICE),)

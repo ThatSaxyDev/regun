@@ -82,7 +82,7 @@ void main() {
                   ready: true,
                   reducedMotion: true,
                   onlineAvailable: true,
-                  onContinue: () {},
+                  arenaSaved: true,
                   onPlay: () {},
                   onOnline: () {},
                   onLeaderboards: () {},
@@ -100,7 +100,7 @@ void main() {
           ),
         ),
       );
-      final play = find.text('PLAY');
+      final play = find.text('ARENA');
       final plate = find
           .ancestor(of: play, matching: find.byType(CustomPaint))
           .first;
@@ -197,9 +197,9 @@ void main() {
                   child: HomeMenu(
                     ready: true,
                     reducedMotion: true,
-                    onPlay: () {},
+                    onPlay: () => continueCount++,
                     onOnline: () {},
-                    onContinue: () => continueCount++,
+                    arenaSaved: true,
                     onTraining: () {},
                     onCollection: () {},
                     onSettings: () => settings++,
@@ -218,13 +218,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: '$size / $scale');
         if (size.width > size.height && scale == 1) {
-          for (final label in [
-            'CONTINUE',
-            'PLAY',
-            'ONLINE',
-            'TRAINING',
-            'COLLECTION',
-          ]) {
+          for (final label in ['ARENA', 'ONLINE', 'TRAINING', 'COLLECTION']) {
             expect(find.text(label).hitTestable(), findsOneWidget);
             final rect = tester.getRect(find.text(label));
             expect(rect.left, greaterThanOrEqualTo(24));
@@ -236,7 +230,7 @@ void main() {
             tester.getRect(find.byKey(const Key('home-settings'))).top,
             greaterThan(title.bottom),
           );
-          await tester.tap(find.text('CONTINUE'));
+          await tester.tap(find.text('ARENA'));
         } else {
           await tester.scrollUntilVisible(
             find.byKey(const Key('home-settings')),
@@ -484,5 +478,48 @@ void main() {
       expect(await tester.runAsync(pixels), still);
       await tester.pumpWidget(const SizedBox());
     },
+  );
+
+  testWidgets(
+    'private Expedition is reachable alongside Arena Continue on iPhone',
+    (tester) async {
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      var opened = false;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+          child: MaterialApp(
+            home: Scaffold(
+              body: HomeMenu(
+                ready: true,
+                reducedMotion: true,
+                expeditionSaved: true,
+                onExpedition: () => opened = true,
+                arenaSaved: true,
+                onPlay: () {},
+                onOnline: () {},
+                onTraining: () {},
+                onCollection: () {},
+                onSettings: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('RUN SAVED').hitTestable(), findsNWidgets(2));
+      expect(
+        tester.getCenter(find.text('ARENA')).dy,
+        tester.getCenter(find.text('EXPEDITION')).dy,
+      );
+      final expedition = find.text('EXPEDITION').hitTestable();
+      expect(expedition, findsOneWidget);
+      await tester.tap(expedition);
+      expect(opened, isTrue);
+      expect(tester.takeException(), isNull);
+    },
+    variant: const TargetPlatformVariant({TargetPlatform.iOS}),
   );
 }

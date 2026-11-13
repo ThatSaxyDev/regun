@@ -30,8 +30,9 @@ class ArietAssets {
       (parts == null ? 0 : parts!.width * parts!.height * 4) +
       walker.decodedBytes +
       (engineSheet == null ? 0 : engineSheet!.width * engineSheet!.height * 4);
-  Future<void> load({bool combat = false}) => _loading ??= _load(combat);
-  Future<void> _load(bool combat) async {
+  Future<void> load({bool combat = false, bool includeWalker = true}) =>
+      _loading ??= _load(combat, includeWalker);
+  Future<void> _load(bool combat, bool includeWalker) async {
     if (_disposed) return;
     try {
       final meta = jsonDecode(
@@ -96,13 +97,15 @@ class ArietAssets {
         return;
       }
       engineSheet = engineImage;
-      await walker.load(
-        combat: true,
-        partsWidth: combat ? 1280 : null,
-        arsenalWidth: 512,
-      );
-      if (_disposed) return;
-      floors.addAll(walker.floors);
+      if (includeWalker) {
+        await walker.load(
+          combat: true,
+          partsWidth: combat ? 1280 : null,
+          arsenalWidth: 512,
+        );
+        if (_disposed) return;
+        floors.addAll(walker.floors);
+      }
     } catch (_) {
       dispose();
       rethrow;

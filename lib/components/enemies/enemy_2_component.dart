@@ -136,7 +136,10 @@ class Enemy2Component extends SpriteAnimationComponent
           !game.segmentBlocked(position, playerPosition)) {
         timeSinceLastAttack = 0;
         _hasStruck = true;
-        game.damagePlayer(cause: 'Mummy strike');
+        game.damagePlayer(
+          amount: game.expedition?.enemyDamage(heavy: true) ?? 1,
+          cause: 'Mummy strike',
+        );
       }
       animation = attackRightAnimation;
       playing = false;

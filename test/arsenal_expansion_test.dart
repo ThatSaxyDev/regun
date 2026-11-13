@@ -449,7 +449,14 @@ void main() {
         expect(game.arsenal!.sporeStride(elite), .85);
         expect(game.arsenal!.sporeStride(nest), 1);
         final before = body.position.clone();
-        game.moveActor(body, Vector2(1, 0), 60, .2, avoidCrowd: false);
+        game.moveActor(
+          body,
+          Vector2(1, 0),
+          60,
+          .2,
+          avoidCrowd: false,
+          airborne: true,
+        );
         expect(body.position.x - before.x, closeTo(12, .01));
       });
       await tester.pumpWidget(const SizedBox.shrink());

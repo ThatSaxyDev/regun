@@ -11,6 +11,8 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
     this.endpoint,
     bool floorEffect = false,
     this.upgradePulse = false,
+    this.signatureImpact = false,
+    this.signatureHeal = false,
     this.companion = false,
     this.perkChain = false,
     this.dashDirection,
@@ -34,7 +36,12 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
              ? -10
              : 20010,
        );
-  final bool upgradePulse, companion, perkChain, dashLaunch;
+  final bool upgradePulse,
+      companion,
+      perkChain,
+      dashLaunch,
+      signatureImpact,
+      signatureHeal;
   final double remainsOpacity;
   final Vector2? dashDirection;
   final Vector2? endpoint;
@@ -70,6 +77,25 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
         launch: dashLaunch,
         reducedMotion: game.preferences.reducedMotion,
       );
+      return;
+    }
+    if (signatureHeal) {
+      final p = (age / duration).clamp(0.0, 1.0);
+      final rise = game.preferences.reducedMotion ? 12.0 : p * 38;
+      const color = Color(0xffb5ce9b);
+      for (final (x, y) in const [(-24.0, 6.0), (17.0, -4.0), (0.0, -20.0)]) {
+        final at = Offset(x, y - rise);
+        final ink = color.withValues(alpha: 1 - p);
+        AttackVfx.chip(canvas, at, 7, ink);
+        for (final d in const [
+          Offset(6, 0),
+          Offset(-6, 0),
+          Offset(0, 6),
+          Offset(0, -6),
+        ]) {
+          AttackVfx.chip(canvas, at + d, 4, ink);
+        }
+      }
       return;
     }
     if (upgradePulse) {
@@ -121,6 +147,28 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
         contact: true,
         reducedMotion: game.preferences.reducedMotion,
       );
+    } else if (signatureImpact) {
+      final progress = (age / duration).clamp(0.0, 1.0);
+      final reduced = game.preferences.reducedMotion;
+      final p = reduced ? .30 : progress;
+      final frame = material == AttackMaterial.glass ? 5 : 1;
+      AttackVfx.floorArea(
+        canvas,
+        frame,
+        Offset.zero,
+        radius * 2,
+        alpha: (1 - progress) * .85,
+      );
+      for (final (x, y) in const [(-.44, -.23), (.42, -.25), (.15, .24)]) {
+        AttackVfx.stamp(
+          canvas,
+          AttackVfx.row(material) * 6 + (p * 4).floor(),
+          Offset(x * radius, y * radius),
+          radius * .58,
+          alpha: 1 - progress,
+          material: material,
+        );
+      }
     } else if (material == AttackMaterial.ember) {
       AttackVfx.explosion(
         canvas,

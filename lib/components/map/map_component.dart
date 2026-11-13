@@ -21,6 +21,14 @@ class MapComponent extends PositionComponent with HasGameReference<RegunGame> {
   static Future<String>? _webLayout;
   static const _layoutAsset = 'assets/tiles/maptile.tmx';
 
+  factory MapComponent.expedition(
+    Size size,
+    ArenaType arena,
+    List<Rect> solids,
+  ) => MapComponent._(Vector2(size.width, size.height), {
+    '${arena.name}_obstacles': solids,
+  });
+
   static Future<String> preloadWebLayout() => _webLayout ??= _readWebLayout();
 
   static Future<String> _readWebLayout() async {
@@ -165,7 +173,7 @@ class MapComponent extends PositionComponent with HasGameReference<RegunGame> {
   @override
   void render(Canvas canvas) {
     final image = RegunArt.shared.image(
-      'arenas/${game.loadout.arena.name}_floor',
+      'arenas/${game.currentArena.name}_floor',
     );
     final visible = game.camera.visibleWorldRect
         .shift(Offset(-position.x, -position.y))
@@ -174,7 +182,7 @@ class MapComponent extends PositionComponent with HasGameReference<RegunGame> {
     final paint = Paint()
       ..filterQuality = FilterQuality.none
       ..isAntiAlias = false
-      ..colorFilter = game.loadout.arena == ArenaType.breach
+      ..colorFilter = game.currentArena == ArenaType.breach
           ? breachGrade
           : floorGrade;
     canvas.save();

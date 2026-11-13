@@ -73,6 +73,7 @@ class LodestarCombat {
     required this.rig,
     required this.bounds,
     required this.clear,
+    this.recoveryClear,
     required this.hurt,
     required this.signal,
     required this.poseLegal,
@@ -83,6 +84,7 @@ class LodestarCombat {
   LodestarRig rig;
   final Rect bounds;
   final bool Function(Offset a, Offset b, double radius) clear;
+  final bool Function(Offset a, Offset b, double radius)? recoveryClear;
   final bool Function(List<LodestarPose>) poseLegal;
   final bool Function(int damage, String cause) hurt;
   final void Function(String cue) signal;
@@ -336,9 +338,15 @@ class LodestarCombat {
           head: exit - unit(course) * 120,
           heading: course,
         );
-        if (!proposed.poses.every((p) => clear(p.position, p.position, 110)) ||
-            !clear(exit - unit(course) * 760, exit + unit(course) * 760, 110) ||
-            (_repositioning && !_recoveryLaneClear(exit, course))) {
+        final safeExit = _repositioning
+            ? _recoveryLaneClear(exit, course)
+            : proposed.poses.every((p) => clear(p.position, p.position, 110)) &&
+                  clear(
+                    exit - unit(course) * 760,
+                    exit + unit(course) * 760,
+                    110,
+                  );
+        if (!safeExit) {
           if (_repositioning) {
             // A new blocker can enter after warning. Commit a new safe warning
             // before emerging, instead of reusing the original blocked route.
@@ -586,9 +594,10 @@ class LodestarCombat {
         }
       }
       final reverse = rig.copy()..requestedSpeed = -180;
+      final start = reverse.signedTravel;
       reverse.advance(.2);
-      if (reverse.rejectedSteps == 0) {
-        _reverseFor = .6;
+      if (reverse.rejectedSteps == 0 && reverse.signedTravel < start - 6) {
+        _reverseFor = 1.0;
         rig.requestedSpeed = -180;
       } else {
         rig.requestedSpeed = 0;
@@ -623,20 +632,14 @@ class LodestarCombat {
   }
 
   bool _recoveryExit() {
-    for (final y in [.5, .26, .74]) {
-      for (final x in [.5, .26, .74]) {
+    for (final y in [.5, .26, .74, .38, .62, .14, .86]) {
+      for (final x in [.5, .26, .74, .38, .62, .14, .86]) {
         final at = Offset(
           bounds.left + bounds.width * x,
           bounds.top + bounds.height * y,
         );
-        for (final angle in [
-          0.0,
-          math.pi / 2,
-          math.pi,
-          -math.pi / 2,
-          math.pi / 4,
-          -math.pi / 4,
-        ]) {
+        for (var direction = 0; direction < 16; direction++) {
+          final angle = direction * math.pi / 8;
           if (!_recoveryLaneClear(at, angle)) {
             continue;
           }
@@ -651,9 +654,12 @@ class LodestarCombat {
 
   bool _recoveryLaneClear(Offset at, double angle) {
     final axis = unit(angle);
-    final start = at - axis * 760, end = at + axis * 760;
+    // The straight emergence starts 120 units behind the opening and advances
+    // 760. Include the last car's tail at the start and the nose at the end.
+    final start = at - axis * (120 + 5 * LodestarRig.spacing + 85);
+    final end = at + axis * (760 - 120 + 70 + 4);
     return TargetCapsule.distanceToSegment(player, start, end) >= 180 &&
-        clear(start, end, 110);
+        (recoveryClear ?? clear)(start, end, 55);
   }
 
   bool _stage(LodestarMove next) {

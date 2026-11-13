@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:regun/presentation/arena_machine_art.dart';
+import 'package:regun/presentation/expedition_floor_art.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
@@ -7,6 +10,8 @@ import 'package:regun/data/loadout.dart';
 import 'package:regun/presentation/regun_art.dart';
 import 'package:regun/presentation/sluice_art.dart';
 import 'package:regun/presentation/wall_art.dart';
+import 'package:regun/systems/arena_bounds.dart';
+import 'package:regun/systems/expedition.dart';
 
 /// Sparse authored landmarks and grounded props, sharing the actual collision
 /// layout. Static prop depth is compared to the actors' ground/foot positions.
@@ -22,12 +27,14 @@ class ArenaScenery extends PositionComponent with HasGameReference<RegunGame> {
 
   @override
   Future<void> onLoad() async {
-    final foundry = game.loadout.arena == ArenaType.foundry;
+    final foundry = game.currentArena == ArenaType.foundry;
+    final owningWorld = game.world;
     for (final rect in game.geometry.obstacles) {
-      await game.world.add(
+      if (game.world != owningWorld) return;
+      await owningWorld.add(
         _ArenaProp(
           rect,
-          foundry || game.loadout.arena == ArenaType.relayGraveyard ? 4 : 0,
+          foundry || game.currentArena == ArenaType.relayGraveyard ? 4 : 0,
         ),
       );
     }
@@ -36,18 +43,57 @@ class ArenaScenery extends PositionComponent with HasGameReference<RegunGame> {
   @override
   void render(Canvas canvas) {
     final visible = game.camera.visibleWorldRect;
-    final foundry = game.loadout.arena == ArenaType.foundry;
+    final foundry = game.currentArena == ArenaType.foundry;
     final floor = game.map.bounds.floor;
     canvas.save();
+    final chamber = game.expeditionRoom?.chamber;
+    if (chamber != null) {
+      // The service tunnel is narrower than the phone viewport. Render the
+      // surrounding structure so the silhouette reads through the controls.
+      final wall = Paint()..color = const Color(0xff141a18);
+      final outside = floor.inflate(220);
+      canvas.drawRect(
+        Rect.fromLTRB(outside.left, outside.top, floor.left, outside.bottom),
+        wall,
+      );
+      canvas.drawRect(
+        Rect.fromLTRB(floor.right, outside.top, outside.right, outside.bottom),
+        wall,
+      );
+      canvas.drawRect(
+        Rect.fromLTRB(floor.left, outside.top, floor.right, floor.top),
+        wall,
+      );
+      canvas.drawRect(
+        Rect.fromLTRB(floor.left, floor.bottom, floor.right, outside.bottom),
+        wall,
+      );
+    }
     canvas.clipRect(floor);
     drawArenaDistricts(
       canvas,
       game.map,
-      game.loadout.arena,
+      game.currentArena,
       visible,
       legacy: game.legacyArena,
       flowTime: game.preferences.reducedMotion ? 0 : _flowTime,
     );
+    if (chamber != null) _expeditionFloor(canvas, floor, visible, chamber);
+    if (game.expedition?.trapped == true) {
+      for (final spot in game.expeditionRoom!.trapPlates) {
+        final plate = Rect.fromCenter(center: spot, width: 42, height: 30);
+        if (visible.overlaps(plate)) {
+          final paint = Paint()..isAntiAlias = false;
+          canvas.drawRect(plate, paint..color = const Color(0xff262a24));
+          for (var notch = 0; notch < 4; notch++) {
+            canvas.drawRect(
+              Rect.fromLTWH(plate.left + 5 + 9.0 * notch, plate.top + 6, 4, 18),
+              paint..color = const Color(0xff81684a),
+            );
+          }
+        }
+      }
+    }
     if (!game.bossRush) {
       for (final machine in game.arenaMachines) {
         if (visible.overlaps(machine.area)) {
@@ -60,8 +106,112 @@ class ArenaScenery extends PositionComponent with HasGameReference<RegunGame> {
       }
     }
     // Fence dimensions and its visible inner edge share ArenaBounds geometry.
-    WallArt.perimeter(canvas, floor, iron: foundry, inside: true);
+    if (game.expeditionMode) {
+      _expeditionPerimeter(
+        canvas,
+        floor,
+        iron: game.currentArena != ArenaType.breach,
+      );
+    } else {
+      WallArt.perimeter(canvas, floor, iron: foundry, inside: true);
+    }
     canvas.restore();
+  }
+
+  void _expeditionFloor(
+    Canvas canvas,
+    Rect floor,
+    Rect visible,
+    ExpeditionChamber chamber,
+  ) {
+    bool canPaint(Offset at) {
+      final patch = Rect.fromCircle(center: at, radius: 32);
+      return floor.deflate(35).contains(at) &&
+          visible.overlaps(patch) &&
+          !game.geometry.obstacles.any((solid) => solid.overlaps(patch));
+    }
+
+    // Read the actual approach anchors. These are old wayfinding stencils,
+    // placed where routes split or meet rather than across the combat floor.
+    final room = game.expeditionRoom!;
+    final entry = room.entrance.translate(0, -95);
+    if (canPaint(entry)) {
+      ExpeditionFloorArt.chevron(canvas, entry, 0, scale: 1.2);
+    }
+    switch (chamber) {
+      case ExpeditionChamber.gallery:
+        for (final door in room.doors) {
+          final approach = door.translate(0, 108);
+          if (canPaint(approach)) {
+            ExpeditionFloorArt.chevron(canvas, approach, 0);
+          }
+        }
+      case ExpeditionChamber.service:
+        for (final y in [floor.center.dy + 140, floor.center.dy - 140]) {
+          final at = Offset(0, y);
+          if (canPaint(at)) ExpeditionFloorArt.chevron(canvas, at, 0);
+        }
+      case ExpeditionChamber.crossing:
+        for (final side in [-1.0, 1.0]) {
+          final at = Offset(side * 455, 84);
+          if (canPaint(at)) {
+            ExpeditionFloorArt.chevron(canvas, at, side * math.pi / 4);
+          }
+        }
+      case ExpeditionChamber.court:
+        const corners = [
+          Offset(-340, -235),
+          Offset(340, -235),
+          Offset(340, 235),
+          Offset(-340, 235),
+        ];
+        for (final (index, at) in corners.indexed) {
+          if (canPaint(at)) {
+            ExpeditionFloorArt.corner(canvas, at, index * math.pi / 2);
+          }
+        }
+    }
+  }
+
+  void _expeditionPerimeter(Canvas canvas, Rect floor, {required bool iron}) {
+    const thickness = ArenaBounds.fenceThickness;
+    final plan = game.expeditionRoom!;
+    final run = game.expedition!;
+    void horizontal(double y, List<double> openings) {
+      var left = floor.left;
+      for (final x in [...openings, floor.right + 103]) {
+        final right = x - 103;
+        for (var start = left; start < right; start += 256) {
+          WallArt.paint(
+            canvas,
+            Rect.fromLTRB(
+              start,
+              y,
+              (start + 256).clamp(start, right),
+              y + thickness,
+            ),
+            iron: iron,
+          );
+        }
+        left = x + 103;
+      }
+    }
+
+    horizontal(floor.top, [
+      if (!run.bossRoom || !run.finalRegion)
+        for (final door in plan.doors) door.dx,
+    ]);
+    horizontal(floor.bottom - thickness, [plan.entrance.dx]);
+    for (var y = floor.top; y < floor.bottom; y += 192) {
+      final bottom = (y + 192).clamp(y, floor.bottom);
+      for (final x in [floor.left, floor.right - thickness]) {
+        WallArt.paint(
+          canvas,
+          Rect.fromLTRB(x, y, x + thickness, bottom),
+          iron: iron,
+        );
+      }
+    }
   }
 }
 
@@ -422,7 +572,28 @@ class _ArenaProp extends PositionComponent with HasGameReference<RegunGame> {
   void render(Canvas canvas) {
     if (!game.camera.visibleWorldRect.inflate(240).overlaps(footprint)) return;
     final base = footprint.shift(Offset(-position.x, -position.y));
-    final arena = game.loadout.arena;
+    if (game.expeditionMode || game.expeditionStaging) {
+      WallArt.paint(
+        canvas,
+        base,
+        tileSurface: true,
+        iron: game.currentArena != ArenaType.breach,
+        actors: [
+          game.myPlayer.position.toOffset() - Offset(position.x, position.y),
+        ],
+      );
+      for (final machine in game.arenaMachines) {
+        if (machine.body != footprint) continue;
+        ArenaMachineArt.head(
+          canvas,
+          machine,
+          Offset(-position.x, -position.y),
+          game.preferences.reducedMotion,
+        );
+      }
+      return;
+    }
+    final arena = game.currentArena;
     final spriteName = arenaSolidSprite(
       game.map,
       arena,

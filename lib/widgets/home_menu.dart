@@ -30,7 +30,9 @@ class HomeMenu extends StatelessWidget {
     required this.onCollection,
     required this.onSettings,
     this.onLeaderboards,
-    this.onContinue,
+    this.arenaSaved = false,
+    this.onExpedition,
+    this.expeditionSaved = false,
     this.bestScore = 0,
     this.onlineAvailable = false,
     this.onlineChecking = false,
@@ -39,7 +41,8 @@ class HomeMenu extends StatelessWidget {
   final bool ready, reducedMotion, onlineAvailable, onlineChecking;
   final int bestScore;
   final VoidCallback onPlay, onOnline, onTraining, onCollection, onSettings;
-  final VoidCallback? onContinue, onLeaderboards;
+  final VoidCallback? onLeaderboards, onExpedition;
+  final bool expeditionSaved, arenaSaved;
 
   /// One-time notification offer. It shares the leaderboards row so the menu
   /// does not grow a new block; the leaderboards button keeps its place below.
@@ -80,11 +83,18 @@ class HomeMenu extends StatelessWidget {
         quiet: desktopMenu,
         onTap: ready ? onLeaderboards : null,
       );
-      final play = _HomeAction(
-        label: ready ? 'Play' : 'Loading',
-        primary: onContinue == null,
-        quiet: desktopMenu && onContinue != null,
+      final arena = _HomeAction(
+        label: ready ? 'Arena' : 'Loading',
+        detail: arenaSaved ? 'RUN SAVED' : null,
+        primary: !arenaSaved,
+        quiet: desktopMenu,
         onTap: ready ? onPlay : null,
+      );
+      final expedition = _HomeAction(
+        label: 'Expedition',
+        detail: expeditionSaved ? 'RUN SAVED' : null,
+        quiet: desktopMenu,
+        onTap: ready ? onExpedition : null,
       );
       final training = _HomeAction(
         label: 'Training',
@@ -156,19 +166,12 @@ class HomeMenu extends StatelessWidget {
             ),
             SizedBox(height: compact ? 12 : (desktopMenu ? 20 : 28)),
             if (desktopMenu) ...[
-              if (onContinue != null) ...[
-                _HomeAction(
-                  label: 'Continue',
-                  primary: true,
-                  onTap: ready ? onContinue : null,
-                ),
-                const SizedBox(height: 8),
-              ],
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 5,
                 children: [
-                  play,
+                  arena,
+                  if (onExpedition != null) expedition,
                   online,
                   training,
                   collection,
@@ -191,21 +194,19 @@ class HomeMenu extends StatelessWidget {
               ),
             ] else ...[
               Row(
+                spacing: 8,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (onContinue != null) ...[
-                    Expanded(
-                      child: _HomeAction(
-                        label: 'Continue',
-                        primary: true,
-                        onTap: ready ? onContinue : null,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                  Expanded(child: play),
+                  Expanded(child: arena),
+                  if (!desktop && onExpedition != null)
+                    Expanded(child: expedition),
                 ],
               ),
               const SizedBox(height: 10),
+              if (desktop && onExpedition != null) ...[
+                expedition,
+                const SizedBox(height: 10),
+              ],
               online,
               if (pushPrompt != null) ...[
                 const SizedBox(height: 10),
@@ -241,7 +242,10 @@ class HomeMenu extends StatelessWidget {
       final macPromo = macStorePromoAvailable;
       final scroll =
           portrait ||
-          box.maxHeight < (desktop ? 540 : 360) + (macPromo ? 96 : 0) ||
+          box.maxHeight <
+              (desktop ? 540 : 360) +
+                  (macPromo ? 96 : 0) +
+                  (desktopMenu && onExpedition != null ? 60 : 0) ||
           scale > 1.25;
       return Stack(
         fit: StackFit.expand,
@@ -487,7 +491,7 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
                       ? (widget.primary ? 16 : 12)
                       : widget.utility
                       ? 12
-                      : 20,
+                      : 12,
                   vertical: desktopInputAvailable ? 8 : 12,
                 ),
                 child: Transform.translate(
@@ -501,40 +505,60 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
                               painter: _SettingsGlyph(ink),
                             ),
                           )
-                        : Row(
+                        : Flex(
+                            direction:
+                                !desktopInputAvailable &&
+                                    widget.detail == 'RUN SAVED'
+                                ? Axis.vertical
+                                : Axis.horizontal,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: widget.utility
                                 ? MainAxisAlignment.center
                                 : MainAxisAlignment.spaceBetween,
                             children: [
-                              Flexible(
-                                child: Text(
+                              if (!desktopInputAvailable &&
+                                  widget.detail == 'RUN SAVED')
+                                Text(
                                   widget.label.toUpperCase(),
-                                  textAlign: widget.utility
-                                      ? TextAlign.center
-                                      : TextAlign.left,
-                                  maxLines: desktopInputAvailable ? 1 : null,
-                                  overflow: desktopInputAvailable
-                                      ? TextOverflow.ellipsis
-                                      : null,
                                   style: TextStyle(
-                                    fontFamily: widget.utility
-                                        ? FontFam.orbitron
-                                        : FontFam.pressStart,
-                                    fontSize:
-                                        desktopInputAvailable && widget.primary
-                                        ? 13
-                                        : widget.utility
-                                        ? 11
-                                        : 10,
+                                    fontFamily: FontFam.pressStart,
+                                    fontSize: 10,
                                     height: 1.5,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: .5,
                                     color: ink,
                                   ),
+                                )
+                              else
+                                Flexible(
+                                  child: Text(
+                                    widget.label.toUpperCase(),
+                                    textAlign: widget.utility
+                                        ? TextAlign.center
+                                        : TextAlign.left,
+                                    maxLines: desktopInputAvailable ? 1 : null,
+                                    overflow: desktopInputAvailable
+                                        ? TextOverflow.ellipsis
+                                        : null,
+                                    style: TextStyle(
+                                      fontFamily: widget.utility
+                                          ? FontFam.orbitron
+                                          : FontFam.pressStart,
+                                      fontSize:
+                                          desktopInputAvailable &&
+                                              widget.primary
+                                          ? 13
+                                          : widget.utility
+                                          ? 11
+                                          : 10,
+                                      height: 1.5,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: .5,
+                                      color: ink,
+                                    ),
+                                  ),
                                 ),
-                              ),
                               if (widget.detail != null &&
-                                  scale <= 1.25 &&
+                                  (scale <= 1.25 ||
+                                      widget.detail == 'RUN SAVED') &&
                                   (!desktopInputAvailable || widget.quiet)) ...[
                                 const SizedBox(width: 12),
                                 Text(

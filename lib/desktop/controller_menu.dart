@@ -68,12 +68,13 @@ class _ControllerMenuScopeState extends State<ControllerMenuScope> {
   @override
   Widget build(BuildContext context) => Actions(
     actions: {
-      ControllerBackIntent: CallbackAction<ControllerBackIntent>(
-        onInvoke: (_) {
-          widget.onBack?.call();
-          return widget.onBack != null;
-        },
-      ),
+      if (widget.onBack != null)
+        ControllerBackIntent: CallbackAction<ControllerBackIntent>(
+          onInvoke: (_) {
+            widget.onBack!();
+            return true;
+          },
+        ),
       if (widget.onResume != null)
         ControllerResumeIntent: CallbackAction<ControllerResumeIntent>(
           onInvoke: (_) {

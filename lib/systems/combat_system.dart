@@ -1,3 +1,5 @@
+import 'package:regun/systems/expedition_signature.dart';
+import 'package:regun/systems/expedition.dart';
 import 'package:regun/systems/target_shape.dart';
 import 'package:regun/components/enemies/arena_enemy.dart';
 import 'package:regun/presentation/regun_art.dart';
@@ -159,6 +161,71 @@ class CombatSystem {
       enemy.incomingSupportBallistic = false;
     }
     if (!accepted) return false;
+    final run = game.expedition;
+    final charge = run?.signatures[ExpeditionSignature.breachCharge];
+    if ((primary || weaponHit) &&
+        charge != null &&
+        run != null &&
+        run.phase == ExpeditionPhase.combat &&
+        run.breachChargeReady) {
+      run.breachChargeReady = false;
+      game.revision.value++;
+      expeditionBurst(
+        enemy.position,
+        radius: 130 + 38.0 * charge,
+        damage: 1.6 + (run.generator >= 4 ? 1.4 : .85) * charge,
+        targets: 4 + charge,
+      );
+    }
+    if (run != null &&
+        run.phase == ExpeditionPhase.combat &&
+        (primary || weaponHit)) {
+      if (run.signatures[ExpeditionSignature.coldSnap] case final rank?
+          when run.coldSnapReady) {
+        run.coldSnapReady = false;
+        game.revision.value++;
+        expeditionBurst(
+          enemy.position,
+          radius: 112 + rank * 30,
+          damage: 2.0 + rank * 1.7,
+          targets: 3 + rank,
+          frost: true,
+        );
+      }
+      if (run.signatures[ExpeditionSignature.quickdraw] case final rank?
+          when run.quickdrawReady) {
+        run.quickdrawReady = false;
+        game.revision.value++;
+        expeditionBurst(
+          enemy.position,
+          radius: 110,
+          damage: 2.0 + rank * 2,
+          targets: 3,
+          lightning: true,
+        );
+        if (run.fusions.contains(ExpeditionFusion.runningShot)) {
+          expeditionBurst(
+            game.myPlayer.position,
+            radius: 165,
+            damage: 2.0 + rank * 2,
+            targets: 3,
+            lightning: true,
+          );
+        }
+      }
+      if (run.signatures[ExpeditionSignature.deadeye] case final rank?) {
+        if (++run.signatureHits >= 4) {
+          run.signatureHits = 0;
+          expeditionBurst(
+            enemy.position,
+            radius: 75 + rank * 28,
+            damage: 2.0 + rank * 2,
+            targets: rank + 1,
+            lightning: true,
+          );
+        }
+      }
+    }
     if (precisionContact || executionContact) enemy.showMechanicContact(4);
     if (primary) {
       game.upgradePresentation.observe('heavyLoad', 'Stronger primary hit');
@@ -286,6 +353,53 @@ class CombatSystem {
     if (enemy is! CombatEnemy) return;
     final runtime = game.gameNotifier.survivor;
     runtime.kill();
+    final run = game.expedition;
+    final flashpoint = run?.signatures[ExpeditionSignature.flashpoint];
+    if (run != null &&
+        flashpoint != null &&
+        run.phase == ExpeditionPhase.combat &&
+        (!enemy.lastHitWasSecondary ||
+            enemy.lastDamageSource == 'expedition' ||
+            (enemy.lastDamageSource == 'grenade' &&
+                enemy.burning &&
+                run.fusions.contains(ExpeditionFusion.flashover))) &&
+        run.flashpointCooldown <= 0) {
+      run.flashpointCooldown = .8;
+      expeditionBurst(
+        enemy.position,
+        radius: 115 + 32.0 * flashpoint,
+        damage: 1.8 + (run.generator >= 4 ? 1.4 : .85) * flashpoint,
+        targets: 4 + flashpoint,
+        ember: true,
+        ignite: run.fusions.contains(ExpeditionFusion.flashover),
+      );
+    }
+    if (run != null &&
+        run.phase == ExpeditionPhase.combat &&
+        run.signatures[ExpeditionSignature.bloodTax] != null &&
+        ++run.signatureKills >=
+            ExpeditionSignature.bloodTaxKills(
+              run.signatures[ExpeditionSignature.bloodTax]!,
+            )) {
+      run.signatureKills = 0;
+      if (state.health < state.maxHealth) {
+        game.gameNotifier.heal();
+        game.audio.play('upgrade_pulse.wav');
+        if (run.fusions.contains(ExpeditionFusion.fieldTransfusion)) {
+          run.coldSnapReady = true;
+          expeditionScreen(game.myPlayer.position, 190);
+        }
+        game.addCombatEffect(
+          CombatEffect(
+            position: game.myPlayer.position.clone(),
+            radius: 62,
+            duration: .5,
+            signatureHeal: true,
+            floorEffect: true,
+          ),
+        );
+      }
+    }
     final burningKill =
         enemy.burning ||
         enemy.cinderRemaining > 0 ||
@@ -411,6 +525,142 @@ class CombatSystem {
     }
   }
 
+  void expeditionScreen(Vector2 center, double radius) {
+    game.clearHostileShots(center, radius);
+    game.audio.play('upgrade_pulse.wav');
+    game.addCombatEffect(
+      CombatEffect(
+        position: center.clone(),
+        radius: radius,
+        duration: .38,
+        upgradePulse: true,
+      ),
+    );
+  }
+
+  void expeditionBurst(
+    Vector2 center, {
+    required double radius,
+    required double damage,
+    required int targets,
+    bool lightning = false,
+    bool ember = false,
+    bool frost = false,
+    double shove = 0,
+    bool ignite = false,
+    bool shatterFrozen = false,
+    bool shapedCharge = false,
+  }) {
+    final bonus = game.expedition?.hasSynergy == true ? 1.25 : 1.0;
+    radius *= bonus;
+    if (!lightning) {
+      game.audio.play(ember ? 'blast.wav' : 'upgrade_pulse.wav');
+      game.addCombatEffect(
+        CombatEffect(
+          position: center.clone(),
+          radius: radius,
+          duration: .42,
+          material: ember
+              ? AttackMaterial.ember
+              : frost
+              ? AttackMaterial.glass
+              : AttackMaterial.stone,
+          upgradePulse: !ember && !frost && shove == 0,
+          signatureImpact: frost || shove > 0,
+          floorEffect: true,
+        ),
+      );
+    }
+    final nearby =
+        game.liveEnemies
+            .where(
+              (target) =>
+                  game.targetDistance(
+                        target,
+                        center,
+                        body: game.crowdRadius(target),
+                      ) <=
+                      radius &&
+                  game.targetVisible(target, center),
+            )
+            .toList()
+          ..sort(
+            (a, b) => a.position
+                .distanceToSquared(center)
+                .compareTo(b.position.distanceToSquared(center)),
+          );
+    if (lightning && nearby.isNotEmpty) game.audio.play('upgrade_pulse.wav');
+    for (final target in nearby.take(targets)) {
+      final frozen =
+          shatterFrozen && target is CombatEnemy && target.freezeState.frozen;
+      if (lightning) {
+        game.addCombatEffect(
+          CombatEffect(
+            position: center.clone(),
+            endpoint: target.position.clone(),
+            perkChain: true,
+            duration: .24,
+          ),
+        );
+      }
+      hit(
+        target,
+        damage * bonus * (frozen ? 1.8 : 1),
+        primary: false,
+        allowChain: false,
+        source: 'expedition',
+        blastCenter: center.toOffset(),
+        blastRadius: radius,
+      );
+      if (target is CombatEnemy && !target.combatHealth.isDead) {
+        if (frost) target.freeze(duration: .38);
+        if (ignite) target.ignite(1.1, maySpread: false);
+        if (shove > 0) {
+          target.receiveUpgradePulse(target.position - center, shove);
+        }
+      }
+      if (frozen) {
+        game.addCombatEffect(
+          CombatEffect(
+            position: target.position.clone(),
+            radius: 83,
+            duration: .4,
+            material: AttackMaterial.glass,
+            signatureImpact: true,
+            floorEffect: true,
+          ),
+        );
+        final origin = target.position;
+        for (final neighbor
+            in nearby
+                .where(
+                  (other) =>
+                      other != target &&
+                      other.position.distanceToSquared(origin) < 10000 &&
+                      game.targetVisible(other, origin),
+                )
+                .take(2)) {
+          hit(
+            neighbor,
+            damage * .4,
+            primary: false,
+            allowChain: false,
+            source: 'expedition',
+          );
+        }
+      }
+    }
+    if (shapedCharge && nearby.isNotEmpty) {
+      expeditionBurst(
+        nearby.first.position,
+        radius: 105,
+        damage: damage * .75,
+        targets: 3,
+        shove: 75,
+      );
+    }
+  }
+
   void explode(
     Vector2 position, {
     required double radius,
@@ -476,6 +726,25 @@ class CombatSystem {
               : reaction,
         );
       }
+    }
+    if (game.expedition?.signatures[ExpeditionSignature.fuseLink]
+        case final rank? when grenade) {
+      expeditionBurst(
+        position,
+        radius: radius * (.57 + rank * .09),
+        damage: 2.5 + rank * 2,
+        targets: 4 + rank,
+        ember: true,
+        shapedCharge: game.expedition!.fusions.contains(
+          ExpeditionFusion.shapedCharge,
+        ),
+      );
+    }
+    if (game.expedition?.signatures[ExpeditionSignature.thermite]
+        case final rank? when grenade) {
+      game.addFire(
+        BurningGround(position: position.clone(), damage: 1.0 + rank * .8),
+      );
     }
     if (allowFragments && rank(PowerUp.fragmentation) > 0) {
       shards(

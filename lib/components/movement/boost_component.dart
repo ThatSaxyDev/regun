@@ -62,6 +62,7 @@ class BoostButtonComponent extends AdvancedButtonComponent
     if (_remaining <= 0) {
       tapped = false;
       game.gameNotifier.survivor.landedDash(game.loadout.character);
+      game.expeditionDashLanded();
     }
   }
 

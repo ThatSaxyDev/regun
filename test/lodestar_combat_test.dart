@@ -32,7 +32,9 @@ void surface(LodestarCombat f) {
 
 void main() {
   test('a diagonal wall jam recovers through a clear, harmless exit', () {
-    const bounds = Rect.fromLTRB(-2000, -1500, 2000, 1500);
+    // This narrow room has a horizontal exit for the real rig sweep, but
+    // cannot fit the old 1,520-unit corridor with 110 units of padding.
+    const bounds = Rect.fromLTRB(-800, -540, 800, 540);
     const angle = math.pi / 4;
     final axis = LodestarCombat.unit(angle);
     final nose = axis * 70;

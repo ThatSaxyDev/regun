@@ -57,13 +57,13 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
     });
     await tester.pump();
-    for (var i = 0; i < 40 && find.text('PLAY').evaluate().isEmpty; i++) {
+    for (var i = 0; i < 40 && find.text('ARENA').evaluate().isEmpty; i++) {
       await tester.runAsync(() async {
         await Future<void>.delayed(const Duration(milliseconds: 50));
       });
       await tester.pump();
     }
-    await tester.tap(find.text('PLAY'));
+    await tester.tap(find.text('ARENA'));
     await tester.runAsync(() async {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       await tester.pump(const Duration(milliseconds: 400));
@@ -137,8 +137,8 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
     expect(find.byType(LoadoutView), findsNothing);
-    expect(find.text('PLAY').hitTestable(), findsOneWidget);
-    await tester.tap(find.text('PLAY'));
+    expect(find.text('ARENA').hitTestable(), findsOneWidget);
+    await tester.tap(find.text('ARENA'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byType(LoadoutView), findsOneWidget);

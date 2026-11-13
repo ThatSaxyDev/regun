@@ -1,3 +1,6 @@
+import 'package:regun/services/expedition_release.dart';
+import 'package:regun/widgets/click_button.dart';
+import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/services/leaderboards.dart';
 import 'package:regun/views/leaderboard_view.dart';
 import 'package:regun/services/player_registry.dart';
@@ -41,8 +44,10 @@ class _MenuViewState extends ConsumerState<MenuView>
   late final OnlineAvailability _online;
   Timer? _policyTimer, _accountIssueTimer;
   String? _accountIssue;
-  bool _foreground = true, _openingOnline = false;
-  Map<String, dynamic>? _saved;
+  bool _foreground = true, _openingOnline = false, _openingExpedition = false;
+  bool get _canStartExpedition =>
+      ExpeditionRelease.privateBuild || ExpeditionRelease.current.enabled;
+  Map<String, dynamic>? _saved, _expeditionSaved;
   bool _ready = false;
   bool _showPushPrompt = false;
   @override
@@ -165,6 +170,14 @@ class _MenuViewState extends ConsumerState<MenuView>
       ),
     );
     final saved = await RunStore.shared.read(validate: RunCheckpoint.valid);
+    final expedition = await RunStore.expedition.read(
+      validate: RunCheckpoint.valid,
+    );
+    unawaited(
+      ExpeditionRelease.refresh().then((_) {
+        if (mounted) setState(() {});
+      }),
+    );
     if (!mounted) return;
     final audio = ref.read(soloudPlayProvider);
     audio.configure(
@@ -178,6 +191,7 @@ class _MenuViewState extends ConsumerState<MenuView>
               !LocalPreferences.shared.profile.settledRuns.contains(saved['id'])
           ? saved
           : null;
+      _expeditionSaved = expedition;
       _ready = true;
     });
     // Background, optional, bounded: neither Home readiness nor local Play waits.
@@ -257,16 +271,45 @@ class _MenuViewState extends ConsumerState<MenuView>
 
   Future<void> _play() async {
     if (_saved != null) {
+      final startNew = await showDialog<bool>(
+        context: context,
+        builder: (context) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: ControllerMenuScope(
+            child: GameNotice(
+              eyebrow: null,
+              title: 'ARENA',
+              message: null,
+              actions: GameNoticeActions(
+                primary: ClickButton(
+                  text: 'Continue',
+                  autofocus: true,
+                  onTap: () => Navigator.pop(context, false),
+                ),
+                secondary: ClickButton(
+                  text: 'New Arena run',
+                  onTap: () => Navigator.pop(context, true),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      if (!mounted || startNew == null) return;
+      if (!startNew) {
+        _continue();
+        return;
+      }
       final replace = await confirmRunAction(
         context,
         eyebrow: 'RE-GUN / SAVED RUN',
         title: 'REPLACE SAVED RUN?',
-        message: 'Starting a new run replaces your saved run and its upgrades.',
+        message: 'Starting a new Arena run replaces your saved run and its upgrades.',
         action: 'New run',
         cancel: 'Keep run',
         destructive: true,
       );
-      if (replace != true || !mounted) return;
+      if (!replace || !mounted) return;
     }
     if (!LocalPreferences.shared.profile.tutorialComplete) {
       await _open(
@@ -284,6 +327,78 @@ class _MenuViewState extends ConsumerState<MenuView>
         unawaited(_inviteAfterPlay());
       }
     }
+  }
+
+  Future<void> _openExpedition() async {
+    if (!_canStartExpedition ||
+        _openingExpedition ||
+        _availabilityBlocksEntry) {
+      return;
+    }
+    _openingExpedition = true;
+    try {
+      await _chooseExpedition();
+    } finally {
+      _openingExpedition = false;
+    }
+  }
+
+  Future<void> _chooseExpedition() async {
+    final saved = _expeditionSaved;
+    if (saved != null) {
+      final startNew = await showDialog<bool>(
+        context: context,
+        builder: (context) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: ControllerMenuScope(
+            child: GameNotice(
+              eyebrow: null,
+              title: 'EXPEDITION',
+              message: 'Deploying a new run replaces your saved Expedition.',
+              actions: GameNoticeActions(
+                primary: ClickButton(
+                  text: 'Continue',
+                  autofocus: true,
+                  onTap: () => Navigator.pop(context, false),
+                ),
+                secondary: ClickButton(
+                  text: 'New run',
+                  onTap: () => Navigator.pop(context, true),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      if (!mounted || startNew == null || !_canStartExpedition) return;
+      if (!startNew) {
+        await _open(
+          BaseView(
+            expeditionMode: true,
+            resumeSnapshot: saved,
+            loadout: Loadout.fromJson(
+              Map<String, dynamic>.from(saved['loadout'] as Map),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+    if (!_canStartExpedition) return;
+    final profile = LocalPreferences.shared.profile;
+    await _open(
+      BaseView(
+        expeditionStaging: true,
+        loadout: Loadout(
+          weapon: profile.weaponUnlocked(profile.preferredWeapon)
+              ? profile.preferredWeapon
+              : WeaponType.shotgun,
+          character: profile.characterUnlocked(profile.preferredCharacter)
+              ? profile.preferredCharacter
+              : CharacterType.rook,
+        ),
+      ),
+    );
   }
 
   void _continue() {
@@ -309,8 +424,10 @@ class _MenuViewState extends ConsumerState<MenuView>
             ready: _ready,
             bestScore: LocalPreferences.shared.bestScore,
             reducedMotion: LocalPreferences.shared.reducedMotion,
-            onContinue: _saved == null ? null : _continue,
+            arenaSaved: _saved != null,
             onPlay: _play,
+            onExpedition: _canStartExpedition ? _openExpedition : null,
+            expeditionSaved: _expeditionSaved != null,
             onlineAvailable: _online.enabled,
             onlineChecking:
                 _openingOnline ||

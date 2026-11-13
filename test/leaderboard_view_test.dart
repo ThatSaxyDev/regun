@@ -180,7 +180,7 @@ void main() {
         ready: true,
         reducedMotion: true,
         onPlay: () {},
-        onContinue: () {},
+        arenaSaved: true,
         onOnline: () {},
         onTraining: () {},
         onCollection: () {},

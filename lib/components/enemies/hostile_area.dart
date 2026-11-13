@@ -37,7 +37,8 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
   double age;
   bool _impacted;
   bool get _sluice => cause == 'Sluice surge';
-  bool get _arenaHazard => _sluice || cause == 'Foundry vent';
+  bool get _arenaHazard =>
+      _sluice || cause == 'Foundry vent' || cause == 'Pressure trap';
 
   int _pulseAt(double time) => ((time - warning) / .75).floor();
 
@@ -104,7 +105,7 @@ class HostileArea extends PositionComponent with HasGameReference<RegunGame> {
       game.audio.play(poison ? 'impact_poison.wav' : 'impact_boss.wav');
     }
     if (age >= warning &&
-        (!_arenaHazard ||
+        ((!_arenaHazard && cause != 'Mini Demon slam') ||
             !game.segmentBlocked(position, game.myPlayer.position)) &&
         position.distanceToSquared(game.myPlayer.position) <
             PlayerHurtGeometry.reach(radius) *

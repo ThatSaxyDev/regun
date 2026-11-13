@@ -103,7 +103,7 @@ void main() {
       });
       await tester.pump(const Duration(milliseconds: 600));
       expect(find.byType(MenuView), findsOneWidget);
-      expect(find.text('PLAY').hitTestable(), findsOneWidget);
+      expect(find.text('ARENA').hitTestable(), findsOneWidget);
       expect(find.text('CO-OP / VERSUS'), findsNothing);
       expect(startupRequests, 1);
       response.complete(http.Response('offline', 503));

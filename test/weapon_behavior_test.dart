@@ -64,7 +64,10 @@ void main() {
       final power = WeaponPowerBalance.live(pinned);
       expect(power.behavior(WeaponType.houndrack, 'launchRatio'), .3);
       expect(power.behavior(WeaponType.ringCaster, 'deliveryShare'), .65);
-      expect(power.burstRecoveryCap, .6);
+      expect(
+        power.burstRecoveryCap,
+        values.containsKey('effects.burstrifle.burstRounds') ? 5 : .6,
+      );
     }
   });
   test(

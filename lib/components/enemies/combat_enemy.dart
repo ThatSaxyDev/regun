@@ -24,15 +24,17 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   bool get freezeHeld => freezeState.held;
   bool get canFreeze => !isBoss && impactResponse > 0;
   void onFreezeStarted() {}
-  bool freeze() {
+  bool freeze({double? duration}) {
     if (!canFreeze ||
         combatHealth.isDead ||
         isRemoving ||
         !freezeState.apply(
-          duration: game.gameNotifier.weaponPower.behavior(
-            WeaponType.frostShotgun,
-            'freezeDuration',
-          ),
+          duration:
+              duration ??
+              game.gameNotifier.weaponPower.behavior(
+                WeaponType.frostShotgun,
+                'freezeDuration',
+              ),
         )) {
       return false;
     }
@@ -46,6 +48,8 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   int get scoreReward => 10;
   bool get isBoss => false;
   double get impactResponse => isBoss ? 0 : 1;
+  double get _effectiveImpact =>
+      impactResponse * (isBoss ? 1 : game.expedition?.enemyImpactScale ?? 1);
   double _impactRemaining = 0, _impactDuration = 1, _impactCooldown = 0;
   final _impactDirection = Vector2.zero();
   double _impactDistance = 0, _impactSlow = .8;
@@ -53,7 +57,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   double _arenaStagger = 0;
   bool get impactHeld =>
       _arenaStagger > 1e-8 ||
-      (_staggerRemaining > 1e-8 && impactResponse >= .6);
+      (_staggerRemaining > 1e-8 && _effectiveImpact >= .6);
 
   void staggerByArena(double duration) {
     if (!isBoss && !combatHealth.isDead && !isRemoving) {
@@ -65,13 +69,13 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   final _pulseDirection = Vector2.zero();
   void receiveUpgradePulse(Vector2 direction, double distance) {
     if (freezeHeld ||
-        impactResponse <= 0 ||
+        _effectiveImpact <= 0 ||
         combatHealth.isDead ||
         direction.isZero()) {
       return;
     }
     _pulseDirection.setFrom(direction.normalized());
-    _pulseDistance = distance * impactResponse;
+    _pulseDistance = distance * _effectiveImpact;
     _pulseRemaining = .32;
   }
 
@@ -80,7 +84,10 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
       : impactHeld
       ? 0
       : _impactRemaining > 0
-      ? 1 - _impactSlow * impactResponse * (_impactRemaining / _impactDuration)
+      ? 1 -
+            _impactSlow *
+                _effectiveImpact *
+                (_impactRemaining / _impactDuration)
       : 1;
 
   /// One bounded response per target, not one stack per pellet. A cooldown
@@ -89,7 +96,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
       receiveWeaponImpact(direction, WeaponReaction.of(weapon));
 
   void receiveWeaponImpact(Vector2 direction, WeaponReaction motion) {
-    if (impactResponse <= 0 ||
+    if (_effectiveImpact <= 0 ||
         direction.isZero() ||
         !direction.x.isFinite ||
         !direction.y.isFinite ||
@@ -97,7 +104,7 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
         isRemoving) {
       return;
     }
-    final force = motion.distance * impactResponse;
+    final force = motion.distance * _effectiveImpact;
     // Strong impacts can replace a weak response; pellets cannot accumulate it.
     if (_impactCooldown > 1e-8 && force <= _impactDistance * 1.25) return;
     _impactDirection.setFrom(direction.normalized());
@@ -107,14 +114,14 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
     _impactSlow = motion.slow;
     _impactCooldown = .24;
     if (motion.stagger > 0 && _staggerRecovery <= 1e-8) {
-      _staggerRemaining = motion.stagger * impactResponse;
+      _staggerRemaining = motion.stagger * _effectiveImpact;
       _staggerRecovery = .65;
     }
   }
 
   /// A body pose response can read even when a wall consumes physical travel.
   Offset get impactBodyOffset {
-    if (_impactRemaining <= 0 || impactResponse <= 0) return Offset.zero;
+    if (_impactRemaining <= 0 || _effectiveImpact <= 0) return Offset.zero;
     final t = _impactRemaining / _impactDuration;
     final extent = (_impactDistance * .12).clamp(0.0, 7.0);
     return _impactDirection.toOffset() * (t * t * extent);
@@ -224,7 +231,10 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   }
 
   void initializeHealth(double maximum) {
-    combatHealth = CombatHealth(_restoredMaximum ?? maximum);
+    combatHealth = CombatHealth(
+      _restoredMaximum ??
+          maximum * (isBoss ? 1 : game.expedition?.enemyHealthScale ?? 1),
+    );
     if (_restoredHealth != null) {
       combatHealth.current = _restoredHealth!.clamp(0, combatHealth.maximum);
     }

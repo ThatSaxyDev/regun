@@ -61,6 +61,19 @@ class EntranceVeil extends PositionComponent with HasGameReference<RegunGame> {
   EntranceVeil() : super(priority: 1000000);
   @override
   void render(Canvas canvas) {
+    if (game.expeditionPassage case final passage?) {
+      final reduced = game.preferences.reducedMotion;
+      const midpoint = RegunGame.expeditionPassageMidpoint;
+      final span = reduced ? midpoint : .14;
+      final alpha = (1 - (passage - midpoint).abs() / span).clamp(0.0, 1.0);
+      if (alpha > 0) {
+        canvas.drawRect(
+          Offset.zero & game.camera.viewport.virtualSize.toSize(),
+          Paint()..color = Color.fromRGBO(16, 20, 17, alpha),
+        );
+      }
+      return;
+    }
     final entrance = game.playerEntrance;
     if (!entrance.active || !entrance.respawning || !entrance.reduced) return;
     final alpha = entrance.elapsed < entrance.fall
