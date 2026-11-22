@@ -8,6 +8,10 @@ import 'package:regun/components/enemies/expedition_walker.dart';
 import 'package:regun/components/enemies/expedition_veteran_enemy.dart';
 import 'package:regun/components/enemies/enemy_3_projectile.dart';
 import 'package:regun/components/enemies/hostile_area.dart';
+import 'package:regun/components/enemies/enemy_2_component.dart';
+import 'package:regun/components/enemies/boss_weak_point.dart';
+import 'package:regun/components/enemies/spawn_warning.dart';
+import 'package:regun/components/weapons/grenade_component.dart';
 import 'package:regun/systems/expedition_signature.dart';
 import 'package:regun/components/enemies/combat_enemy.dart';
 
@@ -15,7 +19,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:flame/components.dart' show PositionComponent;
+import 'package:flame/components.dart' show PositionComponent, Vector2;
 import 'package:regun/systems/arena_geometry.dart';
 import 'package:flame_riverpod/flame_riverpod.dart';
 import 'package:flutter/material.dart';
@@ -43,9 +47,13 @@ class _Quiet extends SoloudPlay {
   @override
   Future<void> play(String asset) async {
     if (asset.startsWith('supply_charge_')) chargeCues.add(asset);
+    if (asset == 'expedition_room_clear.wav') roomClearCues++;
+    if (asset.startsWith('signature_')) signatureCues.add(asset);
   }
 
   final chargeCues = <String>{};
+  int roomClearCues = 0;
+  final signatureCues = <String>[];
   @override
   Future<void> playMusic(String theme) async {}
   @override
@@ -153,6 +161,8 @@ void main() {
       ..signatureKills = 69;
     expect(Expedition.read(run.toJson()).signatureKills, 69);
     run.signatureKills = 70;
+    expect(Expedition.read(run.toJson()).signatureKills, 70);
+    run.signatureKills = 71;
     expect(() => Expedition.read(run.toJson()), throwsFormatException);
   });
 
@@ -474,6 +484,189 @@ void main() {
       }
 
       var game = await mount();
+      Map<String, dynamic>? pendingBlast;
+      late double afterFirstBlast;
+      late int blastTargetId;
+      await tester.runAsync(() async {
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+        final run = game.expedition!;
+        run.signatures[ExpeditionSignature.fuseLink] = 1;
+        run.signatures[ExpeditionSignature.thermite] = 1;
+        game.myPlayer.position.setZero();
+        final target = Enemy2Component(position: Vector2(195, 70))
+          ..restoreHealth(70, maximum: 70);
+        game.world.add(target);
+        expect(game.throwGrenade(aim: Vector2(1, 0), power: .4), isTrue);
+        await game.ready();
+        final grenade = game.world.children
+            .whereType<GrenadeComponent>()
+            .single;
+        for (var frame = 0; frame < 96 && !grenade.flight.spent; frame++) {
+          grenade.update(1 / 60);
+        }
+        expect(grenade.flight.spent, isTrue);
+        afterFirstBlast = target.combatHealth.current;
+        blastTargetId = target.combatId;
+        expect(afterFirstBlast, 62);
+        expect(run.aftershocks.single.remaining, ExpeditionAftershock.delay);
+        expect(
+          audio.signatureCues,
+          containsAll([
+            ExpeditionCue.fusePrimer.sound,
+            ExpeditionCue.slag.sound,
+          ]),
+        );
+        expect(audio.signatureCues, isNot(contains(ExpeditionCue.fuse.sound)));
+        game.pauseGame();
+        game.update(.5);
+        expect(run.aftershocks.single.remaining, ExpeditionAftershock.delay);
+        expect(await game.saveCheckpoint(), isTrue);
+        pendingBlast = store.saved;
+        expect(RunCheckpoint.valid(pendingBlast!), isTrue);
+      });
+      game = await mount(snapshot: pendingBlast);
+      await tester.runAsync(() async {
+        game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
+        final run = game.expedition!;
+        final target = game.liveEnemies
+            .whereType<Enemy2Component>()
+            .singleWhere((target) => target.combatId == blastTargetId);
+        game.update(.12);
+        expect(target.combatHealth.current, afterFirstBlast);
+        game.update(.17);
+        expect(target.combatHealth.current, afterFirstBlast - 4.5);
+        expect(run.aftershocks, isEmpty);
+        expect(
+          audio.signatureCues.where((cue) => cue == ExpeditionCue.fuse.sound),
+          hasLength(1),
+        );
+
+        // Actual weapon contact on a breakable prop still consumes charged
+        // signatures, and Deadeye counts that contact once.
+        run.signatures.addAll({
+          ExpeditionSignature.breachCharge: 1,
+          ExpeditionSignature.coldSnap: 2,
+          ExpeditionSignature.shatterstep: 2,
+          ExpeditionSignature.deadeye: 1,
+          ExpeditionSignature.quickdraw: 1,
+          ExpeditionSignature.thunderstep: 1,
+        });
+        run.fusions.add(ExpeditionFusion.brittleSteel);
+        run.breachChargeReady = run.coldSnapReady = run.quickdrawReady = true;
+        run.signatureHits = 3;
+        final part = BossWeakPoint(
+          owner: target,
+          position: target.position.clone(),
+          kind: BossPropKind.clasp,
+          onBroken: () {},
+        );
+        game.world.add(part);
+        await game.ready();
+        expect(game.hitEnemy(part, 1), isTrue);
+        expect(
+          run.breachChargeReady || run.coldSnapReady || run.quickdrawReady,
+          isFalse,
+        );
+        expect(run.signatureHits, 0);
+        expect(target.freezeState.frozen, isTrue);
+        game.myPlayer.position.setFrom(target.position - Vector2(65, 0));
+        final beforeDash = target.combatHealth.current;
+        game.expeditionDashLanded();
+        expect(target.freezeState.frozen, isFalse);
+        expect(target.combatHealth.isDead, isFalse);
+        expect(target.combatHealth.current, lessThan(beforeDash));
+        expect(
+          audio.signatureCues,
+          containsAll([
+            ExpeditionCue.breach.sound,
+            ExpeditionCue.frost.sound,
+            ExpeditionCue.deadeye.sound,
+            ExpeditionCue.quickdraw.sound,
+            ExpeditionCue.fracture.sound,
+            ExpeditionCue.shatter.sound,
+            ExpeditionCue.thunder.sound,
+            ExpeditionCue.quickdrawChamber.sound,
+          ]),
+        );
+
+        run.signatures[ExpeditionSignature.bloodTax] = 1;
+        run.signatureKills = 69;
+        game.gameNotifier.resetHealth();
+        final origin = game.myPlayer.position.clone();
+        Future<Enemy2Component> spawnMummy(Vector2 offset) async {
+          final actor = Enemy2Component(position: origin + offset);
+          game.world.add(actor);
+          await game.ready();
+          return actor;
+        }
+
+        final first = await spawnMummy(Vector2(-160, -120));
+        expect(game.hitEnemy(first, 100, primary: false), isTrue);
+        expect(run.signatureKills, 70);
+        expect(audio.signatureCues, isNot(contains(ExpeditionCue.blood.sound)));
+        run.signatures[ExpeditionSignature.backlash] = 1;
+        game.gameNotifier.advanceTime(1);
+        expect(game.damagePlayer(), isTrue);
+        expect(audio.signatureCues, contains(ExpeditionCue.backlash.sound));
+        final second = await spawnMummy(Vector2(-180, 130));
+        run.signatures[ExpeditionSignature.flashpoint] = 1;
+        expect(game.hitEnemy(second, 100), isTrue);
+        expect(run.signatureKills, 0);
+        expect(game.gameState.health, game.gameState.maxHealth);
+        expect(
+          audio.signatureCues,
+          containsAll([ExpeditionCue.flash.sound, ExpeditionCue.blood.sound]),
+        );
+        final projectile = Enemy3Projectile(
+          position: origin + Vector2(130, 0),
+          direction: Vector2(1, 0),
+          speed: 0,
+          maxTravelDistance: 800,
+        );
+        game.world.add(projectile);
+        await game.ready();
+        run.signatures[ExpeditionSignature.ironCurtain] = 1;
+        game.gameNotifier.decreaseBullets();
+        game.requestReload();
+        expect(game.gameState.reloading, isTrue);
+        game.update(game.gameNotifier.reloadRemainingSeconds + .01);
+        expect(game.gameState.reloading, isFalse);
+        await game.ready();
+        expect(projectile.isRemoved, isTrue);
+        expect(audio.signatureCues, contains(ExpeditionCue.curtain.sound));
+
+        for (final warning
+            in game.world.children.whereType<SpawnWarning>().toList()) {
+          warning.cancel();
+        }
+        for (final enemy in game.liveEnemies.toList()) {
+          if (enemy != target) game.hitEnemy(enemy, 1000, primary: false);
+        }
+        run.signatures
+          ..clear()
+          ..[ExpeditionSignature.fuseLink] = 1;
+        run.fusions.clear();
+        run.spawned = run.pack.length;
+        game.combat.explode(
+          target.position,
+          radius: 205,
+          damage: 1000,
+          grenade: true,
+        );
+        expect(game.liveEnemies, isEmpty);
+        game.update(.12);
+        expect(run.phase, ExpeditionPhase.combat);
+        game.update(.17);
+        expect(run.aftershocks, isEmpty);
+        expect(run.phase, ExpeditionPhase.reward);
+        expect(
+          audio.signatureCues.where((cue) => cue == ExpeditionCue.fuse.sound),
+          hasLength(2),
+        );
+        audio.roomClearCues = 0;
+      });
+
+      game = await mount();
       final id = game.runId;
       final capture =
           Platform.environment['REGUN_EXPEDITION_FEEL_CAPTURE'] == '1';
@@ -634,6 +827,23 @@ void main() {
         expect(game.liveEnemies, isEmpty);
         expect(game.gameState.xP, 0);
         expect(RunCheckpoint.valid(store.saved!), isTrue);
+        expect(game.expeditionRewardFocus, isNotNull);
+        if (room == 0) {
+          expect(audio.roomClearCues, 1);
+          final hold = game.expeditionRewardFocus;
+          final clock = game.gameState.survivalSeconds;
+          game.pauseGame();
+          game.update(.2);
+          expect(game.expeditionRewardFocus, hold);
+          game.resumeGame();
+          game.update(.2);
+          expect(game.gameState.survivalSeconds, clock);
+          expect(game.expeditionRewardFocus, isNotNull);
+        }
+        await tester.runAsync(() async {
+          game.update(RegunGame.expeditionRewardFocusDuration);
+          await game.ready();
+        });
         final signatureDraft = game.expedition!.signatureDraft;
         if (room == 0) {
           expect(signatureDraft, game.expedition!.openingSignatures);
@@ -653,11 +863,15 @@ void main() {
           await Future<void>.delayed(Duration.zero);
           if (room == 0) {
             expect(game.expeditionCommitFailed, isTrue);
+            expect(game.presentationHeld, isFalse);
             game.chooseExpeditionSignature(signatureDraft.first);
             expect(game.expedition!.signatures[signatureDraft.first], 1);
             expect(await game.commitExpedition(), isTrue);
             expect(RunCheckpoint.valid(store.saved!), isTrue);
           }
+          expect(game.presentationHeld, isTrue);
+          game.update(game.upgradePresentation.duration);
+          expect(game.presentationHeld, isFalse);
         });
         if (room == 0) {
           game.setDesktopInputActive(false);
@@ -809,6 +1023,23 @@ void main() {
         expect(escort.combatHealth.maximum, greaterThanOrEqualTo(35));
         final id = escort.combatId.toString();
         final health = escort.combatHealth.current;
+        final original = escort.position.clone();
+        final playerBefore = game.myPlayer.position.clone();
+        final inward = walker.position.x > 0 ? -1.0 : 1.0;
+        escort.position.setFrom(walker.position + Vector2(155 * inward, 0));
+        game.myPlayer.position.setFrom(
+          walker.position - Vector2(155 * inward, 0),
+        );
+        game.crowdOccupancy.rebuild([walker, escort], game.crowdRadius);
+        for (var i = 0; i < 100; i++) {
+          escort.update(1 / 60);
+        }
+        expect(
+          escort.position.distanceTo(walker.position),
+          greaterThan(ExpeditionWalker.bossClearance - 2),
+        );
+        escort.position.setFrom(original);
+        game.myPlayer.position.setFrom(playerBefore);
         expect(
           walker.fight.minions!().map((minion) => minion.id),
           isNot(contains(id)),
@@ -871,11 +1102,17 @@ void main() {
         game.forgeExpeditionFusion(ExpeditionFusion.arcPrimer);
         expect(game.expedition!.fusions, contains(ExpeditionFusion.arcPrimer));
         await Future<void>.delayed(Duration.zero);
+        game.update(game.upgradePresentation.duration);
         final gate = game.expeditionRoom!.doors.single;
         game.myPlayer.position.setValues(gate.dx, gate.dy);
         game.update(.5);
         await Future<void>.delayed(Duration.zero);
         expect(game.crossingExpedition, isTrue);
+        game.pauseGame();
+        await game.leaveRun();
+        expect(game.saveIssue, isNull);
+        expect(RunCheckpoint.valid(store.committedDoor!), isTrue);
+        game.resumeGame();
         game.update(.15);
         expect(game.myPlayer.position.y, lessThan(gate.dy));
         expect(game.expedition!.region, ExpeditionRegion.breach);
@@ -943,6 +1180,31 @@ void main() {
           // Clear sight for the attack exercise. Normal spawning above still
           // uses the authored room and its actual cover.
           final geometry = game.geometry;
+          if (veteran is ExpeditionWalker) {
+            final wall = Rect.fromCenter(
+              center: floor.center,
+              width: 80,
+              height: 180,
+            );
+            game.geometry = ArenaGeometry(game.map.bounds, obstacles: [wall]);
+            veteran.position.setValues(wall.left - 230, wall.center.dy);
+            game.myPlayer.position.setValues(wall.right + 465, wall.center.dy);
+            game.crowdOccupancy.rebuild([veteran], game.crowdRadius);
+            for (var i = 0; i < 360; i++) {
+              veteran.update(1 / 60);
+              expect(
+                wall
+                    .inflate(ExpeditionWalker.wallClearance - .1)
+                    .contains(Offset(veteran.x, veteran.y)),
+                isFalse,
+              );
+              expect(
+                veteran.footholds.any(wall.inflate(13.9).contains),
+                isFalse,
+              );
+            }
+            expect(veteran.x, greaterThan(wall.right));
+          }
           game.geometry = ArenaGeometry(game.map.bounds, obstacles: []);
           veteran.position.setValues(start.dx, start.dy);
           game.crowdOccupancy.rebuild(game.liveEnemies, game.crowdRadius);
@@ -973,6 +1235,13 @@ void main() {
             );
           }
           expect(game.hitEnemy(veteran, 100, primary: false), isTrue);
+          if (veteran is ExpeditionWalker) {
+            expect(veteran.shuttingDown, isTrue);
+            expect(game.liveEnemies, isNot(contains(veteran)));
+            veteran.update(.4);
+            expect(veteran.shuttingDown, isFalse);
+            expect(veteran.isRemoving, isFalse);
+          }
           game.geometry = geometry;
           while (!game.expedition!.bossRoom) {
             await advanceUntil(() {
@@ -981,6 +1250,7 @@ void main() {
               }
               if (game.expeditionDropCanSkip) game.skipExpeditionDrop();
               return game.expedition!.phase == ExpeditionPhase.reward &&
+                  game.expeditionRewardFocus == null &&
                   !game.expeditionSaving;
             }, 3000);
             if (game.expedition!.supplyRoom) {
@@ -989,6 +1259,7 @@ void main() {
             }
             game.chooseExpeditionBoon(game.expedition!.draft.first);
             await Future<void>.delayed(Duration.zero);
+            game.update(game.upgradePresentation.duration);
             final gate = game.expeditionRoom!.doors.first;
             game.myPlayer.position.setValues(gate.dx, gate.dy);
             final room = game.expedition!.room;
@@ -1027,12 +1298,16 @@ void main() {
               ? ExpeditionPhase.victory
               : ExpeditionPhase.reward;
           await advanceUntil(
-            () => game.expedition!.phase == outcome && !game.expeditionSaving,
+            () =>
+                game.expedition!.phase == outcome &&
+                game.expeditionRewardFocus == null &&
+                !game.expeditionSaving,
             1000,
           );
           if (region != ExpeditionRegion.relay) {
             game.chooseExpeditionBoon(game.expedition!.draft.first);
             await Future<void>.delayed(Duration.zero);
+            game.update(game.upgradePresentation.duration);
             final gate = game.expeditionRoom!.doors.single;
             game.myPlayer.position.setValues(gate.dx, gate.dy);
             await advanceUntil(
@@ -1047,6 +1322,7 @@ void main() {
       expect(RunCheckpoint.valid(store.saved!), isTrue);
       await tester.pump();
       expect(find.text('EXPEDITION COMPLETE'), findsOneWidget);
+      expect(find.text('Threat 2 unlocked'), findsOneWidget);
       final progress = await tester.runAsync(
         () => ExpeditionProgress.shared.read('guest'),
       );

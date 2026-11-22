@@ -1,6 +1,8 @@
 import 'package:flame/components.dart';
 import 'package:regun/presentation/boss_art.dart';
 import 'package:regun/presentation/attack_vfx.dart';
+import 'package:regun/presentation/expedition_effect_art.dart';
+import 'package:regun/systems/expedition_signature.dart';
 import 'package:flutter/material.dart';
 import 'package:regun/game.dart';
 import 'package:regun/notifiers/game_notifier.dart';
@@ -11,8 +13,8 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
     this.endpoint,
     bool floorEffect = false,
     this.upgradePulse = false,
-    this.signatureImpact = false,
     this.signatureHeal = false,
+    this.expeditionCue,
     this.companion = false,
     this.perkChain = false,
     this.dashDirection,
@@ -36,13 +38,9 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
              ? -10
              : 20010,
        );
-  final bool upgradePulse,
-      companion,
-      perkChain,
-      dashLaunch,
-      signatureImpact,
-      signatureHeal;
+  final bool upgradePulse, companion, perkChain, dashLaunch, signatureHeal;
   final double remainsOpacity;
+  final ExpeditionCue? expeditionCue;
   final Vector2? dashDirection;
   final Vector2? endpoint;
   final Sprite? remains;
@@ -98,6 +96,17 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
       }
       return;
     }
+    if (expeditionCue case final cue?) {
+      ExpeditionEffectArt.paint(
+        canvas,
+        cue,
+        radius,
+        age / duration,
+        ambient: BossArt.ambient(game.currentArena),
+        reduced: game.preferences.reducedMotion,
+      );
+      return;
+    }
     if (upgradePulse) {
       AttackVfx.upgradePulse(
         canvas,
@@ -147,28 +156,6 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
         contact: true,
         reducedMotion: game.preferences.reducedMotion,
       );
-    } else if (signatureImpact) {
-      final progress = (age / duration).clamp(0.0, 1.0);
-      final reduced = game.preferences.reducedMotion;
-      final p = reduced ? .30 : progress;
-      final frame = material == AttackMaterial.glass ? 5 : 1;
-      AttackVfx.floorArea(
-        canvas,
-        frame,
-        Offset.zero,
-        radius * 2,
-        alpha: (1 - progress) * .85,
-      );
-      for (final (x, y) in const [(-.44, -.23), (.42, -.25), (.15, .24)]) {
-        AttackVfx.stamp(
-          canvas,
-          AttackVfx.row(material) * 6 + (p * 4).floor(),
-          Offset(x * radius, y * radius),
-          radius * .58,
-          alpha: 1 - progress,
-          material: material,
-        );
-      }
     } else if (material == AttackMaterial.ember) {
       AttackVfx.explosion(
         canvas,
@@ -195,9 +182,13 @@ class CombatEffect extends PositionComponent with HasGameReference<RegunGame> {
 }
 
 class BurningGround extends PositionComponent with HasGameReference<RegunGame> {
-  BurningGround({required super.position, this.damage = 0.8})
-    : super(priority: -10);
+  BurningGround({
+    required super.position,
+    this.damage = 0.8,
+    this.expeditionSlag = false,
+  }) : super(priority: -10);
   final double damage;
+  final bool expeditionSlag;
   double age = 0, tick = 0;
   @override
   void onRemove() {
@@ -229,6 +220,17 @@ class BurningGround extends PositionComponent with HasGameReference<RegunGame> {
 
   @override
   void render(Canvas canvas) {
+    if (expeditionSlag) {
+      ExpeditionEffectArt.paint(
+        canvas,
+        ExpeditionCue.slag,
+        90,
+        age / 2.5,
+        ambient: BossArt.ambient(game.currentArena),
+        reduced: game.preferences.reducedMotion,
+      );
+      return;
+    }
     AttackVfx.disk(
       canvas,
       Offset.zero,

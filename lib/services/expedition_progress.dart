@@ -21,7 +21,7 @@ class ExpeditionProgress {
     }
   }
 
-  Future<bool> record(
+  Future<({bool saved, bool unlockedThreat})> record(
     String owner,
     String runId, {
     required bool victory,
@@ -32,6 +32,7 @@ class ExpeditionProgress {
     required Iterable<String> capstones,
   }) {
     var saved = false;
+    var unlockedThreat = false;
     final task = _pending.then((_) async {
       if (owner != LocalPreferences.shared.profileOwner) return;
       try {
@@ -39,15 +40,18 @@ class ExpeditionProgress {
         final record = await read(owner);
         if (record['lastRun'] == runId) {
           saved = true;
+          unlockedThreat = record['lastRunUnlockedThreat'] == true;
           return;
         }
         final best = record['bestSeconds'] as int? ?? 0;
         final depth = record['deepestRegion'] as int? ?? 0;
         final highest = record['highestThreat'] as int? ?? -1;
+        unlockedThreat = victory && threat < 2 && threat > highest;
         saved = await storage.setString(
           _key(owner),
           jsonEncode({
             'lastRun': runId,
+            'lastRunUnlockedThreat': unlockedThreat,
             'clears': (record['clears'] as int? ?? 0) + (victory ? 1 : 0),
             'highestThreat': victory && threat > highest ? threat : highest,
             'bestSeconds': victory && (best == 0 || seconds < best)
@@ -69,7 +73,9 @@ class ExpeditionProgress {
       }
     });
     _pending = task;
-    return task.then((_) => saved);
+    return task.then(
+      (_) => (saved: saved, unlockedThreat: saved && unlockedThreat),
+    );
   }
 
   Future<void> clear(String owner) {

@@ -56,7 +56,12 @@ class GameNotifier extends Notifier<GameState> {
   final upgradeConfirmed = ValueNotifier<int>(0);
   final acceptedUpgrade = ValueNotifier<AcceptedUpgrade?>(null);
   int _rewardGeneration = 0, _rewardSerial = 0;
-  void _publishReward(String id, GameState before, {int? priorTier}) {
+  void _publishReward(
+    String id,
+    GameState before, {
+    int? priorTier,
+    int? awardedTier,
+  }) {
     final p = PowerUp.values.where((p) => p.name == id).firstOrNull;
     final card = SupportCard.read(id);
     if (p != null && p != PowerUp.salvage) runStatistics.picked(id);
@@ -73,7 +78,7 @@ class GameNotifier extends Notifier<GameState> {
       source: offerSource,
       id: id,
       beforeRank: p != null ? before.rank(p) : priorTier ?? 0,
-      afterRank: p != null ? state.rank(p) : card?.tier ?? 1,
+      afterRank: p != null ? state.rank(p) : awardedTier ?? card?.tier ?? 1,
       balance:
           weaponPower.snapshot?.hash ?? 'weapon-power-${weaponPower.revision}',
       before: Map.unmodifiable({
@@ -803,10 +808,18 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   bool applyExpeditionSupport(SupportCard card) {
+    final before = support.tiers[card.family.name] ?? 0;
     support.offer = card;
     final granted = support.confirm(card.id);
     support.offer = null;
+    if (granted) publishExpeditionReward(card.id, priorTier: before);
     return granted;
+  }
+
+  void publishExpeditionReward(String id, {int? priorTier, int? awardedTier}) {
+    offerSource = 'expedition';
+    _publishReward(id, state, priorTier: priorTier, awardedTier: awardedTier);
+    offerSource = 'none';
   }
 
   List<PowerUp> get expeditionChoices => eligiblePowerUps(

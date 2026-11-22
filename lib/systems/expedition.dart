@@ -175,6 +175,7 @@ class Expedition {
       signatures.values.where((rank) => rank >= 2).length >= 2;
 
   double flashpointCooldown = 0;
+  final aftershocks = <ExpeditionAftershock>[];
   final int seed, generator, threat;
   final ExpeditionRelease release;
   int room = 0, route = 0, spawned = 0;
@@ -550,6 +551,8 @@ class Expedition {
     'clock': clock,
     'hazardClock': hazardClock,
     'bossAdds': bossAdds,
+    if (aftershocks.isNotEmpty)
+      'aftershocks': aftershocks.map((burst) => burst.toJson()).toList(),
     if (dropStarted) 'dropStarted': true,
     if (dropGuards > 0) 'dropGuards': dropGuards,
     if (dropSpecial != null) 'dropSpecial': dropSpecial,
@@ -633,6 +636,12 @@ class Expedition {
           ..flashpointCooldown =
               (raw['flashpointCooldown'] as num?)?.toDouble() ?? 0;
     final forged = (raw['fusions'] as List? ?? []).cast<String>();
+    final aftershocks = raw['aftershocks'] ?? const [];
+    if (aftershocks is! List ||
+        aftershocks.length > ExpeditionAftershock.limit) {
+      throw const FormatException('Invalid Expedition aftershocks');
+    }
+    value.aftershocks.addAll(aftershocks.map(ExpeditionAftershock.read));
     value.fusions.addAll(forged.map(ExpeditionFusion.values.byName));
     if (forged.length != value.fusions.length ||
         forged.length > 2 ||
@@ -679,7 +688,10 @@ class Expedition {
         value.signatureHits < 0 ||
         value.signatureHits > 3 ||
         value.signatureKills < 0 ||
-        value.signatureKills >= ExpeditionSignature.bloodTaxKills(1) ||
+        value.signatureKills > ExpeditionSignature.bloodTaxKills(1) ||
+        (value.aftershocks.isNotEmpty &&
+            (value.phase != ExpeditionPhase.combat ||
+                !value.signatures.containsKey(ExpeditionSignature.fuseLink))) ||
         value.synergy < 0 ||
         value.synergy > 1 ||
         value.fusions.any((fusion) => !fusion.ready(value.signatures)) ||
@@ -719,7 +731,7 @@ class Expedition {
     }
     final tax = value.signatures[ExpeditionSignature.bloodTax];
     if (tax != null &&
-        value.signatureKills >= ExpeditionSignature.bloodTaxKills(tax)) {
+        value.signatureKills > ExpeditionSignature.bloodTaxKills(tax)) {
       throw const FormatException('Invalid Blood Tax progress');
     }
     return value;

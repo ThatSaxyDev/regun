@@ -22,6 +22,18 @@ mixin CombatEnemy on PositionComponent, HasGameReference<RegunGame>
   int combatId = 0;
   final freezeState = FreezeState();
   bool get freezeHeld => freezeState.held;
+  void breakExpeditionFreeze() {
+    if (!freezeState.frozen) return;
+    freezeState.advance(
+      freezeState.remaining,
+      recoverySeconds: 0,
+      immunitySeconds: game.gameNotifier.weaponPower.behavior(
+        WeaponType.frostShotgun,
+        'freezeImmunity',
+      ),
+    );
+  }
+
   bool get canFreeze => !isBoss && impactResponse > 0;
   void onFreezeStarted() {}
   bool freeze({double? duration}) {

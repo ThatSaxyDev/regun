@@ -60,10 +60,10 @@ class ArenaGeometry {
   bool blocked(Vector2 start, Vector2 end) =>
       solids.any((rect) => crosses(start, end, rect));
 
-  Vector2? firstSolidContact(Vector2 start, Vector2 end) {
+  Vector2? firstSolidContact(Vector2 start, Vector2 end, {double padding = 0}) {
     double? entry;
     for (final rect in solids) {
-      final t = _entryFraction(start, end, rect);
+      final t = _entryFraction(start, end, rect.inflate(padding));
       if (t != null && (entry == null || t < entry)) entry = t;
     }
     return entry == null ? null : start + (end - start) * entry;

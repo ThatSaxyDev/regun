@@ -152,3 +152,16 @@ machine warning and release phases.
 - `press.mp3` — [Kettlebell on concrete, rsellick](https://freesound.org/people/rsellick/sounds/545544/), recorded metal drag and contact. Expedition’s enemy arrival layers the same recording’s scrape and impact at reduced pitch.
 - `sluice.mp3` — [Sluice of the Canal du Midi, LPA134](https://freesound.org/people/LPA134/sounds/547231/), recorded water rushing through a working sluice.
 - `relay.mp3` — [Electrical Buzz, Craig Smith](https://freesound.org/people/craigsmith/sounds/438501/), a recorded electrical hum and hiss.
+
+### Expedition room clear
+
+`tool/generate_movement_audio.py` generates `expedition_room_clear.wav` from
+two filtered contacts in the credited `movement/press.mp3` source and a
+damped 151 Hz body. The 0.59-second cue plays once at room clear at 0.68 SFX
+gain. The same save reopened through Continue skips the reveal cue.
+
+`tool/generate_expedition_signature_audio.py` builds the Expedition signature
+cues from the credited stone, gravel, press, airsoft mechanism and ordnance
+recordings above. Shatterstep layers a stone impact with grit, Fuse Link
+separates its hot casing primer and blast, and Brittle Steel has its own break
+cue. The generator checks PCM peak levels, RMS and clean endpoints.

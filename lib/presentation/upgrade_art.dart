@@ -493,7 +493,12 @@ class UpgradeConfirmationView extends Component
     final ranks = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
     final fusion = fusionRecipes.where((f) => f.id == r?.id).firstOrNull;
     final support = r == null ? null : SupportCard.read(r.id);
-    final title = p?.title ?? fusion?.title ?? support?.title ?? 'Upgrade';
+    final title =
+        p?.title ??
+        fusion?.title ??
+        support?.title ??
+        expeditionUpgradeTitle(r?.id ?? '') ??
+        'Upgrade';
     final label =
         c.actualUse ??
         '${title.toUpperCase()} ${ranks[r!.afterRank.clamp(0, 8)]}';

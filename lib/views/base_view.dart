@@ -1,5 +1,5 @@
+import 'package:regun/widgets/expedition_results.dart';
 import 'package:regun/services/expedition_progress.dart';
-import 'package:regun/services/expedition_release.dart';
 import 'package:regun/systems/expedition_signature.dart';
 import 'package:regun/systems/expedition.dart';
 import 'package:regun/desktop/controller_menu.dart';
@@ -277,10 +277,6 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
     _usingStagingStation = true;
     _myGame.pauseGame();
     try {
-      if (!ExpeditionRelease.privateBuild &&
-          !ExpeditionRelease.current.enabled) {
-        return;
-      }
       final progress = await ExpeditionProgress.shared.read(
         LocalPreferences.shared.profileOwner,
       );
@@ -2216,10 +2212,36 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
       valueListenable: _myGame.revision,
       builder: (context, _, _) {
         final run = _myGame.expedition;
-        if (run == null || _myGame.crossingExpedition) {
+        if (run == null ||
+            _myGame.crossingExpedition ||
+            _myGame.expeditionRewardFocus != null) {
           return const SizedBox.shrink();
         }
-        final region = run.region.arena.title.toUpperCase();
+        if (run.terminal) {
+          final state = _myGame.gameState;
+          return ExpeditionResults(
+            run: run,
+            loadout: _myGame.loadout,
+            elapsed: runTime(state.survivalSeconds),
+            kills: state.kills,
+            buildEntries: [
+              if (run.hasSynergy) (name: 'Overclock', rank: null),
+              for (final fusion in run.fusions)
+                (name: fusion.title, rank: null),
+              for (final recipe in fusionRecipes)
+                if (state.fused(recipe.id)) (name: recipe.title, rank: null),
+              for (final entry in run.signatures.entries)
+                (name: entry.key.title, rank: '×${entry.value}'),
+              for (final entry in state.ranks.entries)
+                (name: entry.key.title, rank: '×${entry.value}'),
+            ],
+            threatUnlocked: _myGame.expeditionThreatUnlocked,
+            saving: _myGame.expeditionSaving,
+            saveFailed: _myGame.expeditionCommitFailed,
+            onReturn: _returnToStaging,
+            onRetrySave: _myGame.commitExpedition,
+          );
+        }
         if (run.dropSpecial case final id?
             when !_myGame.expeditionCommitFailed && !_myGame.expeditionSaving) {
           return _expeditionDropPicker(id, run.dropBoons);
@@ -2261,7 +2283,14 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             if (run.coldSnapReady) 'COLD SNAP',
             if (run.quickdrawReady) 'QUICKDRAW',
           ];
-          if (ready.isEmpty) return const SizedBox.shrink();
+          final trackers = [
+            if (ready.isNotEmpty) '${ready.join(' · ')} READY',
+            if (run.signatures.containsKey(ExpeditionSignature.deadeye))
+              'DEADEYE ${run.signatureHits}/4',
+            if (run.signatures[ExpeditionSignature.bloodTax] case final rank?)
+              'BLOOD TAX ${run.signatureKills}/${ExpeditionSignature.bloodTaxKills(rank)}',
+          ];
+          if (trackers.isEmpty) return const SizedBox.shrink();
           return Align(
             alignment: Alignment.topCenter,
             child: IgnorePointer(
@@ -2269,7 +2298,8 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                 child: Padding(
                   padding: EdgeInsets.only(top: run.bossRoom ? 106 : 58),
                   child: Text(
-                    '${ready.join(' · ')} READY',
+                    trackers.join('   /   '),
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: _brass,
                       fontFamily: FontFam.orbitron,
@@ -2326,10 +2356,6 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                               ? 'SAVE INTERRUPTED'
                               : _myGame.expeditionSaving
                               ? 'SAVING…'
-                              : run.phase == ExpeditionPhase.victory
-                              ? 'EXPEDITION COMPLETE'
-                              : run.phase == ExpeditionPhase.defeat
-                              ? 'EXPEDITION LOST'
                               : run.bossRoom
                               ? '${run.boss.title.toUpperCase()} DEFEATED'
                               : run.reward == ExpeditionBoon.repair
@@ -2351,54 +2377,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                             text: 'Retry save',
                             onTap: _myGame.commitExpedition,
                           )
-                        else if (!_myGame.expeditionSaving && run.terminal) ...[
-                          Text(
-                            '$region${run.bossRoom ? ' / ${run.boss.title.toUpperCase()}' : ''}'
-                            '  •  ${runTime(_myGame.gameState.survivalSeconds)}',
-                            style: const TextStyle(
-                              color: _paper,
-                              fontFamily: FontFam.orbitron,
-                            ),
-                          ),
-                          if (run.phase == ExpeditionPhase.victory &&
-                              run.threat < 2)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 8),
-                              child: Text(
-                                'Higher threat unlocked',
-                                style: TextStyle(color: _brass),
-                              ),
-                            ),
-                          const SizedBox(height: 12),
-                          Text(
-                            [
-                              if (run.hasSynergy) 'Overclock',
-                              ...run.fusions.map((fusion) => fusion.title),
-                              for (final entry in run.signatures.entries)
-                                '${entry.key.title} ×${entry.value}',
-                              for (final entry
-                                  in _myGame.gameState.ranks.entries)
-                                '${entry.key.title} ×${entry.value}',
-                              for (final recipe in fusionRecipes)
-                                if (_myGame.gameState.fused(recipe.id))
-                                  recipe.title,
-                            ].join('  •  '),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: _muted),
-                          ),
-                          const SizedBox(height: 16),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 8,
-                            alignment: WrapAlignment.center,
-                            children: [
-                              ClickButton(
-                                text: 'Return to Outpost',
-                                onTap: _returnToStaging,
-                              ),
-                            ],
-                          ),
-                        ] else if (!_myGame.expeditionSaving) ...[
+                        else if (!_myGame.expeditionSaving) ...[
                           MenuCardGrid(
                             minColumnWidth: 200,
                             children: [

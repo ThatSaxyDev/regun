@@ -1,3 +1,5 @@
+import 'package:regun/systems/expedition_signature.dart';
+
 /// Stable accepted-reward identities and shared reaction recipes.
 /// Every accepted reward gets a reaction; bespoke visuals can replace a recipe
 /// without changing gameplay or the acceptance contract.
@@ -59,8 +61,24 @@ const upgradeRewardIds = <String>{
 
 bool validUpgradeRewardId(String id) =>
     upgradeRewardIds.contains(id) ||
+    expeditionUpgradeTitle(id) != null ||
     RegExp(r'^support:sentry:[1-8]:(carbine|burstRifle)$').hasMatch(id) ||
     RegExp(r'^support:aura:[1-8]:field$').hasMatch(id);
+
+String? expeditionUpgradeTitle(String id) {
+  if (id == 'expedition:overclock') return 'Overclock';
+  if (id == 'expedition:repair') return 'Field Repair';
+  if (!id.startsWith('expedition:')) return null;
+  final name = id.substring('expedition:'.length);
+  return ExpeditionSignature.values
+          .where((card) => card.name == name)
+          .firstOrNull
+          ?.title ??
+      ExpeditionFusion.values
+          .where((card) => card.name == name)
+          .firstOrNull
+          ?.title;
+}
 
 String upgradeAnimationRecipe(String id) {
   final family = id.startsWith('support:')
@@ -69,6 +87,16 @@ String upgradeAnimationRecipe(String id) {
   // Match the physical performance, rather than routing unrelated perks through
   // Sentry's command gesture. Six clips remain shared; no new timing or leases.
   return switch (family) {
+    'expedition:thunderstep' ||
+    'expedition:coldSnap' ||
+    'expedition:flashpoint' ||
+    'expedition:thermite' ||
+    'expedition:bloodTax' ||
+    'expedition:fuseLink' ||
+    'expedition:repair' => 'hotShot',
+    'expedition:ironCurtain' || 'expedition:backlash' => 'scrapArmour',
+    'expedition:shatterstep' ||
+    'expedition:quickdraw' => 'walkingSpeedIncrease',
     'walkingSpeedIncrease' ||
     'quickstep' ||
     'dashCapacity' ||

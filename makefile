@@ -3,7 +3,6 @@ DART ?= dart
 RELEASE_CONFIG ?= config/release.local.json
 RELEASE_DEFINES = $(if $(wildcard $(RELEASE_CONFIG)),--dart-define-from-file=$(RELEASE_CONFIG),)
 DEVICE ?=
-EXPEDITION_DEFINE = --dart-define=REGUN_EXPEDITION=true
 
 FIREBASE_APP_ID ?= 1:225712394437:android:a774f7de7e22d0abd0e0ac
 DIST_TESTERS ?=
@@ -24,11 +23,9 @@ soak:
 
 verify: analyze test
 
-runExpedition:
-	$(FLUTTER) run --release $(RELEASE_DEFINES) $(EXPEDITION_DEFINE) $(if $(DEVICE),-d $(DEVICE),)
+runExpedition: runRelease
 
-buildExpeditionIOS:
-	$(FLUTTER) build ios --release $(RELEASE_DEFINES) $(EXPEDITION_DEFINE)
+buildExpeditionIOS: buildIOS
 
 runRelease:
 	$(FLUTTER) run --release $(RELEASE_DEFINES) $(if $(DEVICE),-d $(DEVICE),)

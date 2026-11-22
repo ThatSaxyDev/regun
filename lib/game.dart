@@ -155,8 +155,12 @@ class RegunGame extends FlameGame
   Expedition? expedition;
   ExpeditionRoom? expeditionRoom;
   bool expeditionSaving = false;
+  bool expeditionThreatUnlocked = false;
   static const expeditionPassageMidpoint = .36;
   double? expeditionPassage;
+  bool _expeditionPassageCommitted = false;
+  static const expeditionRewardFocusDuration = .42;
+  double? expeditionRewardFocus;
   double expeditionDoorProgress = 0;
   bool get crossingExpedition => expeditionPassage != null;
   ArenaType get currentArena => expedition?.region.arena ?? loadout.arena;
@@ -277,6 +281,7 @@ class RegunGame extends FlameGame
   final upgradeArt = UpgradeArtLease();
   final statusArt = CombatStatusArt();
   final confirmationHolding = ValueNotifier<bool>(false);
+  AcceptedUpgrade? _expeditionConfirmation;
   bool get presentationHeld => upgradePresentation.holding;
   bool get _bossRevealHolding =>
       bossReveal.active &&
@@ -296,8 +301,16 @@ class RegunGame extends FlameGame
       expedition?.phase == ExpeditionPhase.reward;
   void _acceptedUpgrade() {
     final reward = gameNotifier.acceptedUpgrade.value;
-    if (reward == null || expeditionMode) return;
+    if (reward == null) return;
+    if (expeditionMode) {
+      _expeditionConfirmation = reward;
+      return;
+    }
     _upgradePulsePending = true;
+    _showUpgradeConfirmation(reward);
+  }
+
+  void _showUpgradeConfirmation(AcceptedUpgrade reward) {
     if (upgradePresentation.accept(
       reward,
       reducedMotion: preferences.reducedMotion,
@@ -654,29 +667,35 @@ class RegunGame extends FlameGame
     return true;
   }
 
-  void clearHostileShots(Vector2 origin, double radius) {
+  void clearHostileShots(
+    Vector2 origin,
+    double radius, {
+    void Function(Offset position)? onClear,
+  }) {
+    final center = origin.toOffset();
+    bool caught(Offset position, double padding) {
+      final reach = radius + padding;
+      if ((position - center).distanceSquared > reach * reach) return false;
+      onClear?.call(position);
+      return true;
+    }
+
     final lodestar = lodestarCandidate;
     if (lodestar != null && lodestar.prepared && !lodestar.retired) {
-      lodestar.fight.shots.removeWhere(
-        (s) => (s.position - origin.toOffset()).distance <= radius + 6,
-      );
+      lodestar.fight.shots.removeWhere((s) => caught(s.position, 6));
     }
     final ariet = arietCandidate;
     if (ariet != null && ariet.prepared && !ariet.retired) {
-      ariet.fight.rounds.removeWhere(
-        (r) => (r.position - origin.toOffset()).distance <= radius + r.radius,
-      );
+      ariet.fight.rounds.removeWhere((r) => caught(r.position, r.radius));
     }
     for (final walker in walkerActors.where((w) => w.prepared)) {
       walker.fight.rounds.removeWhere(
-        (round) =>
-            (round.position - origin.toOffset()).distance <=
-            radius + round.radius,
+        (round) => caught(round.position, round.radius),
       );
     }
     for (final shot in _hostileProjectiles.toList()) {
-      final reach = radius + min(shot.size.x, shot.size.y) / 2;
-      if (shot.position.distanceToSquared(origin) <= reach * reach) {
+      if (!shot.isRemoving &&
+          caught(shot.position.toOffset(), min(shot.size.x, shot.size.y) / 2)) {
         shot.removeFromParent();
       }
     }
@@ -1057,10 +1076,13 @@ class RegunGame extends FlameGame
       crowdOccupancy.forget(actor);
       return true;
     }
+    final clearance = actor is ExpeditionWalker
+        ? ExpeditionWalker.wallClearance
+        : crowdRadius(actor);
     return crowdOccupancy.place(
       actor,
       crowdRadius(actor),
-      (point) => geometry.constrain(point, crowdRadius(actor)),
+      (point) => geometry.constrain(point, clearance),
       allowed: (point) =>
           (excludedArea == null || !excludedArea.contains(point.toOffset())) &&
           (minPlayerDistance == 0 ||
@@ -1203,10 +1225,13 @@ class RegunGame extends FlameGame
     Vector2 point,
     double radius,
   ) {
-    geometry.constrain(point, radius);
+    final clearance = actor is ExpeditionWalker
+        ? max(radius, ExpeditionWalker.wallClearance)
+        : radius;
+    geometry.constrain(point, clearance);
     if (!(arsenal?.frontier.constrainCaptured(actor, point) ?? false)) return;
     final valid = point.clone();
-    geometry.constrain(valid, radius);
+    geometry.constrain(valid, clearance);
     // A shrinking ring must never push a body through solid cover. If the two
     // constraints have no shared destination, occupancy keeps the current body.
     if (valid.distanceToSquared(point) > .001) point.setFrom(actor.position);
@@ -1928,6 +1953,7 @@ class RegunGame extends FlameGame
     gameNotifier = ref.read(gameNotifierProvider.notifier);
     audio.configure(music: preferences.musicVolume, sfx: preferences.sfxVolume);
     unawaited(audio.warmCombat(loadout.weapon));
+    if (expeditionMode) unawaited(audio.warmExpedition());
     if (expeditionMode || loadout.arena == ArenaType.breach) {
       unawaited(audio.warmSupply());
     }
@@ -1951,7 +1977,7 @@ class RegunGame extends FlameGame
         audio.pauseMusic(
           phase == GameplayState.paused || phase == GameplayState.gameOver,
         );
-        if (phase == GameplayState.powerup) {
+        if (phase == GameplayState.powerup && !expeditionMode) {
           audio.play(
             gameState.evolutionChoices.isNotEmpty ? 'fusion.wav' : 'level.wav',
           );
@@ -1980,6 +2006,10 @@ class RegunGame extends FlameGame
     _startRun(clearSave: resumeSnapshot == null);
     if (resumeSnapshot != null && restoreRun(resumeSnapshot!)) {
       if (expedition?.next != null) _enterCommittedExpeditionRoom();
+      if (expedition?.phase == ExpeditionPhase.reward) {
+        _replaceExpeditionWorld(myPlayer.position.clone());
+      }
+      combat.restoreAftershockCues();
       if (expedition?.terminal == true &&
           gameState.gameplayState != GameplayState.gameOver) {
         gameNotifier.finishExpedition();
@@ -2081,6 +2111,10 @@ class RegunGame extends FlameGame
     _fireKickTime = 0;
     _groundKickTime = 0;
     upgradePresentation.cancel();
+    _expeditionConfirmation = null;
+    expeditionRewardFocus = null;
+    expeditionThreatUnlocked = false;
+    _expeditionPassageCommitted = false;
     bossReveal.reset();
     mechanicalArrival.reset();
     confirmationHolding.value = false;
@@ -2373,6 +2407,7 @@ class RegunGame extends FlameGame
               'y': fire.position.y,
               'age': fire.age,
               'damage': fire.damage,
+              if (fire.expeditionSlag) 'expeditionSlag': true,
             },
       ],
       'defeatedBosses': defeatedBosses.toList(),
@@ -2549,6 +2584,15 @@ class RegunGame extends FlameGame
         await runStore.clear(expectedRunId: runId);
       } else {
         pauseGame();
+        if (crossingExpedition && _expeditionPassageCommitted) {
+          // Both copies already describe the committed destination.
+          saveIssue = null;
+          return;
+        }
+        if (crossingExpedition) {
+          // First entry has no pending door. Save at its playable spawn.
+          _advanceExpeditionPassage(.76, saveOnArrival: false);
+        }
         if (!await saveCheckpoint()) {
           saveIssue = 'Expedition could not be saved.';
         }
@@ -2578,6 +2622,8 @@ class RegunGame extends FlameGame
 
   bool restoreRun(Map<String, dynamic> snapshot) {
     upgradePresentation.cancel();
+    _expeditionConfirmation = null;
+    expeditionRewardFocus = null;
     bossReveal.reset();
     mechanicalArrival.reset();
     confirmationHolding.value = false;
@@ -2849,6 +2895,7 @@ class RegunGame extends FlameGame
         final fire = BurningGround(
           position: point(f['x'] as num, f['y'] as num),
           damage: (f['damage'] as num).toDouble().clamp(0, 10),
+          expeditionSlag: expeditionMode && f['expeditionSlag'] == true,
         );
         fire.age = (f['age'] as num).toDouble().clamp(0, 2.5);
         addFire(fire);
@@ -3934,6 +3981,9 @@ class RegunGame extends FlameGame
       resetInput();
       upgradePresentation.advanceHold(dt);
       confirmationHolding.value = presentationHeld;
+      if (!presentationHeld && expeditionMode) {
+        upgradePresentation.releaseImpact();
+      }
       if (!presentationHeld &&
           _upgradePulsePending &&
           gameState.gameplayState == GameplayState.playing) {
@@ -4102,6 +4152,22 @@ class RegunGame extends FlameGame
       }
       return;
     }
+    if (expeditionRewardFocus case final elapsed?) {
+      processLifecycleEvents();
+      if (gameState.gameplayState != GameplayState.playing) return;
+      final next = elapsed + dt;
+      if (next < expeditionRewardFocusDuration) {
+        expeditionRewardFocus = next;
+      } else {
+        expeditionRewardFocus = null;
+        confirmationHolding.value = false;
+        if (expedition?.phase == ExpeditionPhase.reward) {
+          _replaceExpeditionWorld(myPlayer.position.clone());
+        }
+        revision.value++;
+      }
+      return;
+    }
     if (expeditionSaving ||
         expeditionCommitFailed ||
         expeditionDropOffer ||
@@ -4224,7 +4290,11 @@ class RegunGame extends FlameGame
     }
     enemyTactics.rebuild(liveEnemies.where((e) => !isAirborneActor(e)));
     crowdOccupancy.rebuild(
-      [..._enemies, ...bosses].where((e) => !isAirborneActor(e)),
+      [..._enemies, ...bosses].where(
+        (e) =>
+            !isAirborneActor(e) &&
+            !(e is ExpeditionWalker && e.isLoaded && e.combatHealth.isDead),
+      ),
       crowdRadius,
     );
     var railSweeps = const <(Rect, Rect)>[];
@@ -4851,10 +4921,11 @@ class RegunGame extends FlameGame
         final radius = 130 + rank * 24.0;
         combat.expeditionBurst(
           myPlayer.position,
+          cue: ExpeditionCue.backlash,
           radius: radius,
           damage: 2.0 + rank * 2,
           targets: 4 + rank,
-          shove: 110,
+          shove: 85.0 + rank * 25,
         );
         if (run.fusions.contains(ExpeditionFusion.countermeasure)) {
           combat.expeditionScreen(myPlayer.position, radius);

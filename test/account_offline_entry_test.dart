@@ -104,7 +104,30 @@ void main() {
 
       expect(accountCalls, 1);
       expect(find.text('ARENA').hitTestable(), findsOneWidget);
+      expect(find.text('EXPEDITION').hitTestable(), findsOneWidget);
       expect(find.text('TRAINING').hitTestable(), findsOneWidget);
+      await tester.tap(find.text('EXPEDITION'));
+      RegunGame? outpost;
+      await tester.runAsync(() async {
+        for (var i = 0; i < 120; i++) {
+          await tester.pump(const Duration(milliseconds: 20));
+          final widgets = find.byType(RiverpodAwareGameWidget);
+          if (widgets.evaluate().isNotEmpty) {
+            outpost =
+                tester.widget<RiverpodAwareGameWidget>(widgets).game
+                    as RegunGame;
+            if (outpost!.stagingReady) break;
+          }
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        }
+      });
+      expect(outpost?.stagingReady, isTrue);
+      outpost!.pauseGame();
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('pause-menu-home')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('EXPEDITION').hitTestable(), findsOneWidget);
       await tester.tap(find.byKey(const Key('home-settings')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));

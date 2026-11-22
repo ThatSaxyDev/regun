@@ -14,12 +14,13 @@ class ExpeditionRelease {
 
   static const defaultStartingHealth = 6;
   static const bundled = ExpeditionRelease();
-  static const privateBuild = bool.fromEnvironment('REGUN_EXPEDITION');
   static ExpeditionRelease current = bundled;
 
   final int revision, pressure, repairPercent;
   final int? startingHealth;
   int get startingHearts => startingHealth ?? defaultStartingHealth;
+  // Kept in the signed release/checkpoint payload for hash compatibility.
+  // Expedition admission is part of the client and does not use this field.
   final bool enabled;
   String get hash => sha256
       .convert(
@@ -85,7 +86,7 @@ class ExpeditionRelease {
         await api.request('/expedition/v1/current'),
       );
     } on Object {
-      // Existing releases and the packaged private build work offline.
+      // Keep the last known balance. Bundled balance is always playable offline.
     }
   }
 }

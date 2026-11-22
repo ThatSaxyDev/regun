@@ -2,6 +2,9 @@
 
 **Implementation plan for creator review · 12 November 2026**
 
+> The current client includes Expedition on Home by default. The staged admission
+> and feature-flag references below describe the earlier pilot plan.
+
 **Expedition** is the working name for Regun’s flagship solo mode. Start at Rook’s shelter, fight through procedurally built rooms, choose what to fight for at each fork, defeat the boss at the end of each region, and bring one evolving build to a final victory. **Arena** is current endless solo survival. **Online** retains its multiplayer entry. Training remains available from the shelter.
 
 The approved direction is room-based progression, real entrances and exits, sealed combat, two visible reward destinations, procedural physical layouts, and several fights before every boss. The region order, boss assignments, boon counts, timing targets, name, and rollout below are proposed V1 decisions. This plan is the build brief for the subsequent implementation.

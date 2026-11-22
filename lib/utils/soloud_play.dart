@@ -2,6 +2,7 @@ import 'dart:ui' show Offset;
 
 import 'package:regun/data/loadout.dart';
 import 'package:regun/data/enemies.dart';
+import 'package:regun/systems/expedition_signature.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:logging/logging.dart';
@@ -91,6 +92,7 @@ class SoloudPlay {
         'enemy_scuttle.wav',
         'enemy_skitter_warn.wav',
         'enemy_arrival.wav',
+        'expedition_room_clear.wav',
         for (final kind in ['press', 'sluice', 'relay'])
           'machine_${kind}_charge.wav',
         'machine_press_hit.wav',
@@ -120,6 +122,19 @@ class SoloudPlay {
     } catch (_) {
       // Audio is optional when native initialization is unavailable.
     }
+  }
+
+  Future<void> warmExpedition() async {
+    if (!_soloud.isInitialized) return;
+    await Future.wait(
+      ExpeditionCue.values.map((cue) async {
+        try {
+          await _source(cue.sound);
+        } on Object {
+          _sources.remove(cue.sound);
+        }
+      }),
+    );
   }
 
   Future<void> warmSupply() async {
@@ -370,6 +385,8 @@ class SoloudPlay {
           ? 85
           : assetPath == 'upgrade_pulse.wav'
           ? 120
+          : assetPath.startsWith('signature_')
+          ? 100
           : assetPath == 'menu_move.wav' || assetPath == 'menu_back.wav'
           ? 85
           : assetPath == 'blast.wav'
@@ -413,6 +430,16 @@ class SoloudPlay {
             ? .38
             : assetPath == 'level.wav'
             ? .6
+            : assetPath == 'expedition_room_clear.wav'
+            ? .68
+            : assetPath == 'signature_fracture.wav' ||
+                  assetPath == 'signature_fuse.wav'
+            ? .78
+            : assetPath == 'signature_fusePrimer.wav' ||
+                  assetPath == 'signature_quickdrawChamber.wav'
+            ? .48
+            : assetPath.startsWith('signature_')
+            ? .66
             : assetPath == 'dash_burst.wav'
             ? .48
             : assetPath == 'upgrade_pulse.wav'

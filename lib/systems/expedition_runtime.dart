@@ -348,6 +348,10 @@ extension ExpeditionRuntime on RegunGame {
         if (!gameNotifier.applyExpeditionSupport(support)) return;
       } else if (id == 'repair') {
         gameNotifier.heal(2);
+        gameNotifier.publishExpeditionReward(
+          'expedition:repair',
+          awardedTier: 0,
+        );
       } else {
         final weapon = WeaponType.values.byName(id.substring(7));
         if (!await _changeRunWeapon(weapon, fromDrop: true)) return;
@@ -407,6 +411,8 @@ extension ExpeditionRuntime on RegunGame {
         }
       } else if (bosses.isEmpty &&
           !_enemies.any(_expeditionEnemyAlive) &&
+          !_expeditionWalkerShutdown &&
+          state.aftershocks.isEmpty &&
           !world.children.whereType<BossDeparture>().any(
             (actor) => !actor.isRemoving,
           )) {
@@ -429,9 +435,7 @@ extension ExpeditionRuntime on RegunGame {
                   ..shuffle(state.random(25));
             state.signatureDraft = ranks.take(2).toList();
           }
-          state.phase = ExpeditionPhase.reward;
-          _replaceExpeditionWorld(myPlayer.position.clone());
-          unawaited(commitExpedition());
+          _presentExpeditionReward(state);
         }
       }
       return;
@@ -522,7 +526,11 @@ extension ExpeditionRuntime on RegunGame {
       }
       return;
     }
-    if (_enemies.any(_expeditionEnemyAlive)) return;
+    if (_enemies.any(_expeditionEnemyAlive) ||
+        _expeditionWalkerShutdown ||
+        state.aftershocks.isNotEmpty) {
+      return;
+    }
     if (expeditionDropCanSkip && !_expeditionDropExitShown) {
       _expeditionDropExitShown = true;
       revision.value++;
@@ -614,8 +622,14 @@ extension ExpeditionRuntime on RegunGame {
         : draft.isEmpty
         ? const [PowerUp.salvage]
         : draft.take(3).toList();
+    _presentExpeditionReward(state);
+  }
+
+  void _presentExpeditionReward(Expedition state) {
     state.phase = ExpeditionPhase.reward;
-    _replaceExpeditionWorld(myPlayer.position.clone());
+    expeditionRewardFocus = 0;
+    confirmationHolding.value = true;
+    unawaited(audio.play('expedition_room_clear.wav'));
     unawaited(commitExpedition());
   }
 
@@ -623,6 +637,11 @@ extension ExpeditionRuntime on RegunGame {
       !actor.isRemoving &&
       !actor.isRemoved &&
       (!actor.isLoaded || !(actor as CombatEnemy).combatHealth.isDead);
+
+  bool get _expeditionWalkerShutdown =>
+      _enemies.whereType<ExpeditionWalker>().any(
+        (actor) => actor.isLoaded && !actor.isRemoving && actor.shuttingDown,
+      );
 
   void chooseExpeditionBoon(PowerUp choice) {
     final state = expedition!;
@@ -633,6 +652,7 @@ extension ExpeditionRuntime on RegunGame {
             ? (gameState.maxHealth * state.release.repairPercent / 100).ceil()
             : 1,
       );
+      gameNotifier.publishExpeditionReward('expedition:repair', awardedTier: 0);
     } else if (!gameNotifier.applyExpeditionBoon(choice)) {
       return;
     }
@@ -651,21 +671,25 @@ extension ExpeditionRuntime on RegunGame {
     if (signature == ExpeditionSignature.bloodTax) {
       run.signatureKills = min(
         run.signatureKills,
-        ExpeditionSignature.bloodTaxKills(rank + 1) - 1,
+        ExpeditionSignature.bloodTaxKills(rank + 1),
       );
     }
     if (signature == ExpeditionSignature.breachCharge) {
       run.breachChargeReady = true;
     }
     if (signature == ExpeditionSignature.coldSnap) run.coldSnapReady = true;
-    audio.play('fusion.wav');
+    gameNotifier.publishExpeditionReward(
+      'expedition:${signature.name}',
+      priorTier: rank,
+      awardedTier: rank + 1,
+    );
     _claimExpeditionReward();
   }
 
   void forgeExpeditionSynergy() {
     if (!_canClaimExpeditionReward || !expedition!.offersSynergy) return;
     expedition!.synergy = 1;
-    audio.play('fusion.wav');
+    gameNotifier.publishExpeditionReward('expedition:overclock');
     _claimExpeditionReward();
   }
 
@@ -675,7 +699,7 @@ extension ExpeditionRuntime on RegunGame {
       return;
     }
     run.fusions.add(fusion);
-    audio.play('fusion.wav');
+    gameNotifier.publishExpeditionReward('expedition:${fusion.name}');
     _claimExpeditionReward();
   }
 
@@ -693,15 +717,16 @@ extension ExpeditionRuntime on RegunGame {
       }
       combat.expeditionBurst(
         myPlayer.position,
+        cue: ExpeditionCue.thunder,
         radius: 190 + 35.0 * rank,
         damage: 1.4 + (run.generator >= 4 ? 1.4 : .8) * rank,
         targets: rank + 2,
-        lightning: true,
       );
     }
     if (run.signatures[ExpeditionSignature.shatterstep] case final rank?) {
       combat.expeditionBurst(
         myPlayer.position,
+        cue: ExpeditionCue.fracture,
         radius: 135 + rank * 24,
         damage: 3.0 + rank * 2,
         targets: 5 + rank,
@@ -709,11 +734,12 @@ extension ExpeditionRuntime on RegunGame {
         shatterFrozen: run.fusions.contains(ExpeditionFusion.brittleSteel),
       );
       if (run.fusions.contains(ExpeditionFusion.slagTrail)) {
-        addFire(BurningGround(position: myPlayer.position.clone(), damage: 2));
+        combat.expeditionSlag(myPlayer.position, 2);
       }
     }
     if (run.signatures.containsKey(ExpeditionSignature.quickdraw)) {
       gameNotifier.restorePrimaryUnits(1);
+      audio.play(ExpeditionCue.quickdrawChamber.sound);
       run.quickdrawReady = true;
       revision.value++;
     }
@@ -730,6 +756,7 @@ extension ExpeditionRuntime on RegunGame {
 
   bool get _canClaimExpeditionReward =>
       expedition!.phase == ExpeditionPhase.reward &&
+      expeditionRewardFocus == null &&
       !expeditionSaving &&
       !expeditionCommitFailed &&
       gameState.gameplayState == GameplayState.playing;
@@ -858,8 +885,9 @@ extension ExpeditionRuntime on RegunGame {
     resetInput();
     revision.value++;
     var saved = await runStore.writeRecovery(checkpoint());
+    var unlockedThreat = false;
     if (saved && state.terminal) {
-      saved = await ExpeditionProgress.shared.record(
+      final progress = await ExpeditionProgress.shared.record(
         _recordOwner,
         id,
         victory: state.phase == ExpeditionPhase.victory,
@@ -875,23 +903,31 @@ extension ExpeditionRuntime on RegunGame {
           ...state.fusions.map((fusion) => fusion.name),
         ],
       );
+      saved = progress.saved;
+      unlockedThreat = progress.unlockedThreat;
     }
     if (disposed || !isMounted || id != runId) return false;
     expeditionSaving = false;
     expeditionCommitFailed = !saved;
     saveIssue = saved ? null : 'Expedition could not be saved.';
     if (saved && state.terminal) {
+      expeditionThreatUnlocked = unlockedThreat;
       _settled = true;
       _settlementSaved = true;
     }
+    if (_expeditionConfirmation case final reward? when saved) {
+      _expeditionConfirmation = null;
+      _showUpgradeConfirmation(reward);
+    }
     if (saved && state.next != null) {
+      _expeditionPassageCommitted = true;
       expeditionPassage = 0;
     }
     revision.value++;
     return saved;
   }
 
-  void _advanceExpeditionPassage(double dt) {
+  void _advanceExpeditionPassage(double dt, {bool saveOnArrival = true}) {
     const midpoint = RegunGame.expeditionPassageMidpoint;
     const end = .76;
     final before = expeditionPassage!;
@@ -928,7 +964,8 @@ extension ExpeditionRuntime on RegunGame {
     if (after >= end) {
       gameNotifier.grantResumeGrace(milliseconds: 650);
       expeditionPassage = null;
-      unawaited(saveCheckpoint());
+      _expeditionPassageCommitted = false;
+      if (saveOnArrival) unawaited(saveCheckpoint());
       revision.value++;
     }
   }
@@ -950,6 +987,7 @@ extension ExpeditionRuntime on RegunGame {
     final state = expedition!;
     if (state.phase != ExpeditionPhase.victory) {
       state.phase = ExpeditionPhase.defeat;
+      state.aftershocks.clear();
     }
     final id = runId;
     // A terminal snapshot can restore results after a force close. Retry or

@@ -1253,18 +1253,20 @@ trim are walkable. Watch the current before a surge and check that Reduced
 Motion holds it still. Breach's open ground uses only floor detail and its
 landed supply pod for interior cover.
 
-## Expedition · private four-region playtest
+## Expedition · four-region campaign
 
 Open **Expedition** from the shelter to enter the Outpost. Fire at the
 target on the right to see hit damage. Walk up to the loadout bench on the
 left, then choose Open loadout and Equip. Approach the north gate and Deploy.
-The gate offers Continue if a run is saved. After a defeat or final boss
-clear, Return to Outpost brings you back here. A clear records the result
-and unlocks the next threat when available.
+Home offers Continue when a run is saved. After a defeat or final boss clear,
+the field report shows your route, time, kills and build. A first clear of a
+threat tier shows the next unlock. Return to Outpost brings you back to the bench.
 
 On a fresh run, watch your survivor walk through the first south gate before
 enemies spawn.
-Clear each room, claim its boon and walk through a north door. Watch for the
+Clear each room and listen for the mechanical release cue over the frozen
+arena. Claim a boon and watch the survivor's confirmation before moving on.
+Watch for the
 red lock lamp to change as the panels slide into the wall. The exit sign
 shows the reward family in the next room. Rook walks through the passage and
 emerges from the next room's south gate. Reduced Motion uses a short fade.
@@ -1286,12 +1288,13 @@ visit the Outpost. Deploying a new run replaces the checkpoint.
 
 The game test traverses all four regions with staged damage to verify the
 runtime path and settlement. Physical balance, pacing and presentation still
-need playtesting. Campaign progress is device-local. The server and admin
-implement release settings for admission, extra enemies and repair amount.
+need playtesting. Campaign progress is device-local. Expedition is available
+on Home in the standard build, including offline. Published balance settings
+apply to new runs. Suspended runs retain their pinned settings.
 Staging/deployment, run analytics and cloud progression remain separate work.
 
-Run locally with `make runExpedition DEVICE=macos` or build the signed phone app
-with `make buildExpeditionIOS`. Public admission defaults off.
+Run locally with `make runRelease DEVICE=macos` or build the phone app with
+`make buildIOS`.
 See [the V1 plan](REGUN_ROGUELITE_V1_PLAN.md) for the remaining scope.
 
 ### Expedition airdrops
@@ -1328,7 +1331,10 @@ enemy. Some rooms have pressure plates that warn before bursting. Try drawing
 enemies onto one. The four bosses enter at the center of tighter rooms and
 have more health. Walker can bring zero, one or two mini Walkers into the
 fight. Their spawn warnings stay clear of the center and of Walker. Walker’s
-attacks pass over its mini Walkers without damaging them. The boss health strip identifies the fight.
+attacks pass over its mini Walkers without damaging them. Watch escorts take
+the flank around the main chassis and plant their feet clear of cover. Destroy
+one to see it buckle, burst and leave a brief wreck. Let a main Walker rocket
+run out of flight to check its terminal explosion.
 
 Clear the first room and choose one of three signatures drawn from twelve.
 The named exits let you develop an existing signature or pursue another.
@@ -1342,7 +1348,17 @@ dash landings. Iron Curtain clears rounds on reload. Backlash answers health
 loss with a shove, and Countermeasure adds a projectile sweep. Quickdraw
 chambers a round and primes a shock on dash landing. Compare the frost shards,
 ground impact, thermal bursts, and the Blood Tax heal against crowded combat. Blood Tax restores one heart every
-70, 65 or 60 kills at ranks I, II and III.
+70, 65 or 60 kills at ranks I, II and III. If already at full health, the
+next kill while hurt spends the banked heal. Watch the counter and listen for
+the release.
+
+For Fuse Link, throw into a pack that can survive the grenade. Watch for the
+hot casing and a separate detonation. Test the same throw beside cover, and
+save and resume during the brief gap. Try Shatterstep on bare floor and in a
+pack, then use Brittle Steel to break a frozen enemy. For weak-point weapons,
+land a primed shot on a boss prop and check that the signature fires once.
+Hold WASD through a reward on Mac and check for silent movement input while the
+picker is active.
 
 Try the Outpost bench and gate with A/Cross or E and cancel each menu once.
 

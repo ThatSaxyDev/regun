@@ -4,12 +4,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:regun/data/loadout.dart';
 import 'package:regun/main.dart' show GameApp;
+import 'package:regun/systems/expedition_signature.dart';
 import 'package:regun/utils/soloud_play.dart';
 
 /// Runs on a native device: tests the real decoder/mixer, not mocked play calls.
@@ -23,7 +25,9 @@ void main() {
     final engine = SoLoud.instance;
     await tester.runAsync(() => engine.init());
     await tester.pumpWidget(
-      const GameApp(reviewHome: Scaffold(body: Text('Audio lifecycle'))),
+      const ProviderScope(
+        child: GameApp(reviewHome: Scaffold(body: Text('Audio lifecycle'))),
+      ),
     );
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     expect(engine.getGlobalVolume(), closeTo(1, .001));
@@ -71,7 +75,10 @@ void main() {
         engine.setMaxActiveVoiceCount(32);
         final audio = SoloudPlay()..configure(music: .6, sfx: .8);
 
-        Future<double> measure(Future<void> Function() play) async {
+        Future<double> measure(
+          Future<void> Function() play, {
+          bool requireFrames = true,
+        }) async {
           var sum = 0.0, count = 0;
           final sub = engine
               .startMixerOutputStream(format: MixerOutputFormat.pcmS16le)
@@ -95,12 +102,14 @@ void main() {
             await sub.cancel();
             engine.stopAll();
           }
-          expect(
-            count,
-            greaterThan(1000),
-            reason: 'Native audio callback stopped',
-          );
-          return sqrt(sum / count);
+          if (requireFrames) {
+            expect(
+              count,
+              greaterThan(1000),
+              reason: 'Native audio callback stopped',
+            );
+          }
+          return count == 0 ? 0 : sqrt(sum / count);
         }
 
         try {
@@ -124,9 +133,30 @@ void main() {
             await saveReport();
             debugPrint('NATIVE_AUDIO ${weapon.name} rms=$level');
           }
+          await audio.warmExpedition();
+          for (final cue in ExpeditionCue.values) {
+            final level = await measure(() => audio.play(cue.sound));
+            expect(level, greaterThan(.003), reason: '${cue.name} is silent');
+            (report['rms'] as Map<String, double>)[cue.sound] = level;
+            debugPrint('NATIVE_AUDIO ${cue.name} rms=$level');
+          }
           audio.configure(music: 0, sfx: 0);
-          final muted = await measure(() => audio.play('shot_shotgun_0.wav'));
+          final muted = await measure(
+            () => audio.play('shot_shotgun_0.wav'),
+            requireFrames: false,
+          );
           expect(muted, lessThan(.0001), reason: 'SFX mute is ignored');
+          final mutedSignature = await measure(
+            () => audio.play(ExpeditionCue.fracture.sound),
+            requireFrames: false,
+          );
+          expect(
+            mutedSignature,
+            lessThan(.0001),
+            reason: 'Signature ignores SFX mute',
+          );
+          (report['rms'] as Map<String, double>)['mutedSignature'] =
+              mutedSignature;
           (report['rms'] as Map<String, double>)['muted'] = muted;
           report['status'] = 'passed';
           await saveReport();

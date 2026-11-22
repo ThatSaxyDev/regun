@@ -752,15 +752,23 @@ class WalkerCombat {
   void _advanceRounds(double dt) {
     for (final round in rounds) {
       final before = round.position;
-      round.age += dt;
+      final rocket = round.kind == WalkerRoundKind.rocket;
+      final flight = rocket ? math.min(dt, math.max(0.0, 5 - round.age)) : dt;
+      round.age += flight;
       if (round.pursuing && clear(before, player, 0)) {
         round.heading = WalkerRig.turn(
           round.heading,
           heading(player - before),
-          1.8 * dt,
+          1.8 * flight,
         );
       }
-      final next = before + unit(round.heading) * round.speed * dt;
+      final travel = round.speed * flight;
+      final next =
+          before +
+          unit(round.heading) *
+              (rocket
+                  ? math.min(travel, math.max(0.0, 2600 - round.distance))
+                  : travel);
       round.distance += (next - before).distance;
       if (!clear(before, next, round.radius)) {
         // Binary clip at first solid contact; never burst beyond the wall.
@@ -823,9 +831,15 @@ class WalkerCombat {
         WalkerRoundKind.cannon => 1800.0,
         WalkerRoundKind.rocket => 2600.0,
       };
-      final expired = round.age >= 5 || round.distance > maxDistance;
+      final expired =
+          round.age >= 5 ||
+          (rocket
+              ? round.distance >= maxDistance - 1e-8
+              : round.distance > maxDistance);
       if (expired) round.removed = true;
-      if (round.removed && !expired && round.kind != WalkerRoundKind.rotary) {
+      if (round.removed &&
+          (rocket || !expired) &&
+          round.kind != WalkerRoundKind.rotary) {
         _blast(
           round.position,
           round.kind == WalkerRoundKind.rocket ? 110 : 85,

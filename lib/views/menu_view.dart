@@ -45,8 +45,6 @@ class _MenuViewState extends ConsumerState<MenuView>
   Timer? _policyTimer, _accountIssueTimer;
   String? _accountIssue;
   bool _foreground = true, _openingOnline = false, _openingExpedition = false;
-  bool get _canStartExpedition =>
-      ExpeditionRelease.privateBuild || ExpeditionRelease.current.enabled;
   Map<String, dynamic>? _saved, _expeditionSaved;
   bool _ready = false;
   bool _showPushPrompt = false;
@@ -173,11 +171,7 @@ class _MenuViewState extends ConsumerState<MenuView>
     final expedition = await RunStore.expedition.read(
       validate: RunCheckpoint.valid,
     );
-    unawaited(
-      ExpeditionRelease.refresh().then((_) {
-        if (mounted) setState(() {});
-      }),
-    );
+    unawaited(ExpeditionRelease.refresh());
     if (!mounted) return;
     final audio = ref.read(soloudPlayProvider);
     audio.configure(
@@ -330,9 +324,7 @@ class _MenuViewState extends ConsumerState<MenuView>
   }
 
   Future<void> _openExpedition() async {
-    if (!_canStartExpedition ||
-        _openingExpedition ||
-        _availabilityBlocksEntry) {
+    if (_openingExpedition || _availabilityBlocksEntry) {
       return;
     }
     _openingExpedition = true;
@@ -370,7 +362,7 @@ class _MenuViewState extends ConsumerState<MenuView>
           ),
         ),
       );
-      if (!mounted || startNew == null || !_canStartExpedition) return;
+      if (!mounted || startNew == null || _availabilityBlocksEntry) return;
       if (!startNew) {
         await _open(
           BaseView(
@@ -384,7 +376,6 @@ class _MenuViewState extends ConsumerState<MenuView>
         return;
       }
     }
-    if (!_canStartExpedition) return;
     final profile = LocalPreferences.shared.profile;
     await _open(
       BaseView(
@@ -426,7 +417,7 @@ class _MenuViewState extends ConsumerState<MenuView>
             reducedMotion: LocalPreferences.shared.reducedMotion,
             arenaSaved: _saved != null,
             onPlay: _play,
-            onExpedition: _canStartExpedition ? _openExpedition : null,
+            onExpedition: _openExpedition,
             expeditionSaved: _expeditionSaved != null,
             onlineAvailable: _online.enabled,
             onlineChecking:

@@ -78,3 +78,34 @@ def generate_arrival():
 
 
 generate_arrival()
+
+
+def generate_room_clear():
+    """Metal release and a short low resonance for the room reward hold."""
+    source = OUTPUT.parent.parent / "art/source/audio/movement/press.mp3"
+    filters = (
+        "[0:a]atrim=start=18.48:duration=0.29,asetpts=PTS-STARTPTS,"
+        "asetrate=37044,aresample=44100,highpass=f=109,lowpass=f=1900,"
+        "afade=t=in:d=0.007,afade=t=out:st=0.15:d=0.19[release];"
+        "[0:a]atrim=start=3.20:duration=0.43,asetpts=PTS-STARTPTS,"
+        "asetrate=35280,aresample=44100,highpass=f=92,lowpass=f=940,"
+        "afade=t=in:d=0.072,afade=t=out:st=0.19:d=0.34,adelay=56[tail];"
+        "sine=frequency=151:duration=0.36:sample_rate=44100,"
+        "afade=t=in:d=0.024,afade=t=out:st=0.03:d=0.32[body];"
+        "[release][tail][body]amix=inputs=3:weights='1 0.6 0.5':normalize=0,"
+        "acompressor=threshold=0.03:ratio=3:attack=1:release=40[out]"
+    )
+    pcm = subprocess.check_output([
+        "ffmpeg", "-v", "error", "-i", str(source), "-ar", str(RATE),
+        "-filter_complex", filters, "-map", "[out]", "-ac", "1", "-f", "s16le", "-",
+    ])
+    samples = [sample for sample, in struct.iter_unpack("<h", pcm)]
+    scale = 17100 / max(map(abs, samples))
+    with wave.open(str(OUTPUT / "expedition_room_clear.wav"), "wb") as out:
+        out.setparams((1, 2, RATE, 0, "NONE", "not compressed"))
+        out.writeframes(struct.pack(f"<{len(samples)}h", *(
+            round(sample * scale) for sample in samples
+        )))
+
+
+generate_room_clear()

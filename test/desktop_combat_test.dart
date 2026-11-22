@@ -125,6 +125,39 @@ void main() {
     game.update(1 / 60);
     expect(game.shotsFired, 1);
 
+    // Unbound keys are silent during live combat too.
+    expect(await tester.sendKeyEvent(LogicalKeyboardKey.digit7), isTrue);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.metaLeft);
+    expect(await tester.sendKeyEvent(LogicalKeyboardKey.keyK), isFalse);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.metaLeft);
+
+    // The freeze acknowledges both bound and unbound keys without acting.
+    game.expeditionPassage = 0;
+    game.resetInput();
+    expect(await tester.sendKeyRepeatEvent(LogicalKeyboardKey.keyW), isTrue);
+    for (final key in [
+      LogicalKeyboardKey.keyA,
+      LogicalKeyboardKey.keyS,
+      LogicalKeyboardKey.keyD,
+      LogicalKeyboardKey.keyR,
+      LogicalKeyboardKey.keyG,
+      LogicalKeyboardKey.digit7,
+      LogicalKeyboardKey.arrowLeft,
+      LogicalKeyboardKey.escape,
+      LogicalKeyboardKey.space,
+    ]) {
+      expect(await tester.sendKeyDownEvent(key), isTrue);
+      expect(await tester.sendKeyUpEvent(key), isTrue);
+    }
+    expect(game.movementIntent.isZero(), isTrue);
+    expect(game.gameState.reloading, isFalse);
+    expect(game.grenades.charges, game.grenades.capacity);
+    expect(game.gameState.gameplayState, GameplayState.playing);
+    expect(await tester.sendKeyUpEvent(LogicalKeyboardKey.keyW), isTrue);
+    game.expeditionPassage = null;
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyW);
+    expect(game.movementIntent.y, -1);
+
     double? recharge(String action) => tester
         .widget<LinearProgressIndicator>(
           find.byWidgetPredicate(

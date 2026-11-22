@@ -46,6 +46,17 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
   void initState() {
     super.initState();
     DesktopController.handlers.add(_controllerHandler);
+    HardwareKeyboard.instance.addHandler(_acknowledgeGameplayKeys);
+  }
+
+  // Flutter still dispatches to the focused menu. Acknowledge ordinary keys
+  // so macOS doesn't replay them after the game's handlers ignore them.
+  bool _acknowledgeGameplayKeys(KeyEvent _) {
+    final keyboard = HardwareKeyboard.instance;
+    return ModalRoute.of(context)?.isCurrent == true &&
+        !keyboard.isControlPressed &&
+        !keyboard.isMetaPressed &&
+        !keyboard.isAltPressed;
   }
 
   bool _controller(ControllerFrame? frame, {bool disconnected = false}) {
@@ -413,6 +424,7 @@ class _DesktopCombatSurfaceState extends State<DesktopCombatSurface> {
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_acknowledgeGameplayKeys);
     _releaseCursor();
     DesktopController.handlers.remove(_controllerHandler);
     _focus.dispose();

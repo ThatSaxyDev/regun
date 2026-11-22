@@ -48,7 +48,8 @@ class FreezeFocusView extends Component with HasGameReference<RegunGame> {
   @override
   void render(Canvas canvas) {
     final upgrade = game.upgradePresentation, reveal = game.bossReveal;
-    if (!upgrade.holding && !reveal.active) return;
+    final roomClear = game.expeditionRewardFocus;
+    if (!upgrade.holding && !reveal.active && roomClear == null) return;
     final target = game.myPlayer.position.clone();
     if (reveal.active && !reveal.reduced) {
       target.setZero();
@@ -57,8 +58,12 @@ class FreezeFocusView extends Component with HasGameReference<RegunGame> {
       }
       target.scale(1 / reveal.actors.length);
     }
-    final age = reveal.active ? reveal.elapsed : upgrade.elapsed;
-    final duration = reveal.active ? reveal.duration : upgrade.duration;
+    final age = reveal.active ? reveal.elapsed : roomClear ?? upgrade.elapsed;
+    final duration = reveal.active
+        ? reveal.duration
+        : roomClear != null
+        ? RegunGame.expeditionRewardFocusDuration
+        : upgrade.duration;
     final center = game.camera.viewfinder.localToGlobal(target).toOffset();
     FreezeFocus.paint(
       canvas,

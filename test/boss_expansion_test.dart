@@ -795,7 +795,9 @@ void main() {
           }
         }
       },
-      timeout: const Timeout(Duration(minutes: 3)),
+      // The Floodworks and Relay matrices exercise every weapon/survivor
+      // pairing and can each take about six minutes on a development Mac.
+      timeout: const Timeout(Duration(minutes: 9)),
     );
   }
 

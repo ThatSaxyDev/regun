@@ -221,31 +221,28 @@ void main() {
     },
   );
 
-  test(
-    'expired missiles retire silently rather than playing a launch-time blast',
-    () {
-      var blasts = 0;
-      final fight =
-          make(
-              signal: (event) {
-                if (event == WalkerSignal.blast) blasts++;
-              },
-            )
-            ..phase = WalkerPhase.recovery
-            ..player = const Offset(1000, 0);
-      final rocket = WalkerRound(
-        WalkerRoundKind.rocket,
-        const Offset(-800, 0),
-        math.pi,
-        aim: fight.player,
-      )..age = 4.999;
-      fight.rounds.add(rocket);
-      fight.advance(1 / 120);
-      expect(rocket.removed, isTrue);
-      expect(blasts, 0);
-      expect(fight.blasts, isEmpty);
-    },
-  );
+  test('expired cannon shells retire silently', () {
+    var blasts = 0;
+    final fight =
+        make(
+            signal: (event) {
+              if (event == WalkerSignal.blast) blasts++;
+            },
+          )
+          ..phase = WalkerPhase.recovery
+          ..player = const Offset(1000, 0);
+    final shell = WalkerRound(
+      WalkerRoundKind.cannon,
+      const Offset(-800, 0),
+      math.pi,
+      aim: fight.player,
+    )..age = 4.999;
+    fight.rounds.add(shell);
+    fight.advance(1 / 120);
+    expect(shell.removed, isTrue);
+    expect(blasts, 0);
+    expect(fight.blasts, isEmpty);
+  });
 
   test(
     'gun tracks in range without chassis turns, then commits to pursuit',
@@ -635,6 +632,38 @@ void main() {
         lessThanOrEqualTo(.2 * 1.8 + .001),
       );
       expect(rocket.position.dx, greaterThan(-400));
+    },
+  );
+
+  test(
+    'rocket lifetime and range each detonate once at the terminal point',
+    () {
+      for (final (age, distance) in [(4.997, 1600.0), (1.0, 2599.0)]) {
+        var blasts = 0;
+        final fight = make(
+          signal: (signal) {
+            if (signal == WalkerSignal.blast) blasts++;
+          },
+        )..phase = WalkerPhase.recovery;
+        fight.player = const Offset(800, 0);
+        final rocket =
+            WalkerRound(
+                WalkerRoundKind.rocket,
+                const Offset(300, 0),
+                0,
+                aim: fight.player,
+              )
+              ..age = age
+              ..distance = distance;
+        fight.rounds.add(rocket);
+        fight.advance(.02);
+        expect(fight.rounds, isEmpty);
+        expect(fight.blasts.single.position, rocket.position);
+        expect(rocket.position.dx, closeTo(age > 4 ? 301.17 : 301, .001));
+        expect(blasts, 1);
+        fight.advance(.02);
+        expect(blasts, 1);
+      }
     },
   );
 

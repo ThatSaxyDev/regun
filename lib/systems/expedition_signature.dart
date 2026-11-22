@@ -1,3 +1,92 @@
+import 'dart:ui';
+
+enum ExpeditionCue {
+  breach,
+  thunder,
+  flash,
+  frost,
+  fracture,
+  fuse,
+  blood,
+  deadeye,
+  curtain,
+  slag,
+  backlash,
+  quickdraw,
+  shatter,
+  fusePrimer,
+  quickdrawChamber;
+
+  String get sound => 'signature_$name.wav';
+}
+
+/// One committed second detonation. Its remaining time only ticks during combat.
+class ExpeditionAftershock {
+  ExpeditionAftershock({
+    required this.center,
+    required this.radius,
+    required this.damage,
+    required this.targets,
+    required this.shaped,
+    this.remaining = delay,
+  });
+
+  static const delay = .28;
+  static const limit = 8;
+  final Offset center;
+  final double radius, damage;
+  final int targets;
+  final bool shaped;
+  double remaining;
+
+  List<Object> toJson() => [
+    center.dx,
+    center.dy,
+    radius,
+    damage,
+    targets,
+    remaining,
+    shaped,
+  ];
+
+  factory ExpeditionAftershock.read(Object? raw) {
+    if (raw is! List ||
+        raw.length != 7 ||
+        raw.take(6).any((value) => value is! num || !value.isFinite) ||
+        raw[4] is! int ||
+        raw[6] is! bool) {
+      throw const FormatException('Invalid Fuse Link aftershock');
+    }
+    final center = Offset(
+      (raw[0] as num).toDouble(),
+      (raw[1] as num).toDouble(),
+    );
+    final radius = (raw[2] as num).toDouble(),
+        damage = (raw[3] as num).toDouble();
+    final targets = raw[4] as int, remaining = (raw[5] as num).toDouble();
+    if (center.dx.abs() > 4000 ||
+        center.dy.abs() > 4000 ||
+        radius <= 0 ||
+        radius > 410 ||
+        damage <= 0 ||
+        damage > 20 ||
+        targets < 5 ||
+        targets > 7 ||
+        remaining <= 0 ||
+        remaining > delay) {
+      throw const FormatException('Invalid Fuse Link aftershock');
+    }
+    return ExpeditionAftershock(
+      center: center,
+      radius: radius,
+      damage: damage,
+      targets: targets,
+      shaped: raw[6] as bool,
+      remaining: remaining,
+    );
+  }
+}
+
 /// A signature changes an existing combat action for the rest of this run.
 enum ExpeditionSignature {
   breachCharge(
@@ -27,12 +116,12 @@ enum ExpeditionSignature {
   ),
   fuseLink(
     'Fuse Link',
-    'Grenade blasts set off a second thermal burst.',
+    'Grenades leave a hot charge that bursts again a beat later.',
     'The second blast hits harder and reaches farther.',
   ),
   bloodTax(
     'Blood Tax',
-    'Restore one heart after 70 kills.',
+    'Earn a heal after 70 kills. At full health, it waits for a kill while hurt.',
     'Restore one heart after fewer kills.',
   ),
   deadeye(
@@ -74,7 +163,7 @@ enum ExpeditionSignature {
   static int bloodTaxKills(int rank) => 75 - 5 * rank;
 
   String descriptionAt(int rank) => this == bloodTax
-      ? 'Restore one heart every ${bloodTaxKills(rank)} kills.'
+      ? 'Earn a heal after ${bloodTaxKills(rank)} kills. Holds at full health.'
       : rank == 1
       ? description
       : upgrade;
