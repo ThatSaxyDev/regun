@@ -1,4 +1,5 @@
 import 'package:regun/notifiers/game_notifier.dart';
+import 'package:regun/systems/expedition_signature.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 
 extension UpgradeGlyph on PowerUp {
@@ -54,3 +55,20 @@ PixelGlyph fusionGlyph(String id) => switch (id) {
   'breachEngine' => PixelGlyph.round,
   _ => PixelGlyph.drone,
 };
+
+extension ExpeditionSignatureGlyph on ExpeditionSignature {
+  PixelGlyph get glyph => switch (this) {
+    ExpeditionSignature.breachCharge => PixelGlyph.shards,
+    ExpeditionSignature.thunderstep => PixelGlyph.bolt,
+    ExpeditionSignature.flashpoint => PixelGlyph.fire,
+    ExpeditionSignature.coldSnap => PixelGlyph.shards,
+    ExpeditionSignature.shatterstep => PixelGlyph.dash,
+    ExpeditionSignature.fuseLink => PixelGlyph.mine,
+    ExpeditionSignature.bloodTax => PixelGlyph.heart,
+    ExpeditionSignature.deadeye => PixelGlyph.crosshair,
+    ExpeditionSignature.ironCurtain => PixelGlyph.shield,
+    ExpeditionSignature.thermite => PixelGlyph.fire,
+    ExpeditionSignature.backlash => PixelGlyph.bounce,
+    ExpeditionSignature.quickdraw => PixelGlyph.round,
+  };
+}

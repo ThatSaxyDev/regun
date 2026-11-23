@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:regun/desktop/controller_menu.dart';
 import 'package:regun/desktop/desktop_display.dart';
 import 'package:regun/widgets/confirm_run_action.dart';
@@ -8,6 +10,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:regun/services/mac_store_promo.dart';
+import 'package:regun/services/online_availability.dart';
 import 'package:regun/theme/pixel_glyph.dart';
 import 'package:regun/theme/menu_focus.dart';
 import 'package:regun/utils/constants.dart';
@@ -34,11 +37,11 @@ class HomeMenu extends StatelessWidget {
     this.onExpedition,
     this.expeditionSaved = false,
     this.bestScore = 0,
-    this.onlineAvailable = false,
-    this.onlineChecking = false,
+    this.onlineState = OnlineAvailabilityState.disabled,
     this.pushPrompt,
   });
-  final bool ready, reducedMotion, onlineAvailable, onlineChecking;
+  final bool ready, reducedMotion;
+  final OnlineAvailabilityState onlineState;
   final int bestScore;
   final VoidCallback onPlay, onOnline, onTraining, onCollection, onSettings;
   final VoidCallback? onLeaderboards, onExpedition;
@@ -61,31 +64,62 @@ class HomeMenu extends StatelessWidget {
           : desktopMenu
           ? (box.maxWidth * .28).clamp(280.0, 360.0)
           : (box.maxWidth * .48).clamp(290.0, 470.0);
-      final scale = MediaQuery.textScalerOf(context).scale(12) / 12;
+      final textScaler = MediaQuery.textScalerOf(context);
+      final scale = textScaler.scale(12) / 12;
+      final sideInset = desktop && !portrait
+          ? (box.maxWidth * .065).clamp(24.0, 128.0)
+          : box.maxWidth > 700
+          ? 32.0
+          : 8.0;
+      final safe = MediaQuery.paddingOf(context);
+      final availableWidth = math.min(
+        panelWidth,
+        box.maxWidth -
+            math.max(16.0, safe.left) -
+            math.max(16.0, safe.right) -
+            2 * sideInset,
+      );
       final reduced = reducedMotion || MediaQuery.disableAnimationsOf(context);
       final online = _HomeAction(
         label: 'Online',
         quiet: desktopMenu,
-        detail: onlineChecking
-            ? 'CHECKING…'
-            : onlineAvailable
-            ? 'CO-OP / VERSUS'
-            : 'COMING SOON',
-        muted: !onlineAvailable,
-        onTap: !ready || onlineChecking
+        stackDetail:
+            scale > 1.25 && onlineState != OnlineAvailabilityState.enabled,
+        detail: switch (onlineState) {
+          OnlineAvailabilityState.checking => 'CHECKING…',
+          OnlineAvailabilityState.enabled => 'CO-OP / VERSUS',
+          OnlineAvailabilityState.disabled => 'COMING SOON',
+          OnlineAvailabilityState.unavailable => 'OFFLINE',
+        },
+        muted: onlineState != OnlineAvailabilityState.enabled,
+        onTap: !ready
             ? null
-            : onlineAvailable
-            ? onOnline
-            : () => showOnlineComingSoon(context),
+            : switch (onlineState) {
+                OnlineAvailabilityState.checking => null,
+                OnlineAvailabilityState.disabled => () => showOnlineComingSoon(
+                  context,
+                ),
+                OnlineAvailabilityState.enabled ||
+                OnlineAvailabilityState.unavailable => onOnline,
+              },
       );
       final leaderboards = _HomeAction(
         label: 'Leaderboards',
         quiet: desktopMenu,
         onTap: ready ? onLeaderboards : null,
       );
+      // Fit EXPEDITION at full text size with the plate's insets and row gap.
+      final modeWidth = 10 * (textScaler.scale(10) + .5) + 24;
+      final pairModes =
+          !desktop &&
+          onExpedition != null &&
+          availableWidth >= 2 * modeWidth + 8;
+      // Match title positions when either plate has a saved-run line.
+      final stackModeLabels = pairModes && (arenaSaved || expeditionSaved);
       final arena = _HomeAction(
         label: ready ? 'Arena' : 'Loading',
         detail: arenaSaved ? 'RUN SAVED' : null,
+        stackDetail: !desktop && (arenaSaved || stackModeLabels),
         primary: !arenaSaved,
         quiet: desktopMenu,
         onTap: ready ? onPlay : null,
@@ -93,6 +127,7 @@ class HomeMenu extends StatelessWidget {
       final expedition = _HomeAction(
         label: 'Expedition',
         detail: expeditionSaved ? 'RUN SAVED' : null,
+        stackDetail: !desktop && (expeditionSaved || stackModeLabels),
         quiet: desktopMenu,
         onTap: ready ? onExpedition : null,
       );
@@ -133,25 +168,39 @@ class HomeMenu extends StatelessWidget {
           }
         },
       );
+      final modeRow = Row(
+        spacing: 8,
+        crossAxisAlignment: stackModeLabels
+            ? CrossAxisAlignment.stretch
+            : CrossAxisAlignment.center,
+        children: [
+          Expanded(child: arena),
+          if (pairModes) Expanded(child: expedition),
+        ],
+      );
       final navigation = SizedBox(
         width: panelWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'REGUN',
-              key: const Key('home-title'),
-              style: TextStyle(
-                fontFamily: FontFam.pressStart,
-                fontSize: compact
-                    ? 24
-                    : desktop && !portrait
-                    ? (panelWidth * .13).clamp(36, 58)
-                    : 34,
-                height: 1.3,
-                letterSpacing: 3,
-                color: const Color(0xffeee5d4),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'REGUN',
+                key: const Key('home-title'),
+                style: TextStyle(
+                  fontFamily: FontFam.pressStart,
+                  fontSize: compact
+                      ? 24
+                      : desktop && !portrait
+                      ? (panelWidth * .13).clamp(36, 58)
+                      : 34,
+                  height: 1.3,
+                  letterSpacing: 3,
+                  color: const Color(0xffeee5d4),
+                ),
               ),
             ),
             const SizedBox(height: 6),
@@ -193,17 +242,9 @@ class HomeMenu extends StatelessWidget {
                 ],
               ),
             ] else ...[
-              Row(
-                spacing: 8,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(child: arena),
-                  if (!desktop && onExpedition != null)
-                    Expanded(child: expedition),
-                ],
-              ),
+              if (stackModeLabels) IntrinsicHeight(child: modeRow) else modeRow,
               const SizedBox(height: 10),
-              if (desktop && onExpedition != null) ...[
+              if (!pairModes && onExpedition != null) ...[
                 expedition,
                 const SizedBox(height: 10),
               ],
@@ -276,13 +317,7 @@ class HomeMenu extends StatelessWidget {
           SafeArea(
             minimum: const EdgeInsets.all(16),
             child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: desktop && !portrait
-                    ? (box.maxWidth * .065).clamp(24, 128)
-                    : box.maxWidth > 700
-                    ? 32
-                    : 8,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: sideInset),
               child: Column(
                 children: [
                   if (portrait) ...[
@@ -298,7 +333,12 @@ class HomeMenu extends StatelessWidget {
                           return SingleChildScrollView(
                             child: Padding(
                               padding: EdgeInsets.only(
-                                top: portrait ? 220 : 12,
+                                top: portrait
+                                    ? (box.maxHeight * .26 / scale).clamp(
+                                        72.0,
+                                        220.0,
+                                      )
+                                    : 12,
                                 bottom: 20,
                               ),
                               child: Align(
@@ -404,6 +444,7 @@ class _HomeAction extends ConsumerStatefulWidget {
     super.key,
     required this.label,
     this.detail,
+    this.stackDetail = false,
     this.onTap,
     this.primary = false,
     this.utility = false,
@@ -414,7 +455,7 @@ class _HomeAction extends ConsumerStatefulWidget {
   final String label;
   final String? detail;
   final VoidCallback? onTap;
-  final bool primary, utility, gear, muted, quiet;
+  final bool primary, utility, gear, muted, quiet, stackDetail;
   @override
   ConsumerState<_HomeAction> createState() => _HomeActionState();
 }
@@ -439,11 +480,48 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
         : widget.primary || widget.gear
         ? const Color(0xffedd2a1)
         : const Color(0xffd4c9b7);
+    final desktop = desktopInputAvailable;
     final scale = MediaQuery.textScalerOf(context).scale(12) / 12;
+    final label = Text(
+      widget.label.toUpperCase(),
+      textAlign: widget.utility ? TextAlign.center : TextAlign.left,
+      maxLines: desktop ? 1 : null,
+      overflow: desktop ? TextOverflow.ellipsis : null,
+      style: TextStyle(
+        fontFamily: widget.utility ? FontFam.orbitron : FontFam.pressStart,
+        fontSize: desktop && widget.primary
+            ? 13
+            : widget.utility
+            ? 11
+            : 10,
+        height: 1.5,
+        fontWeight: FontWeight.w700,
+        letterSpacing: .5,
+        color: ink,
+      ),
+    );
+    final detail =
+        widget.detail != null &&
+            (scale <= 1.25 ||
+                widget.stackDetail ||
+                widget.detail == 'RUN SAVED') &&
+            (!desktop || widget.quiet)
+        ? Text(
+            widget.detail!,
+            style: TextStyle(
+              fontFamily: FontFam.orbitron,
+              fontSize: 8,
+              letterSpacing: .6,
+              color: ink.withValues(alpha: .6),
+            ),
+          )
+        : null;
     return Semantics(
       button: true,
       enabled: enabled,
-      label: widget.muted ? '${widget.label}, coming soon' : widget.label,
+      label: widget.muted && widget.detail != null
+          ? '${widget.label}, ${widget.detail!.toLowerCase()}'
+          : widget.label,
       child: Tooltip(
         message: widget.gear ? widget.label : '',
         child: Material(
@@ -487,11 +565,7 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
                 ),
                 width: widget.gear ? 48 : null,
                 padding: EdgeInsets.symmetric(
-                  horizontal: desktopInputAvailable
-                      ? (widget.primary ? 16 : 12)
-                      : widget.utility
-                      ? 12
-                      : 12,
+                  horizontal: desktop && widget.primary ? 16 : 12,
                   vertical: desktopInputAvailable ? 8 : 12,
                 ),
                 child: Transform.translate(
@@ -505,71 +579,27 @@ class _HomeActionState extends ConsumerState<_HomeAction> {
                               painter: _SettingsGlyph(ink),
                             ),
                           )
-                        : Flex(
-                            direction:
-                                !desktopInputAvailable &&
-                                    widget.detail == 'RUN SAVED'
-                                ? Axis.vertical
-                                : Axis.horizontal,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                        : widget.stackDetail
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              label,
+                              if (detail != null) ...[
+                                const SizedBox(height: 2),
+                                detail,
+                              ],
+                            ],
+                          )
+                        : Row(
                             mainAxisAlignment: widget.utility
                                 ? MainAxisAlignment.center
                                 : MainAxisAlignment.spaceBetween,
                             children: [
-                              if (!desktopInputAvailable &&
-                                  widget.detail == 'RUN SAVED')
-                                Text(
-                                  widget.label.toUpperCase(),
-                                  style: TextStyle(
-                                    fontFamily: FontFam.pressStart,
-                                    fontSize: 10,
-                                    height: 1.5,
-                                    color: ink,
-                                  ),
-                                )
-                              else
-                                Flexible(
-                                  child: Text(
-                                    widget.label.toUpperCase(),
-                                    textAlign: widget.utility
-                                        ? TextAlign.center
-                                        : TextAlign.left,
-                                    maxLines: desktopInputAvailable ? 1 : null,
-                                    overflow: desktopInputAvailable
-                                        ? TextOverflow.ellipsis
-                                        : null,
-                                    style: TextStyle(
-                                      fontFamily: widget.utility
-                                          ? FontFam.orbitron
-                                          : FontFam.pressStart,
-                                      fontSize:
-                                          desktopInputAvailable &&
-                                              widget.primary
-                                          ? 13
-                                          : widget.utility
-                                          ? 11
-                                          : 10,
-                                      height: 1.5,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: .5,
-                                      color: ink,
-                                    ),
-                                  ),
-                                ),
-                              if (widget.detail != null &&
-                                  (scale <= 1.25 ||
-                                      widget.detail == 'RUN SAVED') &&
-                                  (!desktopInputAvailable || widget.quiet)) ...[
+                              Flexible(child: label),
+                              if (detail != null) ...[
                                 const SizedBox(width: 12),
-                                Text(
-                                  widget.detail!,
-                                  style: TextStyle(
-                                    fontFamily: FontFam.orbitron,
-                                    fontSize: 8,
-                                    letterSpacing: .6,
-                                    color: ink.withValues(alpha: .6),
-                                  ),
-                                ),
+                                detail,
                               ],
                             ],
                           ),

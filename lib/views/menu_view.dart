@@ -137,7 +137,7 @@ class _MenuViewState extends ConsumerState<MenuView>
         }
         if (!account.ready || !account.attached || !mounted) return;
         await _open(const OnlineView());
-      } else {
+      } else if (_online.state == OnlineAvailabilityState.disabled) {
         showOnlineComingSoon(context);
       }
     } on AccountError {
@@ -419,10 +419,9 @@ class _MenuViewState extends ConsumerState<MenuView>
             onPlay: _play,
             onExpedition: _openExpedition,
             expeditionSaved: _expeditionSaved != null,
-            onlineAvailable: _online.enabled,
-            onlineChecking:
-                _openingOnline ||
-                _online.state == OnlineAvailabilityState.checking,
+            onlineState: _openingOnline
+                ? OnlineAvailabilityState.checking
+                : _online.state,
             onOnline: _openOnline,
             onTraining: () async {
               await _open(const LoadoutView(training: true));

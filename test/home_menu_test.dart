@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:regun/services/online_availability.dart';
 import 'package:regun/utils/soloud_play.dart';
 import 'package:regun/widgets/home_menu.dart';
 import 'package:regun/widgets/home_artwork.dart';
@@ -81,7 +82,7 @@ void main() {
                 builder: (context) => HomeMenu(
                   ready: true,
                   reducedMotion: true,
-                  onlineAvailable: true,
+                  onlineState: OnlineAvailabilityState.enabled,
                   arenaSaved: true,
                   onPlay: () {},
                   onOnline: () {},
@@ -199,7 +200,9 @@ void main() {
                     reducedMotion: true,
                     onPlay: () => continueCount++,
                     onOnline: () {},
+                    onlineState: OnlineAvailabilityState.enabled,
                     arenaSaved: true,
+                    onExpedition: () {},
                     onTraining: () {},
                     onCollection: () {},
                     onSettings: () => settings++,
@@ -283,7 +286,6 @@ void main() {
           home: Scaffold(
             body: HomeMenu(
               ready: true,
-              onlineAvailable: false,
               reducedMotion: true,
               onPlay: () {},
               onOnline: () => online++,
@@ -337,7 +339,7 @@ void main() {
               body: HomeMenu(
                 ready: true,
                 reducedMotion: true,
-                onlineAvailable: true,
+                onlineState: OnlineAvailabilityState.enabled,
                 onPlay: () {},
                 onOnline: () => online++,
                 onTraining: () {},
@@ -480,46 +482,98 @@ void main() {
     },
   );
 
-  testWidgets(
-    'private Expedition is reachable alongside Arena Continue on iPhone',
-    (tester) async {
-      tester.view.physicalSize = const Size(844, 390);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      var opened = false;
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
-          child: MaterialApp(
-            home: Scaffold(
-              body: HomeMenu(
-                ready: true,
-                reducedMotion: true,
-                expeditionSaved: true,
-                onExpedition: () => opened = true,
-                arenaSaved: true,
-                onPlay: () {},
-                onOnline: () {},
-                onTraining: () {},
-                onCollection: () {},
-                onSettings: () {},
+  testWidgets('iPhone mode buttons keep titles and saved details aligned', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    var openedArena = 0;
+    var openedExpedition = 0;
+    const phoneSafe = EdgeInsets.fromLTRB(47, 0, 47, 21);
+    for (final (size, safe, scale, paired) in [
+      (const Size(844, 390), phoneSafe, 1.0, true),
+      (const Size(844, 390), phoneSafe, 2.0, false),
+      (const Size(568, 320), EdgeInsets.zero, 1.5, false),
+      (const Size(320, 568), EdgeInsets.zero, 2.0, false),
+      (const Size(1024, 768), EdgeInsets.zero, 2.0, true),
+    ]) {
+      tester.view.physicalSize = size;
+      for (final (arenaSaved, expeditionSaved) in [
+        (false, false),
+        (true, false),
+        (false, true),
+        (true, true),
+      ]) {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [soloudPlayProvider.overrideWithValue(_Quiet())],
+            child: MaterialApp(
+              key: ValueKey((size, scale)),
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(padding: safe, textScaler: TextScaler.linear(scale)),
+                child: child!,
+              ),
+              home: Scaffold(
+                body: HomeMenu(
+                  ready: true,
+                  reducedMotion: true,
+                  arenaSaved: arenaSaved,
+                  expeditionSaved: expeditionSaved,
+                  onlineState: OnlineAvailabilityState.unavailable,
+                  onPlay: () => openedArena++,
+                  onExpedition: () => openedExpedition++,
+                  onOnline: () {},
+                  onTraining: () {},
+                  onCollection: () {},
+                  onSettings: () {},
+                ),
               ),
             ),
           ),
-        ),
-      );
-      expect(find.text('RUN SAVED').hitTestable(), findsNWidgets(2));
-      expect(
-        tester.getCenter(find.text('ARENA')).dy,
-        tester.getCenter(find.text('EXPEDITION')).dy,
-      );
-      final expedition = find.text('EXPEDITION').hitTestable();
-      expect(expedition, findsOneWidget);
-      await tester.tap(expedition);
-      expect(opened, isTrue);
-      expect(tester.takeException(), isNull);
-    },
-    variant: const TargetPlatformVariant({TargetPlatform.iOS}),
-  );
+        );
+        final arena = find.text('ARENA');
+        final expedition = find.text('EXPEDITION');
+        final online = find.text('ONLINE');
+        final saved = find.text('RUN SAVED');
+        final arenaRect = tester.getRect(arena);
+        final expeditionRect = tester.getRect(expedition);
+        expect(arenaRect.left, tester.getRect(online).left);
+        if (paired) {
+          expect(arenaRect.top, expeditionRect.top);
+        } else {
+          expect(expeditionRect.left, arenaRect.left);
+          expect(expeditionRect.top, greaterThan(arenaRect.bottom));
+        }
+        expect(
+          saved.hitTestable(),
+          findsNWidgets((arenaSaved ? 1 : 0) + (expeditionSaved ? 1 : 0)),
+          reason:
+              '$size / $scale / Arena $arenaSaved / Expedition $expeditionSaved',
+        );
+        if (arenaSaved) {
+          expect(tester.getRect(saved.first).left, arenaRect.left);
+        }
+        if (expeditionSaved) {
+          expect(tester.getRect(saved.last).left, expeditionRect.left);
+        }
+        expect(arena.hitTestable(), findsOneWidget, reason: '$size / $scale');
+        expect(
+          expedition.hitTestable(),
+          findsOneWidget,
+          reason: '$size / $scale',
+        );
+        await tester.tap(arena);
+        await tester.tap(expedition);
+        expect(tester.takeException(), isNull);
+      }
+      final offline = find.text('OFFLINE');
+      await tester.ensureVisible(offline);
+      expect(offline.hitTestable(), findsOneWidget);
+    }
+    expect(openedArena, 20);
+    expect(openedExpedition, 20);
+  }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 }

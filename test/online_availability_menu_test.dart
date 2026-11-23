@@ -23,16 +23,17 @@ class _Quiet extends SoloudPlay {
 
 void main() {
   testWidgets(
-    'pending policy leaves solo usable and remote off updates the same Home',
+    'Home distinguishes online checks, connection failures and a server disable',
     (tester) async {
       SharedPreferences.setMockInitialValues({});
       tester.view.physicalSize = const Size(844, 390);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      var pending = Completer<http.Response>();
+      final pending = Completer<http.Response>();
+      Future<http.Response> Function() respond = () => pending.future;
       final policy = OnlineAvailability(
-        client: () => MockClient((_) => pending.future),
+        client: () => MockClient((_) => respond()),
       );
       addTearDown(policy.dispose);
       await tester.runAsync(() async {
@@ -75,20 +76,35 @@ void main() {
       });
       await tester.pumpAndSettle();
       expect(find.text('CO-OP / VERSUS'), findsOneWidget);
-      pending = Completer<http.Response>();
-      await tester.runAsync(() async {
-        final recheck = policy.refresh();
-        pending.complete(
-          http.Response('{"schemaVersion":1,"onlinePlay":false}', 200),
-        );
-        await recheck;
-      });
+
+      respond = () async =>
+          http.Response('{"schemaVersion":1,"onlinePlay":false}', 200);
+      await tester.runAsync(policy.refresh);
       await tester.pumpAndSettle();
+      expect(policy.state, OnlineAvailabilityState.disabled);
       expect(find.text('COMING SOON'), findsOneWidget);
       await tester.tap(find.text('ONLINE'));
       await tester.pumpAndSettle();
       expect(find.byType(Dialog), findsOneWidget);
       expect(find.text('ARENA'), findsOneWidget);
+      await tester.tap(find.text('GOT IT'));
+      await tester.pumpAndSettle();
+      respond = () async => http.Response('Service unavailable', 503);
+      await tester.runAsync(policy.refresh);
+      await tester.pumpAndSettle();
+      expect(find.text('OFFLINE'), findsOneWidget);
+      expect(find.text('COMING SOON'), findsNothing);
+
+      late Completer<http.Response> retry;
+      respond = () => (retry = Completer<http.Response>()).future;
+      await tester.tap(find.text('ONLINE'));
+      await tester.pump();
+      expect(find.text('CHECKING…'), findsOneWidget);
+      expect(find.text('ARENA').hitTestable(), findsOneWidget);
+      retry.complete(http.Response('Service unavailable', 503));
+      await tester.pumpAndSettle();
+      expect(find.text('OFFLINE'), findsOneWidget);
+      expect(find.byType(Dialog), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );

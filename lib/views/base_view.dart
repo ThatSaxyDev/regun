@@ -2225,15 +2225,29 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
             elapsed: runTime(state.survivalSeconds),
             kills: state.kills,
             buildEntries: [
-              if (run.hasSynergy) (name: 'Overclock', rank: null),
+              if (run.hasSynergy)
+                (name: 'Overclock', rank: null, glyph: PixelGlyph.link),
               for (final fusion in run.fusions)
-                (name: fusion.title, rank: null),
+                (name: fusion.title, rank: null, glyph: PixelGlyph.link),
               for (final recipe in fusionRecipes)
-                if (state.fused(recipe.id)) (name: recipe.title, rank: null),
+                if (state.fused(recipe.id))
+                  (
+                    name: recipe.title,
+                    rank: null,
+                    glyph: fusionGlyph(recipe.id),
+                  ),
               for (final entry in run.signatures.entries)
-                (name: entry.key.title, rank: '×${entry.value}'),
+                (
+                  name: entry.key.title,
+                  rank: '×${entry.value}',
+                  glyph: entry.key.glyph,
+                ),
               for (final entry in state.ranks.entries)
-                (name: entry.key.title, rank: '×${entry.value}'),
+                (
+                  name: entry.key.title,
+                  rank: '×${entry.value}',
+                  glyph: entry.key.glyph,
+                ),
             ],
             threatUnlocked: _myGame.expeditionThreatUnlocked,
             saving: _myGame.expeditionSaving,
@@ -2423,32 +2437,7 @@ class _BaseViewState extends State<BaseView> with WidgetsBindingObserver {
                                     ),
                                     _ => _brass,
                                   },
-                                  glyph: switch (signature) {
-                                    ExpeditionSignature.breachCharge =>
-                                      PixelGlyph.shards,
-                                    ExpeditionSignature.thunderstep =>
-                                      PixelGlyph.bolt,
-                                    ExpeditionSignature.flashpoint =>
-                                      PixelGlyph.fire,
-                                    ExpeditionSignature.coldSnap =>
-                                      PixelGlyph.shards,
-                                    ExpeditionSignature.shatterstep =>
-                                      PixelGlyph.dash,
-                                    ExpeditionSignature.fuseLink =>
-                                      PixelGlyph.mine,
-                                    ExpeditionSignature.bloodTax =>
-                                      PixelGlyph.heart,
-                                    ExpeditionSignature.deadeye =>
-                                      PixelGlyph.crosshair,
-                                    ExpeditionSignature.ironCurtain =>
-                                      PixelGlyph.shield,
-                                    ExpeditionSignature.thermite =>
-                                      PixelGlyph.fire,
-                                    ExpeditionSignature.backlash =>
-                                      PixelGlyph.bounce,
-                                    ExpeditionSignature.quickdraw =>
-                                      PixelGlyph.round,
-                                  },
+                                  glyph: signature.glyph,
                                 ),
                               for (final recipe in fusionRecipes)
                                 if (run.capstones.contains(recipe.id))
